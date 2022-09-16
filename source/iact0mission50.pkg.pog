@@ -1,9 +1,9 @@
 package iAct0Mission50;
 
 uses Debug,
-     String,
-     Set,
      List,
+     Set,
+     String,
      Global,
      Sim,
      Group,
@@ -18,6 +18,7 @@ uses Debug,
      iDockport,
      iLagrangePoint,
      iAI,
+     iBackToBase,
      GUI,
      iBaseGUI,
      iComms,
@@ -115,30 +116,26 @@ task local_function_0()
 
 hship local_function_1( hfaction faction_ )
 {
-	hship ship;
+	hship shipTugArmedWeak;
 	
-	switch ( Math.RandomInt( 0, 2 ) )
+	switch ( Math.RandomInt( 0, 1 ) )
 	{
 		case 0:
-			ship = iShip.Create( "ini:/sims/ships/independent/tug_armed", iShipCreation.ShipName( "General", -1 ) );
-			iSim.SetFaction( ship, faction_ );
-			iPilotSetup.GenericAggressive( ship );
+			shipTugArmedWeak = iShip.Create( "ini:/sims/ships/independent/tug_armed_weak", iShipCreation.ShipName( "General", -1 ) );
+			iSim.SetFaction( shipTugArmedWeak, faction_ );
+			iPilotSetup.GenericAggressive( shipTugArmedWeak );
+			iShip.SetPilotSkillLevel( shipTugArmedWeak, 0.30 );
 			break;
 		
 		case 1:
-			ship = iShip.Create( "ini:/sims/ships/independent/puffin_armed", iShipCreation.ShipName( "General", -1 ) );
-			iSim.SetFaction( ship, faction_ );
-			iPilotSetup.GenericAggressive( ship );
-			break;
-		
-		case 2:
-			ship = iShip.Create( "ini:/sims/ships/independent/truck_missile_carrier", iShipCreation.ShipName( "General", -1 ) );
-			iSim.SetFaction( ship, faction_ );
-			iPilotSetup.GenericAggressive( ship );
+			shipTugArmedWeak = iShip.Create( "ini:/sims/ships/independent/puffin_armed", iShipCreation.ShipName( "General", -1 ) );
+			iSim.SetFaction( shipTugArmedWeak, faction_ );
+			iPilotSetup.GenericAggressive( shipTugArmedWeak );
+			iShip.SetPilotSkillLevel( shipTugArmedWeak, 0.30 );
 			break;
 	}
 	
-	return ship;
+	return shipTugArmedWeak;
 }
 
 hgroup local_function_3( hmapentity mapentity_, hgroup group_0_ )
@@ -264,6 +261,7 @@ task local_function_7( hship ship_, hmapentity mapentity_, hstate state_ )
 					iAI.PurgeOrders( ship_ );
 					iCutsceneUtilities.HandleAbort( start local_function_4( mapentity_, group_0 ) );
 					iObjectives.Add( "a0_m50_objectives_sneak" );
+					iBackToBase.Inhibit();
 				}
 				
 				gReactorHandle = Sim.Cast( Global.Handle( "g_reactor_handle" ) );
@@ -374,6 +372,7 @@ task local_function_7( hship ship_, hmapentity mapentity_, hstate state_ )
 				iAI.PurgeOrders( group_0 );
 				Group.Destroy( group_0, false );
 				Group.Destroy( group_1, true );
+				iBackToBase.Allow();
 				iConversation.OneLiner( none, "name_clay", "a0_m50_dialogue_clay_well_done" );
 				State.SetProgress( state_, 8 );
 				return;
@@ -415,7 +414,7 @@ task MissionHandler()
 	
 	schedule
 	{
-		every 2.0:
+		every 1.0:
 		{
 			if ( (Sim.DistanceBetween( playerShip, junkyard ) < 350000.0) && (!local_0 && (State.Progress( taskState ) != 2)) )
 			{
@@ -430,34 +429,37 @@ task MissionHandler()
 			
 			if ( State.Progress( taskState ) == 8 )
 			{
-				if ( State.Progress( taskState ) != 100 )
+				atomic
 				{
-					Global.SetBool( "g_act0_recovered_reactor", true );
-					debug Debug.PrintString( "iAct0_Mission50.MissionHandler : Enabling base buttons.\n" );
-					iBaseGUI.SetTradeScreenEnabled( true );
-					iBaseGUI.SetRecyclingScreenEnabled( true );
-					iBaseGUI.SetManufacturingScreenEnabled( true );
-				}
-				else
-				{
-					atomic
+					if ( State.Progress( taskState ) != 100 )
 					{
-						Global.SetBool( "g_skip_locked", false );
+						Global.SetBool( "g_act0_recovered_reactor", true );
+						debug Debug.PrintString( "iAct0_Mission50.MissionHandler : Enabling base buttons.\n" );
+						iBaseGUI.SetTradeScreenEnabled( true );
+						iBaseGUI.SetRecyclingScreenEnabled( true );
+						iBaseGUI.SetManufacturingScreenEnabled( true );
+					}
+					else
+					{
+						atomic
+						{
+							Global.SetBool( "g_skip_locked", false );
+						}
+						
+						Task.Detach( start local_function_0() );
+						local_function_8();
+						iScore.GotoRestartPoint();
 					}
 					
-					Task.Detach( start local_function_0() );
-					local_function_8();
-					iScore.GotoRestartPoint();
+					iSim.SetStandardSensorVisibility( iSim.Cast( junkyard ), true );
+					iUtilities.RemoveMissionRestart();
+					State.Destroy( Task.Current() );
+					iMissionTracker.RemoveMission( Task.Current() );
+					Text.Remove( "csv:/text/act_0/act0_mission50" );
+					iStation.RemoveReactiveException( iHabitat.Cast( junkyard ) );
+					iRangeCheck.RemoveTrafficException( iMapEntity.Cast( junkyard ) );
+					return;
 				}
-				
-				iSim.SetStandardSensorVisibility( iSim.Cast( junkyard ), true );
-				iUtilities.RemoveMissionRestart();
-				State.Destroy( Task.Current() );
-				iMissionTracker.RemoveMission( Task.Current() );
-				Text.Remove( "csv:/text/act_0/act0_mission50" );
-				iStation.RemoveReactiveException( iHabitat.Cast( junkyard ) );
-				iRangeCheck.RemoveTrafficException( iMapEntity.Cast( junkyard ) );
-				return;
 			}
 		}
 	}

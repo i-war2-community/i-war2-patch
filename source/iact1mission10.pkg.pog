@@ -42,8 +42,8 @@ uses Debug,
      iRangeCheck,
      iStartSystem,
      INIFile,
-     Math,
      iCargo,
+     Math,
      iCargoScript,
      iShipCreation,
      iTrafficCreation,
@@ -584,6 +584,7 @@ task local_function_13( hmapentity mapentity_, hstate state_ )
 	}
 	
 	iCutsceneUtilities.HandleAbort( start local_function_7( playerShip, group, shipTruck, iSim.Cast( mapentity_ ) ) );
+	Sim.SetCollision( shipTruck, true );
 	iShip.RemovePilot( shipTruck );
 	
 	atomic

@@ -1,4 +1,4 @@
-package ideathmatch;
+package iminetag;
 
 uses Debug,
      GUI,
@@ -14,23 +14,28 @@ uses Debug,
      Object,
      Task,
      Text,
-     MapEnumerations,
-     iFaction,
      iMapEntity,
      iSim,
      iBody,
      iHabitat,
      iShip,
+     iLagrangePoint,
+     Subsim,
+     iDockport,
+     iAI,
+     MapEnumerations,
+     iFaction,
      iBotPak,
      iConversation,
      iDirector,
      iFactionScript,
+     iGUI,
      iGame,
      iHUD,
      iMPUtils,
      iMap,
      iMultiplay,
-     iMultiplayGUI;
+     iRemotePilot;
 
 provides ServerMain,
          ServerExit,
@@ -59,40 +64,55 @@ provides ServerMain,
          ClientDoUndock,
          ClientScores,
          ClientDoScores,
+         ScoreScreenQuitButton,
+         ScoreScreenBackButton,
          WeaponAmmoPowerUp,
          WeaponAmmoPowerUp,
          HealthPowerUp,
          SpeedPowerUp,
          SpeedPowerDown,
          PlayerDeath,
-         BotDeath;
+         BotDeath,
+         PodDeath,
+         PodDeathUntag,
+         ClientCargoDock,
+         ClientPodDeath;
 
 prototype WeaponAmmoPowerUp( hsim param_0_, hsim param_1_ );
 prototype SpeedPowerUp( hsim param_0_, hsim param_1_ );
 prototype SpeedPowerDown( hsim param_0_, hsim param_1_ );
 prototype HealthPowerUp( hsim param_0_, hsim param_1_ );
-prototype local_function_2( hship ship_ );
+prototype local_function_4( hship ship_ );
 prototype local_function_0( hship ship_ );
-prototype local_function_5( hship ship_0_, hship ship_1_ );
+prototype local_function_2( hship ship_ );
+prototype local_function_11( hship ship_0_, hship ship_1_ );
 prototype ServerOnUpdateScores();
 prototype ServerOnEndGame();
 prototype ServerOnUserMessage( int param_0_, hsim param_1_, hsim param_2_, string param_3_ );
 prototype ServerPlayerLeave( hsim param_0_ );
-prototype task local_function_1( hsim param_0_, string param_1_ );
+prototype task local_function_3( hsim param_0_, string param_1_ );
+prototype local_function_17();
+prototype local_function_18();
+prototype local_function_1( hsim param_0_ );
+prototype local_function_19( hisim param_0_ );
 prototype PlayerDeath( hsim param_0_ );
 prototype ServerPlayerEnter( hsim param_0_ );
-prototype task local_function_3( hsim param_0_, float param_1_, float param_2_ );
+prototype task local_function_7( hsim param_0_, float param_1_, float param_2_ );
 prototype ServerExit();
 prototype ServerMain();
 prototype ClientScores();
+prototype ScoreScreenBackButton();
+prototype ScoreScreenQuitButton();
+prototype hwindow local_function_9( int param_0_, int param_1_, int param_2_, hwindow window_0_, string param_4_, string param_5_ );
+prototype local_function_10();
 prototype ClientGUI();
 prototype ClientRespawn( hship ship_ );
 prototype ClientPlayerEnter( hobject param_0_ );
 prototype ClientPlayerLeave();
-prototype task local_function_9( hsim param_0_, float param_1_, float param_2_ );
-prototype task local_function_8( float param_0_ );
-prototype task local_function_6( hship ship_ );
-prototype local_function_4( hgroup group_, hship ship_0_ );
+prototype task local_function_16( hsim param_0_, float param_1_, float param_2_ );
+prototype task local_function_14( float param_0_ );
+prototype task local_function_12( hship ship_ );
+prototype local_function_8( hgroup group_, hship ship_0_ );
 prototype task BotDeath( hsim param_0_ );
 prototype ClientPlayerSay();
 prototype ClientPlayerTeamSay();
@@ -101,13 +121,20 @@ prototype ClientDefaultTaunt1();
 prototype ClientDefaultTaunt2();
 prototype ClientDefaultTaunt3();
 prototype ClientDefaultTaunt4();
-prototype task local_function_7( hisim param_0_, hship ship_ );
+prototype task local_function_13( hisim param_0_, hship ship_ );
+prototype ClientCargoDock( hobject param_0_ );
+prototype ClientPodDeath( hsim param_0_ );
 prototype ClientPlayerKilled();
 prototype ClientOpponentKilled();
 prototype ClientEndGame( int param_0_, bool param_1_ );
 prototype ClientDoUndock();
 prototype ClientDoScores();
-prototype ClientOnUserMessage( int param_0_, hobject param_1_, hobject param_2_, int param_3_ );
+prototype ClientOnUserMessage( int param_0_, hobject param_1_, hsim param_2_, string param_3_ );
+prototype local_function_15( list localList_, hisim param_1_, bool param_2_ );
+prototype task PodDeath( hobject param_0_ );
+prototype task PodDeathUntag( hobject param_0_ );
+prototype local_function_5( hgroup group_0_, list localList_ );
+prototype task local_function_6();
 prototype ClientExit();
 prototype ClientMain();
 
@@ -131,11 +158,11 @@ HealthPowerUp( hsim param_0_, hsim param_1_ )
 	iMPUtils.HealthPowerUp( param_0_, param_1_ );
 }
 
-local_function_2( hship ship_ )
+local_function_4( hship ship_ )
 {
 	if ( Object.PropertyExists( ship_, "player" ) )
 	{
-		iMultiplay.ServerSetPlayerFragsCount( ship_, iMultiplay.ServerPlayerFragCount( ship_ ) + 1 );
+		iMultiplay.ServerSetPlayerFlagsCount( ship_, iMultiplay.ServerPlayerFlagsCount( ship_ ) + 1 );
 		return;
 	}
 	
@@ -151,6 +178,22 @@ local_function_0( hship ship_ )
 {
 	if ( Object.PropertyExists( ship_, "player" ) )
 	{
+		iMultiplay.ServerSetPlayerFragsCount( ship_, iMultiplay.ServerPlayerFragCount( ship_ ) + 1 );
+		return;
+	}
+	
+	if ( !Object.PropertyExists( ship_, "tag_count" ) )
+	{
+		return;
+	}
+	
+	Object.SetIntProperty( ship_, "tag_count", Object.IntProperty( ship_, "tag_count" ) + 1 );
+}
+
+local_function_2( hship ship_ )
+{
+	if ( Object.PropertyExists( ship_, "player" ) )
+	{
 		iMultiplay.ServerSetPlayerDiedCount( ship_, iMultiplay.ServerPlayerDiedCount( ship_ ) + 1 );
 		return;
 	}
@@ -158,9 +201,9 @@ local_function_0( hship ship_ )
 	Object.SetIntProperty( ship_, "bot_deaths", Object.IntProperty( ship_, "bot_deaths" ) + 1 );
 }
 
-local_function_5( hship ship_0_, hship ship_1_ )
+local_function_11( hship ship_0_, hship ship_1_ )
 {
-	Object.SetStringProperty( ship_1_, "death_script", "iDeathMatch.BotDeath" );
+	Object.SetStringProperty( ship_1_, "death_script", "iMineTag.BotDeath" );
 	Object.AddIntProperty( ship_1_, "frag_count", Object.IntProperty( ship_0_, "frag_count" ) );
 	Object.AddIntProperty( ship_1_, "bot_deaths", Object.IntProperty( ship_0_, "bot_deaths" ) );
 }
@@ -175,6 +218,7 @@ ServerOnUpdateScores()
 	string local_5;
 	int local_6;
 	hgroup gBotsHandle = Group.Cast( Global.Handle( "g_bots_handle" ) );
+	int tagCount;
 	
 	for ( ii = 0; ii < Group.SimCount( gBotsHandle ); ++ii )
 	{
@@ -189,7 +233,17 @@ ServerOnUpdateScores()
 		{
 			fragCount = Object.IntProperty( local_2, "frag_count" );
 			botDeaths = Object.IntProperty( local_2, "bot_deaths" );
-			iMultiplay.AddBotEndGameInfo( Object.StringProperty( local_2, "name" ), "", fragCount, 0, botDeaths );
+			
+			if ( Object.PropertyExists( local_2, "tag_count" ) )
+			{
+				tagCount = Object.IntProperty( local_2, "tag_count" );
+			}
+			else
+			{
+				tagCount = 0;
+			}
+			
+			iMultiplay.AddBotEndGameInfo( Object.StringProperty( local_2, "name" ), "", tagCount, fragCount, botDeaths );
 		}
 	}
 }
@@ -219,7 +273,43 @@ ServerOnUserMessage( int param_0_, hsim param_1_, hsim param_2_, string param_3_
 			iMPUtils.ServerDoDebug( iSim.Cast( param_1_ ), iSim.Cast( param_2_ ), param_3_ );
 			return;
 		
+		case 40:
+			param_2_ = Sim.FindByName( param_3_ );
+			
+			if ( !Object.PropertyExists( param_2_, "mp_tagged_by" ) )
+			{
+				local_function_0( iShip.Cast( param_1_ ) );
+				iMultiplay.ServerSendUserMessage( 41, param_1_, param_2_, param_3_ );
+				Object.AddHandleProperty( param_2_, "mp_tagged_by", param_1_ );
+			}
+			
+			return;
+		
+		case 202:
+			if ( !Object.PropertyExists( param_2_, "mp_remote_linked" ) )
+			{
+				Object.AddHandleProperty( param_2_, "mp_remote_linked", param_1_ );
+				iMultiplay.ServerSendUserMessage( 202, param_1_, param_2_, "" );
+			}
+			
+			return;
+		
+		case 203:
+			if ( Object.PropertyExists( param_2_, "mp_remote_linked" ) )
+			{
+				Object.RemoveProperty( param_2_, "mp_remote_linked" );
+				iMultiplay.SeverRemoteLinkTo( iShip.Cast( param_2_ ) );
+				iMultiplay.ServerSendUserMessage( 203, param_1_, param_2_, "" );
+			}
+			
+			return;
+		
 		case 204:
+			if ( param_2_ == false )
+			{
+				param_2_ = Sim.FindByName( param_3_ );
+			}
+			
 			iSim.Dock( iSim.Cast( param_1_ ), iSim.Cast( param_2_ ) );
 			iMultiplay.ServerSendUserMessage( 204, param_1_, param_2_, param_3_ );
 			return;
@@ -236,12 +326,70 @@ ServerPlayerLeave( hsim param_0_ )
 	name = String.Join( name, "+ : +" );
 	name = String.Join( name, "mp_frag_player_left" );
 	iMultiplay.ServerBroadcastMessage( param_0_, name, BMT_Info );
+	local_function_1( param_0_ );
 }
 
-task local_function_1( hsim param_0_, string param_1_ )
+task local_function_3( hsim param_0_, string param_1_ )
 {
 	Task.Sleep( Task.Current(), 2.0 );
 	iMultiplay.ServerBroadcastMessage( param_0_, param_1_, BMT_Event );
+}
+
+local_function_17()
+{
+}
+
+local_function_18()
+{
+}
+
+local_function_1( hsim param_0_ )
+{
+	hgroup gTagGroup = Group.Cast( Global.Handle( "g_tag_group" ) );
+	hsim groupIter;
+	hsim mpTaggedBy;
+	int ii;
+	
+	for ( ii = 0; ii < Group.SimCount( gTagGroup ); ++ii )
+	{
+		groupIter = Group.NthSim( gTagGroup, ii );
+		
+		if ( Object.PropertyExists( groupIter, "mp_tagged_by" ) )
+		{
+			mpTaggedBy = Sim.Cast( Object.HandleProperty( groupIter, "mp_tagged_by" ) );
+			
+			if ( mpTaggedBy == param_0_ )
+			{
+				Debug.PrintString( "removing tag\n" );
+				Object.RemoveProperty( groupIter, "mp_tagged_by" );
+				iMultiplay.ServerSendUserMessage( 42, param_0_, groupIter, Object.StringProperty( groupIter, "name" ) );
+			}
+		}
+	}
+}
+
+local_function_19( hisim param_0_ )
+{
+	hgroup gTagGroup = Group.Cast( Global.Handle( "g_tag_group" ) );
+	hisim local_1;
+	hisim mpTaggedBy;
+	int ii;
+	
+	for ( ii = 0; ii < Group.SimCount( gTagGroup ); ++ii )
+	{
+		local_1 = iSim.Cast( Group.NthSim( gTagGroup, ii ) );
+		
+		if ( Object.PropertyExists( local_1, "mp_tagged_by" ) )
+		{
+			if ( iSim.IsDockedTo( local_1, param_0_ ) )
+			{
+				mpTaggedBy = iSim.Cast( Object.HandleProperty( local_1, "mp_tagged_by" ) );
+				Debug.PrintString( "removing tag\n" );
+				Object.RemoveProperty( local_1, "mp_tagged_by" );
+				iMultiplay.ServerSendUserMessage( 42, mpTaggedBy, local_1, Object.StringProperty( local_1, "name" ) );
+			}
+		}
+	}
 }
 
 PlayerDeath( hsim param_0_ )
@@ -256,22 +404,23 @@ PlayerDeath( hsim param_0_ )
 	
 	atomic
 	{
+		local_function_1( param_0_ );
 		iMPUtils.SpawnKilledPlayerPowerUps( param_0_ );
-		local_function_0( iShip.Cast( param_0_ ) );
+		local_function_2( iShip.Cast( param_0_ ) );
 		
 		if ( (ship == false) || (ship == iShip.Cast( param_0_ )) )
 		{
 			random = Math.RandomInt( 1, 2 );
 			local_0 = "mp_suicide_";
 			local_0 = String.Join( local_0, String.FromInt( random ) );
-			local_6 = start local_function_1( param_0_, local_0 );
+			local_6 = start local_function_3( param_0_, local_0 );
 			Task.Detach( local_6 );
 		}
 		else
 		{
-			local_function_2( ship );
+			local_function_4( ship );
 			local_2 = iMPUtils.MakeDeathMessage( ship, param_0_ );
-			local_6 = start local_function_1( param_0_, local_2 );
+			local_6 = start local_function_3( param_0_, local_2 );
 			Task.Detach( local_6 );
 		}
 		
@@ -286,6 +435,9 @@ ServerPlayerEnter( hsim param_0_ )
 	hgroup gBotsHandle;
 	hisim local_3;
 	bool local_4;
+	int ii;
+	hgroup gTagGroup = Group.Cast( Global.Handle( "g_tag_group" ) );
+	hsim groupIter;
 	
 	if ( iMultiplay.ServerPlayerDiedCount( param_0_ ) == 0 )
 	{
@@ -297,7 +449,7 @@ ServerPlayerEnter( hsim param_0_ )
 	}
 	
 	Object.AddIntProperty( param_0_, "frag_count", 0 );
-	Object.SetStringProperty( param_0_, "death_script", "iDeathMatch.PlayerDeath" );
+	Object.SetStringProperty( param_0_, "death_script", "iMineTag.PlayerDeath" );
 	Object.AddBoolProperty( param_0_, "player", true );
 	antiPlayer = iFaction.Find( "AntiPlayer" );
 	iSim.SetFaction( iSim.Cast( param_0_ ), antiPlayer );
@@ -312,9 +464,30 @@ ServerPlayerEnter( hsim param_0_ )
 		Group.RemoveSim( gBotsHandle, local_3 );
 		Sim.Destroy( local_3 );
 	}
+	
+	for ( ii = 0; ii < Group.SimCount( gTagGroup ); ++ii )
+	{
+		groupIter = Group.NthSim( gTagGroup, ii );
+		
+		if ( Object.PropertyExists( groupIter, "mp_tagged_by" ) )
+		{
+			if ( param_0_ == Sim.Cast( Object.HandleProperty( groupIter, "mp_tagged_by" ) ) )
+			{
+				iMultiplay.ServerSendUserMessage( 45, param_0_, groupIter, Object.StringProperty( groupIter, "name" ) );
+			}
+			else
+			{
+				iMultiplay.ServerSendUserMessage( 46, param_0_, groupIter, Object.StringProperty( groupIter, "name" ) );
+			}
+		}
+		else
+		{
+			iMultiplay.ServerSendUserMessage( 47, param_0_, groupIter, Object.StringProperty( groupIter, "name" ) );
+		}
+	}
 }
 
-task local_function_3( hsim param_0_, float param_1_, float param_2_ )
+task local_function_7( hsim param_0_, float param_1_, float param_2_ )
 {
 	hisim local_0;
 	int ii;
@@ -359,7 +532,7 @@ task local_function_3( hsim param_0_, float param_1_, float param_2_ )
 ServerExit()
 {
 	Text.Remove( "csv:/text/multiplayer/ideathmatch_addendum" );
-	Text.Remove( "csv:/text/multiplayer/iDeathMatch" );
+	Text.Remove( "csv:/text/multiplayer/iMineTag" );
 	Text.Remove( "csv:/text/ship_names" );
 	Text.Remove( "csv:/text/geog/carls_world" );
 	
@@ -372,6 +545,7 @@ ServerExit()
 	
 	Global.Destroy( "g_arena_centre" );
 	Global.Destroy( "g_arena_radius" );
+	Global.Destroy( "g_drone_list" );
 	iFactionScript.Initialise();
 }
 
@@ -395,18 +569,21 @@ ServerMain()
 	int local_15;
 	int local_16;
 	hgroup group_0;
+	list localList;
 	hinifile inifile;
 	hgroup group_1;
 	hgroup group_2;
-	htask local_21;
+	int local_22;
+	htask local_23;
 	hfaction player;
 	hfaction antiPlayer;
 	hfaction powerUp;
 	hfaction botFaction;
 	
-	iMultiplay.SetGameType( "DM" );
+	iMultiplay.SetGameType( "MT" );
 	iMultiplay.ServerSetSortMode( SSM_Frags );
 	Text.Add( "csv:/text/multiplayer/iDeathMatch" );
+	Text.Add( "csv:/text/multiplayer/iMineTag" );
 	Text.Add( "csv:/text/ship_names" );
 	Text.Add( "csv:/text/geog/carls_world" );
 	iFactionScript.Initialise();
@@ -458,7 +635,11 @@ ServerMain()
 	}
 	
 	Global.CreateHandle( "g_arena_centre", 2, local_14 );
-	local_21 = start local_function_3( local_14, 55000.0, 60000.0 );
+	local_function_5( group_1, localList );
+	Global.CreateList( "g_drone_list", 2, localList );
+	local_23 = start local_function_6();
+	Task.Detach( local_23 );
+	local_23 = start local_function_7( local_14, 55000.0, 60000.0 );
 	Global.CreateFloat( "g_arena_radius", 1, 60000.0 );
 	
 	if ( iMultiplay.AIBotsCount() > 0 )
@@ -466,11 +647,10 @@ ServerMain()
 		group_0 = Group.Cast( iBotPak.CreateBotShips( iMultiplay.PackageINI(), iMultiplay.AIBotsCount(), iMultiplay.AIBotsSkillLevel(), botFaction, none, "BotNamesA" ) );
 		Global.CreateString( "g_ini_name", 1, iMultiplay.PackageINI() );
 		Global.CreateHandle( "g_bots_handle", 2, group_0 );
-		local_function_4( group_0, none );
+		local_function_8( group_0, none );
 	}
 	
 	start iMPUtils.CheckTimeLimit();
-	start iMPUtils.CheckFragLimit();
 	start iMPUtils.WeaponPowerUpGeneratorTask( Group.NthGroup( group_2, 2 ) );
 }
 
@@ -484,9 +664,130 @@ ClientScores()
 	}
 }
 
+ScoreScreenBackButton()
+{
+	if ( iMultiplay.IsGameEnded() )
+	{
+		iMultiplay.ClientSetRequestedToCycle( false );
+		GUI.PopScreen();
+		GUI.PushScreen( "icPDAOverlayManager" );
+		GUI.OverlayScreen( "icNetworkScreen" );
+		return;
+	}
+	
+	GUI.RemoveOverlaysAfter( "icSpaceFlightScreenOverlay" );
+}
+
+ScoreScreenQuitButton()
+{
+	ScoreScreenBackButton();
+}
+
+hwindow local_function_9( int param_0_, int param_1_, int param_2_, hwindow window_0_, string param_4_, string param_5_ )
+{
+	hwindow window_1 = iGUI.CreateAndInitialiseStaticWindow( param_0_, 0, param_1_, param_2_, window_0_, param_4_, param_5_ );
+	
+	GUI.SetWindowTextFormatting( window_1, false, 0 );
+	GUI.SetWindowStateColours( window_1, Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ), Global.Float( "GUI_listbox_focused_red" ), Global.Float( "GUI_listbox_focused_green" ), Global.Float( "GUI_listbox_focused_blue" ), Global.Float( "GUI_selected_red" ), Global.Float( "GUI_selected_green" ), Global.Float( "GUI_selected_blue" ) );
+	return window_1;
+}
+
+local_function_10()
+{
+	int local_0;
+	int local_1;
+	int local_2;
+	int local_3;
+	int local_4;
+	int local_5;
+	int clientEndGameInfoCount;
+	string local_7;
+	int local_8;
+	int local_9;
+	int local_10;
+	string local_11;
+	string local_12;
+	int local_13;
+	int local_14;
+	int local_15;
+	hisim local_16;
+	list localList_0;
+	string local_18 = Global.String( "type_font" );
+	list localList_1;
+	list localList_2;
+	list localList_3;
+	list localList_4;
+	list localList_5;
+	hwindow window_0;
+	hwindow window_1;
+	hwindow window_2;
+	hwindow window_3;
+	int constant_0 = 200;
+	int constant_1 = 100;
+	int constant_2 = 90;
+	int constant_3 = 60;
+	int constant_4 = 60;
+	int local_33 = 10;
+	int constant_5 = 5;
+	int ii;
+	hwindow gUI;
+	string local_37;
+	string local_38;
+	string local_39;
+	
+	GUI.StopAllMovies();
+	
+	if ( iMultiplay.IsGameEnded() )
+	{
+		iDirector.Begin();
+		iDirector.SetFocus( iShip.FindPlayerShip() );
+		iDirector.SetCamera( CAM_DistantDrop );
+	}
+	
+	iGUI.SetGUIGlobals();
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	GUI.SetDefaultColour( 1.0, 1.0, 1.0 );
+	clientEndGameInfoCount = iMultiplay.ClientEndGameInfoCount();
+	local_37 = "Scores";
+	localList_5 = iGUI.CreateGreyBoxStyleScreen( local_37, "iMineTag.ScoreScreenBackButton", "iMineTag.ScoreScreenQuitButton" );
+	gUI = GUI.Cast( List.Head( localList_5 ) );
+	localList_0 = iMultiplay.ClientPlayerList();
+	
+	for ( ii = 0; ii < clientEndGameInfoCount; ++ii )
+	{
+		local_11 = Text.Field( iMultiplay.ClientEndGameInfoName( ii ), FT_Text );
+		local_12 = iMultiplay.ClientEndGameInfoTeam( ii );
+		local_13 = iMultiplay.ClientEndGameInfoFlags( ii );
+		local_14 = iMultiplay.ClientEndGameInfoFrags( ii );
+		local_15 = iMultiplay.ClientEndGameInfoDied( ii );
+		local_16 = iSim.Cast( List.GetNth( localList_0, ii ) );
+		window_0 = local_function_9( 0, constant_0, 20, gUI, local_18, local_11 );
+		window_1 = local_function_9( 0, constant_2, 20, gUI, local_18, String.FromInt( local_14 ) );
+		window_2 = local_function_9( 0, constant_3, 20, gUI, local_18, String.FromInt( local_13 ) );
+		window_3 = local_function_9( 20, constant_4, 20, gUI, local_18, String.FromInt( local_15 ) );
+		List.AddTail( localList_1, window_0 );
+		List.AddTail( localList_2, window_1 );
+		List.AddTail( localList_3, window_2 );
+		List.AddTail( localList_4, window_3 );
+	}
+	
+	iGUI.CreateWindowListInSplitter( gUI, localList_1, local_33, 70, Text.Field( "mp_game_player", FT_Text ) );
+	local_33 = ( local_33 + (constant_0 + (10 + constant_5)) );
+	iGUI.CreateWindowListInSplitter( gUI, localList_2, local_33, 70, Text.Field( "mp_game_tag", FT_Text ) );
+	local_33 = ( local_33 + (constant_2 + (10 + constant_5)) );
+	iGUI.CreateWindowListInSplitter( gUI, localList_3, local_33, 70, Text.Field( "mp_game_frags", FT_Text ) );
+	local_33 = ( local_33 + (constant_3 + (10 + constant_5)) );
+	iGUI.CreateWindowListInSplitter( gUI, localList_4, local_33, 70, Text.Field( "mp_game_died", FT_Text ) );
+	
+	if ( iMultiplay.IsGameEnded() )
+	{
+		GUI.SetControlFocusCancelFunction( "iMineTag.ScoreScreenBackButton" );
+	}
+}
+
 ClientGUI()
 {
-	iMultiplayGUI.MultiplayScoreScreen();
+	local_function_10();
 }
 
 ClientRespawn( hship ship_ )
@@ -505,7 +806,7 @@ ClientPlayerLeave()
 {
 }
 
-task local_function_9( hsim param_0_, float param_1_, float param_2_ )
+task local_function_16( hsim param_0_, float param_1_, float param_2_ )
 {
 	hsim playerShip;
 	bool local_1 = false;
@@ -544,7 +845,7 @@ task local_function_9( hsim param_0_, float param_1_, float param_2_ )
 	}
 }
 
-task local_function_8( float param_0_ )
+task local_function_14( float param_0_ )
 {
 	hship ship;
 	int local_1;
@@ -570,7 +871,7 @@ task local_function_8( float param_0_ )
 	iSim.SetFaction( ship, iFaction.Find( "Player" ) );
 }
 
-task local_function_6( hship ship_ )
+task local_function_12( hship ship_ )
 {
 	hgroup mpRespawnGroup = Group.Cast( Global.Handle( "mp_respawn_group" ) );
 	float constant = 6.0;
@@ -580,7 +881,7 @@ task local_function_6( hship ship_ )
 	iMPUtils.SpawnPlayer( ship_, mpRespawnGroup );
 }
 
-local_function_4( hgroup group_, hship ship_0_ )
+local_function_8( hgroup group_, hship ship_0_ )
 {
 	hgroup gBotsHandle;
 	hship ship_1;
@@ -591,11 +892,11 @@ local_function_4( hgroup group_, hship ship_0_ )
 	{
 		ship_1 = iShip.Cast( iBotPak.CreateBotShips( Global.String( "g_ini_name" ), 1, 0.0, none, ship_0_, "BotNamesA" ) );
 		iMultiplay.SetShipLimits( ship_1 );
-		local_function_5( ship_0_, ship_1 );
+		local_function_11( ship_0_, ship_1 );
 		gBotsHandle = Group.Cast( Global.Handle( "g_bots_handle" ) );
 		Group.AddSim( gBotsHandle, ship_1 );
 		Global.SetHandle( "g_bots_handle", gBotsHandle );
-		Task.Detach( start local_function_6( ship_1 ) );
+		Task.Detach( start local_function_12( ship_1 ) );
 		return;
 	}
 	
@@ -608,16 +909,16 @@ local_function_4( hgroup group_, hship ship_0_ )
 		for ( ii = 0; ii < simCount; ++ii )
 		{
 			ship_1 = iShip.Cast( Group.NthSim( gBotsHandle, ii ) );
-			Object.SetStringProperty( ship_1, "death_script", "iDeathMatch.BotDeath" );
+			Object.SetStringProperty( ship_1, "death_script", "iMineTag.BotDeath" );
 			iMultiplay.SetShipLimits( ship_1 );
-			Task.Detach( start local_function_6( ship_1 ) );
+			Task.Detach( start local_function_12( ship_1 ) );
 		}
 		
 		return;
 	}
 	
-	Object.SetStringProperty( group_, "death_script", "iDeathMatch.BotDeath" );
-	Task.Detach( start local_function_6( iShip.Cast( group_ ) ) );
+	Object.SetStringProperty( group_, "death_script", "iMineTag.BotDeath" );
+	Task.Detach( start local_function_12( iShip.Cast( group_ ) ) );
 }
 
 task BotDeath( hsim param_0_ )
@@ -632,8 +933,8 @@ task BotDeath( hsim param_0_ )
 	
 	atomic
 	{
-		local_function_0( iShip.Cast( param_0_ ) );
-		local_function_2( ship );
+		local_function_2( iShip.Cast( param_0_ ) );
+		local_function_4( ship );
 		
 		debug
 		{
@@ -641,7 +942,7 @@ task BotDeath( hsim param_0_ )
 			{
 				atomic
 				{
-					Debug.PrintString( "iDeathMatch.ServerPlayerKilled: Vessel made a kill: " );
+					Debug.PrintString( "iMineTag.ServerPlayerKilled: Vessel made a kill: " );
 					Debug.PrintString( Object.StringProperty( ship, "name" ) );
 					Debug.PrintString( " and now has " );
 					Debug.PrintString( String.FromInt( Object.IntProperty( ship, "frag_count" ) ) );
@@ -651,10 +952,10 @@ task BotDeath( hsim param_0_ )
 		}
 		
 		iMPUtils.SpawnKilledPlayerPowerUps( param_0_ );
-		local_function_4( none, iShip.Cast( param_0_ ) );
+		local_function_8( none, iShip.Cast( param_0_ ) );
 		iSim.Kill( iSim.Cast( param_0_ ) );
 		local_4 = iMPUtils.MakeDeathMessage( ship, param_0_ );
-		local_6 = start local_function_1( param_0_, local_4 );
+		local_6 = start local_function_3( param_0_, local_4 );
 		Task.Detach( local_6 );
 	}
 }
@@ -732,7 +1033,7 @@ ClientDefaultTaunt4()
 	iMultiplay.ClientBroadcastTeamMessage( iShip.FindPlayerShip(), local_0, BMT_Conversation );
 }
 
-task local_function_7( hisim param_0_, hship ship_ )
+task local_function_13( hisim param_0_, hship ship_ )
 {
 	if ( param_0_ != false )
 	{
@@ -742,18 +1043,36 @@ task local_function_7( hisim param_0_, hship ship_ )
 	}
 }
 
+ClientCargoDock( hobject param_0_ )
+{
+	Object.SetStringProperty( param_0_, "death_script", "iMineTag.ClientPodDeath" );
+	iShip.RemovePilot( iShip.Cast( param_0_ ) );
+}
+
+ClientPodDeath( hsim param_0_ )
+{
+	Sim.Destroy( param_0_ );
+	Debug.Error( "wot?" );
+}
+
 ClientPlayerKilled()
 {
 	hship playerShip = iShip.FindPlayerShip();
 	hisim local_1 = iShip.LastAttacker( playerShip );
-	htask local_2 = start local_function_7( local_1, playerShip );
+	htask local_2;
 	
+	if ( iRemotePilot.RemoteActive() )
+	{
+		iRemotePilot.DeactivateConnection();
+	}
+	
+	local_2 = start local_function_13( local_1, playerShip );
 	Task.Detach( local_2 );
 	iDirector.Begin();
 	iDirector.SetFocus( iShip.FindPlayerShip() );
 	iDirector.SetSecondaryFocus( local_1 );
 	iDirector.SetCamera( CAM_InverseTwoShot );
-	start local_function_8( 6.0 );
+	start local_function_14( 6.0 );
 }
 
 ClientOpponentKilled()
@@ -771,8 +1090,19 @@ ClientEndGame( int param_0_, bool param_1_ )
 
 ClientDoUndock()
 {
-	iMultiplay.ClientSendUserMessage( 15, iShip.FindPlayerShip(), none, "" );
-	iShip.UndockSelf( iShip.FindPlayerShip() );
+	hship playerShip;
+	
+	if ( iRemotePilot.RemoteActive() )
+	{
+		playerShip = iRemotePilot.ReturnCurrentRemoteVessel();
+	}
+	else
+	{
+		playerShip = iShip.FindPlayerShip();
+	}
+	
+	iMultiplay.ClientSendUserMessage( 15, playerShip, none, "" );
+	iShip.UndockSelf( playerShip );
 }
 
 ClientDoScores()
@@ -780,17 +1110,105 @@ ClientDoScores()
 	iMultiplay.ClientSendUserMessage( 16, iShip.FindPlayerShip(), none, "" );
 }
 
-ClientOnUserMessage( int param_0_, hobject param_1_, hobject param_2_, int param_3_ )
+ClientOnUserMessage( int param_0_, hobject param_1_, hsim param_2_, string param_3_ )
 {
-	hship ship;
+	hship ship = iShip.Cast( param_1_ );
+	hship playerShip = iShip.FindPlayerShip();
 	
 	switch ( param_0_ )
 	{
 		case 15:
+			ship = iShip.Cast( param_1_ );
+			
 			if ( ship != iShip.FindPlayerShip() )
 			{
-				ship = iShip.Cast( param_1_ );
 				iShip.UndockSelf( ship );
+			}
+			
+			return;
+		
+		case 41:
+			param_2_ = Sim.FindByName( param_3_ );
+			
+			if ( ship == iShip.FindPlayerShip() )
+			{
+				iSim.SetFaction( iSim.Cast( param_2_ ), iFaction.Find( "Player" ) );
+				Sim.AvatarSetChannel( param_2_, "alpha", 1.0 );
+				Sim.AvatarSetChannel( param_2_, "beta", 0.0 );
+				GUI.PlaySound( S_Confirm );
+			}
+			else
+			{
+				iSim.SetFaction( iSim.Cast( param_2_ ), iFaction.Find( "AntiPlayer" ) );
+				Sim.AvatarSetChannel( param_2_, "alpha", 0.0 );
+				Sim.AvatarSetChannel( param_2_, "beta", 1.0 );
+			}
+			
+			Object.AddBoolProperty( param_2_, "mp_is_tagged", true );
+			return;
+		
+		case 42:
+			param_2_ = Sim.FindByName( param_3_ );
+			Object.RemoveProperty( param_2_, "mp_is_tagged" );
+			iSim.SetFaction( iSim.Cast( param_2_ ), iFaction.Find( "NINEX Wetware" ) );
+			Sim.AvatarSetChannel( param_2_, "alpha", 0.0 );
+			Sim.AvatarSetChannel( param_2_, "beta", 0.0 );
+			return;
+		
+		case 45:
+			if ( ship == iShip.FindPlayerShip() )
+			{
+				param_2_ = Sim.FindByName( param_3_ );
+				iSim.SetFaction( iSim.Cast( param_2_ ), iFaction.Find( "Player" ) );
+				Object.AddBoolProperty( param_2_, "mp_is_tagged", true );
+				Sim.AvatarSetChannel( param_2_, "alpha", 1.0 );
+				Sim.AvatarSetChannel( param_2_, "beta", 0.0 );
+			}
+			
+			return;
+		
+		case 46:
+			if ( ship == iShip.FindPlayerShip() )
+			{
+				param_2_ = Sim.FindByName( param_3_ );
+				iSim.SetFaction( iSim.Cast( param_2_ ), iFaction.Find( "AntiPlayer" ) );
+				Object.AddBoolProperty( param_2_, "mp_is_tagged", true );
+				Sim.AvatarAddChannel( param_2_, "alpha", 0.0 );
+				Sim.AvatarAddChannel( param_2_, "beta", 1.0 );
+			}
+			
+			return;
+		
+		case 47:
+			if ( ship == iShip.FindPlayerShip() )
+			{
+				param_2_ = Sim.FindByName( param_3_ );
+				iSim.SetFaction( iSim.Cast( param_2_ ), iFaction.Find( "NINEX Wetware" ) );
+				Object.RemoveProperty( param_2_, "mp_is_tagged" );
+				Sim.AvatarAddChannel( param_2_, "alpha", 0.0 );
+				Sim.AvatarAddChannel( param_2_, "beta", 0.0 );
+			}
+			
+			return;
+		
+		case 48:
+			iRemotePilot.EnableRemoteConnection( iShip.Cast( param_1_ ), false );
+			return;
+		
+		case 202:
+			if ( playerShip == iShip.Cast( param_1_ ) )
+			{
+				ship = iShip.Cast( param_2_ );
+				iMultiplay.RemoteLinkTo( ship );
+			}
+			
+			return;
+		
+		case 203:
+			if ( playerShip != iShip.Cast( param_1_ ) )
+			{
+				ship = iShip.Cast( param_2_ );
+				iMultiplay.SeverRemoteLinkTo( ship );
 			}
 			
 			return;
@@ -804,13 +1222,145 @@ ClientOnUserMessage( int param_0_, hobject param_1_, hobject param_2_, int param
 	}
 }
 
+local_function_15( list localList_, hisim param_1_, bool param_2_ )
+{
+	hship simMineSwitch;
+	
+	atomic
+	{
+		simMineSwitch = iShip.Cast( Sim.Create( "ini:/sims/multiplayer/MineSwitch", "MINE SWITCH" ) );
+		iSim.SetFaction( simMineSwitch, iFaction.Find( "Neutral" ) );
+		iSim.SetSensorVisibility( simMineSwitch, true );
+		iSim.SetMissionCritical( simMineSwitch, true );
+		iAI.GiveGenericAttackOrder( simMineSwitch );
+		iShip.Dock( simMineSwitch, param_1_ );
+		Object.AddHandleProperty( simMineSwitch, "mp_pod_docked_to", param_1_ );
+		iMultiplay.SetTransmitFlag( simMineSwitch, true );
+		iMultiplay.SetUpdateFlag( simMineSwitch, false );
+		
+		if ( param_2_ )
+		{
+			Object.SetStringProperty( simMineSwitch, "death_script", "iMineTag.PodDeath" );
+		}
+		else
+		{
+			Object.SetStringProperty( simMineSwitch, "death_script", "iMineTag.PodDeathUntag" );
+		}
+		
+		List.AddTail( localList_, simMineSwitch );
+	}
+}
+
+task PodDeath( hobject param_0_ )
+{
+	hship ship = iShip.Cast( iShip.LastAttacker( iShip.Cast( param_0_ ) ) );
+	hisim mpPodDockedTo = iSim.Cast( Object.HandleProperty( param_0_, "mp_pod_docked_to" ) );
+	
+	if ( ship != false )
+	{
+		iMultiplay.ServerSendUserMessage( 41, ship, mpPodDockedTo, Object.StringProperty( mpPodDockedTo, "name" ) );
+		Object.AddHandleProperty( mpPodDockedTo, "mp_tagged_by", ship );
+	}
+	
+	iShip.Heal( iShip.Cast( param_0_ ) );
+	Object.SetStringProperty( param_0_, "death_script", "iMineTag.PodDeathUntag" );
+	iShip.Dock( iShip.Cast( param_0_ ), iShip.Cast( mpPodDockedTo ) );
+}
+
+task PodDeathUntag( hobject param_0_ )
+{
+	hisim mpPodDockedTo = iSim.Cast( Object.HandleProperty( param_0_, "mp_pod_docked_to" ) );
+	hship mpTaggedBy = iShip.Cast( Object.HandleProperty( mpPodDockedTo, "mp_tagged_by" ) );
+	
+	Object.RemoveProperty( mpPodDockedTo, "mp_tagged_by" );
+	iMultiplay.ServerSendUserMessage( 42, mpTaggedBy, mpPodDockedTo, Object.StringProperty( mpPodDockedTo, "name" ) );
+	iShip.Heal( iShip.Cast( param_0_ ) );
+	Object.SetStringProperty( param_0_, "death_script", "iMineTag.PodDeath" );
+	iShip.Dock( iShip.Cast( param_0_ ), iShip.Cast( mpPodDockedTo ) );
+}
+
+local_function_5( hgroup group_0_, list localList_ )
+{
+	string local_0;
+	hisim local_1;
+	hgroup group_1 = Group.Create();
+	int ii;
+	int jj;
+	int local_5;
+	int local_6;
+	hgroup group_2;
+	
+	for ( jj = 0; jj < Group.GroupCount( group_0_ ); ++jj )
+	{
+		group_2 = Group.NthGroup( group_0_, jj );
+		Debug.PrintString( String.Join( String.FromInt( Group.SimCount( group_2 ) ), " : count\n" ) );
+		
+		for ( ii = 0; ii < Group.SimCount( group_2 ); ++ii )
+		{
+			local_1 = iSim.Cast( Group.NthSim( group_2, ii ) );
+			
+			if ( iSim.Type( local_1 ) == T_Station )
+			{
+				Group.AddSim( group_1, local_1 );
+				Debug.PrintString( String.Join( String.Join( "Adding to mine group: ", Object.StringProperty( local_1, "name" ) ), "\n" ) );
+				
+				if ( !iMultiplay.IsClient() )
+				{
+					local_function_15( localList_, local_1, true );
+				}
+			}
+			else
+			{
+				Debug.PrintString( String.Join( String.Join( "discarding: ", Object.StringProperty( local_1, "name" ) ), "\n" ) );
+			}
+		}
+	}
+	
+	Global.CreateHandle( "g_tag_group", 2, group_1 );
+}
+
+task local_function_6()
+{
+	hgroup gTagGroup;
+	string local_1;
+	int local_2;
+	hisim local_3;
+	hship mpTaggedBy;
+	int local_5;
+	int ii;
+	
+	schedule
+	{
+		every 1.0:
+		{
+			atomic
+			{
+				gTagGroup = Group.Cast( Global.Handle( "g_tag_group" ) );
+				
+				for ( ii = 0; ii < Group.SimCount( gTagGroup ); ++ii )
+				{
+					local_3 = iSim.Cast( Group.NthSim( gTagGroup, ii ) );
+					
+					if ( Object.PropertyExists( local_3, "mp_tagged_by" ) )
+					{
+						mpTaggedBy = iShip.Cast( Object.HandleProperty( local_3, "mp_tagged_by" ) );
+						local_function_0( mpTaggedBy );
+					}
+				}
+			}
+		}
+	}
+}
+
 ClientExit()
 {
 	Text.Remove( "csv:/text/subtargets" );
 	Text.Remove( "csv:/text/multiplayer/ideathmatch_addendum" );
 	Text.Remove( "csv:/text/geog/carls_world" );
 	Text.Remove( "csv:/text/ship_names" );
-	Text.Remove( "csv:/text/multiplayer/iDeathMatch" );
+	Text.Remove( "csv:/text/multiplayer/iMineTag" );
+	Global.Destroy( "mp_respawn_group" );
+	Global.Destroy( "g_tag_group" );
 	iFactionScript.Initialise();
 	Input.PurgeBindings();
 }
@@ -835,12 +1385,15 @@ ClientMain()
 	string local_15;
 	string local_16;
 	htask local_17;
+	int local_18;
+	list localList;
 	hfaction player;
 	hfaction antiPlayer;
 	hfaction powerUp;
 	hfaction botFaction;
 	
 	Text.Add( "csv:/text/multiplayer/iDeathMatch" );
+	Text.Add( "csv:/text/multiplayer/iMineTag" );
 	Text.Add( "csv:/text/ship_names" );
 	Text.Add( "csv:/text/geog/carls_world" );
 	Text.Add( "csv:/text/multiplayer/ideathmatch_addendum" );
@@ -857,15 +1410,15 @@ ClientMain()
 	iHUD.SetMenuNodeEnabled( "hud_menu_remote_link", false );
 	iHUD.SetMenuNodeEnabled( "hud_menu_cancel_link", false );
 	iHUD.SetMenuNodeEnabled( "hud_menu_toggle_aim_assist", false );
-	Input.BindKey( "iDeathMatch.ClientPlayerSay", "ScriptKeys.MultiplayerSay" );
-	Input.BindKey( "iDeathMatch.ClientPlayerTeamSay", "ScriptKeys.MultiplayerTeamSay" );
-	Input.BindKey( "iDeathMatch.ClientDefaultTaunt1", "ScriptKeys.MultiplayerAutoTaunt1" );
-	Input.BindKey( "iDeathMatch.ClientDefaultTaunt2", "ScriptKeys.MultiplayerAutoTaunt2" );
-	Input.BindKey( "iDeathMatch.ClientDefaultTaunt3", "ScriptKeys.MultiplayerAutoTaunt3" );
-	Input.BindKey( "iDeathMatch.ClientDefaultTaunt4", "ScriptKeys.MultiplayerAutoTaunt4" );
+	Input.BindKey( "iMineTag.ClientPlayerSay", "ScriptKeys.MultiplayerSay" );
+	Input.BindKey( "iMineTag.ClientPlayerTeamSay", "ScriptKeys.MultiplayerTeamSay" );
+	Input.BindKey( "iMineTag.ClientDefaultTaunt1", "ScriptKeys.MultiplayerAutoTaunt1" );
+	Input.BindKey( "iMineTag.ClientDefaultTaunt2", "ScriptKeys.MultiplayerAutoTaunt2" );
+	Input.BindKey( "iMineTag.ClientDefaultTaunt3", "ScriptKeys.MultiplayerAutoTaunt3" );
+	Input.BindKey( "iMineTag.ClientDefaultTaunt4", "ScriptKeys.MultiplayerAutoTaunt4" );
 	Input.BindKey( "iMPUtils.ClientSendDebugInfo", "ScriptKeys.MultiplayerDebug" );
-	Input.BindKey( "iDeathMatch.ClientDoUndock", "icPlayerPilot.Undock" );
-	Input.BindKey( "iDeathMatch.ClientDoScores", "Multiplayer.Score" );
+	Input.BindKey( "iMineTag.ClientDoUndock", "icPlayerPilot.Undock" );
+	Input.BindKey( "iMineTag.ClientDoScores", "Multiplayer.Score" );
 	iFactionScript.Initialise();
 	
 	if ( !iFaction.Find( "Player" ) )
@@ -911,8 +1464,9 @@ ClientMain()
 	INIFile.Destroy( inifile );
 	Global.CreateHandle( "mp_respawn_group", 2, group_1 );
 	iDirector.Begin();
-	start local_function_8( 0.10 );
-	local_17 = start local_function_9( local_6, 55000.0, 60000.0 );
+	start local_function_14( 0.10 );
+	local_function_5( group_0, localList );
+	local_17 = start local_function_16( local_6, 55000.0, 60000.0 );
 	Task.Detach( local_17 );
 }
 

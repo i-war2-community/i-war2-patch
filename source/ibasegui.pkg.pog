@@ -2195,6 +2195,7 @@ hwindow local_function_32( hwindow window_0_, htrade trade_ )
 	int local_16 = local_2;
 	string local_17 = Global.String( "type_font" );
 	hfaction faction = iTrade.Faction( trade_ );
+	string generatedMission = Object.StringProperty( trade_, "generated_mission" );
 	
 	constant_1 = 0;
 	constant_2 = 13;
@@ -2216,7 +2217,18 @@ hwindow local_function_32( hwindow window_0_, htrade trade_ )
 	}
 	
 	iGUI.CreateAndInitialiseListBoxEntryComponentWindow( constant_1, constant_2, gUIListboxEntryheight, window_1, local_17, local_1 );
-	iGUI.CreateAndInitialiseListBoxEntryComponentWindow( local_8, local_9, gUIListboxEntryheight, window_1, local_17, iFaction.Name( faction ) );
+	
+	if ( generatedMission == "" )
+	{
+		iGUI.CreateAndInitialiseListBoxEntryComponentWindow( local_8, local_9, gUIListboxEntryheight, window_1, local_17, iFaction.Name( faction ) );
+	}
+	else
+	{
+		generatedMission = String.Join( generatedMission, "_mission_name" );
+		generatedMission = Text.Field( generatedMission, FT_Text );
+		iGUI.CreateAndInitialiseListBoxEntryComponentWindow( local_8, local_9, gUIListboxEntryheight, window_1, local_17, generatedMission );
+	}
+	
 	iGUI.CreateAndInitialiseListBoxEntryComponentWindow( local_10, local_11, gUIListboxEntryheight, window_1, local_17, iTrade.Offered( trade_ ) );
 	iGUI.CreateAndInitialiseListBoxEntryComponentWindow( local_12, local_13, gUIListboxEntryheight, window_1, local_17, iTrade.Wanted( trade_ ) );
 	GUI.AddListBoxEntry( window_0_, window_1 );

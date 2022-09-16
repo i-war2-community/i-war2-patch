@@ -13,10 +13,10 @@ uses GUI,
      iGUI,
      MapEnumerations,
      iMapEntity,
-     iFaction,
-     iSim,
      iBody,
      iHabitat,
+     iFaction,
+     iSim,
      iShip,
      iMultiplay;
 

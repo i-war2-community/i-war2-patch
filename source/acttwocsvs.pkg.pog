@@ -1,7 +1,7 @@
 package acttwocsvs;
 
-uses List,
-     Set,
+uses Set,
+     List,
      String,
      Global,
      Task,

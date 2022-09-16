@@ -4,8 +4,8 @@ uses Config,
      Debug,
      GUI,
      String,
-     Set,
      List,
+     Set,
      Global,
      Math,
      Object,
@@ -1128,6 +1128,13 @@ task HavenStationIntroduction()
 		taskState = State.Create( currentTask, 0 );
 	}
 	
+	if ( Global.Int( "g_current_act" ) != 1 )
+	{
+		debug Debug.PrintString( "iActOne.HavenStationIntroduction : Not Act 1. Destroying state and terminating task.\n" );
+		State.Destroy( Task.Current() );
+		return;
+	}
+	
 	debug Debug.PrintString( "iActOne.HavenStationIntroduction : Starting haven station introduction task\n" );
 	
 	switch ( State.Progress( taskState ) )
@@ -1159,6 +1166,14 @@ task HavenStationIntroduction()
 			{
 				while ( !local_4 )
 				{
+					if ( Global.Int( "g_current_act" ) != 1 )
+					{
+						debug Debug.PrintString( "iActOne.HavenStationIntroduction : Not Act 1. Destroying state and terminating task.\n" );
+						Sim.Destroy( shipSnrvRecovery );
+						State.Destroy( Task.Current() );
+						return;
+					}
+					
 					if ( Sim.DistanceBetween( playerShip, shipSnrvRecovery ) > 20000.0 )
 					{
 						debug Debug.PrintString( "iActOne.HavenStationIntroduction : The player isnowhere near the tiger lilly, sleepig for ten seconds\n" );

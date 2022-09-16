@@ -118,6 +118,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Independent" ), 0.20 );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Stepson" ), 0.10 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 2 );
 				return true;
 			}
 			
@@ -149,6 +150,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.FailIfPatronDead( local_0 );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Underworld" ), 0.150 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 4 );
 				return true;
 			}
 			
@@ -186,6 +188,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_gardener_mission", true );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Stepson" ), 0.10 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 3 );
 				Global.SetInt( "gl_number_of_stepson_missions", 1 + Global.Int( "gl_number_of_stepson_missions" ) );
 				return true;
 			}
@@ -224,6 +227,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_OmanExoticMetals_mission", true );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Oman" ), 0.30 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 15 );
 				return true;
 			}
 			
@@ -260,6 +264,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_OmanPowerPlant_mission", true );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Oman" ), 0.50 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 16 );
 				return true;
 			}
 			
@@ -299,6 +304,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.SuccessBool( local_0, "gl_ThePayoff_available", true );
 				iMissionGenerator.SuccessAddMission( local_0, 14 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 13 );
 				Global.SetInt( "gl_number_of_stepson_missions", 1 + Global.Int( "gl_number_of_stepson_missions" ) );
 				return true;
 			}
@@ -334,6 +340,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Stepson" ), 0.50 );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Police" ), -0.50 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 14 );
 				Global.SetInt( "gl_number_of_stepson_missions", 1 + Global.Int( "gl_number_of_stepson_missions" ) );
 				return true;
 			}
@@ -367,6 +374,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_SimplePiracy_mission", true );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "MAAS Corporation" ), -0.50 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 10 );
 				return true;
 			}
 			
@@ -397,12 +405,13 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.OwnerEscortDetails( local_0, 6, "heavy", "generated_missions_09_name_ship_06", "PoliceHeroic", 2 );
 				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_09_PrisonData_01", "generated_missions_09_email_subject_03", 4 );
 				iMissionGenerator.SetPrompt( local_0, "html:/html/email/generatedmissions/GM_09_PrisonData_02", "generated_missions_09_email_subject_03", 4 );
-				iMissionGenerator.SetConclusion( local_0, "html:/html/email/generatedmissions/GM_01_PrisonData_03", "generated_missions_09_email_subject_03", 4 );
+				iMissionGenerator.SetConclusion( local_0, "html:/html/email/generatedmissions/GM_09_PrisonData_03", "generated_missions_09_email_subject_03", 4 );
 				iMissionGenerator.FailIfPatronDead( local_0 );
 				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_prisondata_mission", true );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Underworld" ), 0.50 );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Police" ), -0.20 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 25 );
 				return true;
 			}
 			
@@ -436,6 +445,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_RareAnimalChef", true );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "CarvaCartel" ), 0.50 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 7 );
 				return true;
 			}
 			
@@ -474,6 +484,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Stepson" ), 0.50 );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Maas" ), -0.50 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 1 );
 				Global.SetInt( "gl_number_of_stepson_missions", 1 + Global.Int( "gl_number_of_stepson_missions" ) );
 				return true;
 			}
@@ -513,6 +524,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Stepson" ), 0.30 );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Maas" ), -0.30 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 9 );
 				Global.SetInt( "gl_number_of_stepson_missions", 1 + Global.Int( "gl_number_of_stepson_missions" ) );
 				return true;
 			}
@@ -548,6 +560,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.FailIfPatronDead( local_0 );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "League" ), 1.0 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 6 );
 				return true;
 			}
 			
@@ -576,13 +589,14 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.OwnerLocation( local_0, 70, "map:/geog/badlands/hoffers_wake", "Gabriel Defense Station" );
 				iMissionGenerator.OwnerEscortDetails( local_0, 7, "Heavy", "Escort", "MilitaryAggessive", 3 );
 				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_14_Gunrobber_01", "generated_missions_14_email_subject_01", 4 );
-				iMissionGenerator.SetConclusion( local_0, "html:/html/email/generatedmissions/GM_14_Gunrobber_02", "generated_missions_14_email_subject_01", 4 );
+				iMissionGenerator.SetConclusion( local_0, "html:/html/email/generatedmissions/GM_14_Gunrobber_02", "generated_missions_30_email_subject_02", 4 );
 				iMissionGenerator.FailIfPatronDead( local_0 );
 				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_gunrobber_mission", true );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Stepson" ), 0.50 );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Navy" ), -0.50 );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Government" ), -0.50 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 5 );
 				return true;
 			}
 			
@@ -613,6 +627,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_survey_mission", true );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Datagontechnologies" ), -0.50 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 26 );
 				return true;
 			}
 			
@@ -649,6 +664,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_the_freak_mission", true );
 				iMissionGenerator.SuccessAddMission( local_0, 29 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 8 );
 				return true;
 			}
 			
@@ -682,6 +698,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_Geriatric_Cyborgs_mission", true );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "MaasCorporation" ), -0.50 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 29 );
 				return true;
 			}
 			
@@ -715,6 +732,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_gold_miners_mission", true );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "MaasCorporation" ), -0.50 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 12 );
 				return true;
 			}
 			
@@ -750,6 +768,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Independant" ), -0.20 );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Underworld" ), 0.50 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 24 );
 				return true;
 			}
 			
@@ -783,6 +802,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "MAASCorporation" ), -0.50 );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "League" ), -0.50 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 11 );
 				return true;
 			}
 			
@@ -823,6 +843,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Police" ), -0.50 );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Stepson" ), 0.50 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 27 );
 				return true;
 			}
 			
@@ -860,6 +881,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_survey_mission", true );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Marauder" ), -0.50 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 28 );
 				return true;
 			}
 			
@@ -892,6 +914,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_omanraider_mission", true );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Oman" ), 0.50 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 17 );
 				return true;
 			}
 			
@@ -926,6 +949,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Oman" ), 0.50 );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "NOMEXCorporation" ), -0.50 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 18 );
 				return true;
 			}
 			
@@ -960,6 +984,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Oman" ), 0.50 );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "MAASCorporation" ), -0.50 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 19 );
 				return true;
 			}
 			
@@ -992,6 +1017,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_omanweaponparts_mission", true );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Oman" ), 0.50 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 20 );
 				return true;
 			}
 			
@@ -1025,6 +1051,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_omanantipropaganda_mission", true );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Oman" ), 0.50 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 21 );
 				return true;
 			}
 			
@@ -1058,6 +1085,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_omanmalfunction_mission", true );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Oman" ), 0.50 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 22 );
 				return true;
 			}
 			
@@ -1093,6 +1121,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_omanmalfunction_mission", true );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Oman" ), 0.50 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 23 );
 				return true;
 			}
 			
@@ -1119,7 +1148,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.CargoReward( local_0, 444, 1 );
 				iMissionGenerator.PersonalDelivery( local_0, false );
 				iMissionGenerator.NumberOfRepeats( local_0, 5 );
-				iMissionGenerator.OwnerDetails( local_0, 0, "Light", "generated_missions_30_name_ship_01", "generated_missions_30_name_ship_02", "GenericSupply", "The Oman" );
+				iMissionGenerator.OwnerDetails( local_0, 0, "Light", "generated_missions_30_name_ship_01", "generated_missions_30_name_ship_02", "GenericSupply", "MAAS Corporation" );
 				iMissionGenerator.OwnerLocation( local_0, 48, "map:/geog/badlands/kompira", "Al Wakrah Independent Leisure Station" );
 				iMissionGenerator.PatronName( local_0, "generated_missions_30_email_sender_01" );
 				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_30_OmanFeast_01", "generated_missions_30_email_subject_01", 4 );
@@ -1128,6 +1157,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_omanmalfunction_mission", true );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Oman" ), 0.50 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 30 );
 				return true;
 			}
 			
@@ -1161,6 +1191,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_mcaexcavations_mission", true );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "M.C.A." ), 0.50 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 31 );
 				return true;
 			}
 			
@@ -1179,21 +1210,22 @@ bool InstantiateMission( int mission_enum_ )
 			{
 				local_0 = iMissionGenerator.NewMission( "M.C.A. Terraforming" );
 				iMissionGenerator.ObjectiveStub( local_0, "a4_m32" );
-				iMissionGenerator.CargoToGetCategory( local_0, 19, 2 );
+				iMissionGenerator.CargoToGetCategory( local_0, 19, 1 );
 				iMissionGenerator.CargoReward( local_0, 596, 1 );
 				iMissionGenerator.PersonalDelivery( local_0, true );
 				iMissionGenerator.NumberOfRepeats( local_0, 1 );
 				iMissionGenerator.PatronDetails( local_0, "Security", "Heavy", "generated_missions_32_name_ship_01", "generated_missions_32_name_ship_02", "GenericUnderworld", "M.C.A." );
-				iMissionGenerator.PatronLocation( local_0, 104, "map:/geog/badlands/santa_somera", "The Ritz" );
+				iMissionGenerator.PatronLocation( local_0, 104, "map:/geog/badlands/santa_romera", "The Ritz" );
 				iMissionGenerator.OwnerDetails( local_0, 1, "Light", "generated_missions_32_name_ship_03", "generated_missions_32_name_ship_04", "GenericSupply", "Independent" );
-				iMissionGenerator.OwnerLocation( local_0, 62, "map:/geog/badlands/santa_somera", "Liberty NOMEX Warehouse" );
+				iMissionGenerator.OwnerLocation( local_0, 62, "map:/geog/badlands/santa_romera", "Liberty NOMEX Warehouse" );
 				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_32_MCATerraforming_01", "generated_missions_32_email_subject_01", 4 );
 				iMissionGenerator.SetVerification( local_0, "generated_missions_32_MCATerraforming_01_jardan", "", 5 );
-				iMissionGenerator.SetConclusion( local_0, "GM_32_MCATerraforming_02_jardan", "generated_missions_30_email_subject_02", 5 );
+				iMissionGenerator.SetConclusion( local_0, "generated_missions_32_dialogue_jardan_thats_enough_02", "generated_missions_30_email_subject_02", 5 );
 				iMissionGenerator.FailIfPatronDead( local_0 );
 				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_MCAterraforming_mission", true );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "M.C.A." ), 0.50 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 32 );
 				return true;
 			}
 			
@@ -1232,6 +1264,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_mcaplague_mission", true );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "M.C.A." ), 0.50 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 33 );
 				return true;
 			}
 			
@@ -1266,6 +1299,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_mcaarmy_mission", true );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "M.C.A." ), 0.50 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 34 );
 				return true;
 			}
 			
@@ -1299,6 +1333,7 @@ bool InstantiateMission( int mission_enum_ )
 				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_mcasafetydrive_mission", true );
 				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "M.C.A." ), 0.50 );
 				iMissionGenerator.Activate( local_0 );
+				iMissionGenerator.FlushGMs( 35 );
 				return true;
 			}
 			

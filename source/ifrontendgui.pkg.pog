@@ -74,6 +74,7 @@ WrongDiskScreen()
 	Text.Add( "csv:/text/gui_addendum_3" );
 	Text.Add( "csv:/text/gui_addendum_4" );
 	Text.Add( "csv:/text/gui_addendum_5" );
+	Text.Add( "csv:/text/gui_addendum_6" );
 	Text.Add( "csv:/text/objectives" );
 	iGUI.SetGUIGlobals();
 	gUIFancybuttonWidth = Global.Int( "GUI_fancybutton_width" );

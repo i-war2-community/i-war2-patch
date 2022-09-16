@@ -36,7 +36,7 @@ prototype iMPUtils.ClientSendDebugInfo();
 
 prototype iMPUtils.ClientTauntReturn( string taunt );
 
-prototype iMPUtils.ServerDoDebug( hisim originator, string data );
+prototype iMPUtils.ServerDoDebug( hisim originator, hisim sim, string data );
 
 prototype hsim iMPUtils.FindSystemCentre();
 

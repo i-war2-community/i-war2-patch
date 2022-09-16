@@ -78,7 +78,8 @@ provides testPiracyRating,
          BaseJafsChecker,
          BaseMain,
          MonkeyAbout,
-         PatronName;
+         PatronName,
+         FlushGMs;
 
 enum eGMCommType
 {
@@ -126,30 +127,30 @@ prototype ExclusiveTrades( htask mission_task_, bool exclusive_ );
 prototype FailIfOwnerDead( htask mission_task_ );
 prototype FailIfGlobalBool( htask mission_task_, string variable_name_, bool value_ );
 prototype FailPrecludes( htask mission_task_, int mission_enum_ );
-prototype bool local_function_37( hobject param_0_ );
+prototype bool local_function_38( hobject param_0_ );
 prototype string local_function_12( string param_0_ );
-prototype hsim local_function_38( hobject param_0_ );
-prototype local_function_11( hobject param_0_ );
 prototype hsim local_function_39( hobject param_0_ );
+prototype local_function_11( hobject param_0_ );
+prototype hsim local_function_40( hobject param_0_ );
 prototype hsim local_function_6( hobject param_0_, string param_1_ );
 prototype string local_function_8( string param_0_, int param_1_ );
 prototype local_function_28( hstate state_ );
 prototype local_function_5( hobject param_0_, string param_1_ );
 prototype local_function_21( hobject param_0_, int param_1_, string param_2_, string param_3_ );
-prototype local_function_40( hship ship_, string param_1_, string param_2_, string param_3_ );
-prototype local_function_41( hobject param_0_, hgroup group_, hmapentity mapentity_ );
+prototype local_function_41( hship ship_, string param_1_, string param_2_, string param_3_ );
+prototype local_function_42( hobject param_0_, hgroup group_, hmapentity mapentity_ );
 prototype list local_function_14( hship ship_, float param_1_ );
 prototype int local_function_15( hobject param_0_, hship ship_0_, hship ship_1_ );
 prototype int local_function_13( hobject param_0_ );
 prototype bool local_function_16( hobject param_0_ );
 prototype local_function_17( hgroup group_ );
-prototype task local_function_42( hobject param_0_ );
+prototype task local_function_43( hobject param_0_ );
 prototype bool local_function_29( hstate state_ );
 prototype bool local_function_24( hstate state_ );
 prototype local_function_27( hstate state_ );
 prototype local_function_19( hstate state_ );
 prototype local_function_30( hstate state_ );
-prototype local_function_43( hobject param_0_ );
+prototype local_function_44( hobject param_0_ );
 prototype local_function_22( hstate state_ );
 prototype htask NewMission( string mission_name_ );
 prototype task NewMissionTask();
@@ -162,22 +163,24 @@ prototype local_function_2( hstate state_, string param_1_, string param_2_, int
 prototype local_function_32( hstate state_, string param_1_, string param_2_, float param_3_ );
 prototype local_function_33( hstate state_, string param_1_, string param_2_, string param_3_ );
 prototype local_function_31( hstate state_, string param_1_, string param_2_, hfaction faction_ );
-prototype local_function_44( hobject param_0_ );
 prototype local_function_45( hobject param_0_ );
+prototype local_function_46( hobject param_0_ );
 prototype Activate( htask mission_task_ );
 prototype SuccessFactionModifier( htask mission_task_, hfaction faction_handle_, float modifier_ );
 prototype SuccessBool( htask mission_task_, string bool_name_, bool value_ );
-prototype local_function_46( htask param_0_, int param_1_, int param_2_ );
+prototype local_function_47( htask param_0_, int param_1_, int param_2_ );
 prototype SuccessAddMission( htask mission_task_, int mission_enum_ );
-prototype local_function_47( hstate state_ );
+prototype local_function_48( hstate state_ );
 prototype local_function_25( hstate state_ );
 prototype local_function_23( hstate state_ );
-prototype local_function_48();
+prototype local_function_49();
 prototype local_function_9( hgroup group_0_ );
 prototype task BaseJafsChecker();
 prototype task BaseMain();
 prototype task MonkeyAbout( hship ship_, hmapentity mapentity_0_ );
 prototype local_function_10( hobject param_0_, hship ship_ );
+prototype local_function_37( string param_0_ );
+prototype FlushGMs( int param_ );
 
 testPiracyRating( float value_ )
 {
@@ -428,8 +431,6 @@ local_function_3( hstate state_ )
 	
 	if ( local_0 != 0 )
 	{
-		iObjectives.Add( String.Join( Object.StringProperty( state_, "objective_stub" ), "_objectives_goto" ) );
-		
 		if ( local_0 == 1 )
 		{
 			iObjectives.SetState( String.Join( Object.StringProperty( state_, "objective_stub" ), "_objectives_goto" ), OS_Incomplete );
@@ -444,8 +445,6 @@ local_function_3( hstate state_ )
 	
 	if ( local_0 != 0 )
 	{
-		iObjectives.Add( String.Join( Object.StringProperty( state_, "objective_stub" ), "_objectives_collect" ) );
-		
 		if ( local_0 == 1 )
 		{
 			iObjectives.SetState( String.Join( Object.StringProperty( state_, "objective_stub" ), "_objectives_collect" ), OS_Incomplete );
@@ -460,8 +459,6 @@ local_function_3( hstate state_ )
 	
 	if ( local_0 != 0 )
 	{
-		iObjectives.Add( String.Join( Object.StringProperty( state_, "objective_stub" ), "_objectives_deliver" ) );
-		
 		if ( local_0 == 1 )
 		{
 			iObjectives.SetState( String.Join( Object.StringProperty( state_, "objective_stub" ), "_objectives_deliver" ), OS_Incomplete );
@@ -904,7 +901,7 @@ FailPrecludes( htask mission_task_, int mission_enum_ )
 	local_function_2( taskState, "failure_mission_value", "failure_mission_counter", mission_enum_ );
 }
 
-bool local_function_37( hobject param_0_ )
+bool local_function_38( hobject param_0_ )
 {
 	int failureClauseNumber;
 	int ii;
@@ -1004,7 +1001,7 @@ string local_function_12( string param_0_ )
 	return iMapEntity.Name( iMapEntity.Cast( iHabitat.Random( Set.FromList( localList ) ) ) );
 }
 
-hsim local_function_38( hobject param_0_ )
+hsim local_function_39( hobject param_0_ )
 {
 	hhabitat habitat = none;
 	hsim waypoint;
@@ -1111,7 +1108,7 @@ local_function_11( hobject param_0_ )
 	local_function_5( param_0_, "patron" );
 }
 
-hsim local_function_39( hobject param_0_ )
+hsim local_function_40( hobject param_0_ )
 {
 	return local_function_6( param_0_, "character" );
 }
@@ -1505,7 +1502,7 @@ local_function_21( hobject param_0_, int param_1_, string param_2_, string param
 	}
 }
 
-local_function_40( hship ship_, string param_1_, string param_2_, string param_3_ )
+local_function_41( hship ship_, string param_1_, string param_2_, string param_3_ )
 {
 	hmapentity mapentity;
 	
@@ -1599,7 +1596,7 @@ local_function_40( hship ship_, string param_1_, string param_2_, string param_3
 	}
 }
 
-local_function_41( hobject param_0_, hgroup group_, hmapentity mapentity_ )
+local_function_42( hobject param_0_, hgroup group_, hmapentity mapentity_ )
 {
 	bool local_0;
 	int ii;
@@ -1799,7 +1796,7 @@ local_function_17( hgroup group_ )
 	Task.Detach( start iScriptedOrders.LagrangeHandler( group_, "Random" ) );
 }
 
-task local_function_42( hobject param_0_ )
+task local_function_43( hobject param_0_ )
 {
 	hgroup group;
 	list localList_0;
@@ -2006,14 +2003,14 @@ bool local_function_29( hstate state_ )
 
 bool local_function_24( hstate state_ )
 {
-	string missionName = Object.StringProperty( state_, "mission_name" );
+	string objectiveStub = Object.StringProperty( state_, "objective_stub" );
 	int ii;
 	htrade trade;
 	
 	debug atomic
 	{
 		Debug.PrintString( "iMissionGenerator:TestForCompletion will be looking for mission by the name of " );
-		Debug.PrintString( missionName );
+		Debug.PrintString( objectiveStub );
 		Debug.PrintString( " \n" );
 	}
 	
@@ -2030,7 +2027,7 @@ bool local_function_24( hstate state_ )
 				Debug.PrintString( " \n" );
 			}
 			
-			if ( Object.StringProperty( trade, "generated_mission" ) == missionName )
+			if ( Object.StringProperty( trade, "generated_mission" ) == objectiveStub )
 			{
 				debug Debug.PrintString( "iMissionGenerator:TestForCompletion found a referenced trade, so gen mission isn't closed.\n" );
 				return false;
@@ -2121,8 +2118,8 @@ local_function_27( hstate state_ )
 			trade = iTrade.CreateTradeForCargoCategory( independent, local_0, local_2, local_1 - 1000, local_3, 1 );
 		}
 		
+		Object.AddStringProperty( trade, "generated_mission", Object.StringProperty( state_, "objective_stub" ) );
 		iTrade.OfferTrade( trade );
-		Object.AddStringProperty( trade, "generated_mission", Object.StringProperty( state_, "mission_name" ) );
 		
 		if ( Object.BoolProperty( state_, "personal_delivery" ) == 1 )
 		{
@@ -2195,7 +2192,10 @@ local_function_30( hstate state_ )
 			
 			if ( iSim.IsDockedTo( iSim.Cast( playerShip ), iSim.Cast( local_1 ) ) )
 			{
-				local_2 = local_1;
+				if ( Object.PropertyExists( local_1, "cargo" ) == 1 )
+				{
+					local_2 = local_1;
+				}
 			}
 		}
 		
@@ -2237,7 +2237,7 @@ local_function_30( hstate state_ )
 	debug Debug.PrintString( "iMissionGenerator.ResolveDelivery: Cargo safely delivered to Patron.\n" );
 }
 
-local_function_43( hobject param_0_ )
+local_function_44( hobject param_0_ )
 {
 	string successDebriefCommType = Object.StringProperty( param_0_, "success_debrief_comm_type" );
 	string successDebriefCommReference = Object.StringProperty( param_0_, "success_debrief_comm_reference" );
@@ -2426,7 +2426,7 @@ task NewMissionTask()
 			Debug.PrintString( " \n" );
 		}
 		
-		if ( local_9 > 5 )
+		if ( local_9 >= 5 )
 		{
 			if ( local_function_24( taskState ) )
 			{
@@ -2479,7 +2479,6 @@ task NewMissionTask()
 				break;
 			
 			case 1:
-				local_function_27( taskState );
 				debug Debug.PrintString( "iMissionGenerator: progress MS_Waiting\n" );
 				
 				debug atomic
@@ -2508,6 +2507,7 @@ task NewMissionTask()
 				
 				if ( commBriefingType != 4 )
 				{
+					local_function_27( taskState );
 					State.SetProgress( taskState, 5 );
 				}
 				else
@@ -2532,6 +2532,7 @@ task NewMissionTask()
 				}
 				while ( 0 == iEmail.Read( iEmail.Find( Object.StringProperty( taskState, "comm_briefing_reference" ) ) ) );
 				
+				local_function_27( taskState );
 				State.SetProgress( taskState, 5 );
 				Object.SetIntProperty( taskState, "countout", 0 );
 				break;
@@ -2788,7 +2789,7 @@ local_function_31( hstate state_, string param_1_, string param_2_, hfaction fac
 	Object.SetHandleProperty( state_, local_1, faction_ );
 }
 
-local_function_44( hobject param_0_ )
+local_function_45( hobject param_0_ )
 {
 	hinifile generatedMissionIniHandle = INIFile.Cast( Object.HandleProperty( param_0_, "generated_mission_ini_handle" ) );
 	int local_1 = iUtilities.FindNumberOfINIEntries( generatedMissionIniHandle, "Target", "required_cargo" );
@@ -2825,7 +2826,7 @@ local_function_44( hobject param_0_ )
 	Object.AddIntProperty( param_0_, "number_of_cargo_types", local_1 );
 }
 
-local_function_45( hobject param_0_ )
+local_function_46( hobject param_0_ )
 {
 	hinifile generatedMissionIniHandle = INIFile.Cast( Object.HandleProperty( param_0_, "generated_mission_ini_handle" ) );
 	int local_1 = iUtilities.FindNumberOfINIEntries( generatedMissionIniHandle, "Failure", "clause" );
@@ -2926,7 +2927,7 @@ SuccessBool( htask mission_task_, string bool_name_, bool value_ )
 	local_function_2( taskState, "success_bool_value", "success_bool_value_counter", value_ );
 }
 
-local_function_46( htask param_0_, int param_1_, int param_2_ )
+local_function_47( htask param_0_, int param_1_, int param_2_ )
 {
 	hstate taskState = State.Find( param_0_ );
 	
@@ -2953,7 +2954,7 @@ SuccessAddMission( htask mission_task_, int mission_enum_ )
 	local_function_2( taskState, "success_mission_value", "success_mission_counter", mission_enum_ );
 }
 
-local_function_47( hstate state_ )
+local_function_48( hstate state_ )
 {
 	int commConclustionType;
 	int ii;
@@ -2991,7 +2992,7 @@ local_function_25( hstate state_ )
 	int commConclusionType;
 	string commConclusionReference;
 	bool local_6;
-	string missionName;
+	string objectiveStub;
 	int jj;
 	htrade trade;
 	
@@ -3075,7 +3076,7 @@ local_function_25( hstate state_ )
 	}
 	else debug Debug.PrintString( "iMissionGenerator: No concluding message to send. " );
 	
-	missionName = Object.StringProperty( state_, "mission_name" );
+	objectiveStub = Object.StringProperty( state_, "objective_stub" );
 	
 	for ( jj = ( iTrade.NumTrades() - 1 ); jj >= 0; --jj )
 	{
@@ -3083,7 +3084,7 @@ local_function_25( hstate state_ )
 		
 		if ( !( Object.StringProperty( trade, "generated_mission" ) == "" ) )
 		{
-			if ( Object.StringProperty( trade, "generated_mission" ) == missionName )
+			if ( Object.StringProperty( trade, "generated_mission" ) == objectiveStub )
 			{
 				debug Debug.PrintString( "iMissionGenerator:TestForCompletion found a referenced trade, removing as complete.\n" );
 				iTrade.RemoveTrade( trade );
@@ -3097,7 +3098,7 @@ local_function_25( hstate state_ )
 
 local_function_23( hstate state_ )
 {
-	string missionName = Object.StringProperty( state_, "mission_name" );
+	string objectiveStub = Object.StringProperty( state_, "objective_stub" );
 	htrade trade;
 	int ii;
 	
@@ -3107,7 +3108,7 @@ local_function_23( hstate state_ )
 		
 		if ( !( Object.StringProperty( trade, "generated_mission" ) == "" ) )
 		{
-			if ( Object.StringProperty( trade, "generated_mission" ) == missionName )
+			if ( Object.StringProperty( trade, "generated_mission" ) == objectiveStub )
 			{
 				debug Debug.PrintString( "iMissionGenerator:TestForCompletion found a referenced trade, removing as failed.\n" );
 				iTrade.RemoveTrade( trade );
@@ -3116,7 +3117,7 @@ local_function_23( hstate state_ )
 	}
 }
 
-local_function_48()
+local_function_49()
 {
 	hstate state;
 	
@@ -3287,6 +3288,184 @@ local_function_10( hobject param_0_, hship ship_ )
 				debug Debug.PrintString( "iMissionGenerator.StickOnCargo: adding actual cargo pod.\n" );
 			}
 			while ( local_3 > 0 );
+		}
+	}
+}
+
+local_function_37( string param_0_ )
+{
+	string local_0 = param_0_;
+	htrade trade;
+	int ii;
+	
+	for ( ii = ( iTrade.NumTrades() - 1 ); ii >= 0; --ii )
+	{
+		trade = iTrade.NthTrade( ii );
+		
+		if ( !( Object.StringProperty( trade, "generated_mission" ) == "" ) )
+		{
+			if ( Object.StringProperty( trade, "generated_mission" ) == local_0 )
+			{
+				debug Debug.PrintString( "iMissionGenerator:TestForCompletion found a referenced trade, removing as failed.\n" );
+				iTrade.RemoveTrade( trade );
+			}
+		}
+	}
+	
+	iObjectives.Remove( String.Join( param_0_, "_objectives_collect" ) );
+	iObjectives.Remove( String.Join( param_0_, "_objectives_deliver" ) );
+	iObjectives.Remove( String.Join( param_0_, "_objectives_goto" ) );
+}
+
+FlushGMs( int param_ )
+{
+	int ii;
+	
+	param_ = ( param_ - 4 );
+	
+	for ( ii = 0; ii < param_; ++ii )
+	{
+		switch ( ii )
+		{
+			case 1:
+				local_function_37( "a4_m11" );
+				break;
+			
+			case 2:
+				local_function_37( "a4_m01" );
+				break;
+			
+			case 3:
+				local_function_37( "a4_m03" );
+				break;
+			
+			case 4:
+				local_function_37( "a4_m02" );
+				break;
+			
+			case 5:
+				local_function_37( "a4_m14" );
+				break;
+			
+			case 6:
+				local_function_37( "a4_m13" );
+				break;
+			
+			case 7:
+				local_function_37( "a4_m10" );
+				break;
+			
+			case 8:
+				local_function_37( "a4_m16" );
+				break;
+			
+			case 9:
+				local_function_37( "a4_m12" );
+				break;
+			
+			case 10:
+				local_function_37( "a4_m08" );
+				break;
+			
+			case 11:
+				local_function_37( "a4_m20" );
+				break;
+			
+			case 12:
+				local_function_37( "a4_m18" );
+				break;
+			
+			case 13:
+				local_function_37( "a4_m06" );
+				break;
+			
+			case 14:
+				local_function_37( "a4_m07" );
+				break;
+			
+			case 15:
+				local_function_37( "a4_m04" );
+				break;
+			
+			case 16:
+				local_function_37( "a4_m05" );
+				break;
+			
+			case 17:
+				local_function_37( "a4_m23" );
+				break;
+			
+			case 18:
+				local_function_37( "a4_m24" );
+				break;
+			
+			case 19:
+				local_function_37( "a4_m25" );
+				break;
+			
+			case 20:
+				local_function_37( "a4_m26" );
+				break;
+			
+			case 21:
+				local_function_37( "a4_m27" );
+				break;
+			
+			case 22:
+				local_function_37( "a4_m28" );
+				break;
+			
+			case 23:
+				local_function_37( "a4_m29" );
+				break;
+			
+			case 24:
+				local_function_37( "a4_m19" );
+				break;
+			
+			case 25:
+				local_function_37( "a4_m09" );
+				break;
+			
+			case 26:
+				local_function_37( "a4_m15" );
+				break;
+			
+			case 27:
+				local_function_37( "a4_m21" );
+				break;
+			
+			case 28:
+				local_function_37( "a4_m22" );
+				break;
+			
+			case 29:
+				local_function_37( "a4_m17" );
+				break;
+			
+			case 30:
+				local_function_37( "a4_m30" );
+				break;
+			
+			case 31:
+				local_function_37( "a4_m31" );
+				break;
+			
+			case 32:
+				local_function_37( "a4_m32" );
+				break;
+			
+			case 33:
+				local_function_37( "a4_m33" );
+				break;
+			
+			case 34:
+				local_function_37( "a4_m34" );
+				break;
+			
+			case 35:
+				local_function_37( "a4_m35" );
+				break;
 		}
 	}
 }

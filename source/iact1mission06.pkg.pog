@@ -1,8 +1,8 @@
 package iAct1Mission06;
 
 uses Debug,
-     List,
      Set,
+     List,
      String,
      Global,
      Sim,
@@ -39,7 +39,8 @@ uses Debug,
      iRangeCheck,
      iRegion,
      INIFile,
-     iUtilities;
+     iUtilities,
+     iWingmen;
 
 provides Main,
          MissionHandler,
@@ -54,7 +55,7 @@ prototype task local_function_3( htask param_0_, hstate state_, hship ship_, his
 prototype task MissionHandler();
 prototype hgroup local_function_4( hisim param_0_, float param_1_ );
 prototype local_function_6( hship ship_0_, hgroup group_0_, hgroup group_1_, hisim param_3_ );
-prototype task local_function_8( hship ship_, int param_1_, int param_2_, int constant_, hgroup group_, hisim param_5_ );
+prototype task local_function_8( hship ship_, int param_1_, int param_2_, int constant_, hgroup group_0_, hisim param_5_ );
 prototype local_function_9( int param_0_ );
 prototype task local_function_5( hship ship_, hisim param_1_ );
 prototype task local_function_7( hship ship_0_, hship ship_1_, hgroup group_0_, hisim param_3_ );
@@ -412,21 +413,22 @@ local_function_6( hship ship_0_, hgroup group_0_, hgroup group_1_, hisim param_3
 	hship ship_4 = iShip.Cast( Group.NthSim( group_0_, 4 ) );
 	hship ship_5 = iShip.Cast( Group.NthSim( group_0_, 5 ) );
 	
-	start local_function_8( groupLeader, 20, 20, 5, group_1_, param_3_ );
-	start local_function_8( ship_1, 20, 20, 5, group_1_, param_3_ );
-	start local_function_8( ship_2, 20, 20, 10, group_1_, param_3_ );
-	start local_function_8( ship_3, 20, 20, 10, group_1_, param_3_ );
-	start local_function_8( ship_4, 20, 20, 15, group_1_, param_3_ );
-	start local_function_8( ship_5, 20, 20, 15, group_1_, param_3_ );
+	start local_function_8( groupLeader, 15, 20, 0, group_1_, param_3_ );
+	start local_function_8( ship_1, 15, 20, 0, group_1_, param_3_ );
+	start local_function_8( ship_2, 15, 20, 0, group_1_, param_3_ );
+	start local_function_8( ship_3, 15, 20, 0, group_1_, param_3_ );
+	start local_function_8( ship_4, 15, 20, 0, group_1_, param_3_ );
+	start local_function_8( ship_5, 15, 20, 0, group_1_, param_3_ );
 }
 
-task local_function_8( hship ship_, int param_1_, int param_2_, int constant_, hgroup group_, hisim param_5_ )
+task local_function_8( hship ship_, int param_1_, int param_2_, int constant_, hgroup group_0_, hisim param_5_ )
 {
 	hship playerShip = iShip.FindPlayerShip();
 	hfaction marauders = iFaction.Find( "Marauders" );
 	hfaction independent = iFaction.Find( "Independent" );
 	hfaction player = iFaction.Find( "Player" );
 	int local_4;
+	hgroup group_1 = iWingmen.Group();
 	
 	do
 	{
@@ -443,16 +445,16 @@ task local_function_8( hship ship_, int param_1_, int param_2_, int constant_, h
 					break;
 				}
 				
-				if ( iSim.IsDockedTo( playerShip, param_5_ ) )
+				if ( (Sim.Parent( playerShip ) != false) && (List.ItemCount( iWingmen.GetDetachedTFighters() ) == 0) )
 				{
 					iShip.LockDownWeapons( ship_ );
 				}
 				else
 				{
-					iAI.GiveAttackOrder( ship_, playerShip );
+					iAI.GiveAttackOrder( ship_, group_1 );
 				}
 				
-				if ( local_4 == param_1_ )
+				if ( local_4 >= param_1_ )
 				{
 					break;
 				}
@@ -482,12 +484,17 @@ task local_function_8( hship ship_, int param_1_, int param_2_, int constant_, h
 					break;
 				}
 				
-				if ( local_4 == param_2_ )
+				if ( local_4 >= param_2_ )
 				{
 					break;
 				}
 				
 				local_4 = ( local_4 + 1 );
+			}
+			
+			every 0.50:
+			{
+				iSim.SetHostile( ship_, false );
 			}
 		}
 	}
@@ -496,9 +503,9 @@ task local_function_8( hship ship_, int param_1_, int param_2_, int constant_, h
 	iSim.SetDockingLock( playerShip, ship_, true );
 	iSim.SetSensorVisibility( ship_, false );
 	iAI.PurgeOrders( ship_ );
-	Group.AddSim( group_, ship_ );
+	Group.AddSim( group_0_, ship_ );
 	Task.Sleep( Task.Current(), 4.0 );
-	local_function_9( Group.SimCount( group_ ) );
+	local_function_9( Group.SimCount( group_0_ ) );
 	iSim.SetDockingLock( playerShip, ship_, false );
 }
 

@@ -46,7 +46,8 @@ provides SetGUIGlobals,
          MakeRectangularInverseButtonIconic,
          StartWindowFlashing,
          StopWindowFlashing,
-         NullFunction;
+         NullFunction,
+         OverlayCustomScreen;
 
 prototype SetGUIGlobals();
 prototype hwindow CreateFancyButton( int x_, int y_, hwindow parent_ );
@@ -90,6 +91,7 @@ prototype NullFunction();
 prototype int local_function_0( list localList_ );
 prototype int local_function_1( list localList_, int param_1_ );
 prototype hwindow CreateAndInitialiseListBoxEntryComponentWindow( int x_offset_, int width_, int height_, hwindow parent_, string font_, string name_ );
+prototype OverlayCustomScreen( string setup_function_ );
 
 SetGUIGlobals()
 {
@@ -328,6 +330,7 @@ SetGUIGlobals()
 	Global.CreateInt( "GUI_listbox_entryheight", constant, 10 );
 	Global.CreateInt( "GUI_slidercontrol_height", constant, 3 );
 	Global.CreateInt( "GUI_slidercontrol_gap", constant, 0 );
+	Global.CreateString( "g_custom_gui_screen", constant, "" );
 }
 
 hwindow CreateFancyButton( int x_, int y_, hwindow parent_ )
@@ -992,5 +995,11 @@ hwindow CreateAndInitialiseListBoxEntryComponentWindow( int x_offset_, int width
 	GUI.SetWindowTextFormatting( window_1, false, 0 );
 	GUI.SetWindowStateColours( window_1, Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ), Global.Float( "GUI_listbox_focused_red" ), Global.Float( "GUI_listbox_focused_green" ), Global.Float( "GUI_listbox_focused_blue" ), Global.Float( "GUI_selected_red" ), Global.Float( "GUI_selected_green" ), Global.Float( "GUI_selected_blue" ) );
 	return window_1;
+}
+
+OverlayCustomScreen( string setup_function_ )
+{
+	Global.SetString( "g_custom_gui_screen", setup_function_ );
+	GUI.OverlayScreen( "icCustomGUIScreen" );
 }
 

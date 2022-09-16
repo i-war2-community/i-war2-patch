@@ -2,19 +2,19 @@ package iRemotePilot;
 
 uses Debug,
      String,
-     Set,
      List,
+     Set,
      Global,
      Object,
      Group,
      Sim,
      iComms,
      MapEnumerations,
+     iFaction,
      iMapEntity,
+     iSim,
      iBody,
      iHabitat,
-     iFaction,
-     iSim,
      iShip;
 
 provides Install,

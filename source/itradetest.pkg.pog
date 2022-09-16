@@ -1,9 +1,9 @@
 package itradetest;
 
 uses Debug,
-     String,
      Set,
      List,
+     String,
      Global,
      MapEnumerations,
      iFaction,

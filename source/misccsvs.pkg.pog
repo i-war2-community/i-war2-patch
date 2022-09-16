@@ -1,8 +1,8 @@
 package misccsvs;
 
-uses String,
-     Set,
+uses Set,
      List,
+     String,
      Global,
      Task,
      Text,

@@ -37,10 +37,10 @@ uses Debug,
      iObjectives,
      INIFile,
      iUtilities,
+     iCargo,
      CargoTypes,
      iCargoScript,
      iPilotSetup,
-     iCargo,
      iShipCreation,
      iStation;
 

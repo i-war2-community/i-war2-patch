@@ -30,9 +30,9 @@ uses Debug,
      iUtilities,
      CargoTypes,
      iCargoScript,
-     iCargo,
-     iFormation,
      iPilotSetup,
+     iFormation,
+     iCargo,
      iShipCreation;
 
 provides create_asteroids,
@@ -65,7 +65,7 @@ prototype task WeaponPowerUpGeneratorTask( hgroup spawn_points_ );
 prototype SpawnKilledPlayerPowerUps( hsim player_ );
 prototype ClientTauntReturn( string taunt_ );
 prototype ClientSendDebugInfo();
-prototype ServerDoDebug( hisim originator_, string data_ );
+prototype ServerDoDebug( hisim originator_, hisim sim_, string data_ );
 prototype hsim FindSystemCentre();
 prototype SpawnPlayer( hsim player_, hgroup spawn_points_ );
 prototype task CheckFragLimit();
@@ -517,17 +517,35 @@ ClientSendDebugInfo()
 			iAI.PurgeOrders( currentTarget );
 		}
 		
-		iMultiplay.ClientSendUserMessage( currentTarget, 99, local_0 );
+		iMultiplay.ClientSendUserMessage( 99, iShip.FindPlayerShip(), currentTarget, local_0 );
 		iMultiplay.ClientBroadcastMessage( iShip.FindPlayerShip(), "cheating", BMT_Info );
 	}
 }
 
-ServerDoDebug( hisim originator_, string data_ )
+ServerDoDebug( hisim originator_, hisim sim_, string data_ )
 {
 	string local_0;
 	hisim local_1;
-	hisim local_2;
+	hisim megapod;
 	htask local_3;
+	
+	if ( data_ == "position" )
+	{
+		local_0 = "pos:";
+		local_0 = String.Join( local_0, String.FromFloat( iMultiplay.DebugSimPositionX( sim_ ) ) );
+		local_0 = String.Join( local_0, " " );
+		local_0 = String.Join( local_0, String.FromFloat( iMultiplay.DebugSimPositionY( sim_ ) ) );
+		local_0 = String.Join( local_0, " " );
+		local_0 = String.Join( local_0, String.FromFloat( iMultiplay.DebugSimPositionZ( sim_ ) ) );
+		iMultiplay.ServerBroadcastMessage( sim_, local_0, BMT_Event );
+		return;
+	}
+	
+	if ( iMultiplay.ServerPlayerIP( originator_ ) != iMultiplay.ServerIP() )
+	{
+		iMultiplay.ServerBroadcastMessage( sim_, "access denied", BMT_Info );
+		return;
+	}
 	
 	if ( data_ == "endgame" )
 	{
@@ -537,31 +555,19 @@ ServerDoDebug( hisim originator_, string data_ )
 	
 	if ( data_ == "kill" )
 	{
-		iSim.Kill( originator_ );
-		return;
-	}
-	
-	if ( data_ == "position" )
-	{
-		local_0 = "pos:";
-		local_0 = String.Join( local_0, String.FromFloat( iMultiplay.DebugSimPositionX( originator_ ) ) );
-		local_0 = String.Join( local_0, " " );
-		local_0 = String.Join( local_0, String.FromFloat( iMultiplay.DebugSimPositionY( originator_ ) ) );
-		local_0 = String.Join( local_0, " " );
-		local_0 = String.Join( local_0, String.FromFloat( iMultiplay.DebugSimPositionZ( originator_ ) ) );
-		iMultiplay.ServerBroadcastMessage( originator_, local_0, BMT_Event );
+		iSim.Kill( sim_ );
 		return;
 	}
 	
 	if ( data_ == "invincible" )
 	{
-		iSim.SetIndestructable( originator_, true );
+		iSim.SetIndestructable( sim_, true );
 		return;
 	}
 	
 	if ( data_ == "vincible" )
 	{
-		iSim.SetIndestructable( originator_, false );
+		iSim.SetIndestructable( sim_, false );
 		return;
 	}
 	
@@ -569,11 +575,11 @@ ServerDoDebug( hisim originator_, string data_ )
 	{
 		atomic
 		{
-			local_1 = iSim.Cast( originator_ );
-			local_2 = iSim.Cast( Sim.Create( "ini:/sims/power_ups/missiles_plus_10", "Missile PowerUp+10" ) );
-			iSim.SetFaction( local_2, iFaction.Find( "PowerUp" ) );
-			iMultiplay.SetTransmitFlag( local_2, true );
-			Sim.PlaceInFrontOf( local_1, local_2, 2000.0 );
+			local_1 = iSim.Cast( sim_ );
+			megapod = iSim.Cast( Sim.Create( "ini:/sims/power_ups/missiles_plus_10", "Missile PowerUp+10" ) );
+			iSim.SetFaction( megapod, iFaction.Find( "PowerUp" ) );
+			iMultiplay.SetTransmitFlag( megapod, true );
+			Sim.PlaceInFrontOf( local_1, megapod, 2000.0 );
 		}
 		
 		return;
@@ -583,11 +589,11 @@ ServerDoDebug( hisim originator_, string data_ )
 	{
 		atomic
 		{
-			local_1 = iSim.Cast( originator_ );
-			local_2 = iSim.Cast( Sim.Create( "ini:/sims/power_ups/speed_power_up_x2", "" ) );
-			iSim.SetFaction( local_2, iFaction.Find( "PowerUp" ) );
-			Sim.PlaceNear( local_2, local_1, 1000.0 );
-			iMultiplay.SetTransmitFlag( local_2, true );
+			local_1 = iSim.Cast( sim_ );
+			megapod = iSim.Cast( Sim.Create( "ini:/sims/power_ups/speed_power_up_x2", "" ) );
+			iSim.SetFaction( megapod, iFaction.Find( "PowerUp" ) );
+			Sim.PlaceNear( megapod, local_1, 1000.0 );
+			iMultiplay.SetTransmitFlag( megapod, true );
 		}
 		
 		return;
@@ -597,11 +603,11 @@ ServerDoDebug( hisim originator_, string data_ )
 	{
 		atomic
 		{
-			local_1 = iSim.Cast( originator_ );
-			local_2 = iSim.Cast( Sim.Create( "ini:/sims/power_ups/health", "" ) );
-			iSim.SetFaction( local_2, iFaction.Find( "PowerUp" ) );
-			Sim.PlaceNear( local_2, local_1, 1000.0 );
-			iMultiplay.SetTransmitFlag( local_2, true );
+			local_1 = iSim.Cast( sim_ );
+			megapod = iSim.Cast( Sim.Create( "ini:/sims/power_ups/health", "" ) );
+			iSim.SetFaction( megapod, iFaction.Find( "PowerUp" ) );
+			Sim.PlaceNear( megapod, local_1, 1000.0 );
+			iMultiplay.SetTransmitFlag( megapod, true );
 		}
 		
 		return;
@@ -609,13 +615,13 @@ ServerDoDebug( hisim originator_, string data_ )
 	
 	if ( data_ == "pups" )
 	{
-		local_1 = iSim.Cast( originator_ );
-		local_2 = iSim.Cast( Sim.Create( "ini:/sims/power_ups/weapon_mining_laser", "" ) );
-		iMultiplay.AddPowerupWeapon( iShip.Cast( local_1 ), local_2 );
-		local_2 = iSim.Cast( Sim.Create( "ini:/sims/power_ups/weapon_antimatter_beam", "" ) );
-		iMultiplay.AddPowerupWeapon( iShip.Cast( local_1 ), local_2 );
-		local_2 = iSim.Cast( Sim.Create( "ini:/sims/power_ups/weapon_pbc_neutron", "" ) );
-		iMultiplay.AddPowerupWeapon( iShip.Cast( local_1 ), local_2 );
+		local_1 = iSim.Cast( sim_ );
+		megapod = iSim.Cast( Sim.Create( "ini:/sims/power_ups/weapon_mining_laser", "" ) );
+		iMultiplay.AddPowerupWeapon( iShip.Cast( local_1 ), megapod );
+		megapod = iSim.Cast( Sim.Create( "ini:/sims/power_ups/weapon_antimatter_beam", "" ) );
+		iMultiplay.AddPowerupWeapon( iShip.Cast( local_1 ), megapod );
+		megapod = iSim.Cast( Sim.Create( "ini:/sims/power_ups/weapon_pbc_neutron", "" ) );
+		iMultiplay.AddPowerupWeapon( iShip.Cast( local_1 ), megapod );
 		SpawnKilledPlayerPowerUps( local_1 );
 		return;
 	}
@@ -624,27 +630,27 @@ ServerDoDebug( hisim originator_, string data_ )
 	{
 		atomic
 		{
-			local_1 = iSim.Cast( originator_ );
-			local_2 = iSim.Cast( Sim.Create( "ini:/sims/power_ups/weapon_proximity_minelayer", "" ) );
-			iSim.SetFaction( local_2, iFaction.Find( "PowerUp" ) );
-			Sim.PlaceNear( local_2, local_1, 1000.0 );
-			iMultiplay.SetTransmitFlag( local_2, true );
-			local_2 = iSim.Cast( Sim.Create( "ini:/sims/power_ups/weapon_mining_laser", "test laser" ) );
-			iSim.SetFaction( local_2, iFaction.Find( "PowerUp" ) );
-			Sim.PlaceNear( local_2, local_1, 1000.0 );
-			iMultiplay.SetTransmitFlag( local_2, true );
-			local_2 = iSim.Cast( Sim.Create( "ini:/sims/power_ups/weapon_assault_cannon", "" ) );
-			iSim.SetFaction( local_2, iFaction.Find( "PowerUp" ) );
-			Sim.PlaceNear( local_2, local_1, 1000.0 );
-			iMultiplay.SetTransmitFlag( local_2, true );
-			local_2 = iSim.Cast( Sim.Create( "ini:/sims/power_ups/weapon_hammer_rocket", "" ) );
-			iSim.SetFaction( local_2, iFaction.Find( "PowerUp" ) );
-			Sim.PlaceNear( local_2, local_1, 1000.0 );
-			iMultiplay.SetTransmitFlag( local_2, true );
-			local_2 = iSim.Cast( Sim.Create( "ini:/sims/power_ups/health_60pc", "" ) );
-			iSim.SetFaction( local_2, iFaction.Find( "PowerUp" ) );
-			Sim.PlaceNear( local_2, local_1, 1000.0 );
-			iMultiplay.SetTransmitFlag( local_2, true );
+			local_1 = iSim.Cast( sim_ );
+			megapod = iSim.Cast( Sim.Create( "ini:/sims/power_ups/weapon_proximity_minelayer", "" ) );
+			iSim.SetFaction( megapod, iFaction.Find( "PowerUp" ) );
+			Sim.PlaceNear( megapod, local_1, 1000.0 );
+			iMultiplay.SetTransmitFlag( megapod, true );
+			megapod = iSim.Cast( Sim.Create( "ini:/sims/power_ups/weapon_mining_laser", "test laser" ) );
+			iSim.SetFaction( megapod, iFaction.Find( "PowerUp" ) );
+			Sim.PlaceNear( megapod, local_1, 1000.0 );
+			iMultiplay.SetTransmitFlag( megapod, true );
+			megapod = iSim.Cast( Sim.Create( "ini:/sims/power_ups/weapon_assault_cannon", "" ) );
+			iSim.SetFaction( megapod, iFaction.Find( "PowerUp" ) );
+			Sim.PlaceNear( megapod, local_1, 1000.0 );
+			iMultiplay.SetTransmitFlag( megapod, true );
+			megapod = iSim.Cast( Sim.Create( "ini:/sims/power_ups/weapon_hammer_rocket", "" ) );
+			iSim.SetFaction( megapod, iFaction.Find( "PowerUp" ) );
+			Sim.PlaceNear( megapod, local_1, 1000.0 );
+			iMultiplay.SetTransmitFlag( megapod, true );
+			megapod = iSim.Cast( Sim.Create( "ini:/sims/power_ups/health_60pc", "" ) );
+			iSim.SetFaction( megapod, iFaction.Find( "PowerUp" ) );
+			Sim.PlaceNear( megapod, local_1, 1000.0 );
+			iMultiplay.SetTransmitFlag( megapod, true );
 		}
 		
 		return;
@@ -654,10 +660,10 @@ ServerDoDebug( hisim originator_, string data_ )
 	{
 		atomic
 		{
-			local_2 = iSim.Cast( Sim.FindByName( Text.Field( "mp_flag_b_flag_name", FT_Text ) ) );
-			local_1 = iSim.Cast( originator_ );
-			Sim.PlaceNear( local_2, local_1, 1000.0 );
-			iMultiplay.SetForRespawn( local_2 );
+			megapod = iSim.Cast( Sim.FindByName( Text.Field( "mp_flag_b_flag_name", FT_Text ) ) );
+			local_1 = iSim.Cast( sim_ );
+			Sim.PlaceNear( megapod, local_1, 1000.0 );
+			iMultiplay.SetForRespawn( megapod );
 		}
 		
 		return;
@@ -679,16 +685,40 @@ ServerDoDebug( hisim originator_, string data_ )
 	
 	if ( data_ == "purge" )
 	{
-		local_1 = iSim.Cast( originator_ );
-		iAI.PurgeOrders( originator_ );
-		iMultiplay.ServerBroadcastMessage( originator_, "purged orders", BMT_Event );
+		local_1 = iSim.Cast( sim_ );
+		iAI.PurgeOrders( sim_ );
+		iMultiplay.ServerBroadcastMessage( sim_, "purged orders", BMT_Event );
 		return;
 	}
 	
 	if ( data_ == "carlosfandango" )
 	{
-		local_3 = start local_function_2( originator_ );
+		local_3 = start local_function_2( sim_ );
 		Task.Detach( local_3 );
+		return;
+	}
+	
+	if ( data_ == "pod" )
+	{
+		local_1 = iSim.Cast( sim_ );
+		megapod = iSim.Cast( iShip.Create( "ini:/sims/ships/utility/megapod", "Megapod" ) );
+		iSim.SetSensorVisibility( megapod, true );
+		iMultiplay.SetTransmitFlag( megapod, true );
+		Sim.PlaceNear( megapod, local_1, 1000.0 );
+		return;
+	}
+	
+	if ( data_ == "open" )
+	{
+		megapod = iSim.Cast( Sim.FindByName( "Megapod" ) );
+		iMultiplay.ServerSendUserMessage( 66, megapod, none, "door" );
+		return;
+	}
+	
+	if ( data_ == "close" )
+	{
+		megapod = iSim.Cast( Sim.FindByName( "Megapod" ) );
+		iMultiplay.ServerSendUserMessage( 67, megapod, none, "door" );
 	}
 }
 
@@ -731,6 +761,8 @@ SpawnPlayer( hsim player_, hgroup spawn_points_ )
 	int local_3;
 	set localSet;
 	int simCount;
+	bool local_6 = false;
+	bool local_7 = false;
 	
 	if ( iSim.Faction( iSim.Cast( player_ ) ) == iFaction.Find( Text.Field( "mp_flag_team_b", FT_Text ) ) )
 	{
@@ -751,8 +783,13 @@ SpawnPlayer( hsim player_, hgroup spawn_points_ )
 		Debug.Error( "bugger - no sims in group" );
 	}
 	
+	if ( Object.PropertyExists( player_, "is_bot" ) )
+	{
+		local_6 = true;
+	}
+	
 	simCount = Group.SimCount( group_1 );
-	local_3 = ( 4 * simCount );
+	local_3 = ( 10 * simCount );
 	random = Math.RandomInt( 0, simCount - 1 );
 	
 	do
@@ -769,10 +806,17 @@ SpawnPlayer( hsim player_, hgroup spawn_points_ )
 		if ( Set.ItemCount( localSet ) > 0 )
 		{
 			local_3 = ( local_3 + -1 );
+			
+			if ( local_6 )
+			{
+				Task.Sleep( Task.Current(), 4.0 );
+				debug Debug.PrintString( "bot is sleeping while finding spawnpoint\n" );
+			}
 		}
 		else
 		{
 			local_3 = 0;
+			local_7 = true;
 		}
 	}
 	while ( local_3 > 0 );
@@ -784,11 +828,20 @@ SpawnPlayer( hsim player_, hgroup spawn_points_ )
 	
 	atomic
 	{
-		Sim.PlaceAt( player_, local_1 );
+		if ( local_7 )
+		{
+			Sim.PlaceAt( player_, local_1 );
+		}
+		else
+		{
+			Sim.PlaceRelativeTo( player_, local_1, Math.Random( 1000.0, 2000.0 ), Math.Random( 1020.0, 2020.0 ), Math.Random( 1050.0, 2050.0 ) );
+			debug Debug.PrintString( "all spawnpoints occupied - placing sim near spawnpoint\n" );
+		}
 		
 		if ( !iMultiplay.IsClient() )
 		{
 			iMultiplay.SetForRespawn( player_ );
+			Object.AddIntProperty( player_, "mp_spawn_time", iGame.SystemTime() );
 		}
 		else
 		{

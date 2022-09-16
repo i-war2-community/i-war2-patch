@@ -24,10 +24,10 @@ uses Debug,
      iBody,
      iHabitat,
      iUtilities,
-     iPilotSetup,
+     iCargo,
      CargoTypes,
      iCargoScript,
-     iCargo,
+     iPilotSetup,
      iShipCreation;
 
 provides GangsterCallForBackup,

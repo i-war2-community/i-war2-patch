@@ -333,7 +333,7 @@ prototype iMultiplay.ServerSendPlayerMessage( int i , string message, eBcastMess
 //
 // The message is sent to all clients that have a local copy of sim1.
 //
-prototype iMultiplay.ServerSendUserMessage( hsim sim1, int i, string data );
+prototype iMultiplay.ServerSendUserMessage( int i, hsim sim1, hsim sim2, string data );
 
 
 //
@@ -528,7 +528,7 @@ prototype iMultiplay.ClientSetTeamGame( bool team_game );
 // hsim2 is an additional sim handle.
 // data is the actual data sent in string format.
 //
-prototype iMultiplay.ClientSendUserMessage( hsim sim1, int i, string data );
+prototype iMultiplay.ClientSendUserMessage( int i, hsim sim1, hsim sim2, string data );
 
 
 //

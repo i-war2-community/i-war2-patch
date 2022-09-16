@@ -36,25 +36,26 @@ provides Main,
          hitpointmonitortask,
          PiracyMissionOneShutDownMonitor,
          PiracyMissionOneShipGenerator,
-         cargo_hint_handler;
+         cargo_hint_handler,
+         MainTask;
 
 prototype Main();
-prototype task local_function_0();
-prototype bool local_function_1();
-prototype local_function_2( string param_0_ );
+prototype task MainTask();
+prototype bool local_function_0();
+prototype local_function_1( string param_0_ );
 prototype task cargo_hint_handler( list localList_ );
-prototype local_function_3( hship ship_ );
+prototype local_function_2( hship ship_ );
 prototype task hitpointmonitortask( hship ship_ );
-prototype local_function_4( hship ship_0_ );
+prototype local_function_3( hship ship_0_ );
 prototype task PiracyMissionOneShipGenerator( hisim param_0_ );
 prototype task PiracyMissionOneShutDownMonitor( htask param_0_, htask param_1_ );
 
 Main()
 {
-	start local_function_0();
+	start MainTask();
 }
 
-task local_function_0()
+task MainTask()
 {
 	htask currentTask = Task.Current();
 	htask local_1;
@@ -81,6 +82,10 @@ task local_function_0()
 		taskState = State.Create( currentTask, 0 );
 	}
 	
+	iObjectives.Remove( "a1_m00_objective_checkout" );
+	Sim.Destroy( Sim.Cast( Global.Handle( "g_mission_waypoint" ) ) );
+	Global.Destroy( "g_mission_waypoint" );
+	
 	switch ( State.Progress( taskState ) )
 	{
 		case 0:
@@ -97,15 +102,6 @@ task local_function_0()
 					iEmail.SendEmail( "a1_sender_the_stepsons", "a1_subject_greetings", "html:/text/act_1/act1_stepson_mail_1", false );
 					iObjectives.Add( "a1_m00_objective_checkout" );
 					State.SetProgress( taskState, 1 );
-					simWaypoint = iSim.Cast( Sim.Create( "ini:/sims/nav/waypoint", "a1_waypoint_name_distress" ) );
-					lucreciasBase = iMapEntity.FindByNameInSystem( "Lucrecia's Base", "map:/geog/badlands/hoffers_wake" );
-					debug Debug.PrintString( "iActOne.PiracySpecialMission: ERROR: unable to find player base!!\n" );
-					Sim.SetCullable( simWaypoint, false );
-					Sim.PlaceRelativeTo( simWaypoint, lucreciasBase, 1500000.0, 0.0, 0.0 );
-					iSim.SetSensorVisibility( iSim.Cast( simWaypoint ), true );
-					local_1 = start PiracyMissionOneShipGenerator( simWaypoint );
-					Task.Detach( local_1 );
-					Task.Detach( start PiracyMissionOneShutDownMonitor( currentTask, local_1 ) );
 					local_5 = true;
 				}
 				else
@@ -116,6 +112,16 @@ task local_function_0()
 		
 		case 1:
 			local_5 = false;
+			simWaypoint = iSim.Cast( Sim.Create( "ini:/sims/nav/waypoint", "a1_waypoint_name_distress" ) );
+			Global.CreateHandle( "g_mission_waypoint", 2, simWaypoint );
+			lucreciasBase = iMapEntity.FindByNameInSystem( "Lucrecia's Base", "map:/geog/badlands/hoffers_wake" );
+			debug Debug.PrintString( "iActOne.PiracySpecialMission: ERROR: unable to find player base!!\n" );
+			Sim.SetCullable( simWaypoint, false );
+			Sim.PlaceRelativeTo( simWaypoint, lucreciasBase, 1500000.0, 0.0, 0.0 );
+			iSim.SetSensorVisibility( iSim.Cast( simWaypoint ), true );
+			local_1 = start PiracyMissionOneShipGenerator( simWaypoint );
+			Task.Detach( local_1 );
+			Task.Detach( start PiracyMissionOneShutDownMonitor( currentTask, local_1 ) );
 			debug Debug.PrintString( "iActOne.PiracySpecialMissionOne - Starting first wait loop...\n" );
 			
 			while ( !local_5 )
@@ -218,7 +224,7 @@ task local_function_0()
 	}
 }
 
-bool local_function_1()
+bool local_function_0()
 {
 	hmapentity lucreciasBase = iMapEntity.FindByName( "Lucrecia's Base" );
 	hship name_jafs = iShip.Cast( Sim.FindByName( "name_jafs" ) );
@@ -237,7 +243,7 @@ bool local_function_1()
 	return false;
 }
 
-local_function_2( string param_0_ )
+local_function_1( string param_0_ )
 {
 	if ( !iComms.IsInConversation() )
 	{
@@ -273,7 +279,7 @@ task cargo_hint_handler( list localList_ )
 			{
 				localSet = iSim.SimsInRadius( iSim.Cast( waypoint ), 30000.0, 2048 );
 				
-				if ( (local_function_1() || (Set.ItemCount( localSet ) == 0)) && !local_1 )
+				if ( (local_function_0() || (Set.ItemCount( localSet ) == 0)) && !local_1 )
 				{
 					local_1 = true;
 					Task.Sleep( Task.Current(), 6.0 );
@@ -323,22 +329,22 @@ task cargo_hint_handler( list localList_ )
 						
 						if ( iCargo.Value( iCargo.Find( Object.IntProperty( groupIter, "cargo" ) ) ) >= 6 )
 						{
-							local_function_2( "a1_master_dialogue_clay_good_comment_1" );
+							local_function_1( "a1_master_dialogue_clay_good_comment_1" );
 						}
 						else if ( iCargo.Value( iCargo.Find( Object.IntProperty( groupIter, "cargo" ) ) ) >= 2 )
 						{
 							switch ( Math.RandomInt( 0, 2 ) )
 							{
 								case 0:
-									local_function_2( "a1_master_dialogue_clay_medium_comment_1" );
+									local_function_1( "a1_master_dialogue_clay_medium_comment_1" );
 									break;
 								
 								case 1:
-									local_function_2( "a1_master_dialogue_clay_medium_comment_2" );
+									local_function_1( "a1_master_dialogue_clay_medium_comment_2" );
 									break;
 								
 								case 2:
-									local_function_2( "a1_master_dialogue_clay_medium_comment_3" );
+									local_function_1( "a1_master_dialogue_clay_medium_comment_3" );
 									break;
 							}
 						}
@@ -347,15 +353,15 @@ task cargo_hint_handler( list localList_ )
 							switch ( Math.RandomInt( 0, 2 ) )
 							{
 								case 0:
-									local_function_2( "a1_master_dialogue_clay_bad_comment_1" );
+									local_function_1( "a1_master_dialogue_clay_bad_comment_1" );
 									break;
 								
 								case 1:
-									local_function_2( "a1_master_dialogue_clay_bad_comment_2" );
+									local_function_1( "a1_master_dialogue_clay_bad_comment_2" );
 									break;
 								
 								case 2:
-									local_function_2( "a1_master_dialogue_clay_bad_comment_3" );
+									local_function_1( "a1_master_dialogue_clay_bad_comment_3" );
 									break;
 							}
 						}
@@ -383,7 +389,7 @@ task cargo_hint_handler( list localList_ )
 	}
 }
 
-local_function_3( hship ship_ )
+local_function_2( hship ship_ )
 {
 	list localList = List.FromSet( Sim.Children( ship_ ) );
 	
@@ -407,7 +413,7 @@ task hitpointmonitortask( hship ship_ )
 	{
 		every 1.0:
 		{
-			if ( Sim.Cast( ship_ ) == false )
+			if ( (Sim.Cast( ship_ ) == false) && (Global.Bool( "g_piracy_mission_one_ship_flag" ) == 1) )
 			{
 				debug Debug.PrintString( "iAct1PiracySpecial: Ship has been destroyed. Starting hint task\n" );
 				local_3 = true;
@@ -451,11 +457,16 @@ task hitpointmonitortask( hship ship_ )
 					iConversation.Say( ship_, "a1_master_spirit_of_capitalism", "a1_victim_plea_2" );
 					iConversation.End();
 					localList = List.FromSet( Sim.Children( ship_ ) );
-					local_function_3( ship_ );
+					local_function_2( ship_ );
 					hitPoints = Object.FloatProperty( ship_, "hit_points" );
 					local_3 = true;
 					debug Debug.PrintString( "iAct1PiracySpecial: Ship has been threatened. Starting hint task\n" );
-					Task.Detach( start cargo_hint_handler( localList ) );
+					
+					if ( Global.Bool( "g_piracy_mission_one_ship_flag" ) == 1 )
+					{
+						Task.Detach( start cargo_hint_handler( localList ) );
+					}
+					
 					return;
 				}
 				else
@@ -471,10 +482,15 @@ task hitpointmonitortask( hship ship_ )
 						iConversation.Say( ship_, "a1_master_spirit_of_capitalism", "a1_victim_plea_2" );
 						iConversation.End();
 						localList = List.FromSet( Sim.Children( ship_ ) );
-						local_function_3( ship_ );
+						local_function_2( ship_ );
 						hitPoints = Object.FloatProperty( ship_, "hit_points" );
 						local_3 = true;
-						Task.Detach( start cargo_hint_handler( localList ) );
+						
+						if ( Global.Bool( "g_piracy_mission_one_ship_flag" ) == 1 )
+						{
+							Task.Detach( start cargo_hint_handler( localList ) );
+						}
+						
 						return;
 					}
 					
@@ -484,10 +500,15 @@ task hitpointmonitortask( hship ship_ )
 						iConversation.Say( ship_, "a1_master_spirit_of_capitalism", "a1_victim_plea_2" );
 						iConversation.End();
 						localList = List.FromSet( Sim.Children( ship_ ) );
-						local_function_3( ship_ );
+						local_function_2( ship_ );
 						hitPoints = Object.FloatProperty( ship_, "hit_points" );
 						local_3 = true;
-						Task.Detach( start cargo_hint_handler( localList ) );
+						
+						if ( Global.Bool( "g_piracy_mission_one_ship_flag" ) == 1 )
+						{
+							Task.Detach( start cargo_hint_handler( localList ) );
+						}
+						
 						return;
 					}
 					else
@@ -503,7 +524,7 @@ task hitpointmonitortask( hship ship_ )
 	}
 }
 
-local_function_4( hship ship_0_ )
+local_function_3( hship ship_0_ )
 {
 	int local_0;
 	int ii;
@@ -596,8 +617,8 @@ task PiracyMissionOneShipGenerator( hisim param_0_ )
 			if ( Global.Bool( "g_piracy_mission_one_ship_flag" ) == 1 )
 			{
 				debug Debug.PrintString( "iActOne.PiracyMissionOneShipGenerator - player is out of range, deleting the ship\n" );
-				Sim.Destroy( Sim.Cast( shipFreighter ) );
 				Global.SetBool( "g_piracy_mission_one_ship_flag", false );
+				Sim.Destroy( Sim.Cast( shipFreighter ) );
 				
 				if ( Task.IsRunning( local_6 ) )
 				{
@@ -619,7 +640,7 @@ task PiracyMissionOneShipGenerator( hisim param_0_ )
 				iSim.SetFaction( shipFreighter, iFaction.Find( "Maas Corporation" ) );
 				Global.SetHandle( "g_maas_ship", shipFreighter );
 				debug Debug.PrintString( "iActOne.PiracyMissionOneShipGenerator - assigning cargo to ship\n" );
-				local_function_4( shipFreighter );
+				local_function_3( shipFreighter );
 				debug Debug.PrintString( "iActOne.piracyMissionOneShipGenerator - Placing ship\n" );
 				Sim.PlaceRelativeTo( shipFreighter, param_0_, 0.0, 0.0, -500.0 );
 				local_6 = start hitpointmonitortask( shipFreighter );
@@ -655,6 +676,12 @@ task PiracyMissionOneShutDownMonitor( htask param_0_, htask param_1_ )
 					debug Debug.PrintString( "iActOne.PiracyMissionOneShutDownMonitor : Main task has halted, and target ship is not alive - shutting mission down...\n" );
 					Task.Halt( param_1_ );
 					Global.Destroy( "g_piracy_mission_one_ship_flag" );
+					iObjectives.Remove( "a1_m00_objective_checkout" );
+					Sim.Destroy( Sim.Cast( Global.Handle( "g_mission_waypoint" ) ) );
+					Global.Destroy( "g_mission_waypoint" );
+					State.Destroy( param_0_ );
+					Task.Halt( param_0_ );
+					Task.Halt( param_1_ );
 					break;
 				}
 			}
@@ -664,8 +691,12 @@ task PiracyMissionOneShutDownMonitor( htask param_0_, htask param_1_ )
 			}
 			else
 			{
+				State.Destroy( param_0_ );
 				Task.Halt( param_0_ );
 				Task.Halt( param_1_ );
+				iObjectives.Remove( "a1_m00_objective_checkout" );
+				Sim.Destroy( Sim.Cast( Global.Handle( "g_mission_waypoint" ) ) );
+				Global.Destroy( "g_mission_waypoint" );
 				Global.Destroy( "g_piracy_mission_one_ship_flag" );
 				Global.SetInt( "g_story_1.25", 1 );
 			}

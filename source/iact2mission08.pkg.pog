@@ -37,9 +37,9 @@ uses Set,
      iRangeCheck,
      INIFile,
      iUtilities,
-     Debug,
      iCargo,
      iCargoScript,
+     Debug,
      iShipCreation;
 
 provides Main,

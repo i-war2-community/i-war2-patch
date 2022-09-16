@@ -97,7 +97,7 @@ prototype local_function_19();
 prototype task local_function_0();
 prototype local_function_3( hsim param_0_, hsim param_1_ );
 prototype local_function_4( hsim param_0_ );
-prototype ServerOnUserMessage( hsim param_0_, int param_1_, string param_2_ );
+prototype ServerOnUserMessage( int param_0_, hsim param_1_, hsim param_2_, string param_3_ );
 prototype ServerPlayerLeave( hsim param_0_ );
 prototype ServerPlayerEnter( hsim param_0_ );
 prototype task local_function_6( hsim param_0_, string param_1_ );
@@ -120,7 +120,7 @@ prototype task BotDeath( hsim param_0_ );
 prototype ClientDoUndock();
 prototype ClientDoScores();
 prototype ClientScores();
-prototype ClientOnUserMessage( hsim param_0_, int param_1_, string param_2_ );
+prototype ClientOnUserMessage( int param_0_, hsim param_1_, hobject param_2_, string param_3_ );
 prototype ClientDefaultTaunt1();
 prototype ClientDefaultTaunt2();
 prototype ClientDefaultTaunt3();
@@ -225,7 +225,7 @@ OnSelectRedTeam()
 	
 	faction = iFaction.Find( Text.Field( "mp_flag_team_a", FT_Text ) );
 	iSim.SetFaction( playerShip, faction );
-	iMultiplay.ClientSendUserMessage( playerShip, 1, Text.Field( "mp_flag_team_a", FT_Text ) );
+	iMultiplay.ClientSendUserMessage( 1, playerShip, none, Text.Field( "mp_flag_team_a", FT_Text ) );
 }
 
 OnSelectBlueTeam()
@@ -235,7 +235,7 @@ OnSelectBlueTeam()
 	
 	faction = iFaction.Find( Text.Field( "mp_flag_team_b", FT_Text ) );
 	iSim.SetFaction( iShip.FindPlayerShip(), faction );
-	iMultiplay.ClientSendUserMessage( playerShip, 1, Text.Field( "mp_flag_team_b", FT_Text ) );
+	iMultiplay.ClientSendUserMessage( 1, playerShip, none, Text.Field( "mp_flag_team_b", FT_Text ) );
 }
 
 hwindow local_function_1( int param_0_, int param_1_, int param_2_, hwindow window_0_, string param_4_, string param_5_ )
@@ -596,11 +596,11 @@ local_function_4( hsim param_0_ )
 			name = Object.StringProperty( mpAlphaFlag, "name" );
 		}
 		
-		iMultiplay.ServerSendUserMessage( param_0_, 57, name );
+		iMultiplay.ServerSendUserMessage( 57, param_0_, none, name );
 	}
 }
 
-ServerOnUserMessage( hsim param_0_, int param_1_, string param_2_ )
+ServerOnUserMessage( int param_0_, hsim param_1_, hsim param_2_, string param_3_ )
 {
 	string local_0;
 	hfaction faction_0;
@@ -611,16 +611,16 @@ ServerOnUserMessage( hsim param_0_, int param_1_, string param_2_ )
 	hfaction faction_1;
 	int botIndex;
 	
-	switch ( param_1_ )
+	switch ( param_0_ )
 	{
 		case 1:
-			local_function_4( param_0_ );
-			faction_0 = iFaction.Find( param_2_ );
-			iSim.SetFaction( iSim.Cast( param_0_ ), faction_0 );
-			iMultiplay.ServerSetPlayerTeam( param_0_, param_2_ );
-			iMPUtils.SpawnPlayer( param_0_, Group.Cast( Global.Handle( "mp_respawn_group" ) ) );
+			local_function_4( param_1_ );
+			faction_0 = iFaction.Find( param_3_ );
+			iSim.SetFaction( iSim.Cast( param_1_ ), faction_0 );
+			iMultiplay.ServerSetPlayerTeam( param_1_, param_3_ );
+			iMPUtils.SpawnPlayer( param_1_, Group.Cast( Global.Handle( "mp_respawn_group" ) ) );
 			
-			if ( param_2_ == Text.Field( "mp_flag_team_b", FT_Text ) )
+			if ( param_3_ == Text.Field( "mp_flag_team_b", FT_Text ) )
 			{
 				local_0 = "mp_flag_joined_team_b";
 			}
@@ -629,12 +629,12 @@ ServerOnUserMessage( hsim param_0_, int param_1_, string param_2_ )
 				local_0 = "mp_flag_joined_team_a";
 			}
 			
-			iMultiplay.ServerSendUserMessage( param_0_, 1, param_2_ );
-			iMultiplay.ServerBroadcastMessage( param_0_, local_0, BMT_Event );
+			iMultiplay.ServerSendUserMessage( 1, param_1_, none, param_3_ );
+			iMultiplay.ServerBroadcastMessage( param_1_, local_0, BMT_Event );
 			
 			if ( iMultiplay.UseAIBots() && (iMultiplay.AIBotsCount() > 0) )
 			{
-				if ( param_2_ == Text.Field( "mp_flag_team_a", FT_Text ) )
+				if ( param_3_ == Text.Field( "mp_flag_team_a", FT_Text ) )
 				{
 					gBotsAHandle = Group.Cast( Global.Handle( "g_bots_a_handle" ) );
 					gBotsBHandle = Group.Cast( Global.Handle( "g_bots_b_handle" ) );
@@ -655,23 +655,28 @@ ServerOnUserMessage( hsim param_0_, int param_1_, string param_2_ )
 				botIndex = ( botIndex + (iMultiplay.AIBotsCount() / 2) );
 				Object.SetIntProperty( local_3, "bot_index", botIndex );
 				iMPUtils.SpawnPlayer( local_3, Group.Cast( Global.Handle( "mp_respawn_group" ) ) );
-				iMultiplay.ServerSendUserMessage( local_3, 1, iFaction.Name( iSim.Faction( local_3 ) ) );
+				iMultiplay.ServerSendUserMessage( 1, local_3, none, iFaction.Name( iSim.Faction( local_3 ) ) );
 			}
 			
 			return;
 		
 		case 15:
-			ship = iShip.Cast( param_0_ );
+			ship = iShip.Cast( param_1_ );
 			iShip.UndockSelf( ship );
-			iMultiplay.ServerSendUserMessage( ship, 15, "" );
+			iMultiplay.ServerSendUserMessage( 15, ship, none, "" );
 			return;
 		
 		case 16:
-			iMultiplay.SendScores( param_0_ );
+			iMultiplay.SendScores( param_1_ );
 			return;
 		
 		case 99:
-			iMPUtils.ServerDoDebug( iSim.Cast( param_0_ ), param_2_ );
+			iMPUtils.ServerDoDebug( iSim.Cast( param_1_ ), iSim.Cast( param_2_ ), param_3_ );
+			return;
+		
+		case 204:
+			iSim.Dock( iSim.Cast( param_1_ ), iSim.Cast( param_2_ ) );
+			iMultiplay.ServerSendUserMessage( 204, param_1_, param_2_, param_3_ );
 			return;
 		
 		default:
@@ -740,7 +745,7 @@ ServerPlayerEnter( hsim param_0_ )
 		faction = iFaction.Find( local_1 );
 		iSim.SetFaction( iSim.Cast( param_0_ ), faction );
 		iMultiplay.ServerSetPlayerTeam( param_0_, local_1 );
-		iMultiplay.ServerSendUserMessage( param_0_, 1, local_1 );
+		iMultiplay.ServerSendUserMessage( 1, param_0_, none, local_1 );
 		
 		if ( local_1 == Text.Field( "mp_flag_team_b", FT_Text ) )
 		{
@@ -757,7 +762,7 @@ ServerPlayerEnter( hsim param_0_ )
 	{
 		faction = iFaction.Find( local_1 );
 		iSim.SetFaction( iSim.Cast( param_0_ ), faction );
-		iMultiplay.ServerSendUserMessage( param_0_, 1, local_1 );
+		iMultiplay.ServerSendUserMessage( 1, param_0_, none, local_1 );
 	}
 	
 	iMPUtils.SpawnPlayer( param_0_, mpRespawnGroup );
@@ -907,7 +912,7 @@ float local_function_9( float param_0_ )
 			{
 				Global.SetBool( "BetaFlagIsCaptured", false );
 				local_function_3( mpBetaFlag, mpBetaFlagSpawnpoint );
-				iMultiplay.ServerSendUserMessage( mpBetaFlag, 55, Text.Field( "mp_flag_team_b", FT_Text ) );
+				iMultiplay.ServerSendUserMessage( 55, mpBetaFlag, none, Text.Field( "mp_flag_team_b", FT_Text ) );
 				iMultiplay.ServerBroadcastMessage( mpBetaFlag, "mp_flag_flag_returned", BMT_Event );
 				param_0_ = 0.0;
 			}
@@ -930,7 +935,7 @@ float local_function_9( float param_0_ )
 				{
 					Sim.AddChildRelativeTo( ship, mpBetaFlag, 0.0, 0.0, -( Object.FloatProperty( ship, "radius" ) + 40.0 ) );
 					Sim.SetMass( mpBetaFlag, 0.010 );
-					iMultiplay.ServerSendUserMessage( ship, 22, "" );
+					iMultiplay.ServerSendUserMessage( 22, ship, none, "" );
 					iMultiplay.ServerBroadcastMessage( ship, "mp_flag_player_picked_up_b", BMT_Event );
 					Global.SetBool( "BetaFlagIsCaptured", true );
 					param_0_ = 0.0;
@@ -953,7 +958,7 @@ float local_function_9( float param_0_ )
 			{
 				if ( (Sim.Parent( mpBetaFlag ) == ship) && iSim.IsDockedTo( ship, mpAlphaBase ) )
 				{
-					iMultiplay.ServerSendUserMessage( ship, 33, "" );
+					iMultiplay.ServerSendUserMessage( 33, ship, none, "" );
 					Sim.DetachChild( ship, mpBetaFlag );
 					local_function_3( mpBetaFlag, mpBetaFlagSpawnpoint );
 					iMultiplay.SetForRespawn( mpBetaFlag );
@@ -1001,7 +1006,7 @@ float local_function_8( float param_0_ )
 			{
 				Global.SetBool( "AlphaFlagIsCaptured", false );
 				local_function_3( mpAlphaFlag, mpAlphaFlagSpawnpoint );
-				iMultiplay.ServerSendUserMessage( mpAlphaFlag, 55, Text.Field( "mp_flag_team_a", FT_Text ) );
+				iMultiplay.ServerSendUserMessage( 55, mpAlphaFlag, none, Text.Field( "mp_flag_team_a", FT_Text ) );
 				iMultiplay.ServerBroadcastMessage( mpAlphaFlag, "mp_flag_flag_returned", BMT_Event );
 				param_0_ = 0.0;
 			}
@@ -1024,7 +1029,7 @@ float local_function_8( float param_0_ )
 				{
 					Sim.AddChildRelativeTo( ship, mpAlphaFlag, 0.0, 0.0, -( Object.FloatProperty( ship, "radius" ) + 40.0 ) );
 					Sim.SetMass( mpAlphaFlag, 0.010 );
-					iMultiplay.ServerSendUserMessage( ship, 22, "" );
+					iMultiplay.ServerSendUserMessage( 22, ship, none, "" );
 					iMultiplay.ServerBroadcastMessage( ship, "mp_flag_player_picked_up_a", BMT_Event );
 					Global.SetBool( "AlphaFlagIsCaptured", true );
 					param_0_ = 0.0;
@@ -1047,7 +1052,7 @@ float local_function_8( float param_0_ )
 			{
 				if ( (Sim.Parent( mpAlphaFlag ) == ship) && iSim.IsDockedTo( ship, mpBetaBase ) )
 				{
-					iMultiplay.ServerSendUserMessage( ship, 33, "" );
+					iMultiplay.ServerSendUserMessage( 33, ship, none, "" );
 					Sim.DetachChild( ship, mpAlphaFlag );
 					local_function_3( mpAlphaFlag, mpAlphaFlagSpawnpoint );
 					iMultiplay.SetForRespawn( mpAlphaFlag );
@@ -1355,7 +1360,7 @@ ServerMain()
 	iFaction.SetFeeling( faction_0, powerUp, 1.0 );
 	iFaction.SetFeeling( faction_1, powerUp, 1.0 );
 	local_15 = iMPUtils.FindSystemCentre();
-	inifile = INIFile.Create( "ini:/multiplayer/maps/generic_ctf" );
+	inifile = INIFile.Create( iMultiplay.MapINI() );
 	group_2 = iMap.GetGeography( inifile, local_15 );
 	group_3 = iMap.GetSpawnPoints( inifile, local_15 );
 	INIFile.Destroy( inifile );
@@ -1441,11 +1446,11 @@ ServerMain()
 	if ( iMultiplay.AIBotsCount() > 1 )
 	{
 		local_28 = ( iMultiplay.AIBotsCount() / 2 );
-		group_4 = Group.Cast( iBotPak.CreateBotShips( "ini:/multiplayer/packages/ctf", local_28, iMultiplay.AIBotsSkillLevel(), iFaction.Find( Text.Field( "mp_flag_team_a", FT_Text ) ), none, "BotNamesA" ) );
+		group_4 = Group.Cast( iBotPak.CreateBotShips( iMultiplay.PackageINI(), local_28, iMultiplay.AIBotsSkillLevel(), iFaction.Find( Text.Field( "mp_flag_team_a", FT_Text ) ), none, "BotNamesA" ) );
 		Global.CreateHandle( "g_bots_a_handle", 2, group_4 );
-		group_5 = Group.Cast( iBotPak.CreateBotShips( "ini:/multiplayer/packages/ctf", local_28, iMultiplay.AIBotsSkillLevel(), iFaction.Find( Text.Field( "mp_flag_team_b", FT_Text ) ), none, "BotNamesB" ) );
+		group_5 = Group.Cast( iBotPak.CreateBotShips( iMultiplay.PackageINI(), local_28, iMultiplay.AIBotsSkillLevel(), iFaction.Find( Text.Field( "mp_flag_team_b", FT_Text ) ), none, "BotNamesB" ) );
 		Global.CreateHandle( "g_bots_b_handle", 2, group_5 );
-		Global.CreateString( "g_ini_name", 1, "ini:/multiplayer/packages/ctf" );
+		Global.CreateString( "g_ini_name", 1, iMultiplay.PackageINI() );
 		local_function_10( group_4, none );
 		local_function_10( group_5, none );
 	}
@@ -1689,13 +1694,13 @@ task BotDeath( hsim param_0_ )
 
 ClientDoUndock()
 {
-	iMultiplay.ClientSendUserMessage( iShip.FindPlayerShip(), 15, "" );
+	iMultiplay.ClientSendUserMessage( 15, iShip.FindPlayerShip(), none, "" );
 	iShip.UndockSelf( iShip.FindPlayerShip() );
 }
 
 ClientDoScores()
 {
-	iMultiplay.ClientSendUserMessage( iShip.FindPlayerShip(), 16, "" );
+	iMultiplay.ClientSendUserMessage( 16, iShip.FindPlayerShip(), none, "" );
 }
 
 ClientScores()
@@ -1708,7 +1713,7 @@ ClientScores()
 	}
 }
 
-ClientOnUserMessage( hsim param_0_, int param_1_, string param_2_ )
+ClientOnUserMessage( int param_0_, hsim param_1_, hobject param_2_, string param_3_ )
 {
 	hfaction faction_0;
 	hfaction faction_1 = iFaction.Find( Text.Field( "mp_flag_team_b", FT_Text ) );
@@ -1718,40 +1723,40 @@ ClientOnUserMessage( hsim param_0_, int param_1_, string param_2_ )
 	htask local_5;
 	hship ship;
 	
-	switch ( param_1_ )
+	switch ( param_0_ )
 	{
 		case 1:
-			faction_0 = iFaction.Find( param_2_ );
-			iSim.SetFaction( iSim.Cast( param_0_ ), faction_0 );
+			faction_0 = iFaction.Find( param_3_ );
+			iSim.SetFaction( iSim.Cast( param_1_ ), faction_0 );
 			
-			if ( param_2_ == Text.Field( "mp_flag_team_b", FT_Text ) )
+			if ( param_3_ == Text.Field( "mp_flag_team_b", FT_Text ) )
 			{
 				local_2 = Text.Field( "mp_flag_joined_team_b", FT_Text );
-				Object.AddBoolProperty( param_0_, "mp_on_team_beta", true );
-				Object.RemoveProperty( param_0_, "mp_on_team_alpha" );
+				Object.AddBoolProperty( param_1_, "mp_on_team_beta", true );
+				Object.RemoveProperty( param_1_, "mp_on_team_alpha" );
 			}
 			else
 			{
 				local_2 = Text.Field( "mp_flag_joined_team_a", FT_Text );
-				Object.AddBoolProperty( param_0_, "mp_on_team_alpha", true );
-				Object.RemoveProperty( param_0_, "mp_on_team_beta" );
+				Object.AddBoolProperty( param_1_, "mp_on_team_alpha", true );
+				Object.RemoveProperty( param_1_, "mp_on_team_beta" );
 			}
 			
-			local_5 = start local_function_16( param_0_, local_2 );
+			local_5 = start local_function_16( param_1_, local_2 );
 			Task.Detach( local_5 );
 			return;
 		
 		case 15:
 			if ( ship != iShip.FindPlayerShip() )
 			{
-				ship = iShip.Cast( param_0_ );
+				ship = iShip.Cast( param_1_ );
 				iShip.UndockSelf( ship );
 			}
 			
 			return;
 		
 		case 22:
-			faction_0 = iSim.Faction( iSim.Cast( param_0_ ) );
+			faction_0 = iSim.Faction( iSim.Cast( param_1_ ) );
 			
 			if ( faction_0 == faction_1 )
 			{
@@ -1764,16 +1769,16 @@ ClientOnUserMessage( hsim param_0_, int param_1_, string param_2_ )
 				local_2 = Text.Field( "mp_flag_player_picked_up_b", FT_Text );
 			}
 			
-			iAI.PurgeOrders( iShip.Cast( param_0_ ) );
-			Sim.AddChildRelativeTo( param_0_, local_3, 0.0, 0.0, -( Object.FloatProperty( param_0_, "radius" ) + 40.0 ) );
+			iAI.PurgeOrders( iShip.Cast( param_1_ ) );
+			Sim.AddChildRelativeTo( param_1_, local_3, 0.0, 0.0, -( Object.FloatProperty( param_1_, "radius" ) + 40.0 ) );
 			Sim.SetMass( local_3, 0.010 );
-			Object.AddBoolProperty( param_0_, "mp_has_opponent_flag", true );
-			local_5 = start local_function_16( param_0_, local_2 );
+			Object.AddBoolProperty( param_1_, "mp_has_opponent_flag", true );
+			local_5 = start local_function_16( param_1_, local_2 );
 			Task.Detach( local_5 );
 			return;
 		
 		case 33:
-			faction_0 = iSim.Faction( iSim.Cast( param_0_ ) );
+			faction_0 = iSim.Faction( iSim.Cast( param_1_ ) );
 			
 			if ( faction_0 == faction_1 )
 			{
@@ -1790,27 +1795,27 @@ ClientOnUserMessage( hsim param_0_, int param_1_, string param_2_ )
 				Global.SetInt( "RedScore", Global.Int( "RedScore" ) + 1 );
 			}
 			
-			Sim.DetachChild( iShip.Cast( param_0_ ), local_3 );
-			Object.RemoveProperty( param_0_, "mp_has_opponent_flag" );
+			Sim.DetachChild( iShip.Cast( param_1_ ), local_3 );
+			Object.RemoveProperty( param_1_, "mp_has_opponent_flag" );
 			local_function_3( local_3, local_4 );
-			local_5 = start local_function_16( param_0_, local_2 );
+			local_5 = start local_function_16( param_1_, local_2 );
 			Task.Detach( local_5 );
 			return;
 		
 		case 55:
-			if ( param_2_ == Text.Field( "mp_flag_team_a", FT_Text ) )
+			if ( param_3_ == Text.Field( "mp_flag_team_a", FT_Text ) )
 			{
-				local_function_3( param_0_, Sim.Cast( Global.Handle( "mp_alpha_flag_spawnpoint" ) ) );
+				local_function_3( param_1_, Sim.Cast( Global.Handle( "mp_alpha_flag_spawnpoint" ) ) );
 			}
 			else
 			{
-				local_function_3( param_0_, Sim.Cast( Global.Handle( "mp_beta_flag_spawnpoint" ) ) );
+				local_function_3( param_1_, Sim.Cast( Global.Handle( "mp_beta_flag_spawnpoint" ) ) );
 			}
 			
-			iMultiplay.ClientAddRespawnEffect( iShip.Cast( param_0_ ) );
+			iMultiplay.ClientAddRespawnEffect( iShip.Cast( param_1_ ) );
 		
 		case 57:
-			local_3 = Sim.FindByName( param_2_ );
+			local_3 = Sim.FindByName( param_3_ );
 			faction_0 = iSim.Faction( iSim.Cast( local_3 ) );
 			
 			if ( faction_0 == faction_1 )
@@ -1822,15 +1827,13 @@ ClientOnUserMessage( hsim param_0_, int param_1_, string param_2_ )
 				local_4 = iSim.Cast( Global.Handle( "mp_alpha_flag_spawnpoint" ) );
 			}
 			
-			Sim.DetachChild( iShip.Cast( param_0_ ), local_3 );
-			Object.RemoveProperty( param_0_, "mp_has_opponent_flag" );
+			Sim.DetachChild( iShip.Cast( param_1_ ), local_3 );
+			Object.RemoveProperty( param_1_, "mp_has_opponent_flag" );
 			local_function_3( local_3, local_4 );
 			return;
 		
-		case 202:
-			return;
-		
-		case 203:
+		case 204:
+			iSim.Dock( iSim.Cast( param_1_ ), iSim.Cast( param_2_ ) );
 			return;
 	}
 }
@@ -2101,7 +2104,7 @@ ClientMain()
 	Sim.Preload( "ini:/sims/power_ups/speed_power_up_x2" );
 	Sim.Preload( "ini:/sims/power_ups/health" );
 	local_6 = iMPUtils.FindSystemCentre();
-	inifile = INIFile.Create( "ini:/multiplayer/maps/generic_ctf" );
+	inifile = INIFile.Create( iMultiplay.MapINI() );
 	group_0 = iMap.GetGeography( inifile, local_6 );
 	group_1 = iMap.GetSpawnPoints( inifile, local_6 );
 	INIFile.Destroy( inifile );

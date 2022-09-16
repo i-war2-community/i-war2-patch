@@ -37,8 +37,8 @@ uses Debug,
      iRegion,
      INIFile,
      iUtilities,
-     iCargo,
      iFormation,
+     iCargo,
      CargoTypes,
      iCargoScript,
      iShipCreation,
@@ -367,7 +367,7 @@ task local_function_13( hgroup group_0_, hgroup group_1_, hship ship_, hstate st
 	int local_18;
 	int local_19;
 	
-	iSim.SetIndestructable( shipSnrv, false );
+	iSim.SetIndestructable( shipSnrv, true );
 	iSim.SetMissionCritical( shipSnrv, true );
 	iSim.SetFaction( shipSnrv, iFaction.Find( "Player" ) );
 	local_function_4( shipSnrv );
@@ -431,6 +431,7 @@ task local_function_13( hgroup group_0_, hgroup group_1_, hship ship_, hstate st
 							if ( (Sim.DistanceBetween( shipSnrv, remekLPoint ) > 25000.0) && (Object.BoolProperty( state_, "cutscene_active" ) == 0) )
 							{
 								debug Debug.Error( "Jafs Too Far" );
+								iSim.SetIndestructable( shipSnrv, false );
 								local_function_1( shipSnrv, none, false );
 								State.SetProgress( state_, 2 );
 								return;
@@ -486,6 +487,7 @@ task local_function_13( hgroup group_0_, hgroup group_1_, hship ship_, hstate st
 							
 							if ( (Sim.DistanceBetween( shipSnrv, remekLPoint ) > 25000.0) && (Object.BoolProperty( state_, "cutscene_active" ) == 0) )
 							{
+								iSim.SetIndestructable( shipSnrv, false );
 								local_function_1( shipSnrv, none, false );
 								State.SetProgress( state_, 2 );
 								return;

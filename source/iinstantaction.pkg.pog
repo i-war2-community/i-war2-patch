@@ -2,6 +2,7 @@ package iInstantAction;
 
 uses Config,
      Debug,
+     GUI,
      Set,
      List,
      String,
@@ -23,8 +24,9 @@ uses Config,
      MapEnumerations,
      iFaction,
      iFormation,
+     iGUI,
+     iGame,
      iHUD,
-     GUI,
      iLoadout,
      iMapEntity,
      iMultiplay,
@@ -40,8 +42,12 @@ uses Config,
      iShipCreation,
      iWingmen;
 
-provides Main,
-         ScoreDeathScript;
+provides ScenarioMain,
+         Main,
+         ScoreDeathScript,
+         InstantActionShipChoiceScreen,
+         InstantActionShipChoiceScreen_OnBackButton,
+         InstantActionShipChoiceScreen_OnShipSelect;
 
 prototype hgroup local_function_7( hisim param_0_ );
 prototype task ScoreDeathScript( hobject param_0_ );
@@ -60,6 +66,10 @@ prototype int local_function_10( hgroup group_, int param_1_ );
 prototype task local_function_13( hisim param_0_ );
 prototype local_function_14();
 prototype Main();
+prototype ScenarioMain();
+prototype InstantActionShipChoiceScreen();
+prototype InstantActionShipChoiceScreen_OnShipSelect();
+prototype InstantActionShipChoiceScreen_OnBackButton();
 
 hgroup local_function_7( hisim param_0_ )
 {
@@ -1005,5 +1015,93 @@ Main()
 	debug Debug.PrintString( "iInstantAction.Main: Starting instant action script.\n" );
 	Text.Add( "csv:/text/instant_action" );
 	local_function_14();
+}
+
+ScenarioMain()
+{
+	iGUI.OverlayCustomScreen( "iinstantaction.InstantActionShipChoiceScreen" );
+}
+
+InstantActionShipChoiceScreen()
+{
+	hwindow window_0;
+	list localList;
+	int local_2;
+	int local_3;
+	hwindow window_1 = none;
+	hwindow window_2 = none;
+	hwindow window_3 = none;
+	hwindow window_4 = none;
+	
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	window_0 = iGUI.CreateShadyBar();
+	iGUI.AddBackButtons( window_0, "iinstantaction.InstantActionShipChoiceScreen_OnBackButton", "iinstantaction.InstantActionShipChoiceScreen_OnBackButton" );
+	iGUI.AddTitle( window_0, Text.Field( "pda_instant_action", FT_Text ) );
+	window_1 = iGUI.CreateAndInitialiseParentlessInverseButton( "iinstantaction.InstantActionShipChoiceScreen_OnShipSelect", Text.Field( "ship_type_storm_petrel", FT_Text ), localList );
+	GUI.SetInputOverrideFunctions( window_1, "", "", "", "", "", "iinstantaction.InstantActionShipChoiceScreen_OnBackButton", "", "", "" );
+	Global.CreateHandle( "shiptype_stormpetrel", 2, window_1 );
+	
+	if ( Config.GetBool( "system", "InstantAction", "tug" ) )
+	{
+		window_2 = iGUI.CreateAndInitialiseParentlessInverseButton( "iinstantaction.InstantActionShipChoiceScreen_OnShipSelect", Text.Field( "ship_type_tug", FT_Text ), localList );
+		GUI.SetInputOverrideFunctions( window_2, "", "", "", "", "", "iinstantaction.InstantActionShipChoiceScreen_OnBackButton", "", "", "" );
+		Global.CreateHandle( "shiptype_tug", 2, window_2 );
+	}
+	
+	if ( Config.GetBool( "system", "InstantAction", "fast_attack_ship" ) )
+	{
+		window_3 = iGUI.CreateAndInitialiseParentlessInverseButton( "iinstantaction.InstantActionShipChoiceScreen_OnShipSelect", Text.Field( "ship_type_fast_attack_ship", FT_Text ), localList );
+		GUI.SetInputOverrideFunctions( window_3, "", "", "", "", "", "iinstantaction.InstantActionShipChoiceScreen_OnBackButton", "", "", "" );
+		Global.CreateHandle( "shiptype_fastattackship", 2, window_3 );
+	}
+	
+	if ( Config.GetBool( "system", "InstantAction", "heavy_corvette" ) )
+	{
+		window_4 = iGUI.CreateAndInitialiseParentlessInverseButton( "iinstantaction.InstantActionShipChoiceScreen_OnShipSelect", Text.Field( "ship_type_heavy_corvette", FT_Text ), localList );
+		GUI.SetInputOverrideFunctions( window_4, "", "", "", "", "", "iinstantaction.InstantActionShipChoiceScreen_OnBackButton", "", "", "" );
+		Global.CreateHandle( "shiptype_heavycorvette", 2, window_4 );
+	}
+	
+	local_2 = ( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_alignmentoffset" ) );
+	local_3 = ( Global.Int( "GUI_title_yoffset" ) + (Global.Int( "GUI_fancybutton_height" ) + 20) );
+	iGUI.CreateWindowListInSplitter( window_0, localList, local_2, local_3, Text.Field( "hangarmenu_ship", FT_Text ) );
+	GUI.SetFirstControlFocus( window_1 );
+	iGUI.SetCyclicControlFocusPath( localList );
+	GUI.SetControlFocusCancelFunction( "iinstantaction.InstantActionShipChoiceScreen_OnBackButton" );
+}
+
+InstantActionShipChoiceScreen_OnShipSelect()
+{
+	hwindow shiptypeStormpetrel = GUI.Cast( Global.Handle( "shiptype_stormpetrel" ) );
+	hwindow shiptypeTug = GUI.Cast( Global.Handle( "shiptype_tug" ) );
+	hwindow shiptypeFastattackship = GUI.Cast( Global.Handle( "shiptype_fastattackship" ) );
+	hwindow shiptypeHeavycorvette = GUI.Cast( Global.Handle( "shiptype_heavycorvette" ) );
+	string local_4;
+	
+	if ( GUI.FocusedWindow() == shiptypeTug )
+	{
+		local_4 = "ini:/sims/ships/player/tug_prefitted";
+	}
+	else if ( GUI.FocusedWindow() == shiptypeFastattackship )
+	{
+		local_4 = "ini:/sims/ships/player/fast_attack_prefitted";
+	}
+	else if ( GUI.FocusedWindow() == shiptypeHeavycorvette )
+	{
+		local_4 = "ini:/sims/ships/player/heavy_corvette_prefitted";
+	}
+	else if ( GUI.FocusedWindow() == shiptypeStormpetrel )
+	{
+		local_4 = "ini:/sims/ships/player/storm_petrel_prefitted";
+	}
+	
+	Global.CreateString( "g_instant_action_ship_ini", 2, local_4 );
+	iGame.SetGameType( 2 );
+	iGame.StartNewGame( "map:/geog/badlands/hoffers_wake", "iInstantAction" );
+}
+
+InstantActionShipChoiceScreen_OnBackButton()
+{
+	GUI.RemoveLastOverlay();
 }
 

@@ -36,10 +36,10 @@ uses String,
      iScriptedOrders,
      INIFile,
      iUtilities,
+     iCargo,
      Debug,
      CargoTypes,
      iCargoScript,
-     iCargo,
      iShipCreation,
      iStation;
 

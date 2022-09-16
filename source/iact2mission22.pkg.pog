@@ -35,9 +35,9 @@ uses Debug,
      iScore,
      INIFile,
      iUtilities,
-     iCargo,
      CargoTypes,
      iCargoScript,
+     iCargo,
      iShipCreation,
      iStation;
 

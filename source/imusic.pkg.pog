@@ -28,6 +28,23 @@ provides Initialise,
          SetAmbientEnvironment,
          monitor;
 
+enum eMusicEvent
+{
+	ME_ShortCymbal = 0x00000000,
+	ME_LongCymbal = 0x00000001,
+	ME_SoftTimpani = 0x00000002,
+	ME_LoudTimpani = 0x00000003,
+	eMusicEventCount = 0x00000004
+};
+
+enum eAmbientEnvironment
+{
+	AE_DeepSpace = 0x00000000,
+	AE_Effrit = 0x00000001,
+	AE_Aliens = 0x00000002,
+	eAmbientEnvironmentCount = 0x00000003
+};
+
 enum eMusicSuite
 {
 	MS_Down = 0x00000000,
@@ -44,23 +61,6 @@ enum eMusicMood
 	MM_Tension = 0x00000003,
 	MM_Action = 0x00000004,
 	eMusicMoodCount = 0x00000005
-};
-
-enum eMusicEvent
-{
-	ME_ShortCymbal = 0x00000000,
-	ME_LongCymbal = 0x00000001,
-	ME_SoftTimpani = 0x00000002,
-	ME_LoudTimpani = 0x00000003,
-	eMusicEventCount = 0x00000004
-};
-
-enum eAmbientEnvironment
-{
-	AE_DeepSpace = 0x00000000,
-	AE_Effrit = 0x00000001,
-	AE_Aliens = 0x00000002,
-	eAmbientEnvironmentCount = 0x00000003
 };
 
 prototype local_function_9();

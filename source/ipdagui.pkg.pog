@@ -8,6 +8,7 @@ uses Config,
      String,
      Global,
      Input,
+     Object,
      Group,
      Sim,
      State,
@@ -22,6 +23,7 @@ uses Config,
      iFaction,
      iGUI,
      iGame,
+     iMod,
      iBody,
      iHabitat,
      iShip,
@@ -31,6 +33,7 @@ uses Config,
 provides SPMainPDAScreen,
          SPMainPDAScreen_OnStart,
          SPMainPDAScreen_OnLoad,
+         SPMainPDAScreen_OnMod,
          SPMainPDAScreen_OnInstant,
          SPMainPDAScreen_OnMultiplayer,
          SPMainPDAScreen_OnOptions,
@@ -103,6 +106,11 @@ provides SPMainPDAScreen,
          ControlScreen_OnSelectScheme,
          ControlScreen_OnBackButton,
          ControlScreen_OnBackButtonToMainMenu,
+         ModScreen,
+         ModScreen_OnModSelect,
+         ModScreen_OnMissionSelect,
+         ModScreen_OnMissionPlay,
+         ModScreen_OnBackButton,
          InstantActionShipChoiceScreen,
          InstantActionShipChoiceScreen_OnShipSelect,
          InstantActionShipChoiceScreen_OnBackButton,
@@ -113,6 +121,7 @@ provides SPMainPDAScreen,
 prototype SPMainPDAScreen();
 prototype SPMainPDAScreen_OnStart();
 prototype SPMainPDAScreen_OnLoad();
+prototype SPMainPDAScreen_OnMod();
 prototype SPMainPDAScreen_OnInstant();
 prototype SPMainPDAScreen_OnMultiplayer();
 prototype SPMainPDAScreen_OnMovies();
@@ -145,14 +154,14 @@ prototype SPPDASaveScreen();
 prototype SPPDASaveScreen_OnBackButton();
 prototype SPPDASaveScreen_SetDefaultName();
 prototype SPPDASaveScreen_OnSave();
-prototype local_function_1( string param_0_, list localList_0_, list localList_1_ );
-prototype local_function_0( list localList_0_, list localList_1_ );
-prototype local_function_2( string param_0_, string param_1_, list localList_0_, list localList_1_ );
+prototype local_function_2( string param_0_, list localList_0_, list localList_1_ );
+prototype local_function_1( list localList_0_, list localList_1_ );
+prototype local_function_3( string param_0_, string param_1_, list localList_0_, list localList_1_ );
 prototype SPPDALoadScreen();
 prototype SPPDALoadScreen_OnBackButton();
 prototype SPPDALoadScreen_OnAutosaveLoad();
 prototype SPPDALoadScreen_OnLoad();
-prototype local_function_3( list localList_0_, list localList_1_ );
+prototype local_function_4( list localList_0_, list localList_1_ );
 prototype SPPDAOptionsScreen();
 prototype SPPDAOptionsScreen_OnRestoreDefaults();
 prototype SPPDAOptionsScreen_OnBackButton();
@@ -172,16 +181,16 @@ prototype SPPDAOptionsCategory_OnMouseDown();
 prototype SPPDAOptionsCategory_OnMouseUp();
 prototype SPPDAOptionsCategory_OnLeftOption();
 prototype SPPDAOptionsCategory_OnRightOption();
-prototype task local_function_4();
+prototype task local_function_5();
 prototype SPPDADeviceScreen();
-prototype task local_function_7();
+prototype task local_function_8();
 prototype SPPDADeviceScreen_OnBackButton();
 prototype SPPDADeviceScreen_OnBackToMainMenuButton();
 prototype SPPDADeviceScreen_OnApply();
-prototype local_function_5( int param_0_ );
-prototype local_function_6();
-prototype int local_function_8();
+prototype local_function_6( int param_0_ );
+prototype local_function_7();
 prototype int local_function_9();
+prototype int local_function_10();
 prototype MoviesScreen();
 prototype MoviesScreen_OnBackButton();
 prototype MoviesScreen_OnIntro();
@@ -191,21 +200,32 @@ prototype MoviesScreen_OnBaseEntry();
 prototype MoviesScreen_OnJailBreak();
 prototype MoviesScreen_OnOutro();
 prototype MoviesScreen_OnCredits();
-prototype local_function_10( string param_0_, string param_1_, list localList_0_, list localList_1_ );
-prototype local_function_11( list localList_0_, list localList_1_ );
+prototype local_function_11( string param_0_, string param_1_, list localList_0_, list localList_1_ );
+prototype local_function_12( list localList_0_, list localList_1_ );
 prototype ControlScreen();
 prototype ControlScreen_OnSelectScheme();
 prototype ControlScreen_OnBackButton();
 prototype ControlScreen_OnBackButtonToMainMenu();
+prototype local_function_0();
+prototype local_function_16( string param_0_ );
+prototype hwindow local_function_14( hwindow window_0_, int param_1_, int param_2_, int param_3_, int param_4_, int param_5_, string param_6_ );
+prototype bool local_function_13( hwindow window_0_, int param_1_ );
+prototype hwindow local_function_15( hwindow window_0_, int param_1_, bool param_2_ );
+prototype local_function_17();
+prototype ModScreen();
+prototype ModScreen_OnModSelect();
+prototype ModScreen_OnMissionSelect();
+prototype ModScreen_OnMissionPlay();
+prototype ModScreen_OnBackButton();
 prototype InstantActionShipChoiceScreen();
 prototype InstantActionShipChoiceScreen_OnShipSelect();
 prototype InstantActionShipChoiceScreen_OnBackButton();
-prototype hwindow local_function_12( hwindow window_0_, int param_1_, string param_2_, string param_3_ );
+prototype hwindow local_function_18( hwindow window_0_, int param_1_, string param_2_, string param_3_ );
 prototype RestartScreen();
-prototype local_function_13();
-prototype task local_function_14();
+prototype local_function_19();
+prototype task local_function_20();
 prototype RestartScreen_OnQuit();
-prototype task local_function_15();
+prototype task local_function_21();
 prototype RestartScreen_OnRestart();
 
 SPMainPDAScreen()
@@ -219,8 +239,9 @@ SPMainPDAScreen()
 	hwindow window_6;
 	hwindow window_7;
 	hwindow window_8;
+	hwindow window_9;
 	list localList;
-	bool local_10 = Global.Exists( "WrongDiskScreen_LocalisedTextEnabled" );
+	bool local_11 = Global.Exists( "WrongDiskScreen_LocalisedTextEnabled" );
 	
 	Text.Add( "csv:/text/gui" );
 	Text.Add( "csv:/text/gui_addendum" );
@@ -250,24 +271,25 @@ SPMainPDAScreen()
 		}
 	}
 	
-	if ( !iGame.IsMultiplayerOnly() && local_10 )
+	if ( !iGame.IsMultiplayerOnly() && local_11 )
 	{
 		window_0 = iGUI.CreateMenuButton( "iPDAGUI.SPMainPDAScreen_OnStart", Text.Field( "pda_start_new_game", FT_Text ), localList );
 		window_1 = iGUI.CreateMenuButton( "iPDAGUI.SPMainPDAScreen_OnLoad", Text.Field( "pda_load_game", FT_Text ), localList );
 		window_2 = iGUI.CreateMenuButton( "iPDAGUI.SPMainPDAScreen_OnInstant", Text.Field( "pda_instant_action", FT_Text ), localList );
+		window_3 = iGUI.CreateMenuButton( "iPDAGUI.SPMainPDAScreen_OnMod", Text.Field( "pda_extras", FT_Text ), localList );
 	}
 	
-	window_3 = iGUI.CreateMenuButton( "iPDAGUI.SPMainPDAScreen_OnMultiplayer", Text.Field( "pda_multiplayer", FT_Text ), localList );
-	window_4 = iGUI.CreateMenuButton( "iPDAGUI.SPMainPDAScreen_OnOptions", Text.Field( "pda_options", FT_Text ), localList );
+	window_4 = iGUI.CreateMenuButton( "iPDAGUI.SPMainPDAScreen_OnMultiplayer", Text.Field( "pda_multiplayer", FT_Text ), localList );
+	window_5 = iGUI.CreateMenuButton( "iPDAGUI.SPMainPDAScreen_OnOptions", Text.Field( "pda_options", FT_Text ), localList );
 	
-	if ( local_10 )
+	if ( local_11 )
 	{
-		window_5 = iGUI.CreateMenuButton( "iPDAGUI.SPMainPDAScreen_OnMovies", Text.Field( "movie_movies", FT_Text ), localList );
+		window_6 = iGUI.CreateMenuButton( "iPDAGUI.SPMainPDAScreen_OnMovies", Text.Field( "movie_movies", FT_Text ), localList );
 	}
 	
-	window_6 = iGUI.CreateMenuButton( "iPDAGUI.SPMainPDAScreen_OnCredits", Text.Field( "pda_credits", FT_Text ), localList );
-	window_7 = iGUI.CreateMenuButton( "iPDAGUI.SPMainPDAScreen_OnQuit", Text.Field( "pda_quit_button", FT_Text ), localList );
-	window_8 = iGUI.CreateMenu( localList );
+	window_7 = iGUI.CreateMenuButton( "iPDAGUI.SPMainPDAScreen_OnCredits", Text.Field( "pda_credits", FT_Text ), localList );
+	window_8 = iGUI.CreateMenuButton( "iPDAGUI.SPMainPDAScreen_OnQuit", Text.Field( "pda_quit_button", FT_Text ), localList );
+	window_9 = iGUI.CreateMenu( localList );
 	GUI.SetFirstControlFocus( GUI.Cast( List.Head( localList ) ) );
 	iGUI.SetCyclicControlFocusPath( localList );
 	
@@ -275,6 +297,8 @@ SPMainPDAScreen()
 	{
 		Stream.Play( 0, "sound:/audio/music/badlands", true, true );
 	}
+	
+	local_function_0();
 }
 
 SPMainPDAScreen_OnStart()
@@ -323,9 +347,14 @@ SPMainPDAScreen_OnLoad()
 	GUI.OverlayScreen( "icSPPDALoadScreen" );
 }
 
+SPMainPDAScreen_OnMod()
+{
+	GUI.OverlayScreen( "icModScreen" );
+}
+
 SPMainPDAScreen_OnInstant()
 {
-	GUI.OverlayScreen( "icInstantActionShipChoiceScreen" );
+	iGUI.OverlayCustomScreen( "ipdagui.InstantActionShipChoiceScreen" );
 }
 
 SPMainPDAScreen_OnMultiplayer()
@@ -676,7 +705,7 @@ SPFlightPDAScreen_OnSelectTeam()
 	}
 	
 	iSim.SetFaction( playerShip, iFaction.Find( local_2 ) );
-	iMultiplay.ClientSendUserMessage( playerShip, 1, local_2 );
+	iMultiplay.ClientSendUserMessage( 1, playerShip, none, local_2 );
 	SPBasePDAScreen_OnResume();
 }
 
@@ -694,7 +723,7 @@ SPPDASaveScreen()
 	window = iGUI.CreateWideShadyBar();
 	iGUI.AddBackButtons( window, "iPDAGUI.SPPDALoadScreen_OnBackButton", "iPDAGUI.SPPDALoadScreen_OnBackButton" );
 	iGUI.AddTitle( window, Text.Field( "pda_save_game", FT_Text ) );
-	local_function_0( localList_0, localList_1 );
+	local_function_1( localList_0, localList_1 );
 	local_2 = ( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_alignmentoffset" ) );
 	local_3 = ( Global.Int( "GUI_title_yoffset" ) + (Global.Int( "GUI_fancybutton_height" ) + 20) );
 	iGUI.CreateWindowListInFancyBorder( window, localList_1, local_2, local_3 );
@@ -758,7 +787,7 @@ SPPDASaveScreen_OnSave()
 	}
 }
 
-local_function_1( string param_0_, list localList_0_, list localList_1_ )
+local_function_2( string param_0_, list localList_0_, list localList_1_ )
 {
 	hwindow window_0;
 	hwindow window_1;
@@ -779,7 +808,7 @@ local_function_1( string param_0_, list localList_0_, list localList_1_ )
 	List.AddTail( localList_1_, window_1 );
 }
 
-local_function_0( list localList_0_, list localList_1_ )
+local_function_1( list localList_0_, list localList_1_ )
 {
 	string name;
 	int local_1 = iGame.NumberOfSavedGameSlots();
@@ -791,16 +820,16 @@ local_function_0( list localList_0_, list localList_1_ )
 		
 		if ( !( name == "" ) )
 		{
-			local_function_1( name, localList_0_, localList_1_ );
+			local_function_2( name, localList_0_, localList_1_ );
 		}
 		else
 		{
-			local_function_1( Text.Field( "savegame_empty", FT_Text ), localList_0_, localList_1_ );
+			local_function_2( Text.Field( "savegame_empty", FT_Text ), localList_0_, localList_1_ );
 		}
 	}
 }
 
-local_function_2( string param_0_, string param_1_, list localList_0_, list localList_1_ )
+local_function_3( string param_0_, string param_1_, list localList_0_, list localList_1_ )
 {
 	hwindow window_0;
 	hwindow window_1;
@@ -840,10 +869,10 @@ SPPDALoadScreen()
 	
 	if ( local_6 )
 	{
-		local_function_2( "iPDAGUI.SPPDALoadScreen_OnAutosaveLoad", Text.Field( "savegame_autosave", FT_Text ), localList_0, localList_1 );
+		local_function_3( "iPDAGUI.SPPDALoadScreen_OnAutosaveLoad", Text.Field( "savegame_autosave", FT_Text ), localList_0, localList_1 );
 	}
 	
-	local_function_3( localList_0, localList_1 );
+	local_function_4( localList_0, localList_1 );
 	local_2 = ( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_alignmentoffset" ) );
 	local_3 = ( Global.Int( "GUI_title_yoffset" ) + (Global.Int( "GUI_fancybutton_height" ) + 20) );
 	iGUI.CreateWindowListInFancyBorder( window, localList_1, local_2, local_3 );
@@ -903,7 +932,7 @@ SPPDALoadScreen_OnLoad()
 	}
 }
 
-local_function_3( list localList_0_, list localList_1_ )
+local_function_4( list localList_0_, list localList_1_ )
 {
 	int local_0 = iGame.NumberOfSavedGameSlots();
 	int ii;
@@ -915,7 +944,7 @@ local_function_3( list localList_0_, list localList_1_ )
 		
 		if ( !( name == "" ) )
 		{
-			local_function_2( "iPDAGUI.SPPDALoadScreen_OnLoad", name, localList_0_, localList_1_ );
+			local_function_3( "iPDAGUI.SPPDALoadScreen_OnLoad", name, localList_0_, localList_1_ );
 		}
 	}
 }
@@ -1070,6 +1099,20 @@ SPPDAGraphicsScreen()
 	
 	iOptions.RegisterBool( "options_antialiasedhudlines", "icHUD", "use_thick_lines", false );
 	iOptions.RegisterBool( "options_antialiasedorbstalks", "icHUDOrbRadar", "use_thick_stalks", false );
+	
+	if ( iOptions.DirectX8Available() )
+	{
+		if ( GUI.NumScreens() == 1 )
+		{
+			iOptions.RegisterBool( "options_directx8", "icOptions", "use_directx8", false );
+		}
+		
+		if ( GUI.NumScreens() == 1 )
+		{
+			iOptions.RegisterInt( "options_antialiasing", "fcGraphicsDeviceD3D", "fsaa_samples", 1, 16, false );
+		}
+	}
+	
 	iOptions.CreateWindows( window_0 );
 	Global.CreateHandle( "options_screen_list_box", 2, window_0 );
 	
@@ -1084,7 +1127,7 @@ SPPDAGraphicsScreen()
 	GUI.SetFirstControlFocus( window_0 );
 	iGUI.SetCyclicControlFocusPath( localList );
 	Global.CreateInt( "SPPDAOptionsCategory_FocusedOption", 2, -1 );
-	local_5 = start local_function_4();
+	local_5 = start local_function_5();
 	Task.Detach( local_5 );
 	Global.CreateHandle( "update_task", 2, local_5 );
 }
@@ -1128,7 +1171,7 @@ SPPDASoundScreen()
 	GUI.SetFirstControlFocus( window );
 	iGUI.SetCyclicControlFocusPath( localList );
 	Global.CreateInt( "SPPDAOptionsCategory_FocusedOption", 2, -1 );
-	local_3 = start local_function_4();
+	local_3 = start local_function_5();
 	Task.Detach( local_3 );
 	Global.CreateHandle( "update_task", 2, local_3 );
 }
@@ -1183,7 +1226,7 @@ SPPDAControlsScreen()
 	GUI.SetFirstControlFocus( window_0 );
 	iGUI.SetCyclicControlFocusPath( localList );
 	Global.CreateInt( "SPPDAOptionsCategory_FocusedOption", 2, -1 );
-	local_5 = start local_function_4();
+	local_5 = start local_function_5();
 	Task.Detach( local_5 );
 	Global.CreateHandle( "update_task", 2, local_5 );
 }
@@ -1268,7 +1311,7 @@ SPPDAOptionsCategory_OnRightOption()
 	iOptions.OnRight( optionsScreenListBox );
 }
 
-task local_function_4()
+task local_function_5()
 {
 	schedule
 	{
@@ -1348,27 +1391,27 @@ SPPDADeviceScreen()
 	GUI.SetWindowTitle( window_4, local_16 );
 	GUI.SetWindowStateColours( window_4, Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ) );
 	Global.CreateHandle( "SPPDADeviceScreen_Splitter", 2, window_2 );
-	local_function_5( local_4 );
-	local_function_6();
+	local_function_6( local_4 );
+	local_function_7();
 	GUI.SetControlFocusCancelFunction( "iPDAGUI.SPPDADeviceScreen_OnBackButton" );
-	local_19 = start local_function_7();
+	local_19 = start local_function_8();
 	Task.Detach( local_19 );
 	Global.CreateHandle( "SPPDADeviceScreen_MonitorTask", 2, local_19 );
 }
 
-task local_function_7()
+task local_function_8()
 {
 	int local_0 = -1;
 	int local_1;
 	
 	while ( 1 )
 	{
-		local_1 = local_function_8();
+		local_1 = local_function_9();
 		
 		if ( local_1 != local_0 )
 		{
-			local_function_5( local_1 );
-			local_function_6();
+			local_function_6( local_1 );
+			local_function_7();
 			local_0 = local_1;
 		}
 		
@@ -1405,9 +1448,9 @@ SPPDADeviceScreen_OnBackToMainMenuButton()
 SPPDADeviceScreen_OnApply()
 {
 	int local_0 = iOptions.GraphicsDeviceIndex();
-	int local_1 = local_function_8();
+	int local_1 = local_function_9();
 	int local_2 = iOptions.GraphicsResolutionIndex( local_0 );
-	int local_3 = local_function_9();
+	int local_3 = local_function_10();
 	
 	if ( (local_0 != local_1) || (local_2 != local_3) )
 	{
@@ -1417,7 +1460,7 @@ SPPDADeviceScreen_OnApply()
 	}
 }
 
-local_function_5( int param_0_ )
+local_function_6( int param_0_ )
 {
 	list localList;
 	hwindow sPPDADeviceScreenSplitter;
@@ -1488,7 +1531,7 @@ local_function_5( int param_0_ )
 	GUI.SelectListBoxEntry( sPPDADeviceScreenResolutionListBox, local_11 );
 }
 
-local_function_6()
+local_function_7()
 {
 	list localList_0 = Global.List( "SPPDADeviceScreen_DeviceList" );
 	list localList_1 = Global.List( "SPPDADeviceScreen_ResolutionButtons" );
@@ -1503,7 +1546,7 @@ local_function_6()
 	iGUI.SetCyclicControlFocusPath( localList_2 );
 }
 
-int local_function_8()
+int local_function_9()
 {
 	int ii;
 	list localList = Global.List( "SPPDADeviceScreen_DeviceList" );
@@ -1524,7 +1567,7 @@ int local_function_8()
 	return local_2;
 }
 
-int local_function_9()
+int local_function_10()
 {
 	int local_0 = 0;
 	hwindow gUI;
@@ -1651,7 +1694,7 @@ MoviesScreen_OnCredits()
 	SPMainPDAScreen_OnCredits();
 }
 
-local_function_10( string param_0_, string param_1_, list localList_0_, list localList_1_ )
+local_function_11( string param_0_, string param_1_, list localList_0_, list localList_1_ )
 {
 	hwindow window_0;
 	hwindow window_1;
@@ -1673,7 +1716,7 @@ local_function_10( string param_0_, string param_1_, list localList_0_, list loc
 	List.AddTail( localList_1_, window_1 );
 }
 
-local_function_11( list localList_0_, list localList_1_ )
+local_function_12( list localList_0_, list localList_1_ )
 {
 	int local_0 = Input.NumInputSchemes();
 	int ii;
@@ -1690,7 +1733,7 @@ local_function_11( list localList_0_, list localList_1_ )
 		
 		name = Input.NthInputSchemeName( ii );
 		name = String.UpperCase( name );
-		local_function_10( "iPDAGUI.ControlScreen_OnSelectScheme", name, localList_0_, localList_1_ );
+		local_function_11( "iPDAGUI.ControlScreen_OnSelectScheme", name, localList_0_, localList_1_ );
 		
 		if ( ii == local_4 )
 		{
@@ -1712,7 +1755,7 @@ ControlScreen()
 	window = iGUI.CreateWideShadyBar();
 	iGUI.AddBackButtons( window, "iPDAGUI.ControlScreen_OnBackButton", "iPDAGUI.ControlScreen_OnBackButtonToMainMenu" );
 	iGUI.AddTitle( window, String.UpperCase( Text.Field( "options_controlstyle", FT_Text ) ) );
-	local_function_11( localList_0, localList_1 );
+	local_function_12( localList_0, localList_1 );
 	local_2 = ( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_alignmentoffset" ) );
 	local_3 = ( Global.Int( "GUI_title_yoffset" ) + (Global.Int( "GUI_fancybutton_height" ) + 20) );
 	iGUI.CreateWindowListInFancyBorder( window, localList_1, local_2, local_3 );
@@ -1766,6 +1809,347 @@ ControlScreen_OnBackButtonToMainMenu()
 		GUI.RemoveLastOverlay();
 		GUI.RemoveLastOverlay();
 	}
+}
+
+local_function_0()
+{
+	int ii;
+	int count;
+	string name;
+	bool local_3;
+	
+	debug Debug.PrintString( "iPDAGUI.SetupMods: Initialising mods...\n" );
+	iMod.ScanDirectory();
+	count = iMod.Count();
+	
+	debug atomic
+	{
+		Debug.PrintString( "iPDAGUI.SetupMods: Found " );
+		Debug.PrintInt( count );
+		Debug.PrintString( " mods\n" );
+	}
+	
+	for ( ii = 0; ii < count; ++ii )
+	{
+		if ( !iMod.IsScenario( ii ) )
+		{
+			name = iMod.Name( ii );
+			
+			if ( Config.Exists( "system", "Mods", name ) )
+			{
+				local_3 = Config.GetBool( "system", "Mods", name );
+			}
+			else
+			{
+				local_3 = false;
+				Config.CreateBool( "system", "Mods", name, false );
+			}
+			
+			iMod.Enable( ii, local_3 );
+			
+			debug atomic
+			{
+				Debug.PrintString( "iPDAGUI.SetupMods: Mod \"" );
+				Debug.PrintString( name );
+				Debug.PrintString( "\" is " );
+				
+				if ( local_3 )
+				{
+					Debug.PrintString( "active\n" );
+				}
+				else
+				{
+					Debug.PrintString( "inactive\n" );
+				}
+			}
+		}
+		else
+		{
+			iMod.Enable( ii, false );
+		}
+	}
+	
+	debug Debug.PrintString( "iPDAGUI.SetupMods: Mods initialised\n" );
+}
+
+local_function_16( string param_0_ )
+{
+	string local_0;
+	
+	if ( !( Global.String( "g_pda_current_mod" ) == param_0_ ) )
+	{
+		Global.SetString( "g_pda_current_mod", param_0_ );
+		local_0 = String.Join( "html:/mods/", String.Join( String.Join( param_0_, "/" ), param_0_ ) );
+		GUI.PlayBackgroundMovie( "movies/multiplayer/policeinter0", local_0 );
+	}
+}
+
+hwindow local_function_14( hwindow window_0_, int param_1_, int param_2_, int param_3_, int param_4_, int param_5_, string param_6_ )
+{
+	string local_0 = Global.String( "GUI_subtitle_font" );
+	hwindow window_1 = GUI.CreateSplitterWindow( param_1_, param_2_, param_3_, param_4_, window_0_, param_5_, false );
+	hwindow window_2 = GUI.SplitterWindowTopWindow( window_1 );
+	hwindow window_3 = iGUI.CreateAndInitialiseStaticWindow( 0, 0, GUI.WindowCanvasWidth( window_2 ), GUI.WindowCanvasHeight( window_2 ), window_2, local_0, Text.Field( param_6_, FT_Text ) );
+	
+	GUI.SetWindowTextFormatting( window_3, false, 9 );
+	return window_1;
+}
+
+bool local_function_13( hwindow window_0_, int param_1_ )
+{
+	int gUIInversebuttonHeight = Global.Int( "GUI_inversebutton_height" );
+	int constant = 3;
+	hwindow window_1 = GUI.SplitterWindowBottomWindow( window_0_ );
+	
+	return (param_1_ * (gUIInversebuttonHeight + constant)) > GUI.WindowCanvasHeight( window_1 );
+}
+
+hwindow local_function_15( hwindow window_0_, int param_1_, bool param_2_ )
+{
+	int gUIInversebuttonWidth = Global.Int( "GUI_inversebutton_width" );
+	int gUIScrollbarWidth = Global.Int( "GUI_scrollbar_width" );
+	hwindow window_1;
+	hwindow window_2;
+	bool local_4 = local_function_13( window_0_, param_1_ );
+	
+	window_1 = GUI.SplitterWindowBottomWindow( window_0_ );
+	
+	if ( local_4 )
+	{
+		gUIInversebuttonWidth = ( gUIInversebuttonWidth - (gUIScrollbarWidth + 4) );
+	}
+	
+	window_2 = GUI.CreateListBox( 0, 0, gUIInversebuttonWidth, GUI.WindowCanvasHeight( window_1 ), window_1, true, param_2_ );
+	
+	if ( local_4 )
+	{
+		GUI.CreateVerticalScrollbar( GUI.WindowCanvasWidth( window_1 ) - gUIScrollbarWidth, 0, gUIScrollbarWidth, GUI.WindowCanvasHeight( window_1 ), window_1, window_2, Global.Float( "GUI_scrollbar_buttonratio" ), "" );
+	}
+	
+	return window_2;
+}
+
+local_function_17()
+{
+	Global.Destroy( "g_pda_mods_list" );
+	Global.Destroy( "g_pda_missions_list" );
+	Global.Destroy( "g_pda_current_mod" );
+	Global.Destroy( "g_pda_selected_mission" );
+	local_function_0();
+}
+
+ModScreen()
+{
+	int gUIAlignmentOffset = Global.Int( "GUI_alignment_offset" );
+	int gUIFancyborderAlignmentoffset = Global.Int( "GUI_fancyborder_alignmentoffset" );
+	int gUIFancybuttonHeight = Global.Int( "GUI_fancybutton_height" );
+	int local_3 = ( gUIAlignmentOffset + gUIFancyborderAlignmentoffset );
+	int local_4 = ( Global.Int( "GUI_title_yoffset" ) + (Global.Int( "GUI_fancybutton_height" ) + 20) );
+	int local_5 = ( Global.Int( "GUI_shader_width" ) + (gUIFancyborderAlignmentoffset - (2 * (gUIFancyborderAlignmentoffset + gUIAlignmentOffset))) );
+	int local_6;
+	int local_7 = ( (2 * Global.Int( "GUI_fancyborder_width" )) + 13 );
+	int local_8;
+	int local_9;
+	hwindow window_0;
+	hwindow window_1;
+	hwindow window_2;
+	hwindow window_3;
+	hwindow window_4;
+	list localList_0;
+	list localList_1;
+	int local_17;
+	list localList_2;
+	hwindow window_5;
+	int ii;
+	int count;
+	string name_0;
+	string name_1;
+	
+	local_function_0();
+	count = iMod.Count();
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	window_0 = iGUI.CreateShadyBar();
+	iGUI.AddBackButtons( window_0, "iPDAGUI.ModScreen_OnBackButton", "iPDAGUI.ModScreen_OnBackButton" );
+	iGUI.AddTitle( window_0, Text.Field( "pda_extras", FT_Text ) );
+	local_9 = ( GUI.WindowCanvasHeight( window_0 ) - (local_4 + (gUIFancybuttonHeight + ((5 * gUIFancyborderAlignmentoffset) + Global.Int( "GUI_backbutton_rise" )))) );
+	local_6 = ( (local_9 / 2) - gUIFancyborderAlignmentoffset );
+	local_8 = local_4;
+	window_1 = local_function_14( window_0, local_3, local_8, local_5, local_6, local_7, "pda_installed_mods" );
+	local_8 = ( local_8 + (local_6 + (4 * gUIFancyborderAlignmentoffset)) );
+	window_2 = local_function_15( window_1, count, true );
+	
+	for ( ii = 0; ii < count; ++ii )
+	{
+		if ( !iMod.IsScenario( ii ) )
+		{
+			name_0 = iMod.Name( ii );
+			name_1 = iMod.DisplayName( ii );
+			
+			if ( String.Length( name_1 ) >= 19 )
+			{
+				name_1 = String.Left( name_1, 19 );
+				name_1 = String.Join( name_1, "..." );
+			}
+			
+			window_5 = iGUI.CreateAndInitialiseRectangularInverseButton( none, 0, 0, GUI.WindowCanvasWidth( window_2 ), name_1, "iPDAGUI.ModScreen_OnModSelect" );
+			iGUI.MakeRectangularInverseButtonIconic( window_5 );
+			
+			if ( Config.GetBool( "system", "Mods", name_0 ) )
+			{
+				GUI.SelectWindow( window_5 );
+			}
+			else
+			{
+				GUI.DeselectWindow( window_5 );
+			}
+			
+			Object.AddIntProperty( window_5, "pda_mod_index", ii );
+			GUI.AddListBoxEntry( window_2, window_5 );
+			List.AddTail( localList_0, window_5 );
+			List.AddTail( localList_2, window_5 );
+		}
+	}
+	
+	window_3 = local_function_14( window_0, local_3, local_8, local_5, local_6, local_7, "pda_installed_missions" );
+	local_8 = ( local_8 + (local_6 + gUIFancyborderAlignmentoffset) );
+	window_4 = local_function_15( window_3, 1, false );
+	
+	for ( ii = 0; ii < count; ++ii )
+	{
+		if ( iMod.IsScenario( ii ) )
+		{
+			name_0 = iMod.Name( ii );
+			name_1 = iMod.DisplayName( ii );
+			
+			if ( String.Length( name_1 ) >= 19 )
+			{
+				name_1 = String.Left( name_1, 19 );
+				name_1 = String.Join( name_1, "..." );
+			}
+			
+			window_5 = iGUI.CreateAndInitialiseRectangularInverseButton( none, 0, 0, GUI.WindowCanvasWidth( window_4 ), name_1, "iPDAGUI.ModScreen_OnMissionSelect" );
+			iGUI.MakeRectangularInverseButtonIconic( window_5 );
+			GUI.DeselectWindow( window_5 );
+			Object.AddIntProperty( window_5, "pda_mod_index", ii );
+			GUI.AddListBoxEntry( window_4, window_5 );
+			List.AddTail( localList_1, window_5 );
+			List.AddTail( localList_2, window_5 );
+		}
+	}
+	
+	List.AddTail( localList_2, iGUI.CreateAndInitialiseFancyButton( window_0, local_8, Text.Field( "pda_play_mission", FT_Text ), "ipdagui.ModScreen_OnMissionPlay" ) );
+	GUI.SetFirstControlFocus( GUI.Cast( List.Head( localList_2 ) ) );
+	iGUI.SetCyclicControlFocusPath( localList_2 );
+	Global.CreateList( "g_pda_mod_buttons", 10, localList_0 );
+	Global.CreateList( "g_pda_mission_buttons", 10, localList_1 );
+	Global.CreateInt( "g_pda_selected_mission", 10, -1 );
+	Global.CreateString( "g_pda_current_mod", 10, "dummy" );
+	local_function_16( "" );
+	GUI.SetControlFocusCancelFunction( "iPDAGUI.ModScreen_OnBackButton" );
+}
+
+ModScreen_OnModSelect()
+{
+	int pdaModIndex;
+	int local_1;
+	string name;
+	hwindow window = GUI.FocusedWindow();
+	
+	debug Debug.PrintString( "iPDAGUI.ModScreen_OnModSelect: Checking to see which button we are...\n" );
+	pdaModIndex = Object.IntProperty( GUI.FocusedWindow(), "pda_mod_index" );
+	name = iMod.Name( pdaModIndex );
+	local_1 = Config.GetBool( "system", "Mods", name );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iPDAGUI.ModScreen_OnModSelect: Changing state for mod \"" );
+		Debug.PrintString( name );
+		Debug.PrintString( "\" from " );
+		Debug.PrintInt( local_1 );
+		Debug.PrintString( " to " );
+		Debug.PrintInt( !local_1 );
+		Debug.PrintString( "\n" );
+	}
+	
+	Config.SetBool( "system", "Mods", name, !local_1 );
+	
+	if ( local_1 )
+	{
+		GUI.PlaySound( S_RemoveProgram );
+		GUI.DeselectWindow( window );
+	}
+	else
+	{
+		GUI.PlaySound( S_AddProgram );
+		GUI.SelectWindow( window );
+	}
+	
+	local_function_16( name );
+}
+
+ModScreen_OnMissionSelect()
+{
+	list localList;
+	int ii;
+	int local_2;
+	string name;
+	hwindow window = GUI.FocusedWindow();
+	
+	debug Debug.PrintString( "iPDAGUI.OnMissionSelect: Checking to see which button we are...\n" );
+	ii = Object.IntProperty( GUI.FocusedWindow(), "pda_mod_index" );
+	name = iMod.Name( ii );
+	Global.SetInt( "g_pda_selected_mission", ii );
+	localList = Global.List( "g_pda_mission_buttons" );
+	
+	for ( ii = 0; ii < List.ItemCount( localList ); ++ii )
+	{
+		GUI.DeselectWindow( GUI.Cast( List.GetNth( localList, ii ) ) );
+	}
+	
+	GUI.SelectWindow( window );
+	GUI.PlaySound( S_Confirm );
+	local_function_16( name );
+}
+
+ModScreen_OnMissionPlay()
+{
+	int gPdaSelectedMission = Global.Int( "g_pda_selected_mission" );
+	string name;
+	
+	debug Debug.PrintString( "iPDAGUI.OnMissionPlay: Checking to see mission is selected, if any...\n" );
+	
+	if ( (gPdaSelectedMission < 0) || (gPdaSelectedMission >= iMod.Count()) )
+	{
+		GUI.PlaySound( S_Error );
+		return;
+	}
+	
+	if ( !iMod.IsScenario( gPdaSelectedMission ) )
+	{
+		GUI.PlaySound( S_Error );
+		return;
+	}
+	
+	name = iMod.Name( gPdaSelectedMission );
+	iMod.Enable( gPdaSelectedMission, true );
+	
+	if ( !Task.Call( String.Join( name, ".ScenarioMain" ) ) )
+	{
+		GUI.PlaySound( S_Error );
+		iMod.Enable( gPdaSelectedMission, false );
+		return;
+	}
+	
+	GUI.PlaySound( S_Confirm );
+	local_function_17();
+	iMod.Enable( gPdaSelectedMission, true );
+}
+
+ModScreen_OnBackButton()
+{
+	GUI.StopBackgroundMovie();
+	local_function_17();
+	GUI.RemoveLastOverlay();
 }
 
 InstantActionShipChoiceScreen()
@@ -1851,7 +2235,7 @@ InstantActionShipChoiceScreen_OnBackButton()
 	GUI.RemoveLastOverlay();
 }
 
-hwindow local_function_12( hwindow window_0_, int param_1_, string param_2_, string param_3_ )
+hwindow local_function_18( hwindow window_0_, int param_1_, string param_2_, string param_3_ )
 {
 	int local_0 = ( Global.Int( "GUI_fancybutton_width" ) * 2 );
 	hwindow window_1 = GUI.CreateButton( 0, param_1_, local_0, Global.Int( "GUI_fancybutton_height" ), window_0_ );
@@ -1889,15 +2273,15 @@ RestartScreen()
 	local_4 = Text.Field( local_4, FT_Text );
 	local_4 = String.UpperCase( local_4 );
 	window_0 = GUI.CreateWindow( local_7 - (local_5 / 2), local_8 - gUIFancybuttonHeight, local_7 + (local_5 / 2), local_8 + gUIFancybuttonHeight, GUI.TopWindow() );
-	window_1 = local_function_12( window_0, 0, local_4, "iPDAGUI.RestartScreen_OnRestart" );
-	window_2 = local_function_12( window_0, gUIFancybuttonHeight, String.UpperCase( Text.Field( "stock_quit_or_load", FT_Text ) ), "iPDAGUI.RestartScreen_OnQuit" );
+	window_1 = local_function_18( window_0, 0, local_4, "iPDAGUI.RestartScreen_OnRestart" );
+	window_2 = local_function_18( window_0, gUIFancybuttonHeight, String.UpperCase( Text.Field( "stock_quit_or_load", FT_Text ) ), "iPDAGUI.RestartScreen_OnQuit" );
 	List.AddTail( localList, window_1 );
 	List.AddTail( localList, window_2 );
 	GUI.SetFirstControlFocus( GUI.Cast( List.Head( localList ) ) );
 	iGUI.SetCyclicControlFocusPath( localList );
 }
 
-local_function_13()
+local_function_19()
 {
 	Global.Destroy( "restart_screen_mission_running" );
 	Global.Destroy( "restart_screen_mission_state" );
@@ -1906,7 +2290,7 @@ local_function_13()
 	Global.Destroy( "restart_screen_point_of_death" );
 }
 
-task local_function_14()
+task local_function_20()
 {
 	int local_0 = 0;
 	string local_1;
@@ -1935,20 +2319,20 @@ task local_function_14()
 		local_0 = ( local_0 + 1 );
 	}
 	
-	local_function_13();
+	local_function_19();
 	Global.CreateBool( "restart_screen_made_decision", 2, true );
 	Global.CreateBool( "restart_screen_restarting", 2, false );
 }
 
 RestartScreen_OnQuit()
 {
-	htask local_0 = start local_function_14();
+	htask local_0 = start local_function_20();
 	
 	Task.Detach( local_0 );
 	GUI.RemoveLastOverlay();
 }
 
-task local_function_15()
+task local_function_21()
 {
 	if ( Global.Bool( "restart_screen_mission_running" ) )
 	{
@@ -1957,14 +2341,14 @@ task local_function_15()
 	
 	Task.Sleep( Task.Current(), 3.0 );
 	iDeathScript.RestorePlayerShip( Sim.Cast( Global.Handle( "restart_screen_player_ship" ) ), Sim.Cast( Global.Handle( "restart_screen_mission_waypoint" ) ) );
-	local_function_13();
+	local_function_19();
 	Global.CreateBool( "restart_screen_made_decision", 2, true );
 	Global.CreateBool( "restart_screen_restarting", 2, true );
 }
 
 RestartScreen_OnRestart()
 {
-	htask local_0 = start local_function_15();
+	htask local_0 = start local_function_21();
 	
 	Task.Detach( local_0 );
 	GUI.RemoveLastOverlay();

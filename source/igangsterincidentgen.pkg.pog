@@ -31,9 +31,9 @@ uses Debug,
      INIFile,
      iUtilities,
      iCargo,
+     iPilotSetup,
      CargoTypes,
      iCargoScript,
-     iPilotSetup,
      iShipCreation;
 
 provides GangsterWarGenerator,

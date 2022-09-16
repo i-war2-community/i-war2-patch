@@ -1,9 +1,9 @@
 package iPowerUp;
 
 uses Debug,
-     String,
      Set,
      List,
+     String,
      Global,
      iCargo,
      GUI,
