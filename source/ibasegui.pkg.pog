@@ -1,0 +1,3641 @@
+package iBaseGUI;
+
+uses Debug,
+     GUI,
+     Set,
+     List,
+     String,
+     Global,
+     Math,
+     Object,
+     Stream,
+     Task,
+     Text,
+     iCargo,
+     iEmail,
+     MapEnumerations,
+     iFaction,
+     iGUI,
+     iGame,
+     CargoTypes,
+     iInventory,
+     Group,
+     Sim,
+     iMapEntity,
+     iSim,
+     iBody,
+     iHabitat,
+     iShip,
+     iLoadout,
+     iScore,
+     iTrade;
+
+provides SetHangarScreenEnabled,
+         SetTradeScreenEnabled,
+         SetInventoryScreenEnabled,
+         SetRecyclingScreenEnabled,
+         SetManufacturingScreenEnabled,
+         SetCommsScreenEnabled,
+         SetEncyclopaediaScreenEnabled,
+         SetStatisticsScreenEnabled,
+         SetTriangulationScreenEnabled,
+         SetCustomisedLoadoutScreenEnabled,
+         SPBaseScreen,
+         SPBaseScreen_OnHangarButton,
+         SPBaseScreen_OnTradeButton,
+         SPBaseScreen_OnInventoryButton,
+         SPBaseScreen_OnRecyclingButton,
+         SPBaseScreen_OnManufacturingButton,
+         SPBaseScreen_OnCommsButton,
+         SPBaseScreen_OnEncyclopaediaButton,
+         SPBaseScreen_OnStarmapButton,
+         SPBaseScreen_OnStatisticsButton,
+         SPBaseScreen_OnTriangulationButton,
+         SPBaseScreen_OnCancelButton,
+         SPHangarScreen,
+         SPHangarScreen_OnLaunchButton,
+         SPHangarScreen_OnShipButton,
+         SPHangarScreen_OnLoadoutButton,
+         SPHangarScreen_OnManifestButton,
+         SPHangarScreen_OnBackButton,
+         SPHangarScreen_OnBackToMainMenuButton,
+         SPLoadoutScreen,
+         SPLoadoutScreen_OnCustomiseButton,
+         SPLoadoutScreen_OnAddCargoButton,
+         SPLoadoutScreen_OnRearmButton,
+         SPLoadoutScreen_OnLoadout,
+         SPLoadoutScreen_OnFighter,
+         SPLoadoutScreen_OnBackButton,
+         SPLoadoutScreen_OnBackToMainMenuButton,
+         SPManifestScreen,
+         SPManifestScreen_OnBackButton,
+         SPManifestScreen_OnBackToMainMenuButton,
+         SPCommsMainMenuScreen,
+         SPCommsMainMenuScreen_OnNewButton,
+         SPCommsMainMenuScreen_OnArchivedButton,
+         SPCommsMainMenuScreen_OnBackButton,
+         SPCommsMainMenuScreen_OnBackToMainMenuButton,
+         SPInboxScreen,
+         SPInboxScreen_OnBackButton,
+         SPInboxScreen_OnBackToMainMenuButton,
+         SPInboxScreen_OnEmailListBoxSelect,
+         SPArchiveScreen,
+         SPArchiveScreen_OnBackButton,
+         SPArchiveScreen_OnBackToMainMenuButton,
+         SPArchiveScreen_OnEmailListBoxSelect,
+         SPMessagesScreen,
+         SPMessagesScreen_OnBackButton,
+         SPMessagesScreen_OnBackToMainMenuButton,
+         ForceEmailRead,
+         SPEncyclopaediaScreen,
+         SPEncyclopaediaScreen_OnBackButton,
+         SPEncyclopaediaScreen_OnBackToMainMenuButton,
+         SPTradingScreen,
+         SPTradingScreen_OnTradeButton,
+         SPTradingScreen_OnCancelButton,
+         SPTradingScreen_OnBackButton,
+         SPTradingScreen_OnBackToMainMenuButton,
+         SPTradingScreen_OnTradesListBoxSelect,
+         SPTradingScreen_OnTradeButtonLeftOrRight,
+         SPTradingScreen_OnCancelButtonLeftOrRight,
+         SPInventoryScreen,
+         SPInventoryScreen_OnBackButton,
+         SPInventoryScreen_OnBackToMainMenuButton,
+         SPInventoryScreen_OnInventoryListBoxSelect,
+         SPInventoryScreen_OnEquipment,
+         SPInventoryScreen_OnCargo,
+         SPCargoScreen,
+         SPCargoScreen_OnBackButton,
+         SPCargoScreen_OnBackToMainMenuButton,
+         SPCargoScreen_OnCargoListBoxSelect,
+         SPCargoScreen_OnRemoveCargo,
+         SPRecyclingScreen,
+         SPRecyclingScreen_OnBackButton,
+         SPRecyclingScreen_OnBackToMainMenuButton,
+         SPRecyclingScreen_OnRecycleOneButton,
+         SPRecyclingScreen_OnRecycleAllButton,
+         SPRecyclingScreen_OnCancelButton,
+         SPRecyclingScreen_OnRecyclingListBoxSelect,
+         SPRecyclingScreen_FocusToRecycleOne,
+         SPRecyclingScreen_FocusToRecycleAll,
+         SPRecyclingScreen_FocusToCancel,
+         SPManufacturingScreen,
+         SPManufacturingScreen_OnBackButton,
+         SPManufacturingScreen_OnBackToMainMenuButton,
+         SPManufacturingScreen_OnManufacturingButton,
+         SPManufacturingScreen_OnCancelButton,
+         SPManufacturingScreen_FocusToManufacturing,
+         SPManufacturingScreen_FocusToCancel,
+         SPManufacturingScreen_OnManufacturingListBoxSelect,
+         SPShipTypeScreen,
+         SPShipTypeScreen_OnBackButton,
+         SPShipTypeScreen_OnBackToMainMenuButton,
+         SPShipTypeScreen_OnCommandSection,
+         SPShipTypeScreen_OnStormPetrel,
+         SPShipTypeScreen_OnTug,
+         SPShipTypeScreen_OnFastAttackShip,
+         SPShipTypeScreen_OnHeavyCorvette,
+         SPCustomiseScreen,
+         SPCustomiseScreen_OnBackButton,
+         SPCustomiseScreen_OnBackToMainMenuButton,
+         SPCustomiseScreen_OnSelect,
+         SPCustomiseScreen_CreateOptionsListBox,
+         SPStatisticsScreen,
+         SPStatisticsScreen_OnBackButton,
+         SPStatisticsScreen_OnBackToMainMenuButton,
+         StartNewMailNotification,
+         StopNewMailNotification,
+         NewMailNotification,
+         OnConversationStart;
+
+prototype local_function_1();
+prototype bool local_function_2();
+prototype bool local_function_3();
+prototype bool local_function_4();
+prototype bool local_function_5();
+prototype bool local_function_6();
+prototype bool local_function_7();
+prototype bool local_function_8();
+prototype bool local_function_9();
+prototype bool local_function_10();
+prototype bool local_function_17();
+prototype SetHangarScreenEnabled( bool enable_ );
+prototype SetTradeScreenEnabled( bool enable_ );
+prototype SetInventoryScreenEnabled( bool enable_ );
+prototype SetRecyclingScreenEnabled( bool enable_ );
+prototype SetManufacturingScreenEnabled( bool enable_ );
+prototype SetCommsScreenEnabled( bool enable_ );
+prototype SetEncyclopaediaScreenEnabled( bool enable_ );
+prototype SetStatisticsScreenEnabled( bool enable_ );
+prototype SetTriangulationScreenEnabled( bool enable_ );
+prototype SetCustomisedLoadoutScreenEnabled( bool enable_ );
+prototype task NewMailNotification( hwindow window_ );
+prototype StartNewMailNotification( hwindow window_ );
+prototype StopNewMailNotification( hwindow window_ );
+prototype SPBaseScreen();
+prototype local_function_0();
+prototype SPBaseScreen_OnHangarButton();
+prototype SPBaseScreen_OnTradeButton();
+prototype SPBaseScreen_OnInventoryButton();
+prototype SPBaseScreen_OnRecyclingButton();
+prototype SPBaseScreen_OnManufacturingButton();
+prototype SPBaseScreen_OnCommsButton();
+prototype SPBaseScreen_OnEncyclopaediaButton();
+prototype SPBaseScreen_OnStarmapButton();
+prototype SPBaseScreen_OnStatisticsButton();
+prototype SPBaseScreen_OnTriangulationButton();
+prototype SPBaseScreen_OnCancelButton();
+prototype local_function_11();
+prototype hwindow local_function_12();
+prototype local_function_18();
+prototype local_function_14();
+prototype SPHangarScreen();
+prototype SPHangarScreen_OnLaunchButton();
+prototype SPHangarScreen_OnShipButton();
+prototype SPHangarScreen_OnLoadoutButton();
+prototype SPHangarScreen_OnManifestButton();
+prototype SPHangarScreen_OnBackButton();
+prototype SPHangarScreen_OnBackToMainMenuButton();
+prototype local_function_13();
+prototype SPLoadoutScreen();
+prototype SPLoadoutScreen_OnAddCargoButton();
+prototype SPLoadoutScreen_OnCustomiseButton();
+prototype SPLoadoutScreen_OnRearmButton();
+prototype SPLoadoutScreen_OnLoadout();
+prototype SPLoadoutScreen_OnFighter();
+prototype SPLoadoutScreen_OnBackButton();
+prototype SPLoadoutScreen_OnBackToMainMenuButton();
+prototype hwindow local_function_15( hwindow window_0_, int param_1_, list localList_0_, list localList_1_ );
+prototype local_function_19( list localList_0_, list localList_1_ );
+prototype local_function_20( list localList_0_, list localList_1_ );
+prototype local_function_21( list localList_0_, list localList_1_ );
+prototype local_function_22( list localList_0_, list localList_1_ );
+prototype local_function_23( list localList_0_, list localList_1_ );
+prototype local_function_25( list localList_, hwindow window_0_, hwindow window_1_, hwindow window_2_, hwindow window_3_, hobject param_5_, hobject param_6_ );
+prototype hwindow local_function_16( hwindow window_0_, int param_1_, list localList_0_, list localList_1_ );
+prototype hwindow local_function_26( hwindow window_0_, int param_1_, string param_2_, string param_3_ );
+prototype SPManifestScreen();
+prototype SPManifestScreen_OnBackButton();
+prototype SPManifestScreen_OnBackToMainMenuButton();
+prototype SPCommsMainMenuScreen();
+prototype SPCommsMainMenuScreen_OnNewButton();
+prototype SPCommsMainMenuScreen_OnArchivedButton();
+prototype SPCommsMainMenuScreen_OnBackButton();
+prototype SPCommsMainMenuScreen_OnBackToMainMenuButton();
+prototype list local_function_27( hwindow window_0_, int param_1_ );
+prototype hwindow local_function_28( hemail email_, hwindow window_0_ );
+prototype SPInboxScreen();
+prototype SPInboxScreen_OnBackButton();
+prototype SPInboxScreen_OnBackToMainMenuButton();
+prototype SPInboxScreen_OnEmailListBoxSelect();
+prototype SPArchiveScreen();
+prototype SPArchiveScreen_OnBackButton();
+prototype SPArchiveScreen_OnBackToMainMenuButton();
+prototype SPArchiveScreen_OnEmailListBoxSelect();
+prototype SPMessagesScreen();
+prototype SPMessagesScreen_OnBackButton();
+prototype SPMessagesScreen_OnBackToMainMenuButton();
+prototype ForceEmailRead( string im_a_goober_ );
+prototype SPEncyclopaediaScreen();
+prototype SPEncyclopaediaScreen_OnBackButton();
+prototype SPEncyclopaediaScreen_OnBackToMainMenuButton();
+prototype SPTradingScreen();
+prototype SPTradingScreen_OnCancelButton();
+prototype SPTradingScreen_OnTradeButton();
+prototype SPTradingScreen_OnBackButton();
+prototype SPTradingScreen_OnBackToMainMenuButton();
+prototype list local_function_29();
+prototype local_function_30( hwindow window_ );
+prototype hwindow local_function_32( hwindow window_0_, htrade trade_ );
+prototype SPTradingScreen_OnTradesListBoxSelect();
+prototype SPTradingScreen_OnTradeButtonLeftOrRight();
+prototype SPTradingScreen_OnCancelButtonLeftOrRight();
+prototype task local_function_31( hwindow window_0_, hwindow window_1_ );
+prototype SPInventoryScreen_OnEquipment();
+prototype SPInventoryScreen_OnCargo();
+prototype SPInventoryScreen();
+prototype SPInventoryScreen_OnBackButton();
+prototype SPInventoryScreen_OnBackToMainMenuButton();
+prototype SPInventoryScreen_OnInventoryListBoxSelect();
+prototype local_function_33( bool param_0_ );
+prototype SPCargoScreen();
+prototype SPCargoScreen_OnBackButton();
+prototype SPCargoScreen_OnBackToMainMenuButton();
+prototype SPCargoScreen_OnCargoListBoxSelect();
+prototype SPCargoScreen_OnRemoveCargo();
+prototype local_function_34( hwindow window_ );
+prototype SPRecyclingScreen();
+prototype SPRecyclingScreen_OnBackButton();
+prototype SPRecyclingScreen_OnBackToMainMenuButton();
+prototype SPRecyclingScreen_OnCancelButton();
+prototype SPRecyclingScreen_OnRecycleOneButton();
+prototype SPRecyclingScreen_OnRecycleAllButton();
+prototype local_function_37( hwindow window_, int param_1_ );
+prototype SPRecyclingScreen_OnRecyclingListBoxSelect();
+prototype local_function_35( hwindow window_0_ );
+prototype SPRecyclingScreen_FocusToRecycleOne();
+prototype SPRecyclingScreen_FocusToRecycleAll();
+prototype SPRecyclingScreen_FocusToCancel();
+prototype local_function_36( hwindow window_ );
+prototype SPManufacturingScreen();
+prototype SPManufacturingScreen_OnCancelButton();
+prototype SPManufacturingScreen_OnManufacturingButton();
+prototype SPManufacturingScreen_FocusToManufacturing();
+prototype SPManufacturingScreen_FocusToCancel();
+prototype SPManufacturingScreen_OnBackButton();
+prototype SPManufacturingScreen_OnBackToMainMenuButton();
+prototype local_function_38( hwindow window_0_ );
+prototype local_function_39( hwindow window_0_ );
+prototype SPManufacturingScreen_OnManufacturingListBoxSelect();
+prototype SPShipTypeScreen();
+prototype local_function_40( eShip ship_ );
+prototype SPShipTypeScreen_OnCommandSection();
+prototype SPShipTypeScreen_OnStormPetrel();
+prototype SPShipTypeScreen_OnTug();
+prototype SPShipTypeScreen_OnFastAttackShip();
+prototype SPShipTypeScreen_OnHeavyCorvette();
+prototype SPShipTypeScreen_OnBackButton();
+prototype SPShipTypeScreen_OnBackToMainMenuButton();
+prototype hwindow local_function_42();
+prototype SPCustomiseScreen();
+prototype local_function_45();
+prototype SPCustomiseScreen_OnBackButton();
+prototype SPCustomiseScreen_OnBackToMainMenuButton();
+prototype local_function_41( hwindow window_0_, int param_1_ );
+prototype local_function_43( hwindow window_0_ );
+prototype local_function_46();
+prototype task local_function_44();
+prototype SPCustomiseScreen_OnSelect();
+prototype hwindow SPCustomiseScreen_CreateOptionsListBox( hwindow splitter_pane_, int width_ );
+prototype SPStatisticsScreen();
+prototype SPStatisticsScreen_OnBackButton();
+prototype SPStatisticsScreen_OnBackToMainMenuButton();
+prototype OnConversationStart();
+prototype hwindow local_function_24( string param_0_, list localList_ );
+
+local_function_1()
+{
+	int constant = 14;
+	
+	Global.CreateString( "BaseGUI_largenumber_font", constant, "font:/fonts/handelgothic bt_12pt" );
+	Global.CreateBool( "InboxQuit", constant, false );
+	Global.CreateBool( "ArchiveQuit", constant, false );
+	Global.CreateBool( "ReadingMessage", constant, false );
+	Global.CreateFloat( "GUI_listbox_focused_red", constant, 0.0 );
+	Global.CreateFloat( "GUI_listbox_focused_green", constant, 0.0 );
+	Global.CreateFloat( "GUI_listbox_focused_blue", constant, 0.0 );
+	Global.CreateBool( "SPInventoryScreen_CargoOnly", constant, false );
+}
+
+bool local_function_2()
+{
+	string local_0 = "g_hangar_disabled";
+	bool local_1;
+	bool local_2 = false;
+	
+	local_1 = Global.Exists( local_0 );
+	
+	if ( local_1 )
+	{
+		local_2 = Global.Bool( local_0 );
+	}
+	
+	return local_2;
+}
+
+bool local_function_3()
+{
+	string local_0 = "g_trade_disabled";
+	bool local_1;
+	bool local_2 = false;
+	
+	local_1 = Global.Exists( local_0 );
+	
+	if ( local_1 )
+	{
+		local_2 = Global.Bool( local_0 );
+	}
+	
+	return local_2;
+}
+
+bool local_function_4()
+{
+	string local_0 = "g_inventory_disabled";
+	bool local_1;
+	bool local_2 = false;
+	
+	local_1 = Global.Exists( local_0 );
+	
+	if ( local_1 )
+	{
+		local_2 = Global.Bool( local_0 );
+	}
+	
+	return local_2;
+}
+
+bool local_function_5()
+{
+	string local_0 = "g_recycling_disabled";
+	bool local_1;
+	bool local_2 = false;
+	
+	local_1 = Global.Exists( local_0 );
+	
+	if ( local_1 )
+	{
+		local_2 = Global.Bool( local_0 );
+	}
+	
+	return local_2;
+}
+
+bool local_function_6()
+{
+	string local_0 = "g_manufacturing_disabled";
+	bool local_1;
+	bool local_2 = false;
+	
+	local_1 = Global.Exists( local_0 );
+	
+	if ( local_1 )
+	{
+		local_2 = Global.Bool( local_0 );
+	}
+	
+	return local_2;
+}
+
+bool local_function_7()
+{
+	string local_0 = "g_comms_disabled";
+	bool local_1;
+	bool local_2 = false;
+	
+	local_1 = Global.Exists( local_0 );
+	
+	if ( local_1 )
+	{
+		local_2 = Global.Bool( local_0 );
+	}
+	
+	return local_2;
+}
+
+bool local_function_8()
+{
+	string local_0 = "g_encyclopaedia_disabled";
+	bool local_1;
+	bool local_2 = false;
+	
+	local_1 = Global.Exists( local_0 );
+	
+	if ( local_1 )
+	{
+		local_2 = Global.Bool( local_0 );
+	}
+	
+	return local_2;
+}
+
+bool local_function_9()
+{
+	string local_0 = "g_statistics_disabled";
+	bool local_1;
+	bool local_2 = false;
+	
+	local_1 = Global.Exists( local_0 );
+	
+	if ( local_1 )
+	{
+		local_2 = Global.Bool( local_0 );
+	}
+	
+	return local_2;
+}
+
+bool local_function_10()
+{
+	string local_0 = "g_triangulation_disabled";
+	bool local_1;
+	bool local_2 = false;
+	
+	local_1 = Global.Exists( local_0 );
+	
+	if ( local_1 )
+	{
+		local_2 = Global.Bool( local_0 );
+	}
+	
+	return local_2;
+}
+
+bool local_function_17()
+{
+	string local_0 = "g_customised_loadout_disabled";
+	bool local_1;
+	bool local_2 = false;
+	
+	local_1 = Global.Exists( local_0 );
+	
+	if ( local_1 )
+	{
+		local_2 = Global.Bool( local_0 );
+	}
+	
+	return local_2;
+}
+
+SetHangarScreenEnabled( bool enable_ )
+{
+	Global.CreateBool( "g_hangar_disabled", 6, !enable_ );
+}
+
+SetTradeScreenEnabled( bool enable_ )
+{
+	Global.CreateBool( "g_trade_disabled", 6, !enable_ );
+}
+
+SetInventoryScreenEnabled( bool enable_ )
+{
+	Global.CreateBool( "g_inventory_disabled", 6, !enable_ );
+}
+
+SetRecyclingScreenEnabled( bool enable_ )
+{
+	Global.CreateBool( "g_recycling_disabled", 6, !enable_ );
+}
+
+SetManufacturingScreenEnabled( bool enable_ )
+{
+	Global.CreateBool( "g_manufacturing_disabled", 6, !enable_ );
+}
+
+SetCommsScreenEnabled( bool enable_ )
+{
+	Global.CreateBool( "g_comms_disabled", 6, !enable_ );
+}
+
+SetEncyclopaediaScreenEnabled( bool enable_ )
+{
+	Global.CreateBool( "g_encyclopaedia_disabled", 6, !enable_ );
+}
+
+SetStatisticsScreenEnabled( bool enable_ )
+{
+	Global.CreateBool( "g_statistics_disabled", 6, !enable_ );
+}
+
+SetTriangulationScreenEnabled( bool enable_ )
+{
+	Global.CreateBool( "g_triangulation_disabled", 6, !enable_ );
+}
+
+SetCustomisedLoadoutScreenEnabled( bool enable_ )
+{
+	Global.CreateBool( "g_customised_loadout_disabled", 6, !enable_ );
+}
+
+task NewMailNotification( hwindow window_ )
+{
+	bool local_0 = false;
+	float gUINeutralRed = Global.Float( "GUI_neutral_red" );
+	float gUINeutralGreen = Global.Float( "GUI_neutral_green" );
+	float gUINeutralBlue = Global.Float( "GUI_neutral_blue" );
+	float gUIFocusedRed = Global.Float( "GUI_focused_red" );
+	float gUIFocusedGreen = Global.Float( "GUI_focused_green" );
+	float gUIFocusedBlue = Global.Float( "GUI_focused_blue" );
+	float gUISelectedRed = Global.Float( "GUI_selected_red" );
+	float gUISelectedGreen = Global.Float( "GUI_selected_green" );
+	float gUISelectedBlue = Global.Float( "GUI_selected_blue" );
+	int gUIFancybuttonNeutralLeftLeft = Global.Int( "GUI_fancybutton_neutral_left_left" );
+	int gUIFancybuttonNeutralLeftTop = Global.Int( "GUI_fancybutton_neutral_left_top" );
+	int gUIFancybuttonNeutralLeftRight = Global.Int( "GUI_fancybutton_neutral_left_right" );
+	int gUIFancybuttonNeutralLeftBottom = Global.Int( "GUI_fancybutton_neutral_left_bottom" );
+	int gUIFancybuttonNeutralBodyLeft = Global.Int( "GUI_fancybutton_neutral_body_left" );
+	int gUIFancybuttonNeutralBodyTop = Global.Int( "GUI_fancybutton_neutral_body_top" );
+	int gUIFancybuttonNeutralBodyRight = Global.Int( "GUI_fancybutton_neutral_body_right" );
+	int gUIFancybuttonNeutralBodyBottom = Global.Int( "GUI_fancybutton_neutral_body_bottom" );
+	int gUIFancybuttonNeutralRightLeft = Global.Int( "GUI_fancybutton_neutral_right_left" );
+	int gUIFancybuttonNeutralRightTop = Global.Int( "GUI_fancybutton_neutral_right_top" );
+	int gUIFancybuttonNeutralRightRight = Global.Int( "GUI_fancybutton_neutral_right_right" );
+	int gUIFancybuttonNeutralRightBottom = Global.Int( "GUI_fancybutton_neutral_right_bottom" );
+	int gUIFancybuttonFocusedLeftLeft = Global.Int( "GUI_fancybutton_focused_left_left" );
+	int gUIFancybuttonFocusedLeftTop = Global.Int( "GUI_fancybutton_focused_left_top" );
+	int gUIFancybuttonFocusedLeftRight = Global.Int( "GUI_fancybutton_focused_left_right" );
+	int gUIFancybuttonFocusedLeftBottom = Global.Int( "GUI_fancybutton_focused_left_bottom" );
+	int gUIFancybuttonFocusedBodyLeft = Global.Int( "GUI_fancybutton_focused_body_left" );
+	int gUIFancybuttonFocusedBodyTop = Global.Int( "GUI_fancybutton_focused_body_top" );
+	int gUIFancybuttonFocusedBodyRight = Global.Int( "GUI_fancybutton_focused_body_right" );
+	int gUIFancybuttonFocusedBodyBottom = Global.Int( "GUI_fancybutton_focused_body_bottom" );
+	int gUIFancybuttonFocusedRightLeft = Global.Int( "GUI_fancybutton_focused_right_left" );
+	int gUIFancybuttonFocusedRightTop = Global.Int( "GUI_fancybutton_focused_right_top" );
+	int gUIFancybuttonFocusedRightRight = Global.Int( "GUI_fancybutton_focused_right_right" );
+	int gUIFancybuttonFocusedRightBottom = Global.Int( "GUI_fancybutton_focused_right_bottom" );
+	int gUIFancybuttonSelectedLeftLeft = Global.Int( "GUI_fancybutton_selected_left_left" );
+	int gUIFancybuttonSelectedLeftTop = Global.Int( "GUI_fancybutton_selected_left_top" );
+	int gUIFancybuttonSelectedLeftRight = Global.Int( "GUI_fancybutton_selected_left_right" );
+	int gUIFancybuttonSelectedLeftBottom = Global.Int( "GUI_fancybutton_selected_left_bottom" );
+	int gUIFancybuttonSelectedBodyLeft = Global.Int( "GUI_fancybutton_selected_body_left" );
+	int gUIFancybuttonSelectedBodyTop = Global.Int( "GUI_fancybutton_selected_body_top" );
+	int gUIFancybuttonSelectedBodyRight = Global.Int( "GUI_fancybutton_selected_body_right" );
+	int gUIFancybuttonSelectedBodyBottom = Global.Int( "GUI_fancybutton_selected_body_bottom" );
+	int gUIFancybuttonSelectedRightLeft = Global.Int( "GUI_fancybutton_selected_right_left" );
+	int gUIFancybuttonSelectedRightTop = Global.Int( "GUI_fancybutton_selected_right_top" );
+	int gUIFancybuttonSelectedRightRight = Global.Int( "GUI_fancybutton_selected_right_right" );
+	int gUIFancybuttonSelectedRightBottom = Global.Int( "GUI_fancybutton_selected_right_bottom" );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( iEmail.Unread() > 0 )
+			{
+				local_0 = !local_0;
+			}
+			else
+			{
+				local_0 = false;
+			}
+			
+			if ( !local_0 )
+			{
+				GUI.SetWindowStateColours( window_, gUINeutralRed, gUINeutralGreen, gUINeutralBlue, gUIFocusedRed, gUIFocusedGreen, gUIFocusedBlue, gUISelectedRed, gUISelectedGreen, gUISelectedBlue );
+				GUI.SetWindowStateTextures( window_, Global.String( "GUI_texture_request" ), gUIFancybuttonNeutralLeftLeft, gUIFancybuttonNeutralLeftTop, gUIFancybuttonNeutralLeftRight, gUIFancybuttonNeutralLeftBottom, gUIFancybuttonNeutralBodyLeft, gUIFancybuttonNeutralBodyTop, gUIFancybuttonNeutralBodyRight, gUIFancybuttonNeutralBodyBottom, gUIFancybuttonNeutralRightLeft, gUIFancybuttonNeutralRightTop, gUIFancybuttonNeutralRightRight, gUIFancybuttonNeutralRightBottom, gUIFancybuttonFocusedLeftLeft, gUIFancybuttonFocusedLeftTop, gUIFancybuttonFocusedLeftRight, gUIFancybuttonFocusedLeftBottom, gUIFancybuttonFocusedBodyLeft, gUIFancybuttonFocusedBodyTop, gUIFancybuttonFocusedBodyRight, gUIFancybuttonFocusedBodyBottom, gUIFancybuttonFocusedRightLeft, gUIFancybuttonFocusedRightTop, gUIFancybuttonFocusedRightRight, gUIFancybuttonFocusedRightBottom, gUIFancybuttonSelectedLeftLeft, gUIFancybuttonSelectedLeftTop, gUIFancybuttonSelectedLeftRight, gUIFancybuttonSelectedLeftBottom, gUIFancybuttonSelectedBodyLeft, gUIFancybuttonSelectedBodyTop, gUIFancybuttonSelectedBodyRight, gUIFancybuttonSelectedBodyBottom, gUIFancybuttonSelectedRightLeft, gUIFancybuttonSelectedRightTop, gUIFancybuttonSelectedRightRight, gUIFancybuttonSelectedRightBottom );
+			}
+			else
+			{
+				GUI.SetWindowStateColours( window_, gUISelectedRed, gUISelectedGreen, gUISelectedBlue, gUISelectedRed, gUISelectedGreen, gUISelectedBlue, gUISelectedRed, gUISelectedGreen, gUISelectedBlue );
+				GUI.SetWindowStateTextures( window_, Global.String( "GUI_texture_request" ), gUIFancybuttonSelectedLeftLeft, gUIFancybuttonSelectedLeftTop, gUIFancybuttonSelectedLeftRight, gUIFancybuttonSelectedLeftBottom, gUIFancybuttonSelectedBodyLeft, gUIFancybuttonSelectedBodyTop, gUIFancybuttonSelectedBodyRight, gUIFancybuttonSelectedBodyBottom, gUIFancybuttonSelectedRightLeft, gUIFancybuttonSelectedRightTop, gUIFancybuttonSelectedRightRight, gUIFancybuttonSelectedRightBottom, gUIFancybuttonSelectedLeftLeft, gUIFancybuttonSelectedLeftTop, gUIFancybuttonSelectedLeftRight, gUIFancybuttonSelectedLeftBottom, gUIFancybuttonSelectedBodyLeft, gUIFancybuttonSelectedBodyTop, gUIFancybuttonSelectedBodyRight, gUIFancybuttonSelectedBodyBottom, gUIFancybuttonSelectedRightLeft, gUIFancybuttonSelectedRightTop, gUIFancybuttonSelectedRightRight, gUIFancybuttonSelectedRightBottom, gUIFancybuttonSelectedLeftLeft, gUIFancybuttonSelectedLeftTop, gUIFancybuttonSelectedLeftRight, gUIFancybuttonSelectedLeftBottom, gUIFancybuttonSelectedBodyLeft, gUIFancybuttonSelectedBodyTop, gUIFancybuttonSelectedBodyRight, gUIFancybuttonSelectedBodyBottom, gUIFancybuttonSelectedRightLeft, gUIFancybuttonSelectedRightTop, gUIFancybuttonSelectedRightRight, gUIFancybuttonSelectedRightBottom );
+			}
+		}
+	}
+}
+
+StartNewMailNotification( hwindow window_ )
+{
+	int constant = 14;
+	htask local_1;
+	string local_2 = String.Join( "_", String.FromInt( Object.IntProperty( window_, "id" ) ) );
+	
+	local_1 = start NewMailNotification( window_ );
+	Task.Detach( local_1 );
+	Global.CreateHandle( String.Join( "NewMailNotificationTask", local_2 ), constant, local_1 );
+}
+
+StopNewMailNotification( hwindow window_ )
+{
+	string local_0 = String.Join( "_", String.FromInt( Object.IntProperty( window_, "id" ) ) );
+	htask local_1 = Task.Cast( Global.Handle( String.Join( "NewMailNotificationTask", local_0 ) ) );
+	
+	Task.Halt( local_1 );
+	Global.Destroy( String.Join( "NewMailNotificationTask", local_0 ) );
+}
+
+SPBaseScreen()
+{
+	hwindow window_0;
+	hwindow window_1;
+	hwindow window_2;
+	hwindow window_3;
+	hwindow window_4;
+	hwindow window_5;
+	hwindow window_6;
+	hwindow window_7;
+	hwindow window_8;
+	hwindow window_9 = none;
+	int local_10;
+	list localList;
+	
+	local_function_0();
+	Text.Add( "csv:/text/gui" );
+	Text.Add( "csv:/text/gui_addendum" );
+	Text.Add( "csv:/text/gui_addendum_2" );
+	Text.Add( "csv:/text/gui_addendum_3" );
+	Text.Add( "csv:/text/gui_addendum_4" );
+	Text.Add( "csv:/text/statistics" );
+	Text.Add( "csv:/text/mount_points" );
+	iGUI.SetGUIGlobals();
+	local_function_1();
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	
+	if ( !local_function_2() )
+	{
+		window_0 = iGUI.CreateMenuButton( "iBaseGUI.SPBaseScreen_OnHangarButton", Text.Field( "basemenu_hangar", FT_Text ), localList );
+		GUI.SetInputOverrideFunctions( window_0, "", "", "", "", "", "iBaseGUI.SPBaseScreen_OnCancelButton", "", "", "" );
+		
+		if ( window_9 != false )
+		{
+			window_9 = window_0;
+		}
+	}
+	
+	if ( !local_function_3() )
+	{
+		window_1 = iGUI.CreateMenuButton( "iBaseGUI.SPBaseScreen_OnTradeButton", Text.Field( "basemenu_trade", FT_Text ), localList );
+		GUI.SetInputOverrideFunctions( window_1, "", "", "", "", "", "iBaseGUI.SPBaseScreen_OnCancelButton", "", "", "" );
+		
+		if ( window_9 != false )
+		{
+			window_9 = window_1;
+		}
+	}
+	
+	if ( !local_function_4() )
+	{
+		window_2 = iGUI.CreateMenuButton( "iBaseGUI.SPBaseScreen_OnInventoryButton", Text.Field( "basemenu_inventory", FT_Text ), localList );
+		GUI.SetInputOverrideFunctions( window_2, "", "", "", "", "", "iBaseGUI.SPBaseScreen_OnCancelButton", "", "", "" );
+		
+		if ( window_9 != false )
+		{
+			window_9 = window_2;
+		}
+	}
+	
+	if ( !local_function_5() )
+	{
+		window_3 = iGUI.CreateMenuButton( "iBaseGUI.SPBaseScreen_OnRecyclingButton", Text.Field( "basemenu_recycling", FT_Text ), localList );
+		GUI.SetInputOverrideFunctions( window_3, "", "", "", "", "", "iBaseGUI.SPBaseScreen_OnCancelButton", "", "", "" );
+		
+		if ( window_9 != false )
+		{
+			window_9 = window_3;
+		}
+	}
+	
+	if ( !local_function_6() )
+	{
+		window_4 = iGUI.CreateMenuButton( "iBaseGUI.SPBaseScreen_OnManufacturingButton", Text.Field( "basemenu_manufacturing", FT_Text ), localList );
+		GUI.SetInputOverrideFunctions( window_4, "", "", "", "", "", "iBaseGUI.SPBaseScreen_OnCancelButton", "", "", "" );
+		
+		if ( window_9 != false )
+		{
+			window_9 = window_4;
+		}
+	}
+	
+	if ( !local_function_7() )
+	{
+		window_5 = iGUI.CreateMenuButton( "iBaseGUI.SPBaseScreen_OnCommsButton", Text.Field( "basemenu_communications", FT_Text ), localList );
+		GUI.SetInputOverrideFunctions( window_5, "", "", "", "", "", "iBaseGUI.SPBaseScreen_OnCancelButton", "", "", "" );
+		
+		if ( window_9 != false )
+		{
+			window_9 = window_5;
+		}
+		
+		StartNewMailNotification( window_5 );
+		Global.CreateHandle( "SPBaseScreen_CommsButton", 2, window_5 );
+	}
+	
+	if ( !local_function_8() )
+	{
+		window_6 = iGUI.CreateMenuButton( "iBaseGUI.SPBaseScreen_OnEncyclopaediaButton", Text.Field( "basemenu_encyclopedia", FT_Text ), localList );
+		GUI.SetInputOverrideFunctions( window_6, "", "", "", "", "", "iBaseGUI.SPBaseScreen_OnCancelButton", "", "", "" );
+		
+		if ( window_9 != false )
+		{
+			window_9 = window_6;
+		}
+	}
+	
+	if ( !local_function_9() )
+	{
+		window_7 = iGUI.CreateMenuButton( "iBaseGUI.SPBaseScreen_OnStatisticsButton", Text.Field( "basemenu_statistics", FT_Text ), localList );
+		GUI.SetInputOverrideFunctions( window_7, "", "", "", "", "", "iBaseGUI.SPBaseScreen_OnCancelButton", "", "", "" );
+		
+		if ( window_9 != false )
+		{
+			window_9 = window_7;
+		}
+	}
+	
+	if ( !local_function_10() )
+	{
+		window_8 = iGUI.CreateMenuButton( "iBaseGUI.SPBaseScreen_OnTriangulationButton", Text.Field( "basemenu_triangulation", FT_Text ), localList );
+		GUI.SetInputOverrideFunctions( window_8, "", "", "", "", "", "iBaseGUI.SPBaseScreen_OnCancelButton", "", "", "" );
+		
+		if ( window_9 != false )
+		{
+			window_9 = window_8;
+		}
+	}
+	
+	iGUI.CreateMenu( localList );
+	GUI.SetFirstControlFocus( window_0 );
+	iGUI.SetCyclicControlFocusPath( localList );
+	GUI.SetControlFocusCancelFunction( "iBaseGUI.SPBaseScreen_OnCancelButton" );
+	
+	if ( (Stream.IsPlayingURL( 0, "sound:/audio/music/base_ambient_1" ) == 0) && (Stream.IsPlayingURL( 0, "sound:/audio/music/base_ambient_2" ) == 0) )
+	{
+		if ( Math.Random( 0.0, 1.0 ) > 0.50 )
+		{
+			Stream.Play( 0, "sound:/audio/music/base_ambient_1", true, true );
+			return;
+		}
+		
+		Stream.Play( 0, "sound:/audio/music/base_ambient_2", true, true );
+	}
+}
+
+local_function_0()
+{
+	bool local_0 = false;
+	
+	switch ( iLoadout.Ship() )
+	{
+		case S_CommandSection:
+			if ( !iInventory.GotCommandSection() )
+			{
+				local_0 = true;
+			}
+			
+			break;
+		
+		case S_StormPetrel:
+			if ( !iInventory.GotStormPetrel() )
+			{
+				local_0 = true;
+			}
+			
+			break;
+		
+		case S_Tug:
+			if ( !iInventory.GotTug() )
+			{
+				local_0 = true;
+			}
+			
+			break;
+		
+		case S_FastAttackShip:
+			if ( !iInventory.GotFastAttackShip() )
+			{
+				local_0 = true;
+			}
+			
+			break;
+		
+		case S_HeavyCorvette:
+			if ( !iInventory.GotHeavyCorvette() )
+			{
+				local_0 = true;
+			}
+			
+			break;
+	}
+	
+	if ( local_0 )
+	{
+		if ( iInventory.GotHeavyCorvette() )
+		{
+			iLoadout.SetShip( S_HeavyCorvette );
+			return;
+		}
+		
+		if ( iInventory.GotFastAttackShip() )
+		{
+			iLoadout.SetShip( S_FastAttackShip );
+			return;
+		}
+		
+		if ( iInventory.GotTug() )
+		{
+			iLoadout.SetShip( S_Tug );
+			return;
+		}
+		
+		if ( iInventory.GotStormPetrel() )
+		{
+			iLoadout.SetShip( S_StormPetrel );
+			return;
+		}
+		
+		if ( iInventory.GotCommandSection() )
+		{
+			iLoadout.SetShip( S_CommandSection );
+		}
+	}
+}
+
+SPBaseScreen_OnHangarButton()
+{
+	eLoadout loadout;
+	
+	local_function_11();
+	GUI.OverlayScreen( "icSPHangarScreen" );
+	loadout = iLoadout.CurrentLoadout();
+	
+	if ( (loadout == L_Standard) || ((loadout == L_Assault) || ((loadout == L_Stealth) || (loadout == L_ECM))) )
+	{
+		iLoadout.CalculateLoadout( loadout );
+	}
+}
+
+SPBaseScreen_OnTradeButton()
+{
+	local_function_11();
+	GUI.OverlayScreen( "icSPComputerTradingScreen" );
+}
+
+SPBaseScreen_OnInventoryButton()
+{
+	local_function_11();
+	GUI.OverlayScreen( "icSPInventoryScreen" );
+}
+
+SPBaseScreen_OnRecyclingButton()
+{
+	local_function_11();
+	GUI.OverlayScreen( "icSPRecyclingScreen" );
+}
+
+SPBaseScreen_OnManufacturingButton()
+{
+	local_function_11();
+	GUI.OverlayScreen( "icSPManufacturingScreen" );
+}
+
+SPBaseScreen_OnCommsButton()
+{
+	local_function_11();
+	GUI.OverlayScreen( "icSPCommsMainMenuScreen" );
+}
+
+SPBaseScreen_OnEncyclopaediaButton()
+{
+	local_function_11();
+	GUI.OverlayScreen( "icSPEncyclopaediaScreen" );
+}
+
+SPBaseScreen_OnStarmapButton()
+{
+	GUI.PushScreen( "icNotYetImplementedScreen" );
+}
+
+SPBaseScreen_OnStatisticsButton()
+{
+	local_function_11();
+	GUI.OverlayScreen( "icSPStatisticsScreen" );
+}
+
+SPBaseScreen_OnTriangulationButton()
+{
+	local_function_11();
+	GUI.OverlayScreen( "icSPComputerPuzzleScreen" );
+}
+
+SPBaseScreen_OnCancelButton()
+{
+	local_function_11();
+	GUI.PushScreen( "icPDAOverlayManager" );
+	GUI.OverlayScreen( "icSPBasePDAScreen" );
+}
+
+local_function_11()
+{
+	hwindow sPBaseScreenCommsButton = GUI.Cast( Global.Handle( "SPBaseScreen_CommsButton" ) );
+	
+	if ( sPBaseScreenCommsButton != false )
+	{
+		StopNewMailNotification( sPBaseScreenCommsButton );
+		Global.Destroy( "SPBaseScreen_CommsButton" );
+	}
+}
+
+hwindow local_function_12()
+{
+	int local_0;
+	int local_1;
+	int constant_0 = 8;
+	int constant_1 = 42;
+	int gUIScrollbarWidth = Global.Int( "GUI_scrollbar_width" );
+	int constant_2 = 4;
+	int local_6 = ( (2 * Global.Int( "GUI_fancyborder_width" )) + 13 );
+	int local_7;
+	int local_8;
+	int local_9;
+	int local_10;
+	hwindow window_0;
+	hwindow window_1;
+	hwindow window_2;
+	hwindow window_3;
+	int local_15;
+	hwindow window_4;
+	string local_17 = "hangarmenu_manifest";
+	string local_18;
+	int constant_3 = 9;
+	
+	window_4 = iGUI.CreateShadyBarRight();
+	local_1 = ( GUI.WindowCanvasHeight( window_4 ) - (constant_0 + Global.Int( "GUI_backbutton_rise" )) );
+	local_0 = ( Global.Int( "GUI_title_yoffset" ) + Global.Int( "GUI_fancybutton_height" ) );
+	local_10 = ( local_1 - local_0 );
+	local_7 = ( Global.Int( "GUI_alignment_offset" ) + constant_2 );
+	local_9 = ( Global.Int( "GUI_shader_width" ) + (constant_2 - (local_7 * 2)) );
+	window_0 = GUI.CreateSplitterWindow( local_7, local_0, local_9, local_10, window_4, local_6, false );
+	window_2 = GUI.SplitterWindowTopWindow( window_0 );
+	window_3 = GUI.CreateStaticWindow( 0, 0, GUI.WindowCanvasWidth( window_2 ), GUI.WindowCanvasHeight( window_2 ), window_2 );
+	local_17 = String.UpperCase( Text.Field( local_17, FT_Text ) );
+	GUI.SetWindowFont( window_3, Global.String( "GUI_subtitle_font" ) );
+	GUI.SetWindowTitle( window_3, local_17 );
+	GUI.SetWindowTextFormatting( window_3, false, 9 );
+	GUI.SetWindowStateColours( window_3, Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ) );
+	window_2 = GUI.SplitterWindowBottomWindow( window_0 );
+	window_1 = iGUI.CreateAndInitialiseTextWindow( constant_3, 0, GUI.WindowCanvasWidth( window_2 ) - (constant_3 + (2 * gUIScrollbarWidth)), GUI.WindowCanvasHeight( window_2 ), window_2, "" );
+	GUI.SetWindowFont( window_1, Global.String( "GUI_detail_font" ) );
+	GUI.SetTextWindowString( window_1, iLoadout.LoadoutDescription() );
+	Global.CreateHandle( "HangarManifestWindow", 2, window_1 );
+	GUI.CreateVerticalScrollbar( GUI.WindowCanvasWidth( window_2 ) - gUIScrollbarWidth, 0, gUIScrollbarWidth, GUI.WindowCanvasHeight( window_2 ), window_2, window_1, Global.Float( "GUI_scrollbar_buttonratio" ), "" );
+	iLoadout.SetManifestWindow( window_1 );
+	return window_1;
+}
+
+local_function_18()
+{
+	hwindow hangarManifestWindow = GUI.Cast( Global.Handle( "HangarManifestWindow" ) );
+	
+	GUI.SetTextWindowString( hangarManifestWindow, iLoadout.LoadoutDescription() );
+}
+
+local_function_14()
+{
+	GUI.SetRHSShadyBarWidth( 0 );
+	Global.Destroy( "HangarManifestWindow" );
+}
+
+SPHangarScreen()
+{
+	hwindow window_0;
+	hwindow window_1;
+	hwindow window_2;
+	hwindow window_3;
+	hwindow window_4;
+	list localList;
+	hwindow window_5;
+	hwindow window_6;
+	hwindow window_7;
+	hwindow window_8;
+	int local_10;
+	int local_11;
+	int local_12;
+	int local_13;
+	int local_14;
+	int constant;
+	int local_16;
+	int local_17;
+	string local_18;
+	string local_19;
+	string local_20;
+	
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	window_0 = iGUI.CreateShadyBar();
+	local_function_12();
+	iGUI.AddBackButtons( window_0, "iBaseGUI.SPHangarScreen_OnBackButton", "iBaseGUI.SPHangarScreen_OnBackToMainMenuButton" );
+	iGUI.AddTitle( window_0, Text.Field( "basemenu_hangar", FT_Text ) );
+	window_1 = iGUI.CreateAndInitialiseParentlessInverseButton( "iBaseGUI.SPHangarScreen_OnShipButton", Text.Field( "hangarmenu_ship", FT_Text ), localList );
+	window_2 = iGUI.CreateAndInitialiseParentlessInverseButton( "iBaseGUI.SPHangarScreen_OnLoadoutButton", Text.Field( "hangarmenu_loadout", FT_Text ), localList );
+	local_10 = ( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_alignmentoffset" ) );
+	local_11 = ( Global.Int( "GUI_title_yoffset" ) + (Global.Int( "GUI_fancybutton_height" ) + 20) );
+	window_4 = iGUI.CreateWindowListInFancyBorder( window_0, localList, local_10, local_11 );
+	local_16 = ( local_11 + (GUI.WindowCanvasHeight( window_4 ) + 10) );
+	local_12 = ( local_10 + (Global.Int( "GUI_fancyborder_width" ) + Global.Int( "GUI_inversebutton_textoffset" )) );
+	local_14 = ( GUI.WindowCanvasWidth( window_0 ) - local_12 );
+	constant = 15;
+	local_19 = String.Join( String.Join( Text.Field( "hangarmenu_ship", FT_Text ), ": " ), Text.Field( iLoadout.ShipName( iLoadout.Ship() ), FT_Text ) );
+	window_5 = iGUI.CreateAndInitialiseStaticWindow( local_12, local_16, local_14, constant, window_0, Global.String( "GUI_subtitle_font" ), local_19 );
+	GUI.SetWindowTextFormatting( window_5, false, 0 );
+	local_20 = String.Join( String.Join( Text.Field( "hangarmenu_loadout", FT_Text ), ": " ), Text.Field( iLoadout.LoadoutName( iLoadout.CurrentLoadout() ), FT_Text ) );
+	window_6 = iGUI.CreateAndInitialiseStaticWindow( local_12, local_16 + constant, local_14, constant, window_0, Global.String( "GUI_subtitle_font" ), local_20 );
+	GUI.SetWindowTextFormatting( window_6, false, 0 );
+	local_16 = ( local_16 + (constant + constant) );
+	
+	if ( !iLoadout.GoodToGo() )
+	{
+		window_7 = iGUI.CreateAndInitialiseStaticWindow( local_12, local_16, local_14, constant, window_0, Global.String( "GUI_subtitle_font" ), Text.Field( "hangarmenu_loadout_not_spaceworthy", FT_Text ) );
+		GUI.SetWindowTextFormatting( window_7, false, 0 );
+		window_8 = iGUI.CreateAndInitialiseStaticWindow( local_12, local_16 + constant, local_14, constant, window_0, Global.String( "GUI_subtitle_font" ), Text.Field( "hangarmenu_loadout_check_manifest", FT_Text ) );
+		GUI.SetWindowTextFormatting( window_8, false, 0 );
+		GUI.SetWindowStateColours( window_7, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 );
+		GUI.SetWindowStateColours( window_8, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 );
+		iGUI.StartWindowFlashing( window_7 );
+		iGUI.StartWindowFlashing( window_8 );
+		Global.CreateBool( "Hangar_Flashing", 2, true );
+		Global.CreateHandle( "Hangar_SpaceworthyWindow", 2, window_7 );
+		Global.CreateHandle( "Hangar_ManifestWindow", 2, window_8 );
+		local_16 = ( local_16 + (constant + constant) );
+	}
+	
+	window_3 = iGUI.CreateAndInitialiseFancyButton( window_0, local_16, Text.Field( "hangarmenu_launch", FT_Text ), "iBaseGUI.SPHangarScreen_OnLaunchButton" );
+	List.AddTail( localList, window_3 );
+	GUI.SetFirstControlFocus( GUI.Cast( List.Head( localList ) ) );
+	iGUI.SetCyclicControlFocusPath( localList );
+	GUI.SetControlFocusCancelFunction( "iBaseGUI.SPHangarScreen_OnBackButton" );
+}
+
+SPHangarScreen_OnLaunchButton()
+{
+	if ( iLoadout.GoodToGo() )
+	{
+		GUI.PlaySound( S_Confirm );
+		local_function_13();
+		local_function_14();
+		iLoadout.RearmFromJaffs( none );
+		iGame.SaveAutosave();
+		iInventory.CancelNewCargoFlags();
+		GUI.SetScreen( "icSpaceFlightScreen" );
+		return;
+	}
+	
+	GUI.QueueSound( S_Error );
+}
+
+SPHangarScreen_OnShipButton()
+{
+	local_function_13();
+	GUI.OverlayScreen( "icSPShipTypeScreen" );
+}
+
+SPHangarScreen_OnLoadoutButton()
+{
+	local_function_13();
+	GUI.OverlayScreen( "icSPLoadoutScreen" );
+}
+
+SPHangarScreen_OnManifestButton()
+{
+	local_function_13();
+	GUI.OverlayScreen( "icSPManifestScreen" );
+}
+
+SPHangarScreen_OnBackButton()
+{
+	local_function_13();
+	local_function_14();
+	GUI.RemoveLastOverlay();
+}
+
+SPHangarScreen_OnBackToMainMenuButton()
+{
+	local_function_13();
+	local_function_14();
+	GUI.RemoveOverlaysAfter( "icSPBaseScreen" );
+}
+
+local_function_13()
+{
+	hwindow hangarSpaceworthyWindow;
+	hwindow hangarManifestWindow;
+	
+	if ( Global.Exists( "Hangar_Flashing" ) )
+	{
+		hangarSpaceworthyWindow = GUI.Cast( Global.Handle( "Hangar_SpaceworthyWindow" ) );
+		hangarManifestWindow = GUI.Cast( Global.Handle( "Hangar_ManifestWindow" ) );
+		iGUI.StopWindowFlashing( hangarSpaceworthyWindow );
+		iGUI.StopWindowFlashing( hangarManifestWindow );
+		Global.Destroy( "Hangar_Flashing" );
+		Global.Destroy( "Hangar_SpaceworthyWindow" );
+		Global.Destroy( "Hangar_ManifestWindow" );
+	}
+}
+
+SPLoadoutScreen()
+{
+	hwindow window_0;
+	list localList_0;
+	list localList_1;
+	hwindow gUI_0;
+	hwindow gUI_1;
+	list localList_2;
+	int gUIFancybuttonHeight = Global.Int( "GUI_fancybutton_height" );
+	int constant = 20;
+	int local_8;
+	hwindow window_1;
+	hwindow window_2;
+	int local_11;
+	hwindow window_3;
+	int local_13;
+	int local_14;
+	
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	window_0 = iGUI.CreateShadyBar();
+	iGUI.AddBackButtons( window_0, "iBaseGUI.SPLoadoutScreen_OnBackButton", "iBaseGUI.SPLoadoutScreen_OnBackToMainMenuButton" );
+	local_function_12();
+	iGUI.AddTitle( window_0, Text.Field( "hangarmenu_loadout", FT_Text ) );
+	local_8 = ( Global.Int( "GUI_title_yoffset" ) + (gUIFancybuttonHeight + 20) );
+	window_3 = local_function_15( window_0, local_8, localList_2, localList_0 );
+	local_8 = ( local_8 + (GUI.WindowCanvasHeight( window_3 ) + constant) );
+	gUI_0 = GUI.Cast( List.GetNth( localList_0, iLoadout.CurrentLoadout() - 1 ) );
+	GUI.SetRadioButtonChecked( gUI_0, true );
+	Global.CreateList( "LoadoutButtons", 2, localList_0 );
+	
+	if ( (iLoadout.Ship() == S_Tug) || ((iLoadout.Ship() == S_FastAttackShip) || (iLoadout.Ship() == S_HeavyCorvette)) )
+	{
+		local_13 = iInventory.NumberOfCargoType( CT_TurretFighter );
+		local_14 = iLoadout.TurretFightersInLoadout();
+		local_13 = ( local_13 + local_14 );
+		
+		if ( local_13 > 0 )
+		{
+			window_3 = local_function_16( window_0, local_8, localList_2, localList_1 );
+			local_8 = ( local_8 + (GUI.WindowCanvasHeight( window_3 ) + constant) );
+			gUI_1 = GUI.Cast( List.GetNth( localList_1, local_14 ) );
+			GUI.SetRadioButtonChecked( gUI_1, true );
+			Global.CreateList( "FighterButtons", 2, localList_1 );
+		}
+	}
+	
+	if ( iLoadout.Ship() != S_CommandSection )
+	{
+		window_2 = iGUI.CreateAndInitialiseFancyButton( window_0, local_8, Text.Field( "loadoutmenu_add_cargo", FT_Text ), "iBaseGUI.SPLoadoutScreen_OnAddCargoButton" );
+		List.AddTail( localList_2, window_2 );
+		local_8 = ( local_8 + gUIFancybuttonHeight );
+	}
+	
+	if ( !local_function_17() )
+	{
+		window_1 = iGUI.CreateAndInitialiseFancyButton( window_0, local_8, Text.Field( "loadoutmenu_customise", FT_Text ), "iBaseGUI.SPLoadoutScreen_OnCustomiseButton" );
+		List.AddTail( localList_2, window_1 );
+		local_8 = ( local_8 + gUIFancybuttonHeight );
+	}
+	
+	GUI.SetFirstControlFocus( GUI.Cast( List.Head( localList_2 ) ) );
+	iGUI.SetCyclicControlFocusPath( localList_2 );
+	GUI.SetControlFocusCancelFunction( "iBaseGUI.SPLoadoutScreen_OnBackButton" );
+}
+
+SPLoadoutScreen_OnAddCargoButton()
+{
+	local_function_14();
+	GUI.OverlayScreen( "icSPAddCargoScreen" );
+}
+
+SPLoadoutScreen_OnCustomiseButton()
+{
+	local_function_14();
+	GUI.OverlayScreen( "icSPCustomiseScreen" );
+}
+
+SPLoadoutScreen_OnRearmButton()
+{
+	GUI.PlaySound( S_Confirm );
+	iLoadout.RearmFromJaffs( none );
+}
+
+SPLoadoutScreen_OnLoadout()
+{
+	hwindow gUI_0;
+	int ii;
+	int local_2 = -1;
+	eLoadout loadout;
+	int local_4;
+	list localList_0 = Global.List( "LoadoutButtons" );
+	list localList_1 = Global.List( "FighterButtons" );
+	hwindow gUI_1;
+	hwindow window = GUI.FocusedWindow();
+	
+	GUI.SetRadioButtonChecked( window, true );
+	GUI.SetFocus( none );
+	GUI.PlaySound( S_Confirm );
+	
+	for ( ii = 0; ii < 7; ++ii )
+	{
+		gUI_0 = GUI.Cast( List.GetNth( localList_0, ii ) );
+		
+		if ( gUI_0 != false )
+		{
+			if ( GUI.RadioButtonValue( gUI_0 ) )
+			{
+				local_2 = ii;
+				break;
+			}
+		}
+	}
+	
+	if ( local_2 != -1 )
+	{
+		if ( local_2 == 0 )
+		{
+			loadout = L_Standard;
+		}
+		else if ( local_2 == 1 )
+		{
+			loadout = L_Assault;
+		}
+		else if ( local_2 == 2 )
+		{
+			loadout = L_Stealth;
+		}
+		else if ( local_2 == 3 )
+		{
+			loadout = L_ECM;
+		}
+		else if ( local_2 == 4 )
+		{
+			loadout = L_Custom1;
+		}
+		else if ( local_2 == 5 )
+		{
+			loadout = L_Custom2;
+		}
+		
+		GUI.PlaySound( S_Loadout );
+		iLoadout.CalculateLoadout( loadout );
+		local_4 = iLoadout.TurretFightersInLoadout();
+		gUI_1 = GUI.Cast( List.GetNth( localList_1, local_4 ) );
+		GUI.SetRadioButtonChecked( gUI_1, true );
+		local_function_18();
+	}
+}
+
+SPLoadoutScreen_OnFighter()
+{
+	hwindow gUI;
+	int ii;
+	int local_2;
+	eLoadout loadout;
+	int local_4 = iLoadout.TurretFightersInLoadout();
+	list localList = Global.List( "FighterButtons" );
+	hwindow window = GUI.FocusedWindow();
+	
+	GUI.SetRadioButtonChecked( window, true );
+	GUI.SetFocus( none );
+	GUI.PlaySound( S_Confirm );
+	
+	for ( ii = 0; ii < List.ItemCount( localList ); ++ii )
+	{
+		gUI = GUI.Cast( List.GetNth( localList, ii ) );
+		
+		if ( GUI.RadioButtonValue( gUI ) )
+		{
+			local_2 = ii;
+			break;
+		}
+	}
+	
+	iLoadout.SetDesiredNumberOfTurretFighters( local_2 );
+	
+	if ( local_2 != local_4 )
+	{
+		GUI.PlaySound( S_Loadout );
+		loadout = iLoadout.CurrentLoadout();
+		
+		if ( (loadout == L_Standard) || ((loadout == L_Assault) || ((loadout == L_ECM) || (loadout == L_Stealth))) )
+		{
+			iLoadout.CalculateLoadout( loadout );
+		}
+		else
+		{
+			iLoadout.CalculateLoadout( L_Standard );
+		}
+		
+		local_function_18();
+	}
+}
+
+SPLoadoutScreen_OnBackButton()
+{
+	Global.Destroy( "LoadoutButtons" );
+	Global.Destroy( "FighterButtons" );
+	GUI.RemoveLastOverlay();
+}
+
+SPLoadoutScreen_OnBackToMainMenuButton()
+{
+	Global.Destroy( "LoadoutButtons" );
+	Global.Destroy( "FighterButtons" );
+	local_function_14();
+	GUI.RemoveOverlaysAfter( "icSPBaseScreen" );
+}
+
+hwindow local_function_15( hwindow window_0_, int param_1_, list localList_0_, list localList_1_ )
+{
+	hwindow window_1;
+	int local_1 = ( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_alignmentoffset" ) );
+	eShip ship = iLoadout.Ship();
+	
+	if ( ship == S_StormPetrel )
+	{
+		local_function_19( localList_0_, localList_1_ );
+	}
+	else if ( ship == S_CommandSection )
+	{
+		local_function_20( localList_0_, localList_1_ );
+	}
+	else if ( ship == S_Tug )
+	{
+		local_function_21( localList_0_, localList_1_ );
+	}
+	else if ( ship == S_FastAttackShip )
+	{
+		local_function_22( localList_0_, localList_1_ );
+	}
+	else if ( ship == S_HeavyCorvette )
+	{
+		local_function_23( localList_0_, localList_1_ );
+	}
+	
+	window_1 = iGUI.CreateWindowListInSplitter( window_0_, localList_0_, local_1, param_1_, Text.Field( iLoadout.ShipName( ship ), FT_Text ) );
+	return window_1;
+}
+
+local_function_19( list localList_0_, list localList_1_ )
+{
+	hwindow window = local_function_24( Text.Field( "loadoutmenu_standard", FT_Text ), localList_0_ );
+	
+	iGUI.MakeInverseButtonIconic( window );
+	GUI.SetInputOverrideFunctions( window, "", "", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "" );
+	local_function_25( localList_1_, window, none, none, none, none, none );
+}
+
+local_function_20( list localList_0_, list localList_1_ )
+{
+	hwindow window = local_function_24( Text.Field( "loadoutmenu_standard", FT_Text ), localList_0_ );
+	
+	iGUI.MakeInverseButtonIconic( window );
+	GUI.SetInputOverrideFunctions( window, "", "", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "" );
+	local_function_25( localList_1_, window, none, none, none, none, none );
+}
+
+local_function_21( list localList_0_, list localList_1_ )
+{
+	hwindow window_0 = local_function_24( Text.Field( "loadoutmenu_standard", FT_Text ), localList_0_ );
+	hwindow window_1 = local_function_24( Text.Field( "loadoutmenu_assault", FT_Text ), localList_0_ );
+	hwindow window_2 = local_function_24( Text.Field( "loadoutmenu_stealth", FT_Text ), localList_0_ );
+	hwindow window_3 = local_function_24( Text.Field( "loadoutmenu_ecm", FT_Text ), localList_0_ );
+	
+	iGUI.MakeInverseButtonIconic( window_0 );
+	iGUI.MakeInverseButtonIconic( window_1 );
+	iGUI.MakeInverseButtonIconic( window_2 );
+	iGUI.MakeInverseButtonIconic( window_3 );
+	GUI.SetInputOverrideFunctions( window_0, "", "", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "" );
+	GUI.SetInputOverrideFunctions( window_1, "", "", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "" );
+	GUI.SetInputOverrideFunctions( window_2, "", "", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "" );
+	GUI.SetInputOverrideFunctions( window_3, "", "", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "" );
+	local_function_25( localList_1_, window_0, window_1, window_2, window_3, none, none );
+}
+
+local_function_22( list localList_0_, list localList_1_ )
+{
+	hwindow window_0 = local_function_24( Text.Field( "loadoutmenu_standard", FT_Text ), localList_0_ );
+	hwindow window_1 = local_function_24( Text.Field( "loadoutmenu_assault", FT_Text ), localList_0_ );
+	hwindow window_2 = local_function_24( Text.Field( "loadoutmenu_stealth", FT_Text ), localList_0_ );
+	hwindow window_3 = local_function_24( Text.Field( "loadoutmenu_ecm", FT_Text ), localList_0_ );
+	
+	iGUI.MakeInverseButtonIconic( window_0 );
+	iGUI.MakeInverseButtonIconic( window_1 );
+	iGUI.MakeInverseButtonIconic( window_2 );
+	iGUI.MakeInverseButtonIconic( window_3 );
+	GUI.SetInputOverrideFunctions( window_0, "", "", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "" );
+	GUI.SetInputOverrideFunctions( window_1, "", "", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "" );
+	GUI.SetInputOverrideFunctions( window_2, "", "", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "" );
+	GUI.SetInputOverrideFunctions( window_3, "", "", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "" );
+	local_function_25( localList_1_, window_0, window_1, window_2, window_3, none, none );
+}
+
+local_function_23( list localList_0_, list localList_1_ )
+{
+	hwindow window_0 = local_function_24( Text.Field( "loadoutmenu_standard", FT_Text ), localList_0_ );
+	hwindow window_1 = local_function_24( Text.Field( "loadoutmenu_assault", FT_Text ), localList_0_ );
+	hwindow window_2 = local_function_24( Text.Field( "loadoutmenu_stealth", FT_Text ), localList_0_ );
+	hwindow window_3 = local_function_24( Text.Field( "loadoutmenu_ecm", FT_Text ), localList_0_ );
+	
+	iGUI.MakeInverseButtonIconic( window_0 );
+	iGUI.MakeInverseButtonIconic( window_1 );
+	iGUI.MakeInverseButtonIconic( window_2 );
+	iGUI.MakeInverseButtonIconic( window_3 );
+	GUI.SetInputOverrideFunctions( window_0, "", "", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "" );
+	GUI.SetInputOverrideFunctions( window_1, "", "", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "" );
+	GUI.SetInputOverrideFunctions( window_2, "", "", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "" );
+	GUI.SetInputOverrideFunctions( window_3, "", "", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "", "", "iBaseGUI.SPLoadoutScreen_OnLoadout", "" );
+	local_function_25( localList_1_, window_0, window_1, window_2, window_3, none, none );
+}
+
+local_function_25( list localList_, hwindow window_0_, hwindow window_1_, hwindow window_2_, hwindow window_3_, hobject param_5_, hobject param_6_ )
+{
+	List.RemoveAll( localList_ );
+	List.AddTail( localList_, window_0_ );
+	List.AddTail( localList_, window_1_ );
+	List.AddTail( localList_, window_2_ );
+	List.AddTail( localList_, window_3_ );
+	List.AddTail( localList_, param_5_ );
+	List.AddTail( localList_, param_6_ );
+}
+
+hwindow local_function_16( hwindow window_0_, int param_1_, list localList_0_, list localList_1_ )
+{
+	hwindow window_1;
+	hwindow window_2;
+	int local_2 = iInventory.NumberOfCargoType( CT_TurretFighter );
+	int local_3 = iLoadout.TurretFightersInLoadout();
+	int ii;
+	string local_5;
+	int local_6 = ( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_alignmentoffset" ) );
+	
+	local_2 = ( local_2 + local_3 );
+	
+	if ( local_2 > 2 )
+	{
+		local_2 = 2;
+	}
+	
+	List.RemoveAll( localList_1_ );
+	
+	for ( ii = 0; ii <= local_2; ++ii )
+	{
+		switch ( ii )
+		{
+			case 0:
+				local_5 = Text.Field( "turret_fighters_zero", FT_Text );
+				break;
+			
+			case 1:
+				local_5 = Text.Field( "turret_fighters_one", FT_Text );
+				break;
+			
+			case 2:
+				local_5 = Text.Field( "turret_fighters_two", FT_Text );
+				break;
+		}
+		
+		window_2 = local_function_24( local_5, localList_0_ );
+		iGUI.MakeInverseButtonIconic( window_2 );
+		GUI.SetInputOverrideFunctions( window_2, "", "", "", "", "iBaseGUI.SPLoadoutScreen_OnFighter", "", "", "iBaseGUI.SPLoadoutScreen_OnFighter", "" );
+		List.AddTail( localList_1_, window_2 );
+	}
+	
+	window_1 = iGUI.CreateWindowListInSplitter( window_0_, localList_1_, local_6, param_1_, Text.Field( "manifest_ship_tfighters", FT_Text ) );
+	return window_1;
+}
+
+hwindow local_function_26( hwindow window_0_, int param_1_, string param_2_, string param_3_ )
+{
+	int gUIAlignmentOffset = Global.Int( "GUI_alignment_offset" );
+	int local_1;
+	int local_2;
+	int local_3;
+	int local_4;
+	int gUIScrollbarWidth = Global.Int( "GUI_scrollbar_width" );
+	int gUIFancybuttonWidth = Global.Int( "GUI_fancybutton_width" );
+	int gUIFancyborderWidth = Global.Int( "GUI_fancyborder_width" );
+	hwindow window_1;
+	hwindow window_2;
+	list localList;
+	int constant = 9;
+	string local_12;
+	bool local_13;
+	int local_14;
+	
+	if ( String.Length( param_2_ ) != 0 )
+	{
+		local_13 = true;
+	}
+	else
+	{
+		local_13 = false;
+	}
+	
+	if ( local_13 )
+	{
+		iGUI.AddTitle( window_0_, Text.Field( param_2_, FT_Text ) );
+	}
+	
+	local_1 = ( gUIAlignmentOffset + Global.Int( "GUI_fancyborder_alignmentoffset" ) );
+	local_2 = ( Global.Int( "GUI_title_yoffset" ) + (Global.Int( "GUI_fancybutton_height" ) + (20 + param_1_)) );
+	local_3 = ( gUIFancybuttonWidth - ((2 * gUIFancyborderWidth) + local_1) );
+	local_4 = ( GUI.WindowCanvasHeight( window_0_ ) - (local_2 + (Global.Int( "GUI_backbutton_rise" ) + 45)) );
+	window_1 = GUI.CreateWindow( 0, 0, local_3, local_4, none );
+	window_2 = iGUI.CreateAndInitialiseTextWindow( constant, 0, local_3 - (constant + (2 * gUIScrollbarWidth)), local_4, window_1, "" );
+	GUI.CreateVerticalScrollbar( local_3 - gUIScrollbarWidth, 0, gUIScrollbarWidth, local_4, window_1, window_2, Global.Float( "GUI_scrollbar_buttonratio" ), "" );
+	List.AddTail( localList, window_1 );
+	iGUI.CreateWindowListInSplitter( window_0_, localList, local_1, local_2, param_3_ );
+	GUI.SetWindowFont( window_2, Global.String( "GUI_detail_font" ) );
+	GUI.SetTextWindowString( window_2, iLoadout.LoadoutDescription() );
+	return window_2;
+}
+
+SPManifestScreen()
+{
+	hwindow window_0;
+	hwindow window_1;
+	
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	window_0 = iGUI.CreateShadyBar();
+	window_1 = local_function_26( window_0, 0, "hangarmenu_manifest", Text.Field( iLoadout.ShipName( iLoadout.Ship() ), FT_Text ) );
+	iGUI.AddBackButtons( window_0, "iBaseGUI.SPManifestScreen_OnBackButton", "iBaseGUI.SPManifestScreen_OnBackToMainMenuButton" );
+	GUI.SetFirstControlFocus( window_1 );
+	GUI.SetControlFocusCancelFunction( "iBaseGUI.SPManifestScreen_OnBackButton" );
+}
+
+SPManifestScreen_OnBackButton()
+{
+	GUI.RemoveLastOverlay();
+}
+
+SPManifestScreen_OnBackToMainMenuButton()
+{
+	GUI.RemoveOverlaysAfter( "icSPBaseScreen" );
+}
+
+SPCommsMainMenuScreen()
+{
+	hwindow window_0;
+	hwindow window_1;
+	hwindow window_2;
+	list localList;
+	int local_4;
+	int local_5;
+	int local_6;
+	int local_7;
+	
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	window_0 = iGUI.CreateShadyBar();
+	iGUI.AddBackButtons( window_0, "iBaseGUI.SPCommsMainMenuScreen_OnBackButton", "iBaseGUI.SPCommsMainMenuScreen_OnBackToMainMenuButton" );
+	iGUI.AddTitle( window_0, Text.Field( "basemenu_communications", FT_Text ) );
+	window_1 = iGUI.CreateAndInitialiseParentlessInverseButton( "iBaseGUI.SPCommsMainMenuScreen_OnNewButton", Text.Field( "commsmenu_read_new_messages", FT_Text ), localList );
+	window_2 = iGUI.CreateAndInitialiseParentlessInverseButton( "iBaseGUI.SPCommsMainMenuScreen_OnArchivedButton", Text.Field( "commsmenu_view_archived_messages", FT_Text ), localList );
+	local_4 = ( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_alignmentoffset" ) );
+	local_5 = ( Global.Int( "GUI_title_yoffset" ) + (Global.Int( "GUI_fancybutton_height" ) + 20) );
+	iGUI.CreateWindowListInFancyBorder( window_0, localList, local_4, local_5 );
+	local_6 = ( 480 - (Global.Int( "GUI_backbutton_rise" ) + 50) );
+	local_function_27( window_0, local_6 );
+	GUI.SetFirstControlFocus( window_1 );
+	List.RemoveAll( localList );
+	List.AddTail( localList, window_1 );
+	List.AddTail( localList, window_2 );
+	iGUI.SetCyclicControlFocusPath( localList );
+	GUI.SetControlFocusCancelFunction( "iBaseGUI.SPCommsMainMenuScreen_OnBackButton" );
+}
+
+SPCommsMainMenuScreen_OnNewButton()
+{
+	GUI.OverlayScreen( "icSPInboxScreen" );
+}
+
+SPCommsMainMenuScreen_OnArchivedButton()
+{
+	GUI.OverlayScreen( "icSPArchiveScreen" );
+}
+
+SPCommsMainMenuScreen_OnBackButton()
+{
+	GUI.RemoveLastOverlay();
+}
+
+SPCommsMainMenuScreen_OnBackToMainMenuButton()
+{
+	GUI.RemoveOverlaysAfter( "icSPBaseScreen" );
+}
+
+list local_function_27( hwindow window_0_, int param_1_ )
+{
+	int local_0;
+	string local_1;
+	string local_2;
+	string local_3;
+	hwindow window_1;
+	hwindow window_2;
+	hwindow window_3;
+	list localList;
+	int constant_0 = 10;
+	int constant_1 = 75;
+	int constant_2 = 30;
+	int constant_3 = 115;
+	int constant_4 = 30;
+	
+	window_1 = iGUI.CreateAndInitialiseStaticWindow( constant_0, param_1_, constant_1, constant_4, window_0_, "font:/fonts/handelgothic bt_7pt", Text.Field( "commsmenu_you_have", FT_Text ) );
+	List.AddTail( localList, window_1 );
+	local_0 = iEmail.Unread();
+	
+	if ( local_0 < 10 )
+	{
+		local_1 = Global.String( "BaseGUI_largenumber_font" );
+	}
+	else
+	{
+		local_1 = "font:/fonts/handelgothic bt_8pt";
+	}
+	
+	local_2 = String.FromInt( local_0 );
+	window_2 = iGUI.CreateAndInitialiseStaticWindow( constant_0 + constant_1, param_1_, constant_2, constant_4, window_0_, local_1, local_2 );
+	List.AddTail( localList, window_2 );
+	GUI.SetWindowStateTextures( window_2, Global.String( "GUI_texture_request" ), 22, 0, 32, 30, 32, 0, 42, 30, 42, 0, 52, 30, 22, 0, 32, 30, 32, 0, 42, 30, 42, 0, 52, 30, 22, 0, 32, 30, 32, 0, 42, 30, 42, 0, 52, 30 );
+	
+	if ( local_0 == 1 )
+	{
+		local_3 = "commsmenu_new_message";
+	}
+	else
+	{
+		local_3 = "commsmenu_new_messages";
+	}
+	
+	window_3 = iGUI.CreateAndInitialiseStaticWindow( constant_0 + (constant_1 + constant_2), param_1_, constant_3, constant_4, window_0_, "font:/fonts/handelgothic bt_7pt", Text.Field( local_3, FT_Text ) );
+	List.AddTail( localList, window_3 );
+	return localList;
+}
+
+hwindow local_function_28( hemail email_, hwindow window_0_ )
+{
+	hwindow window_1;
+	hwindow window_2;
+	hwindow window_3;
+	hwindow window_4;
+	int gUITabTextOffset = Global.Int( "GUI_tab_text_offset" );
+	int local_5 = GUI.WindowCanvasWidth( window_0_ );
+	int local_6 = ( local_5 / 3 );
+	int local_7 = local_5;
+	int constant_0 = 13;
+	int local_9;
+	int local_10;
+	int local_11;
+	int local_12;
+	int gUIListboxEntryheight = Global.Int( "GUI_listbox_entryheight" );
+	int constant_1 = 5;
+	string local_15 = Global.String( "type_font" );
+	string local_16 = Global.String( "type_font" );
+	
+	window_1 = GUI.CreateWindow( 0, 0, local_5, gUIListboxEntryheight, none );
+	local_10 = constant_0;
+	local_9 = ( local_6 - (local_10 + 5) );
+	local_12 = ( local_6 + (gUITabTextOffset - 2) );
+	local_11 = ( local_7 - (local_12 + 5) );
+	
+	if ( !iEmail.Read( email_ ) )
+	{
+		window_2 = iGUI.CreateAndInitialiseListBoxEntryComponentWindow( 0, constant_0, gUIListboxEntryheight, window_1, local_15, "*" );
+	}
+	
+	window_3 = iGUI.CreateAndInitialiseListBoxEntryComponentWindow( local_10, local_9, gUIListboxEntryheight, window_1, local_15, iEmail.Sender( email_ ) );
+	window_4 = iGUI.CreateAndInitialiseListBoxEntryComponentWindow( local_12, local_11, gUIListboxEntryheight, window_1, local_16, iEmail.Subject( email_ ) );
+	GUI.AddListBoxEntry( window_0_, window_1 );
+	return window_1;
+}
+
+SPInboxScreen()
+{
+	hwindow gUI;
+	list localList = iGUI.CreateGreyBoxStyleScreen( Text.Field( "basemenu_communications", FT_Text ), "iBaseGUI.SPInboxScreen_OnBackButton", "iBaseGUI.SPInboxScreen_OnBackToMainMenuButton" );
+	hwindow window;
+	int ii;
+	int local_4;
+	hemail email;
+	int local_6;
+	int local_7;
+	int local_8;
+	
+	gUI = GUI.Cast( List.Head( localList ) );
+	List.RemoveHead( localList );
+	local_6 = ( GUI.WindowCanvasWidth( gUI ) - (2 * Global.Int( "GUI_scrollbar_width" )) );
+	local_6 = ( local_6 / 3 );
+	local_7 = ( local_6 * 2 );
+	window = iGUI.CreateTitledListBox( gUI, Text.Field( "comms_new_messages", FT_Text ), local_6, Text.Field( "commsmenu_sender", FT_Text ), local_7, Text.Field( "commsmenu_subject", FT_Text ), 0, "" );
+	List.AddHead( localList, window );
+	local_4 = iEmail.InboxSize();
+	
+	for ( ii = 0; ii < local_4; ++ii )
+	{
+		email = iEmail.NthInInbox( ii );
+		local_function_28( email, window );
+	}
+	
+	Global.CreateHandle( "InboxListBox", 2, window );
+	GUI.SetFirstControlFocus( window );
+	GUI.SetInputOverrideFunctions( window, "", "", "", "", "iBaseGUI.SPInboxScreen_OnEmailListBoxSelect", "iBaseGUI.SPInboxScreen_OnBackButton", "", "iBaseGUI.SPInboxScreen_OnEmailListBoxSelect", "" );
+	GUI.SetControlFocusCancelFunction( "iBaseGUI.SPInboxScreen_OnBackButton" );
+}
+
+SPInboxScreen_OnBackButton()
+{
+	iEmail.ShuntReadEmailToArchive();
+	Global.Destroy( "InboxListBox" );
+	GUI.RemoveLastOverlay();
+}
+
+SPInboxScreen_OnBackToMainMenuButton()
+{
+	iEmail.ShuntReadEmailToArchive();
+	Global.Destroy( "InboxListBox" );
+	GUI.RemoveOverlaysAfter( "icSPBaseScreen" );
+}
+
+SPInboxScreen_OnEmailListBoxSelect()
+{
+	int local_0;
+	hemail email;
+	hwindow inboxListBox = GUI.Cast( Global.Handle( "InboxListBox" ) );
+	
+	local_0 = GUI.ListBoxFocusedEntry( inboxListBox );
+	
+	if ( local_0 > -1 )
+	{
+		GUI.QueueSound( S_Confirm );
+		email = iEmail.NthInInbox( local_0 );
+		Global.CreateHandle( "MessageToDisplay", 2, email );
+		GUI.OverlayScreen( "icSPMessagesScreen" );
+		return;
+	}
+	
+	GUI.QueueSound( S_Error );
+}
+
+SPArchiveScreen()
+{
+	hwindow gUI;
+	list localList = iGUI.CreateGreyBoxStyleScreen( Text.Field( "basemenu_communications", FT_Text ), "iBaseGUI.SPArchiveScreen_OnBackButton", "iBaseGUI.SPArchiveScreen_OnBackToMainMenuButton" );
+	hwindow window;
+	int local_3;
+	int local_4;
+	int local_5;
+	int local_6;
+	int local_7;
+	int local_8;
+	
+	gUI = GUI.Cast( List.Head( localList ) );
+	List.RemoveHead( localList );
+	local_6 = ( GUI.WindowCanvasWidth( gUI ) - (2 * Global.Int( "GUI_scrollbar_width" )) );
+	local_6 = ( local_6 / 3 );
+	local_7 = ( local_6 * 2 );
+	window = iGUI.CreateTitledListBox( gUI, Text.Field( "comms_view_archive", FT_Text ), local_6, Text.Field( "commsmenu_sender", FT_Text ), local_7, Text.Field( "commsmenu_subject", FT_Text ), 0, "" );
+	iEmail.FillArchivedEmailListBox( window );
+	Global.CreateHandle( "ArchiveListBox", 2, window );
+	GUI.SetFirstControlFocus( window );
+	GUI.SetInputOverrideFunctions( window, "", "", "", "", "iBaseGUI.SPArchiveScreen_OnEmailListBoxSelect", "iBaseGUI.SPArchiveScreen_OnBackButton", "", "iBaseGUI.SPArchiveScreen_OnEmailListBoxSelect", "" );
+	GUI.SetControlFocusCancelFunction( "iBaseGUI.SPArchiveScreen_OnBackButton" );
+}
+
+SPArchiveScreen_OnBackButton()
+{
+	iEmail.ResetWindows();
+	Global.Destroy( "ArchiveListBox" );
+	GUI.RemoveLastOverlay();
+}
+
+SPArchiveScreen_OnBackToMainMenuButton()
+{
+	atomic
+	{
+		SPArchiveScreen_OnBackButton();
+		GUI.RemoveOverlaysAfter( "icSPBaseScreen" );
+	}
+}
+
+SPArchiveScreen_OnEmailListBoxSelect()
+{
+	int local_0;
+	hemail email;
+	hwindow archiveListBox = GUI.Cast( Global.Handle( "ArchiveListBox" ) );
+	
+	local_0 = GUI.ListBoxFocusedEntry( archiveListBox );
+	
+	if ( local_0 > -1 )
+	{
+		GUI.QueueSound( S_Confirm );
+		email = iEmail.NthInArchive( local_0 );
+		Global.CreateHandle( "MessageToDisplay", 2, email );
+		iEmail.ResetWindows();
+		GUI.OverlayScreen( "icSPMessagesScreen" );
+		return;
+	}
+	
+	GUI.QueueSound( S_Error );
+}
+
+SPMessagesScreen()
+{
+	hwindow gUI;
+	list localList;
+	hwindow window;
+	int local_3;
+	int local_4;
+	hemail messageToDisplay = iEmail.Cast( Global.Handle( "MessageToDisplay" ) );
+	
+	Global.SetBool( "ReadingMessage", true );
+	localList = iGUI.CreateGreyBoxStyleScreen( Text.Field( "basemenu_communications", FT_Text ), "iBaseGUI.SPMessagesScreen_OnBackButton", "iBaseGUI.SPMessagesScreen_OnBackToMainMenuButton" );
+	gUI = GUI.Cast( List.Head( localList ) );
+	local_3 = ( GUI.WindowCanvasWidth( gUI ) - (2 * Global.Int( "GUI_scrollbar_width" )) );
+	local_3 = ( local_3 / 3 );
+	local_4 = ( local_3 * 2 );
+	window = iGUI.CreateTitledTextBox( gUI, Text.Field( "comms_message", FT_Text ), local_3, String.UpperCase( iEmail.Sender( messageToDisplay ) ), local_4, String.UpperCase( iEmail.Subject( messageToDisplay ) ), iEmail.Body( messageToDisplay ) );
+	GUI.SetWindowFont( window, Global.String( "type_font" ) );
+	List.AddHead( localList, window );
+	GUI.SetFirstControlFocus( window );
+	List.RemoveAll( localList );
+	List.AddTail( localList, window );
+	iGUI.SetCyclicControlFocusPath( localList );
+	GUI.SetControlFocusCancelFunction( "iBaseGUI.SPMessagesScreen_OnBackButton" );
+}
+
+SPMessagesScreen_OnBackButton()
+{
+	hemail messageToDisplay = iEmail.Cast( Global.Handle( "MessageToDisplay" ) );
+	
+	iEmail.MarkAsRead( messageToDisplay );
+	Global.Destroy( "MessageToDisplay" );
+	GUI.RemoveLastOverlay();
+}
+
+SPMessagesScreen_OnBackToMainMenuButton()
+{
+	hemail messageToDisplay = iEmail.Cast( Global.Handle( "MessageToDisplay" ) );
+	
+	iEmail.MarkAsRead( messageToDisplay );
+	iEmail.ShuntReadEmailToArchive();
+	GUI.RemoveOverlaysAfter( "icSPBaseScreen" );
+	Global.Destroy( "MessageToDisplay" );
+	Global.Destroy( "InboxListBox" );
+	Global.Destroy( "ArchiveListBox" );
+}
+
+ForceEmailRead( string im_a_goober_ )
+{
+	hemail email = iEmail.Find( im_a_goober_ );
+	
+	if ( email == false )
+	{
+		debug Debug.Error( "iBaseGUI.ForceEmailRead : Invalid email." );
+		return;
+	}
+	
+	if ( iEmail.Read( email ) )
+	{
+		debug Debug.Error( "iBaseGUI.ForceEmailRead : Email has already been read." );
+		return;
+	}
+	
+	if ( !( GUI.CurrentScreenClassname() == "icSPBaseScreen" ) )
+	{
+		debug Debug.Error( "iBaseGUI.ForceEmailRead : Player is not at root player base screen." );
+		return;
+	}
+	
+	atomic
+	{
+		SPBaseScreen_OnCommsButton();
+		GUI.OverlayScreen( "icSPInboxScreen" );
+		Global.CreateHandle( "MessageToDisplay", 2, email );
+		GUI.OverlayScreen( "icSPMessagesScreen" );
+	}
+}
+
+SPEncyclopaediaScreen()
+{
+	hwindow gUI;
+	list localList;
+	hwindow window;
+	int local_3;
+	int local_4;
+	int baseGUISenderwidth = Global.Int( "BaseGUI_senderwidth" );
+	int gUIFancybuttonHeight = Global.Int( "GUI_fancybutton_height" );
+	string local_7;
+	string local_8;
+	
+	localList = iGUI.CreateGreyBoxStyleScreen( Text.Field( "basemenu_encyclopedia", FT_Text ), "iBaseGUI.SPEncyclopaediaScreen_OnBackButton", "iBaseGUI.SPEncyclopaediaScreen_OnBackToMainMenuButton" );
+	gUI = GUI.Cast( List.Head( localList ) );
+	local_7 = Global.String( "encyclopaedia_default_entry" );
+	
+	if ( local_7 == "" )
+	{
+		local_7 = "html:/html/encyclopedia/index";
+	}
+	
+	window = iGUI.CreateTitledTextBox( gUI, Text.Field( "basemenu_encyclopedia", FT_Text ), baseGUISenderwidth, String.UpperCase( Text.Field( "encyclopaedia_topic", FT_Text ) ), 0, "", local_7 );
+	GUI.SetWindowFont( window, Global.String( "type_font" ) );
+	Global.Destroy( "encyclopaedia_default_entry" );
+	Global.CreateHandle( "encyclopaedia_text_window", 2, window );
+	GUI.SetFirstControlFocus( window );
+	GUI.SetControlFocusCancelFunction( "iBaseGUI.SPEncyclopaediaScreen_OnBackButton" );
+}
+
+SPEncyclopaediaScreen_OnBackButton()
+{
+	bool local_0;
+	hwindow encyclopaediaTextWindow = GUI.Cast( Global.Handle( "encyclopaedia_text_window" ) );
+	
+	local_0 = GUI.TextWindowBack( encyclopaediaTextWindow );
+	
+	if ( !local_0 )
+	{
+		Global.Destroy( "encyclopaedia_text_window" );
+		GUI.RemoveLastOverlay();
+	}
+}
+
+SPEncyclopaediaScreen_OnBackToMainMenuButton()
+{
+	Global.Destroy( "encyclopaedia_text_window" );
+	GUI.RemoveOverlaysAfter( "icSPBaseScreen" );
+}
+
+SPTradingScreen()
+{
+	list localList = local_function_29();
+	hwindow gUI_0 = GUI.Cast( List.Head( localList ) );
+	hwindow gUI_1;
+	hwindow gUI_2;
+	hwindow gUI_3;
+	htask local_5;
+	
+	List.RemoveHead( localList );
+	gUI_1 = GUI.Cast( List.Head( localList ) );
+	List.RemoveHead( localList );
+	gUI_2 = GUI.Cast( List.Head( localList ) );
+	List.RemoveHead( localList );
+	gUI_3 = GUI.Cast( List.Head( localList ) );
+	List.RemoveHead( localList );
+	local_function_30( gUI_0 );
+	List.RemoveAll( localList );
+	List.AddTail( localList, gUI_1 );
+	List.AddTail( localList, gUI_2 );
+	iGUI.SetCyclicControlFocusPath( localList );
+	GUI.SetInputOverrideFunctions( gUI_1, "iBaseGUI.SPTradingScreen_OnTradeButtonLeftOrRight", "", "iBaseGUI.SPTradingScreen_OnTradeButtonLeftOrRight", "", "", "iBaseGUI.SPTradingScreen_OnCancelButton", "", "", "" );
+	GUI.SetInputOverrideFunctions( gUI_2, "iBaseGUI.SPTradingScreen_OnCancelButtonLeftOrRight", "", "iBaseGUI.SPTradingScreen_OnCancelButtonLeftOrRight", "", "", "iBaseGUI.SPTradingScreen_OnCancelButton", "", "", "" );
+	GUI.SetControlFocusCancelFunction( "iBaseGUI.SPTradingScreen_OnBackButton" );
+	Global.CreateHandle( "TradingScreen_Listbox", 2, gUI_0 );
+	Global.CreateHandle( "TradingScreen_Textbox", 2, gUI_3 );
+	Global.CreateHandle( "TradingScreen_TradeButton", 2, gUI_1 );
+	Global.CreateHandle( "TradingScreen_CancelButton", 2, gUI_2 );
+	GUI.SetFirstControlFocus( gUI_0 );
+	GUI.SetInputOverrideFunctions( gUI_0, "", "", "", "", "iBaseGUI.SPTradingScreen_OnTradesListBoxSelect", "iBaseGUI.SPTradingScreen_OnBackButton", "", "iBaseGUI.SPTradingScreen_OnTradesListBoxSelect", "" );
+	local_5 = start local_function_31( gUI_0, gUI_3 );
+	Task.Detach( local_5 );
+	Global.CreateHandle( "TradingScreen_MonitorTask", 2, local_5 );
+}
+
+SPTradingScreen_OnCancelButton()
+{
+	hwindow tradingScreenListbox = GUI.Cast( Global.Handle( "TradingScreen_Listbox" ) );
+	int local_1 = GUI.ListBoxSelectedIndex( tradingScreenListbox );
+	
+	if ( local_1 == -1 )
+	{
+		GUI.QueueSound( S_Error );
+	}
+	
+	GUI.CancelListBoxSelection( tradingScreenListbox );
+	GUI.SetListBoxFocusedEntry( tradingScreenListbox, local_1 );
+	GUI.SetFocus( tradingScreenListbox );
+}
+
+SPTradingScreen_OnTradeButton()
+{
+	int local_0;
+	bool local_1;
+	htrade trade;
+	int local_3;
+	hwindow tradingScreenListbox = GUI.Cast( Global.Handle( "TradingScreen_Listbox" ) );
+	
+	local_0 = GUI.ListBoxSelectedIndex( tradingScreenListbox );
+	
+	if ( local_0 > -1 )
+	{
+		trade = iTrade.NthTrade( local_0 );
+		
+		if ( trade != false )
+		{
+			atomic
+			{
+				local_3 = iTrade.NumOffers( trade );
+				local_1 = iTrade.PerformTrade( trade );
+				
+				if ( !local_1 )
+				{
+					GUI.QueueSound( S_Error );
+				}
+				else
+				{
+					local_3 = ( local_3 + -1 );
+				}
+				
+				GUI.RemoveListBoxEntries( tradingScreenListbox );
+				local_function_30( tradingScreenListbox );
+				
+				if ( local_3 == 0 )
+				{
+					local_0 = ( local_0 + -1 );
+					
+					if ( (local_0 == -1) && (iTrade.NumTrades() > 0) )
+					{
+						local_0 = 0;
+					}
+				}
+				
+				GUI.SelectListBoxEntry( tradingScreenListbox, local_0 );
+			}
+		}
+		else
+		{
+			GUI.QueueSound( S_Error );
+		}
+	}
+	else
+	{
+		GUI.QueueSound( S_Error );
+	}
+	
+	SPTradingScreen_OnCancelButton();
+}
+
+SPTradingScreen_OnBackButton()
+{
+	htask tradingScreenMonitorTask;
+	
+	Global.Destroy( "TradingScreen_Listbox" );
+	Global.Destroy( "TradingScreen_Textbox" );
+	Global.Destroy( "TradingScreen_TradeButton" );
+	Global.Destroy( "TradingScreen_CancelButton" );
+	tradingScreenMonitorTask = Task.Cast( Global.Handle( "TradingScreen_MonitorTask" ) );
+	Task.Halt( tradingScreenMonitorTask );
+	Global.Destroy( "TradingScreen_MonitorTask" );
+	GUI.RemoveLastOverlay();
+}
+
+SPTradingScreen_OnBackToMainMenuButton()
+{
+	atomic
+	{
+		SPTradingScreen_OnBackButton();
+		GUI.RemoveOverlaysAfter( "icSPBaseScreen" );
+	}
+}
+
+list local_function_29()
+{
+	hwindow gUI;
+	hwindow window_0;
+	list localList;
+	int local_3;
+	hwindow window_1;
+	hwindow window_2;
+	hwindow window_3;
+	hwindow window_4;
+	int gUIAlignmentOffset = Global.Int( "GUI_alignment_offset" );
+	int local_9;
+	int local_10;
+	int local_11 = ( GUI.FrameHeight() - 290 );
+	int local_12;
+	int gUIScrollbarWidth = Global.Int( "GUI_scrollbar_width" );
+	int gUIFancyborderWidth;
+	int local_15;
+	int local_16;
+	int local_17;
+	int gUITableAlignmentoffset = Global.Int( "GUI_table_alignmentoffset" );
+	int local_19;
+	int local_20;
+	int gUIInversebuttonHeight = Global.Int( "GUI_inversebutton_height" );
+	int constant_0 = 10;
+	int constant_1 = 5;
+	int constant_2 = 5;
+	int local_25;
+	
+	localList = iGUI.CreateGreyBoxStyleScreen( Text.Field( "basemenu_trade", FT_Text ), "iBaseGUI.SPTradingScreen_OnBackButton", "iBaseGUI.SPTradingScreen_OnBackToMainMenuButton" );
+	gUI = GUI.Cast( List.Head( localList ) );
+	List.RemoveAll( localList );
+	local_9 = GUI.WindowCanvasHeight( gUI );
+	local_10 = GUI.WindowCanvasWidth( gUI );
+	local_12 = ( local_10 - (2 * Global.Int( "GUI_scrollbar_width" )) );
+	local_12 = ( local_12 / 3 );
+	window_0 = GUI.CreateWindow( 0, 0, local_10, local_11, gUI );
+	window_1 = iGUI.CreateTitledListBox( window_0, Text.Field( "basemenu_trade", FT_Text ), local_12, Text.Field( "trading_faction", FT_Text ), local_12, Text.Field( "trading_offer", FT_Text ), local_12, Text.Field( "trading_want", FT_Text ) );
+	List.AddTail( localList, window_1 );
+	local_19 = local_10;
+	local_20 = ( local_19 - (constant_2 + (2 * constant_0)) );
+	local_20 = ( local_20 / 2 );
+	window_0 = GUI.CreateWindow( constant_0, local_11, constant_2 + (local_20 * 2), gUIInversebuttonHeight, gUI );
+	window_4 = iGUI.CreateAndInitialiseInverseButton( window_0, 0, 0, local_20, Text.Field( "trading_trade", FT_Text ), "iBaseGUI.SPTradingScreen_OnTradeButton" );
+	List.AddTail( localList, window_4 );
+	window_4 = iGUI.CreateAndInitialiseInverseButton( window_0, local_20 + 5, 0, local_20, Text.Field( "gui_cancel", FT_Text ), "iBaseGUI.SPTradingScreen_OnCancelButton" );
+	List.AddTail( localList, window_4 );
+	local_25 = ( local_11 + (gUIInversebuttonHeight + constant_1) );
+	window_0 = GUI.CreateWindow( 0, local_25, local_19, local_9 - local_25, gUI );
+	gUIFancyborderWidth = Global.Int( "GUI_fancyborder_width" );
+	local_15 = ( Global.Int( "GUI_fancyborder_alignmentoffset" ) + 5 );
+	local_16 = ( GUI.WindowCanvasWidth( window_0 ) - (gUIFancyborderWidth + Global.Int( "GUI_fancyborder_width" )) );
+	local_17 = ( GUI.WindowCanvasHeight( window_0 ) - (local_15 + (10 + Global.Int( "GUI_fancyborder_alignmentoffset" ))) );
+	window_3 = GUI.CreateWindow( gUIFancyborderWidth, local_15, local_16, local_17, window_0 );
+	GUI.CreateFancyBorder( window_3 );
+	window_2 = iGUI.CreateAndInitialiseTextWindow( gUITableAlignmentoffset, 0, local_16 - ((2 * gUIScrollbarWidth) + gUITableAlignmentoffset), local_17, window_3, "" );
+	GUI.CreateVerticalScrollbar( local_16 - gUIScrollbarWidth, 0, gUIScrollbarWidth, local_17, window_3, window_2, Global.Float( "GUI_scrollbar_buttonratio" ), "" );
+	List.AddTail( localList, window_2 );
+	return localList;
+}
+
+local_function_30( hwindow window_ )
+{
+	list localList;
+	htrade trade;
+	int ii;
+	int local_3 = iTrade.NumTrades();
+	
+	for ( ii = 0; ii < local_3; ++ii )
+	{
+		trade = iTrade.NthTrade( ii );
+		List.AddTail( localList, local_function_32( window_, trade ) );
+	}
+}
+
+hwindow local_function_32( hwindow window_0_, htrade trade_ )
+{
+	hwindow window_1;
+	string local_1;
+	int local_2 = GUI.WindowCanvasWidth( window_0_ );
+	int gUIListboxEntryheight = Global.Int( "GUI_listbox_entryheight" );
+	int constant_0 = 5;
+	int gUITabTextOffset = Global.Int( "GUI_tab_text_offset" );
+	int constant_1;
+	int constant_2;
+	int local_8;
+	int local_9;
+	int local_10;
+	int local_11;
+	int local_12;
+	int local_13;
+	int local_14 = ( local_2 / 3 );
+	int local_15 = ( (2 * local_2) / 3 );
+	int local_16 = local_2;
+	string local_17 = Global.String( "type_font" );
+	hfaction faction = iTrade.Faction( trade_ );
+	
+	constant_1 = 0;
+	constant_2 = 13;
+	local_8 = ( constant_1 + constant_2 );
+	local_9 = ( local_14 - (local_8 + 5) );
+	local_10 = ( local_14 + (gUITabTextOffset - 1) );
+	local_11 = ( local_15 - (local_10 + 5) );
+	local_12 = ( local_15 + (gUITabTextOffset + 3) );
+	local_13 = ( local_16 - (local_12 + 5) );
+	window_1 = GUI.CreateWindow( 0, 0, local_2, gUIListboxEntryheight, none );
+	
+	if ( iTrade.CanSatisfyTrade( trade_ ) )
+	{
+		local_1 = "*";
+	}
+	else
+	{
+		local_1 = "";
+	}
+	
+	iGUI.CreateAndInitialiseListBoxEntryComponentWindow( constant_1, constant_2, gUIListboxEntryheight, window_1, local_17, local_1 );
+	iGUI.CreateAndInitialiseListBoxEntryComponentWindow( local_8, local_9, gUIListboxEntryheight, window_1, local_17, iFaction.Name( faction ) );
+	iGUI.CreateAndInitialiseListBoxEntryComponentWindow( local_10, local_11, gUIListboxEntryheight, window_1, local_17, iTrade.Offered( trade_ ) );
+	iGUI.CreateAndInitialiseListBoxEntryComponentWindow( local_12, local_13, gUIListboxEntryheight, window_1, local_17, iTrade.Wanted( trade_ ) );
+	GUI.AddListBoxEntry( window_0_, window_1 );
+	return window_1;
+}
+
+SPTradingScreen_OnTradesListBoxSelect()
+{
+	int local_0;
+	htrade trade;
+	hwindow tradingScreenListbox = GUI.Cast( Global.Handle( "TradingScreen_Listbox" ) );
+	hwindow tradingScreenTextbox = GUI.Cast( Global.Handle( "TradingScreen_Textbox" ) );
+	
+	local_0 = GUI.ListBoxFocusedEntry( tradingScreenListbox );
+	
+	if ( local_0 == -1 )
+	{
+		GUI.QueueSound( S_Error );
+		return;
+	}
+	
+	trade = iTrade.NthTrade( local_0 );
+	
+	if ( trade == false )
+	{
+		GUI.QueueSound( S_Error );
+		return;
+	}
+	
+	if ( iTrade.CanSatisfyTrade( trade ) )
+	{
+		GUI.QueueSound( S_Confirm );
+		GUI.SelectListBoxEntry( tradingScreenListbox, local_0 );
+		GUI.SetFocus( GUI.Cast( Global.Handle( "TradingScreen_TradeButton" ) ) );
+		return;
+	}
+	
+	GUI.QueueSound( S_Error );
+}
+
+SPTradingScreen_OnTradeButtonLeftOrRight()
+{
+	GUI.SetFocus( GUI.Cast( Global.Handle( "TradingScreen_CancelButton" ) ) );
+}
+
+SPTradingScreen_OnCancelButtonLeftOrRight()
+{
+	GUI.SetFocus( GUI.Cast( Global.Handle( "TradingScreen_TradeButton" ) ) );
+}
+
+task local_function_31( hwindow window_0_, hwindow window_1_ )
+{
+	htrade trade_0 = none;
+	htrade trade_1;
+	int local_2;
+	htrade trade_2 = none;
+	htrade trade_3;
+	int local_5;
+	string local_6 = "";
+	bool local_7 = false;
+	
+	while ( 1 )
+	{
+		local_2 = GUI.ListBoxSelectedIndex( window_0_ );
+		
+		if ( local_2 == -1 )
+		{
+			if ( trade_0 != false )
+			{
+				local_7 = true;
+				local_6 = "";
+				trade_0 = none;
+			}
+			
+			local_5 = GUI.ListBoxFocusedEntry( window_0_ );
+			
+			if ( local_5 == -1 )
+			{
+				if ( trade_2 != false )
+				{
+					local_7 = true;
+					local_6 = "";
+					trade_2 = none;
+				}
+			}
+			else
+			{
+				trade_3 = iTrade.NthTrade( local_5 );
+				
+				if ( trade_3 != trade_2 )
+				{
+					local_7 = true;
+					local_6 = iTrade.JaffsTradeDescription( trade_3 );
+					trade_2 = trade_3;
+				}
+			}
+		}
+		else
+		{
+			trade_1 = iTrade.NthTrade( local_2 );
+			
+			if ( trade_1 != trade_0 )
+			{
+				local_7 = true;
+				local_6 = iTrade.JaffsTradeAdvice( trade_1 );
+				trade_0 = trade_1;
+				trade_2 = none;
+			}
+		}
+		
+		if ( local_7 )
+		{
+			local_7 = false;
+			GUI.SetTextWindowString( window_1_, local_6 );
+			local_6 = "";
+		}
+		
+		Task.Sleep( Task.Current(), 0.10 );
+	}
+}
+
+SPInventoryScreen_OnEquipment()
+{
+	if ( Global.Bool( "SPInventoryScreen_CargoOnly" ) )
+	{
+		Global.SetBool( "SPInventoryScreen_CargoOnly", false );
+		local_function_33( false );
+	}
+}
+
+SPInventoryScreen_OnCargo()
+{
+	if ( !Global.Bool( "SPInventoryScreen_CargoOnly" ) )
+	{
+		Global.SetBool( "SPInventoryScreen_CargoOnly", true );
+		local_function_33( true );
+	}
+}
+
+SPInventoryScreen()
+{
+	hwindow gUI;
+	hwindow window_0;
+	list localList;
+	hwindow window_1;
+	string local_4;
+	hwindow window_2;
+	hwindow window_3;
+	int local_7;
+	int local_8;
+	int local_9;
+	int local_10;
+	int local_11;
+	int local_12;
+	int local_13;
+	int sPInventoryScreenSelectedEntry;
+	bool sPInventoryScreenCargoOnly = false;
+	int gUIInversebuttonWidth = Global.Int( "GUI_inversebutton_width" );
+	int gUIInversebuttonHeight = Global.Int( "GUI_inversebutton_height" );
+	int constant_0 = 10;
+	bool local_19 = false;
+	int constant_1 = 5;
+	
+	localList = iGUI.CreateGreyBoxStyleScreen( Text.Field( "basemenu_inventory", FT_Text ), "iBaseGUI.SPInventoryScreen_OnBackButton", "iBaseGUI.SPInventoryScreen_OnBackToMainMenuButton" );
+	gUI = GUI.Cast( List.Head( localList ) );
+	List.RemoveAll( localList );
+	
+	if ( Global.Exists( "SPInventoryScreen_CargoOnly" ) )
+	{
+		sPInventoryScreenCargoOnly = Global.Bool( "SPInventoryScreen_CargoOnly" );
+	}
+	
+	local_12 = GUI.WindowCanvasHeight( gUI );
+	local_12 = ( local_12 - Global.Int( "GUI_inversebutton_height" ) );
+	window_0 = GUI.CreateWindow( 0, 0, GUI.WindowCanvasWidth( gUI ), local_12, gUI );
+	local_9 = ( GUI.WindowCanvasWidth( window_0 ) - (2 * Global.Int( "GUI_scrollbar_width" )) );
+	local_9 = ( (2 * local_9) / 4 );
+	local_10 = ( local_9 / 2 );
+	local_11 = local_10;
+	window_1 = iGUI.CreateTitledListBox( window_0, Text.Field( "basemenu_inventory", FT_Text ), local_9, Text.Field( "gui_item", FT_Text ), local_10, Text.Field( "inventory_quantity", FT_Text ), local_11, Text.Field( "recycling_value", FT_Text ) );
+	List.AddHead( localList, window_1 );
+	Global.CreateHandle( "InventoryListBox", 2, window_1 );
+	window_0 = GUI.CreateWindow( 0, local_12, GUI.WindowCanvasWidth( gUI ), Global.Int( "GUI_inversebutton_height" ) + Global.Int( "GUI_fancybutton_height" ), gUI );
+	window_2 = iGUI.CreateAndInitialiseInverseButton( window_0, 0, 0, gUIInversebuttonWidth, String.UpperCase( Text.Field( "inventory_equipment", FT_Text ) ), "iBaseGUI.SPInventoryScreen_OnEquipment" );
+	List.AddTail( localList, window_2 );
+	iGUI.MakeInverseButtonIconic( window_2 );
+	window_3 = iGUI.CreateAndInitialiseInverseButton( window_0, gUIInversebuttonWidth + constant_1, 0, gUIInversebuttonWidth, Text.Field( "manifest_ship_cargo", FT_Text ), "iBaseGUI.SPInventoryScreen_OnCargo" );
+	List.AddTail( localList, window_3 );
+	iGUI.MakeInverseButtonIconic( window_3 );
+	Global.CreateHandle( "SPInventoryScreen_Equipment", 2, window_2 );
+	Global.CreateHandle( "SPInventoryScreen_Cargo", 2, window_3 );
+	Global.SetBool( "SPInventoryScreen_CargoOnly", !sPInventoryScreenCargoOnly );
+	
+	if ( sPInventoryScreenCargoOnly )
+	{
+		SPInventoryScreen_OnCargo();
+	}
+	else
+	{
+		SPInventoryScreen_OnEquipment();
+	}
+	
+	if ( Global.Exists( "SPInventoryScreen_SelectedEntry" ) )
+	{
+		sPInventoryScreenSelectedEntry = Global.Int( "SPInventoryScreen_SelectedEntry" );
+		GUI.SetListBoxFocusedEntry( window_1, sPInventoryScreenSelectedEntry );
+	}
+	
+	GUI.SetFirstControlFocus( window_1 );
+	iGUI.SetCyclicControlFocusPath( localList );
+	GUI.SetInputOverrideFunctions( window_1, "", "", "", "", "iBaseGUI.SPInventoryScreen_OnInventoryListBoxSelect", "iBaseGUI.SPInventoryScreen_OnBackButton", "", "iBaseGUI.SPInventoryScreen_OnInventoryListBoxSelect", "" );
+	GUI.SetControlFocusCancelFunction( "iBaseGUI.SPInventoryScreen_OnBackButton" );
+}
+
+SPInventoryScreen_OnBackButton()
+{
+	iInventory.ResetWindows();
+	Global.Destroy( "InventoryListBox" );
+	Global.Destroy( "InventoryScreen_CargoList" );
+	Global.Destroy( "SPInventoryScreen_Equipment" );
+	Global.Destroy( "SPInventoryScreen_Cargo" );
+	GUI.RemoveLastOverlay();
+}
+
+SPInventoryScreen_OnBackToMainMenuButton()
+{
+	atomic
+	{
+		SPInventoryScreen_OnBackButton();
+		GUI.RemoveOverlaysAfter( "icSPBaseScreen" );
+	}
+}
+
+SPInventoryScreen_OnInventoryListBoxSelect()
+{
+	int local_0;
+	hwindow inventoryListBox = GUI.Cast( Global.Handle( "InventoryListBox" ) );
+	int local_2;
+	string local_3 = "";
+	int local_4 = iInventory.NumberOfCargoTypes();
+	bool local_5 = false;
+	int local_6;
+	list localList = Global.List( "InventoryScreen_CargoList" );
+	hcargo cargo;
+	
+	local_0 = GUI.ListBoxFocusedEntry( inventoryListBox );
+	cargo = iCargo.Cast( List.GetNth( localList, local_0 ) );
+	
+	if ( cargo == false )
+	{
+		GUI.QueueSound( S_Error );
+		return;
+	}
+	
+	GUI.QueueSound( S_Confirm );
+	Global.CreateInt( "SPInventoryScreen_SelectedEntry", 2, local_0 );
+	local_3 = iCargo.EncyclopediaEntry( cargo );
+	iInventory.ResetWindows();
+	Global.CreateString( "encyclopaedia_default_entry", 2, local_3 );
+	GUI.OverlayScreen( "icSPEncyclopaediaScreen" );
+}
+
+local_function_33( bool param_0_ )
+{
+	list localList;
+	hwindow sPInventoryScreenEquipment = GUI.Cast( Global.Handle( "SPInventoryScreen_Equipment" ) );
+	hwindow sPInventoryScreenCargo = GUI.Cast( Global.Handle( "SPInventoryScreen_Cargo" ) );
+	hwindow inventoryListBox = GUI.Cast( Global.Handle( "InventoryListBox" ) );
+	
+	iInventory.ResetWindows();
+	
+	if ( param_0_ )
+	{
+		GUI.SelectWindow( sPInventoryScreenCargo );
+		GUI.DeselectWindow( sPInventoryScreenEquipment );
+	}
+	else
+	{
+		GUI.DeselectWindow( sPInventoryScreenCargo );
+		GUI.SelectWindow( sPInventoryScreenEquipment );
+	}
+	
+	iInventory.FillInventoryListBox( inventoryListBox, !param_0_, localList );
+	Global.CreateList( "InventoryScreen_CargoList", 2, localList );
+}
+
+SPCargoScreen()
+{
+	hwindow gUI;
+	list localList_0;
+	hwindow window_0;
+	hwindow window_1;
+	hwindow window_2;
+	hwindow window_3;
+	list localList_1;
+	int ii;
+	int local_8;
+	int local_9;
+	int local_10;
+	int local_11;
+	int local_12;
+	hcargo cargo_0;
+	hcargo cargo_1;
+	int gUIFancybuttonHeight = Global.Int( "GUI_fancybutton_height" );
+	int local_16;
+	int local_17;
+	
+	localList_0 = iGUI.CreateGreyBoxStyleScreen( Text.Field( "loadoutmenu_add_cargo", FT_Text ), "iBaseGUI.SPCargoScreen_OnBackButton", "iBaseGUI.SPCargoScreen_OnBackToMainMenuButton" );
+	gUI = GUI.Cast( List.Head( localList_0 ) );
+	List.RemoveAll( localList_0 );
+	local_10 = ( GUI.WindowCanvasWidth( gUI ) - (2 * Global.Int( "GUI_scrollbar_width" )) );
+	local_10 = ( (2 * local_10) / 4 );
+	local_11 = ( local_10 / 2 );
+	local_12 = local_11;
+	local_9 = GUI.WindowCanvasHeight( gUI );
+	local_9 = ( local_9 - (gUIFancybuttonHeight * 2) );
+	window_1 = GUI.CreateWindow( 0, 0, GUI.WindowCanvasWidth( gUI ), local_9, gUI );
+	window_0 = iGUI.CreateTitledListBox( window_1, Text.Field( "loadoutmenu_add_cargo", FT_Text ), local_10, Text.Field( "gui_item", FT_Text ), local_11, Text.Field( "inventory_quantity", FT_Text ), local_12, Text.Field( "recycling_value", FT_Text ) );
+	List.AddTail( localList_0, window_0 );
+	local_16 = local_9;
+	iInventory.FillAddCargoListBox( window_0, localList_1 );
+	cargo_0 = iCargo.Find( iLoadout.Cargo() );
+	
+	if ( cargo_0 != false )
+	{
+		for ( ii = 0; ii < List.ItemCount( localList_1 ); ++ii )
+		{
+			cargo_1 = iCargo.Cast( List.GetNth( localList_1, ii ) );
+			
+			if ( cargo_1 == cargo_0 )
+			{
+				GUI.SelectListBoxEntry( window_0, ii );
+				break;
+			}
+		}
+	}
+	
+	Global.CreateHandle( "CargoListBox", 2, window_0 );
+	Global.CreateList( "CargoScreen_CargoList", 2, localList_1 );
+	GUI.SetInputOverrideFunctions( window_0, "", "", "", "", "iBaseGUI.SPCargoScreen_OnCargoListBoxSelect", "iBaseGUI.SPCargoScreen_OnBackButton", "", "iBaseGUI.SPCargoScreen_OnCargoListBoxSelect", "" );
+	window_3 = iGUI.CreateAndInitialiseFancyButton( gUI, local_16, Text.Field( "addcargo_removecargo", FT_Text ), "iBaseGUI.SPCargoScreen_OnRemoveCargo" );
+	List.AddTail( localList_0, window_3 );
+	local_16 = ( local_16 + gUIFancybuttonHeight );
+	window_2 = iGUI.CreateAndInitialiseStaticWindow( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_width" ), local_16, GUI.WindowCanvasWidth( gUI ), gUIFancybuttonHeight, gUI, Global.String( "type_font" ), "" );
+	GUI.SetWindowTextFormatting( window_2, false, 0 );
+	GUI.SetWindowStateColours( window_2, Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ), Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ), Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ) );
+	Global.CreateHandle( "CargoScreen_TextWindow", 2, window_2 );
+	local_function_34( window_2 );
+	local_16 = ( local_16 + gUIFancybuttonHeight );
+	GUI.SetFirstControlFocus( GUI.Cast( List.Head( localList_0 ) ) );
+	iGUI.SetCyclicControlFocusPath( localList_0 );
+	GUI.SetControlFocusCancelFunction( "iBaseGUI.SPCargoScreen_OnBackButton" );
+}
+
+SPCargoScreen_OnBackButton()
+{
+	Global.Destroy( "CargoListBox" );
+	Global.Destroy( "CargoScreen_TextWindow" );
+	Global.Destroy( "CargoScreen_CargoList" );
+	iInventory.ResetWindows();
+	GUI.RemoveLastOverlay();
+}
+
+SPCargoScreen_OnBackToMainMenuButton()
+{
+	atomic
+	{
+		SPCargoScreen_OnBackButton();
+		GUI.RemoveOverlaysAfter( "icSPBaseScreen" );
+	}
+}
+
+SPCargoScreen_OnCargoListBoxSelect()
+{
+	int local_0;
+	hwindow cargoListBox = GUI.Cast( Global.Handle( "CargoListBox" ) );
+	list localList = Global.List( "CargoScreen_CargoList" );
+	hcargo cargo;
+	eCargoType type;
+	int local_5;
+	int local_6 = iInventory.NumberOfCargoTypes();
+	bool local_7 = false;
+	int local_8;
+	int local_9;
+	bool local_10 = false;
+	
+	local_0 = GUI.ListBoxFocusedEntry( cargoListBox );
+	
+	if ( local_0 == -1 )
+	{
+		GUI.PlaySound( S_Error );
+		return;
+	}
+	
+	cargo = iCargo.Cast( List.GetNth( localList, local_0 ) );
+	
+	if ( cargo == false )
+	{
+		GUI.PlaySound( S_Error );
+		return;
+	}
+	
+	type = Object.IntProperty( cargo, "type" );
+	
+	if ( iLoadout.Cargo() == type )
+	{
+		GUI.PlaySound( S_Confirm );
+		return;
+	}
+	
+	if ( iLoadout.Cargo() != -1 )
+	{
+		iInventory.AddWithoutMarkingNew( iLoadout.Cargo(), 1 );
+	}
+	
+	iLoadout.SetCargo( type );
+	iInventory.Remove( type, 1 );
+	GUI.SelectListBoxEntry( cargoListBox, local_0 );
+	local_function_34( GUI.Cast( Global.Handle( "CargoScreen_TextWindow" ) ) );
+	GUI.QueueSound( S_Confirm );
+}
+
+SPCargoScreen_OnRemoveCargo()
+{
+	hwindow cargoListBox = GUI.Cast( Global.Handle( "CargoListBox" ) );
+	int local_1 = iLoadout.Cargo();
+	
+	if ( local_1 == -1 )
+	{
+		GUI.QueueSound( S_Error );
+		return;
+	}
+	
+	iInventory.AddWithoutMarkingNew( iLoadout.Cargo(), 1 );
+	iLoadout.SetCargo( -1 );
+	GUI.SelectListBoxEntry( cargoListBox, -1 );
+	local_function_34( GUI.Cast( Global.Handle( "CargoScreen_TextWindow" ) ) );
+	GUI.QueueSound( S_Confirm );
+}
+
+local_function_34( hwindow window_ )
+{
+	int local_0 = iLoadout.Cargo();
+	string local_1;
+	string local_2;
+	string name;
+	
+	if ( local_0 == -1 )
+	{
+		name = Text.Field( "add_cargo_none", FT_Text );
+	}
+	else
+	{
+		name = iCargo.Name( iCargo.Find( local_0 ) );
+	}
+	
+	local_2 = Text.Field( "add_cargo_launchwithcargopod", FT_Text );
+	local_1 = String.Join( local_2, name );
+	local_1 = String.UpperCase( local_1 );
+	GUI.SetWindowTitle( window_, local_1 );
+}
+
+SPRecyclingScreen()
+{
+	hwindow gUI;
+	list localList_0;
+	hwindow window_0;
+	hwindow window_1;
+	hwindow window_2;
+	list localList_1;
+	int local_6;
+	int local_7;
+	int local_8;
+	int local_9;
+	int local_10;
+	int local_11;
+	int gUIFancybuttonHeight = Global.Int( "GUI_fancybutton_height" );
+	int local_13;
+	
+	localList_0 = iGUI.CreateGreyBoxStyleScreen( Text.Field( "basemenu_recycling", FT_Text ), "iBaseGUI.SPRecyclingScreen_OnBackButton", "iBaseGUI.SPRecyclingScreen_OnBackToMainMenuButton" );
+	gUI = GUI.Cast( List.Head( localList_0 ) );
+	List.RemoveHead( localList_0 );
+	local_8 = ( GUI.WindowCanvasWidth( gUI ) - (2 * Global.Int( "GUI_scrollbar_width" )) );
+	local_8 = ( (2 * local_8) / 4 );
+	local_9 = ( local_8 / 2 );
+	local_10 = local_9;
+	local_11 = GUI.WindowCanvasHeight( gUI );
+	local_11 = ( local_11 - (Global.Int( "GUI_inversebutton_height" ) + Global.Int( "GUI_fancybutton_height" )) );
+	window_1 = GUI.CreateWindow( 0, 0, GUI.WindowCanvasWidth( gUI ), local_11, gUI );
+	window_0 = iGUI.CreateTitledListBox( window_1, Text.Field( "basemenu_recycling", FT_Text ), local_8, Text.Field( "gui_item", FT_Text ), local_9, Text.Field( "inventory_quantity", FT_Text ), local_10, Text.Field( "recycling_value", FT_Text ) );
+	List.AddHead( localList_0, window_0 );
+	window_1 = GUI.CreateWindow( 0, local_11, GUI.WindowCanvasWidth( gUI ), Global.Int( "GUI_inversebutton_height" ) + Global.Int( "GUI_fancybutton_height" ), gUI );
+	local_function_35( window_1 );
+	window_2 = iGUI.CreateAndInitialiseStaticWindow( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_width" ), 15, GUI.WindowCanvasWidth( window_1 ), gUIFancybuttonHeight, window_1, Global.String( "type_font" ), "" );
+	GUI.SetWindowTextFormatting( window_2, false, 0 );
+	GUI.SetWindowStateColours( window_2, Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ), Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ), Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ) );
+	Global.CreateHandle( "RecyclingScreen_RecycleUnitsWindow", 2, window_2 );
+	local_function_36( window_2 );
+	iInventory.FillRecyclingListBox( window_0, localList_1 );
+	Global.CreateHandle( "RecyclingListBox", 2, window_0 );
+	Global.CreateList( "RecyclingScreen_CargoList", 2, localList_1 );
+	GUI.SetFirstControlFocus( window_0 );
+	GUI.SetInputOverrideFunctions( window_0, "", "", "", "", "iBaseGUI.SPRecyclingScreen_OnRecyclingListBoxSelect", "iBaseGUI.SPRecyclingScreen_OnBackButton", "", "iBaseGUI.SPRecyclingScreen_OnRecyclingListBoxSelect", "" );
+	GUI.SetControlFocusCancelFunction( "iBaseGUI.SPRecyclingScreen_OnBackButton" );
+}
+
+SPRecyclingScreen_OnBackButton()
+{
+	iInventory.ResetWindows();
+	Global.Destroy( "RecyclingListBox" );
+	Global.Destroy( "RecyclingScreen_RecycleUnitsWindow" );
+	Global.Destroy( "RecyclingScreen_CargoList" );
+	Global.Destroy( "RecycleScreen_RecycleAllButton" );
+	Global.Destroy( "RecycleScreen_RecycleOneButton" );
+	Global.Destroy( "RecycleScreen_CancelButton" );
+	GUI.RemoveLastOverlay();
+}
+
+SPRecyclingScreen_OnBackToMainMenuButton()
+{
+	atomic
+	{
+		SPRecyclingScreen_OnBackButton();
+		GUI.RemoveOverlaysAfter( "icSPBaseScreen" );
+	}
+}
+
+SPRecyclingScreen_OnCancelButton()
+{
+	hwindow recyclingListBox = GUI.Cast( Global.Handle( "RecyclingListBox" ) );
+	int local_1 = GUI.ListBoxSelectedIndex( recyclingListBox );
+	
+	if ( local_1 == -1 )
+	{
+		GUI.QueueSound( S_Error );
+	}
+	
+	GUI.CancelListBoxSelection( recyclingListBox );
+	GUI.SetListBoxFocusedEntry( recyclingListBox, local_1 );
+	GUI.SetFocus( recyclingListBox );
+}
+
+SPRecyclingScreen_OnRecycleOneButton()
+{
+	hwindow recyclingListBox = GUI.Cast( Global.Handle( "RecyclingListBox" ) );
+	list localList = Global.List( "RecyclingScreen_CargoList" );
+	int local_2;
+	hcargo cargo;
+	eCargoType type;
+	int local_5;
+	int local_6 = GUI.ListBoxSelectedIndex( recyclingListBox );
+	
+	if ( local_6 != -1 )
+	{
+		cargo = iCargo.Cast( List.GetNth( localList, local_6 ) );
+		type = Object.IntProperty( cargo, "type" );
+		local_5 = iInventory.NumberOfCargoType( type );
+		
+		if ( local_5 == 0 )
+		{
+			GUI.QueueSound( S_Error );
+		}
+		else
+		{
+			iInventory.Recycle( type, 1 );
+			local_5 = ( local_5 - 1 );
+		}
+		
+		if ( local_5 == 0 )
+		{
+			local_function_37( recyclingListBox, local_6 );
+		}
+		
+		local_function_36( GUI.Cast( Global.Handle( "RecyclingScreen_RecycleUnitsWindow" ) ) );
+		return;
+	}
+	
+	GUI.QueueSound( S_Error );
+}
+
+SPRecyclingScreen_OnRecycleAllButton()
+{
+	hwindow recyclingListBox = GUI.Cast( Global.Handle( "RecyclingListBox" ) );
+	list localList = Global.List( "RecyclingScreen_CargoList" );
+	hcargo cargo;
+	eCargoType type;
+	int local_4;
+	int local_5;
+	int local_6 = GUI.ListBoxSelectedIndex( recyclingListBox );
+	
+	if ( local_6 != -1 )
+	{
+		cargo = iCargo.Cast( List.GetNth( localList, local_6 ) );
+		type = Object.IntProperty( cargo, "type" );
+		local_4 = iInventory.NumberOfCargoType( type );
+		
+		if ( local_4 == 0 )
+		{
+			GUI.QueueSound( S_Error );
+		}
+		
+		iInventory.Recycle( type, local_4 );
+		local_function_37( recyclingListBox, local_6 );
+		local_function_36( GUI.Cast( Global.Handle( "RecyclingScreen_RecycleUnitsWindow" ) ) );
+		return;
+	}
+	
+	GUI.QueueSound( S_Error );
+}
+
+local_function_37( hwindow window_, int param_1_ )
+{
+	list localList = Global.List( "RecyclingScreen_CargoList" );
+	hcargo cargo = iCargo.Cast( List.GetNth( localList, param_1_ ) );
+	int type = Object.IntProperty( cargo, "type" );
+	int itemCount;
+	eCargoCategory cargoCategory = iInventory.CategoryContaining( type );
+	int local_5 = iInventory.NumberOfRecyclableCargoInCategory( cargoCategory );
+	int local_6 = iInventory.NumberOfRecyclableCargoInSuperSet( iInventory.SuperSetContaining( cargoCategory ) );
+	
+	GUI.RemoveListBoxEntry( window_, param_1_ );
+	List.RemoveNth( localList, param_1_ );
+	
+	if ( local_5 == 0 )
+	{
+		GUI.RemoveListBoxEntry( window_, param_1_ - 1 );
+		List.RemoveNth( localList, param_1_ - 1 );
+	}
+	
+	if ( local_6 == 0 )
+	{
+		GUI.RemoveListBoxEntry( window_, param_1_ - 2 );
+		List.RemoveNth( localList, param_1_ - 2 );
+	}
+	
+	Global.SetList( "RecyclingScreen_CargoList", localList );
+	itemCount = List.ItemCount( localList );
+	
+	if ( param_1_ < itemCount )
+	{
+		GUI.SelectListBoxEntry( window_, param_1_ );
+	}
+	else if ( param_1_ > 0 )
+	{
+		GUI.SelectListBoxEntry( window_, itemCount - 1 );
+	}
+	else
+	{
+		GUI.SelectListBoxEntry( window_, -1 );
+	}
+	
+	SPRecyclingScreen_OnCancelButton();
+}
+
+SPRecyclingScreen_OnRecyclingListBoxSelect()
+{
+	int local_0;
+	list localList = Global.List( "RecyclingScreen_CargoList" );
+	hcargo cargo;
+	hwindow recyclingListBox = GUI.Cast( Global.Handle( "RecyclingListBox" ) );
+	
+	local_0 = GUI.ListBoxFocusedEntry( recyclingListBox );
+	
+	if ( local_0 == -1 )
+	{
+		GUI.QueueSound( S_Error );
+		return;
+	}
+	else
+	{
+		cargo = iCargo.Cast( List.GetNth( localList, local_0 ) );
+		
+		if ( cargo == false )
+		{
+			GUI.QueueSound( S_Error );
+			return;
+		}
+		
+		GUI.QueueSound( S_Confirm );
+	}
+	
+	GUI.SelectListBoxEntry( recyclingListBox, local_0 );
+	GUI.SetListBoxFocusedEntry( recyclingListBox, -1 );
+	GUI.SetFocus( GUI.Cast( Global.Handle( "RecycleScreen_RecycleOneButton" ) ) );
+}
+
+local_function_35( hwindow window_0_ )
+{
+	hwindow window_1;
+	hwindow window_2;
+	hwindow window_3;
+	list localList;
+	int local_4 = ( Global.Int( "GUI_inversebutton_width" ) - 6 );
+	int gUIInversebuttonHeight = Global.Int( "GUI_inversebutton_height" );
+	int constant_0 = 10;
+	bool local_7 = false;
+	int constant_1 = 5;
+	
+	window_1 = iGUI.CreateAndInitialiseInverseButton( window_0_, 0, 0, local_4, Text.Field( "recycling_recycle_one", FT_Text ), "iBaseGUI.SPRecyclingScreen_OnRecycleOneButton" );
+	List.AddTail( localList, window_1 );
+	window_2 = iGUI.CreateAndInitialiseInverseButton( window_0_, local_4 + constant_1, 0, local_4, Text.Field( "recycling_recycle_all", FT_Text ), "iBaseGUI.SPRecyclingScreen_OnRecycleAllButton" );
+	List.AddTail( localList, window_2 );
+	window_3 = iGUI.CreateAndInitialiseInverseButton( window_0_, (local_4 + constant_1) * 2, 0, local_4, Text.Field( "gui_cancel", FT_Text ), "iBaseGUI.SPRecyclingScreen_OnCancelButton" );
+	List.AddTail( localList, window_3 );
+	GUI.SetInputOverrideFunctions( window_1, "iBaseGUI.SPRecyclingScreen_FocusToCancel", "", "iBaseGUI.SPRecyclingScreen_FocusToRecycleAll", "", "", "iBaseGUI.SPRecyclingScreen_OnCancelButton", "", "", "" );
+	GUI.SetInputOverrideFunctions( window_2, "iBaseGUI.SPRecyclingScreen_FocusToRecycleOne", "", "iBaseGUI.SPRecyclingScreen_FocusToCancel", "", "", "iBaseGUI.SPRecyclingScreen_OnCancelButton", "", "", "" );
+	GUI.SetInputOverrideFunctions( window_3, "iBaseGUI.SPRecyclingScreen_FocusToRecycleAll", "", "iBaseGUI.SPRecyclingScreen_FocusToRecycleOne", "", "", "iBaseGUI.SPRecyclingScreen_OnCancelButton", "", "", "" );
+	Global.CreateHandle( "RecycleScreen_RecycleAllButton", 2, window_2 );
+	Global.CreateHandle( "RecycleScreen_RecycleOneButton", 2, window_1 );
+	Global.CreateHandle( "RecycleScreen_CancelButton", 2, window_3 );
+	iGUI.SetCyclicControlFocusPath( localList );
+}
+
+SPRecyclingScreen_FocusToRecycleOne()
+{
+	GUI.SetFocus( GUI.Cast( Global.Handle( "RecycleScreen_RecycleOneButton" ) ) );
+}
+
+SPRecyclingScreen_FocusToRecycleAll()
+{
+	GUI.SetFocus( GUI.Cast( Global.Handle( "RecycleScreen_RecycleAllButton" ) ) );
+}
+
+SPRecyclingScreen_FocusToCancel()
+{
+	GUI.SetFocus( GUI.Cast( Global.Handle( "RecycleScreen_CancelButton" ) ) );
+}
+
+local_function_36( hwindow window_ )
+{
+	int local_0 = iInventory.ManufactureUnits();
+	string local_1 = Text.Field( "manufacturing_units", FT_Text );
+	
+	local_1 = String.Join( local_1, String.FromInt( local_0 ) );
+	local_1 = String.UpperCase( local_1 );
+	GUI.SetWindowTitle( window_, local_1 );
+}
+
+SPManufacturingScreen()
+{
+	hwindow gUI;
+	list localList;
+	hwindow window_0;
+	hwindow window_1;
+	hwindow window_2;
+	int local_5;
+	int local_6;
+	int local_7;
+	int gUIFancybuttonHeight = Global.Int( "GUI_fancybutton_height" );
+	
+	localList = iGUI.CreateGreyBoxStyleScreen( Text.Field( "basemenu_manufacturing", FT_Text ), "iBaseGUI.SPManufacturingScreen_OnBackButton", "iBaseGUI.SPManufacturingScreen_OnBackToMainMenuButton" );
+	gUI = GUI.Cast( List.Head( localList ) );
+	List.RemoveHead( localList );
+	local_6 = ( GUI.WindowCanvasWidth( gUI ) - (2 * Global.Int( "GUI_scrollbar_width" )) );
+	local_7 = ( local_6 / 4 );
+	local_6 = ( 3 * local_7 );
+	local_5 = GUI.WindowCanvasHeight( gUI );
+	local_5 = ( local_5 - (Global.Int( "GUI_inversebutton_height" ) + Global.Int( "GUI_fancybutton_height" )) );
+	window_1 = GUI.CreateWindow( 0, 0, GUI.WindowCanvasWidth( gUI ), local_5, gUI );
+	window_0 = iGUI.CreateTitledListBox( window_1, Text.Field( "basemenu_manufacturing", FT_Text ), local_6, Text.Field( "gui_item", FT_Text ), local_7, Text.Field( "manufacturing_cost", FT_Text ), 0, "" );
+	List.AddHead( localList, window_0 );
+	window_1 = GUI.CreateWindow( 0, local_5, GUI.WindowCanvasWidth( gUI ), Global.Int( "GUI_inversebutton_height" ) + Global.Int( "GUI_fancybutton_height" ), gUI );
+	local_function_38( window_1 );
+	window_2 = iGUI.CreateAndInitialiseStaticWindow( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_width" ), 15, GUI.WindowCanvasWidth( window_1 ), gUIFancybuttonHeight, window_1, Global.String( "type_font" ), "" );
+	GUI.SetWindowTextFormatting( window_2, false, 0 );
+	GUI.SetWindowStateColours( window_2, Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ), Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ), Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ) );
+	Global.CreateHandle( "ManufacturingScreen_RecycleUnitsWindow", 2, window_2 );
+	local_function_36( window_2 );
+	local_function_39( window_0 );
+	Global.CreateHandle( "ManufacturingListBox", 2, window_0 );
+	GUI.SetFirstControlFocus( window_0 );
+	GUI.SetInputOverrideFunctions( window_0, "", "", "", "", "iBaseGUI.SPManufacturingScreen_OnManufacturingListBoxSelect", "iBaseGUI.SPManufacturingScreen_OnBackButton", "", "iBaseGUI.SPManufacturingScreen_OnManufacturingListBoxSelect", "" );
+	GUI.SetControlFocusCancelFunction( "iBaseGUI.SPManufacturingScreen_OnBackButton" );
+}
+
+SPManufacturingScreen_OnCancelButton()
+{
+	hwindow manufacturingListBox = GUI.Cast( Global.Handle( "ManufacturingListBox" ) );
+	int local_1 = GUI.ListBoxSelectedIndex( manufacturingListBox );
+	
+	if ( local_1 == -1 )
+	{
+		GUI.QueueSound( S_Error );
+	}
+	else
+	{
+		GUI.CancelListBoxSelection( manufacturingListBox );
+		GUI.SetListBoxFocusedEntry( manufacturingListBox, local_1 );
+	}
+	
+	GUI.SetFocus( manufacturingListBox );
+}
+
+SPManufacturingScreen_OnManufacturingButton()
+{
+	hwindow manufacturingListBox = GUI.Cast( Global.Handle( "ManufacturingListBox" ) );
+	list localList = Global.List( "ManufacturingScreen_CargoList" );
+	hcargo cargo;
+	eCargoType type;
+	int local_4;
+	int local_5 = GUI.ListBoxSelectedIndex( manufacturingListBox );
+	
+	if ( local_5 != -1 )
+	{
+		cargo = iCargo.Cast( List.GetNth( localList, local_5 ) );
+		type = Object.IntProperty( cargo, "type" );
+		local_4 = iCargo.ManufactureValue( cargo );
+		
+		if ( local_4 > iInventory.ManufactureUnits() )
+		{
+			GUI.QueueSound( S_Error );
+			SPManufacturingScreen_OnCancelButton();
+		}
+		else
+		{
+			iInventory.Manufacture( type, 1 );
+			local_function_39( manufacturingListBox );
+			GUI.SelectListBoxEntry( manufacturingListBox, local_5 );
+			local_function_36( GUI.Cast( Global.Handle( "ManufacturingScreen_RecycleUnitsWindow" ) ) );
+			
+			if ( local_4 > iInventory.ManufactureUnits() )
+			{
+				SPManufacturingScreen_OnCancelButton();
+			}
+		}
+		
+		return;
+	}
+	
+	GUI.QueueSound( S_Error );
+}
+
+SPManufacturingScreen_FocusToManufacturing()
+{
+	GUI.SetFocus( GUI.Cast( Global.Handle( "ManufacturingScreen_ManufacturingButton" ) ) );
+}
+
+SPManufacturingScreen_FocusToCancel()
+{
+	GUI.SetFocus( GUI.Cast( Global.Handle( "ManufacturingScreen_CancelButton" ) ) );
+}
+
+SPManufacturingScreen_OnBackButton()
+{
+	Global.Destroy( "ManufacturingListBox" );
+	Global.Destroy( "ManufacturingScreen_RecycleUnitsWindow" );
+	Global.Destroy( "ManufacturingScreen_ManufacturingButton" );
+	Global.Destroy( "ManufacturingScreen_CancelButton" );
+	Global.Destroy( "ManufacturingScreen_CargoList" );
+	GUI.RemoveLastOverlay();
+}
+
+SPManufacturingScreen_OnBackToMainMenuButton()
+{
+	Global.Destroy( "ManufacturingListBox" );
+	Global.Destroy( "ManufacturingScreen_RecycleUnitsWindow" );
+	Global.Destroy( "ManufacturingScreen_ManufacturingButton" );
+	Global.Destroy( "ManufacturingScreen_CancelButton" );
+	Global.Destroy( "ManufacturingScreen_CargoList" );
+	GUI.RemoveOverlaysAfter( "icSPBaseScreen" );
+}
+
+local_function_38( hwindow window_0_ )
+{
+	hwindow window_1;
+	hwindow window_2;
+	list localList;
+	int gUIInversebuttonWidth = Global.Int( "GUI_inversebutton_width" );
+	int gUIInversebuttonHeight = Global.Int( "GUI_inversebutton_height" );
+	int constant_0 = 10;
+	bool local_6 = false;
+	int constant_1 = 5;
+	
+	window_1 = iGUI.CreateAndInitialiseInverseButton( window_0_, 0, 0, gUIInversebuttonWidth, Text.Field( "manufacturing_manufacture", FT_Text ), "iBaseGUI.SPManufacturingScreen_OnManufacturingButton" );
+	List.AddTail( localList, window_1 );
+	window_2 = iGUI.CreateAndInitialiseInverseButton( window_0_, gUIInversebuttonWidth + constant_1, 0, gUIInversebuttonWidth, Text.Field( "gui_cancel", FT_Text ), "iBaseGUI.SPManufacturingScreen_OnCancelButton" );
+	List.AddTail( localList, window_2 );
+	GUI.SetInputOverrideFunctions( window_1, "iBaseGUI.SPManufacturingScreen_FocusToCancel", "", "iBaseGUI.SPManufacturingScreen_FocusToCancel", "", "", "iBaseGUI.SPManufacturingScreen_OnCancelButton", "", "", "" );
+	GUI.SetInputOverrideFunctions( window_2, "iBaseGUI.SPManufacturingScreen_FocusToManufacturing", "", "iBaseGUI.SPManufacturingScreen_FocusToManufacturing", "", "", "iBaseGUI.SPManufacturingScreen_OnCancelButton", "", "", "" );
+	Global.CreateHandle( "ManufacturingScreen_ManufacturingButton", 2, window_1 );
+	Global.CreateHandle( "ManufacturingScreen_CancelButton", 2, window_2 );
+	iGUI.SetCyclicControlFocusPath( localList );
+}
+
+local_function_39( hwindow window_0_ )
+{
+	hwindow window_1;
+	int local_1;
+	int local_2;
+	int local_3;
+	list localList;
+	eCargoType ii;
+	string name;
+	int local_7;
+	int local_8 = iInventory.NumberOfCargoTypes();
+	hcargo cargo;
+	int gUITabTextOffset = Global.Int( "GUI_tab_text_offset" );
+	int local_11 = GUI.WindowCanvasWidth( window_0_ );
+	int gUIListboxEntryheight = Global.Int( "GUI_listbox_entryheight" );
+	int constant_0 = 5;
+	int constant_1 = 10;
+	int local_15;
+	int local_16;
+	int local_17;
+	int local_18;
+	int constant_2 = 0;
+	string local_20 = Global.String( "type_font" );
+	int local_21 = ( (3 * local_11) / 4 );
+	int local_22 = local_11;
+	
+	local_15 = ( constant_1 + (constant_0 - 4) );
+	local_16 = ( local_21 - (local_15 + 5) );
+	local_17 = ( local_21 + (gUITabTextOffset + 1) );
+	local_18 = ( local_22 - (local_17 + 5) );
+	GUI.RemoveListBoxEntries( window_0_ );
+	
+	for ( ii = CT_Invalid; ii < local_8; ii = ( ii + 1 ) )
+	{
+		cargo = iCargo.Find( ii );
+		
+		if ( iCargo.CanManufacture( cargo ) && iInventory.GotBlueprints( ii ) )
+		{
+			List.AddTail( localList, cargo );
+			name = iCargo.Name( cargo );
+			local_7 = iCargo.ManufactureValue( cargo );
+			window_1 = GUI.CreateWindow( 0, 0, local_11, gUIListboxEntryheight, none );
+			
+			if ( iInventory.ManufactureUnits() >= local_7 )
+			{
+				iGUI.CreateAndInitialiseListBoxEntryComponentWindow( constant_2, constant_1, gUIListboxEntryheight, window_1, local_20, "*" );
+			}
+			
+			iGUI.CreateAndInitialiseListBoxEntryComponentWindow( local_15, local_16, gUIListboxEntryheight, window_1, local_20, name );
+			iGUI.CreateAndInitialiseListBoxEntryComponentWindow( local_17, local_18, gUIListboxEntryheight, window_1, local_20, String.FromInt( local_7 ) );
+			GUI.AddListBoxEntry( window_0_, window_1 );
+		}
+	}
+	
+	Global.CreateList( "ManufacturingScreen_CargoList", 2, localList );
+}
+
+SPManufacturingScreen_OnManufacturingListBoxSelect()
+{
+	int local_0;
+	hwindow manufacturingListBox = GUI.Cast( Global.Handle( "ManufacturingListBox" ) );
+	
+	local_0 = GUI.ListBoxFocusedEntry( manufacturingListBox );
+	
+	if ( local_0 == -1 )
+	{
+		GUI.QueueSound( S_Error );
+		return;
+	}
+	else
+	{
+		GUI.QueueSound( S_Confirm );
+	}
+	
+	GUI.SelectListBoxEntry( manufacturingListBox, local_0 );
+	GUI.SetFocus( GUI.Cast( Global.Handle( "ManufacturingScreen_ManufacturingButton" ) ) );
+}
+
+SPShipTypeScreen()
+{
+	hwindow window_0;
+	list localList;
+	int local_2;
+	int local_3;
+	hwindow window_1 = none;
+	hwindow window_2 = none;
+	hwindow window_3 = none;
+	hwindow window_4 = none;
+	hwindow window_5 = none;
+	eShip ship = iLoadout.Ship();
+	
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	window_0 = iGUI.CreateShadyBar();
+	iGUI.AddBackButtons( window_0, "iBaseGUI.SPShipTypeScreen_OnBackButton", "iBaseGUI.SPShipTypeScreen_OnBackToMainMenuButton" );
+	local_function_12();
+	iGUI.AddTitle( window_0, Text.Field( "hangarmenu_ship", FT_Text ) );
+	
+	if ( iInventory.GotCommandSection() )
+	{
+		window_1 = local_function_24( Text.Field( "ship_type_command_section", FT_Text ), localList );
+		iGUI.MakeInverseButtonIconic( window_1 );
+		
+		if ( ship == S_CommandSection )
+		{
+			GUI.SetRadioButtonChecked( window_1, true );
+		}
+		
+		GUI.SetInputOverrideFunctions( window_1, "", "", "", "", "iBaseGUI.SPShipTypeScreen_OnCommandSection", "iBaseGUI.SPShipTypeScreen_OnBackButton", "", "iBaseGUI.SPShipTypeScreen_OnCommandSection", "" );
+		Global.CreateHandle( "shiptype_commandsection", 2, window_1 );
+	}
+	
+	if ( iInventory.GotTug() )
+	{
+		window_2 = local_function_24( Text.Field( "ship_type_tug", FT_Text ), localList );
+		iGUI.MakeInverseButtonIconic( window_2 );
+		
+		if ( ship == S_Tug )
+		{
+			GUI.SetRadioButtonChecked( window_2, true );
+		}
+		
+		GUI.SetInputOverrideFunctions( window_2, "", "", "", "", "iBaseGUI.SPShipTypeScreen_OnTug", "iBaseGUI.SPShipTypeScreen_OnBackButton", "", "iBaseGUI.SPShipTypeScreen_OnTug", "" );
+		Global.CreateHandle( "shiptype_tug", 2, window_2 );
+	}
+	
+	if ( iInventory.GotFastAttackShip() )
+	{
+		window_3 = local_function_24( Text.Field( "ship_type_fast_attack_ship", FT_Text ), localList );
+		iGUI.MakeInverseButtonIconic( window_3 );
+		
+		if ( ship == S_FastAttackShip )
+		{
+			GUI.SetRadioButtonChecked( window_3, true );
+		}
+		
+		GUI.SetInputOverrideFunctions( window_3, "", "", "", "", "iBaseGUI.SPShipTypeScreen_OnFastAttackShip", "iBaseGUI.SPShipTypeScreen_OnBackButton", "", "iBaseGUI.SPShipTypeScreen_OnFastAttackShip", "" );
+		Global.CreateHandle( "shiptype_fastattackship", 2, window_3 );
+	}
+	
+	if ( iInventory.GotHeavyCorvette() )
+	{
+		window_4 = local_function_24( Text.Field( "ship_type_heavy_corvette", FT_Text ), localList );
+		iGUI.MakeInverseButtonIconic( window_4 );
+		
+		if ( ship == S_HeavyCorvette )
+		{
+			GUI.SetRadioButtonChecked( window_4, true );
+		}
+		
+		GUI.SetInputOverrideFunctions( window_4, "", "", "", "", "iBaseGUI.SPShipTypeScreen_OnHeavyCorvette", "iBaseGUI.SPShipTypeScreen_OnBackButton", "", "iBaseGUI.SPShipTypeScreen_OnHeavyCorvette", "" );
+		Global.CreateHandle( "shiptype_heavycorvette", 2, window_4 );
+	}
+	
+	if ( iInventory.GotStormPetrel() )
+	{
+		window_5 = local_function_24( Text.Field( "ship_type_storm_petrel", FT_Text ), localList );
+		iGUI.MakeInverseButtonIconic( window_5 );
+		
+		if ( ship == S_StormPetrel )
+		{
+			GUI.SetRadioButtonChecked( window_5, true );
+		}
+		
+		GUI.SetInputOverrideFunctions( window_5, "", "", "", "", "iBaseGUI.SPShipTypeScreen_OnStormPetrel", "iBaseGUI.SPShipTypeScreen_OnBackButton", "", "iBaseGUI.SPShipTypeScreen_OnStormPetrel", "" );
+		Global.CreateHandle( "shiptype_stormpetrel", 2, window_5 );
+	}
+	
+	local_2 = ( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_alignmentoffset" ) );
+	local_3 = ( Global.Int( "GUI_title_yoffset" ) + (Global.Int( "GUI_fancybutton_height" ) + 20) );
+	iGUI.CreateWindowListInSplitter( window_0, localList, local_2, local_3, Text.Field( "hangarmenu_ship", FT_Text ) );
+	GUI.SetFirstControlFocus( window_1 );
+	iGUI.SetCyclicControlFocusPath( localList );
+	GUI.SetControlFocusCancelFunction( "iBaseGUI.SPShipTypeScreen_OnBackButton" );
+}
+
+local_function_40( eShip ship_ )
+{
+	GUI.CancelFocusLock();
+	
+	if ( iLoadout.Ship() != ship_ )
+	{
+		GUI.PlaySound( S_Loadout );
+		iLoadout.SetShip( ship_ );
+		local_function_18();
+		
+		if ( (iLoadout.Ship() == S_CommandSection) && (iLoadout.Cargo() != -1) )
+		{
+			iInventory.AddWithoutMarkingNew( iLoadout.Cargo(), 1 );
+			iLoadout.SetCargo( -1 );
+		}
+	}
+}
+
+SPShipTypeScreen_OnCommandSection()
+{
+	hwindow shiptypeCommandsection = GUI.Cast( Global.Handle( "shiptype_commandsection" ) );
+	
+	GUI.SetRadioButtonChecked( shiptypeCommandsection, true );
+	local_function_40( S_CommandSection );
+}
+
+SPShipTypeScreen_OnStormPetrel()
+{
+	hwindow shiptypeStormpetrel = GUI.Cast( Global.Handle( "shiptype_stormpetrel" ) );
+	
+	GUI.SetRadioButtonChecked( shiptypeStormpetrel, true );
+	local_function_40( S_StormPetrel );
+}
+
+SPShipTypeScreen_OnTug()
+{
+	hwindow shiptypeTug = GUI.Cast( Global.Handle( "shiptype_tug" ) );
+	
+	GUI.SetRadioButtonChecked( shiptypeTug, true );
+	local_function_40( S_Tug );
+}
+
+SPShipTypeScreen_OnFastAttackShip()
+{
+	hwindow shiptypeFastattackship = GUI.Cast( Global.Handle( "shiptype_fastattackship" ) );
+	
+	GUI.SetRadioButtonChecked( shiptypeFastattackship, true );
+	local_function_40( S_FastAttackShip );
+}
+
+SPShipTypeScreen_OnHeavyCorvette()
+{
+	hwindow shiptypeHeavycorvette = GUI.Cast( Global.Handle( "shiptype_heavycorvette" ) );
+	
+	GUI.SetRadioButtonChecked( shiptypeHeavycorvette, true );
+	local_function_40( S_HeavyCorvette );
+}
+
+SPShipTypeScreen_OnBackButton()
+{
+	Global.Destroy( "shiptype_commandsection" );
+	Global.Destroy( "shiptype_tug" );
+	Global.Destroy( "shiptype_fastattackship" );
+	Global.Destroy( "shiptype_heavycorvette" );
+	Global.Destroy( "shiptype_stormpetrel" );
+	GUI.RemoveLastOverlay();
+}
+
+SPShipTypeScreen_OnBackToMainMenuButton()
+{
+	SPShipTypeScreen_OnBackButton();
+	GUI.RemoveOverlaysAfter( "icSPBaseScreen" );
+}
+
+hwindow local_function_42()
+{
+	int local_0;
+	int local_1;
+	int local_2;
+	int local_3;
+	int local_4;
+	int constant_0 = 45;
+	int constant_1 = 3;
+	int constant_2 = 8;
+	int constant_3 = 42;
+	int gUIScrollbarWidth = Global.Int( "GUI_scrollbar_width" );
+	int constant_4 = 4;
+	int local_11 = ( (2 * Global.Int( "GUI_fancyborder_width" )) + 13 );
+	int local_12;
+	int local_13;
+	int local_14;
+	int local_15;
+	hwindow window_0;
+	hwindow window_1;
+	hwindow window_2;
+	hwindow window_3;
+	int local_20;
+	hwindow window_4;
+	string local_22 = "hangarmenu_manifest";
+	string local_23;
+	int constant_5 = 9;
+	
+	window_4 = iGUI.CreateShadyBarRight();
+	local_1 = ( GUI.WindowCanvasHeight( window_4 ) - (constant_2 + Global.Int( "GUI_backbutton_rise" )) );
+	local_0 = ( Global.Int( "GUI_title_yoffset" ) + Global.Int( "GUI_fancybutton_height" ) );
+	local_2 = ( local_1 - local_0 );
+	local_4 = ( local_1 - constant_0 );
+	local_3 = ( local_4 - constant_1 );
+	local_12 = ( Global.Int( "GUI_alignment_offset" ) + constant_4 );
+	local_13 = local_0;
+	local_14 = ( Global.Int( "GUI_shader_width" ) + (constant_4 - (local_12 * 2)) );
+	local_15 = ( local_3 - local_13 );
+	window_0 = GUI.CreateSplitterWindow( local_12, local_13, local_14, local_15, window_4, local_11, false );
+	window_2 = GUI.SplitterWindowTopWindow( window_0 );
+	window_3 = GUI.CreateStaticWindow( 0, 0, GUI.WindowCanvasWidth( window_2 ), GUI.WindowCanvasHeight( window_2 ), window_2 );
+	local_22 = String.UpperCase( Text.Field( local_22, FT_Text ) );
+	GUI.SetWindowFont( window_3, Global.String( "GUI_subtitle_font" ) );
+	GUI.SetWindowTitle( window_3, local_22 );
+	GUI.SetWindowTextFormatting( window_3, false, 9 );
+	GUI.SetWindowStateColours( window_3, Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ) );
+	window_2 = GUI.SplitterWindowBottomWindow( window_0 );
+	window_1 = iGUI.CreateAndInitialiseTextWindow( constant_5, 0, GUI.WindowCanvasWidth( window_2 ) - (constant_5 + (2 * gUIScrollbarWidth)), GUI.WindowCanvasHeight( window_2 ), window_2, "" );
+	GUI.SetWindowFont( window_1, Global.String( "GUI_detail_font" ) );
+	GUI.SetTextWindowString( window_1, iLoadout.LoadoutDescription() );
+	GUI.CreateVerticalScrollbar( GUI.WindowCanvasWidth( window_2 ) - gUIScrollbarWidth, 0, gUIScrollbarWidth, GUI.WindowCanvasHeight( window_2 ), window_2, window_1, Global.Float( "GUI_scrollbar_buttonratio" ), "" );
+	local_13 = local_4;
+	local_function_41( window_4, local_13 );
+	iLoadout.SetManifestWindow( window_1 );
+	return window_1;
+}
+
+SPCustomiseScreen()
+{
+	hwindow window;
+	htask local_1;
+	hwindow customiseloadoutSplitter;
+	hwindow customiseloadoutTextbox;
+	
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	window = iGUI.CreateShadyBar();
+	iGUI.AddBackButtons( window, "iBaseGUI.SPCustomiseScreen_OnBackButton", "iBaseGUI.SPCustomiseScreen_OnBackToMainMenuButton" );
+	local_function_42();
+	iGUI.AddTitle( window, Text.Field( "loadoutmenu_customise", FT_Text ) );
+	local_function_43( window );
+	GUI.SetControlFocusCancelFunction( "iBaseGUI.SPCustomiseScreen_OnBackButton" );
+	customiseloadoutSplitter = GUI.Cast( Global.Handle( "customiseloadout_splitter" ) );
+	customiseloadoutTextbox = GUI.Cast( Global.Handle( "customiseloadout_textbox" ) );
+	iLoadout.StartCustomisedLoadout( customiseloadoutSplitter, customiseloadoutTextbox );
+	local_1 = start local_function_44();
+	Task.Detach( local_1 );
+	Global.CreateHandle( "CustomiseScreen_UpdateTask", 2, local_1 );
+}
+
+local_function_45()
+{
+	htask customiseScreenUpdateTask;
+	
+	iLoadout.EndCustomisedLoadout();
+	customiseScreenUpdateTask = Task.Cast( Global.Handle( "CustomiseScreen_UpdateTask" ) );
+	Task.Halt( customiseScreenUpdateTask );
+	Global.Destroy( "CustomiseScreen_UpdateTask" );
+	GUI.SetRHSShadyBarWidth( 0 );
+	Global.Destroy( "customiseloadout_indicators" );
+	Global.Destroy( "customiseloadout_splitter" );
+	Global.Destroy( "customiseloadout_textbox" );
+}
+
+SPCustomiseScreen_OnBackButton()
+{
+	int local_0;
+	
+	if ( !iLoadout.OnCustomiseScreenBack() )
+	{
+		local_function_45();
+		GUI.RemoveLastOverlay();
+	}
+}
+
+SPCustomiseScreen_OnBackToMainMenuButton()
+{
+	local_function_45();
+	
+	atomic
+	{
+		SPCustomiseScreen_OnBackButton();
+		GUI.RemoveOverlaysAfter( "icSPBaseScreen" );
+	}
+}
+
+local_function_41( hwindow window_0_, int param_1_ )
+{
+	hwindow window_1;
+	hwindow window_2;
+	string local_2;
+	int local_3;
+	int local_4;
+	int constant_0;
+	int constant_1;
+	list localList;
+	int constant_2 = 9;
+	
+	local_2 = Global.String( "type_font" );
+	local_3 = ( Global.Int( "GUI_fancyborder_alignmentoffset" ) + (Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_width" )) );
+	local_4 = ( Global.Int( "GUI_shader_width" ) - (local_3 * 2) );
+	local_3 = ( Global.Int( "GUI_fancyborder_alignmentoffset" ) + (Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_width" )) );
+	constant_1 = 40;
+	constant_0 = 45;
+	window_1 = GUI.CreateWindow( local_3, param_1_, local_4, constant_0, window_0_ );
+	window_2 = iGUI.CreateAndInitialiseStaticWindow( constant_2, 2, local_4 - constant_1, (constant_0 / 3) + 2, window_1, local_2, "" );
+	GUI.SetWindowTextFormatting( window_2, false, 0 );
+	List.AddTail( localList, window_2 );
+	window_2 = iGUI.CreateAndInitialiseStaticWindow( local_4 - constant_1, 2, constant_1, (constant_0 / 3) + 2, window_1, local_2, "" );
+	GUI.SetWindowTextFormatting( window_2, false, 0 );
+	List.AddTail( localList, window_2 );
+	Global.CreateList( "customiseloadout_indicators", 2, localList );
+}
+
+local_function_43( hwindow window_0_ )
+{
+	int local_0;
+	int local_1;
+	int local_2;
+	int local_3;
+	int local_4;
+	int constant_0 = 45;
+	int constant_1 = 3;
+	int constant_2 = 8;
+	int gUIScrollbarWidth = Global.Int( "GUI_scrollbar_width" );
+	int constant_3 = 4;
+	int local_10 = ( (2 * Global.Int( "GUI_fancyborder_width" )) + 13 );
+	int local_11;
+	int local_12;
+	int local_13;
+	int local_14;
+	hwindow window_1;
+	hwindow window_2;
+	int local_17;
+	int local_18;
+	int local_19;
+	int local_20;
+	string local_21;
+	
+	local_1 = ( GUI.WindowCanvasHeight( window_0_ ) - (constant_2 + Global.Int( "GUI_backbutton_rise" )) );
+	local_0 = ( Global.Int( "GUI_title_yoffset" ) + Global.Int( "GUI_fancybutton_height" ) );
+	local_2 = ( local_1 - local_0 );
+	local_4 = ( local_1 - constant_0 );
+	local_3 = ( local_4 - constant_1 );
+	local_11 = ( Global.Int( "GUI_alignment_offset" ) + constant_3 );
+	local_12 = local_0;
+	local_13 = ( Global.Int( "GUI_shader_width" ) + (constant_3 - (local_11 * 2)) );
+	local_14 = ( local_3 - local_12 );
+	window_1 = GUI.CreateSplitterWindow( local_11, local_12, local_13, local_14, window_0_, local_10, false );
+	Global.CreateHandle( "customiseloadout_splitter", 2, window_1 );
+	local_11 = ( Global.Int( "GUI_alignment_offset" ) + (Global.Int( "GUI_fancyborder_width" ) + (Global.Int( "GUI_fancyborder_alignmentoffset" ) + 9)) );
+	local_12 = local_4;
+	local_13 = ( Global.Int( "GUI_shader_width" ) - (Global.Int( "GUI_alignment_offset" ) * 2) );
+	local_14 = ( local_1 - local_4 );
+	window_2 = iGUI.CreateAndInitialiseTextWindow( local_11, local_12, local_13, local_14, window_0_, "" );
+	GUI.SetWindowFont( window_2, Global.String( "type_font" ) );
+	Global.CreateHandle( "customiseloadout_textbox", 2, window_2 );
+}
+
+local_function_46()
+{
+	hwindow gUI_0;
+	hwindow gUI_1;
+	int local_2;
+	string local_3;
+	float gUIFocusedRed;
+	float gUIFocusedGreen;
+	float gUIFocusedBlue;
+	list localList = Global.List( "customiseloadout_indicators" );
+	
+	gUI_0 = GUI.Cast( List.Head( localList ) );
+	List.RemoveHead( localList );
+	gUI_1 = GUI.Cast( List.Head( localList ) );
+	List.RemoveHead( localList );
+	gUIFocusedRed = Global.Float( "GUI_focused_red" );
+	gUIFocusedGreen = Global.Float( "GUI_focused_green" );
+	gUIFocusedBlue = Global.Float( "GUI_focused_blue" );
+	local_2 = iLoadout.UnusedInternalCargoSlots();
+	local_3 = Text.Field( "customise_internalcargospace", FT_Text );
+	GUI.SetWindowTitle( gUI_0, local_3 );
+	local_3 = String.FromInt( local_2 );
+	GUI.SetWindowTitle( gUI_1, local_3 );
+	
+	if ( iLoadout.CargoSpaceWarning() )
+	{
+		GUI.SetWindowStateColours( gUI_0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0 );
+		GUI.SetWindowStateColours( gUI_1, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0 );
+		return;
+	}
+	
+	GUI.SetWindowStateColours( gUI_0, gUIFocusedRed, gUIFocusedGreen, gUIFocusedBlue, gUIFocusedRed, gUIFocusedGreen, gUIFocusedBlue, gUIFocusedRed, gUIFocusedGreen, gUIFocusedBlue );
+	GUI.SetWindowStateColours( gUI_1, gUIFocusedRed, gUIFocusedGreen, gUIFocusedBlue, gUIFocusedRed, gUIFocusedGreen, gUIFocusedBlue, gUIFocusedRed, gUIFocusedGreen, gUIFocusedBlue );
+}
+
+task local_function_44()
+{
+	schedule
+	{
+		every 0.10:
+		{
+			atomic
+			{
+				local_function_46();
+				iLoadout.UpdateCustomisedLoadoutTextBox();
+			}
+		}
+	}
+}
+
+SPCustomiseScreen_OnSelect()
+{
+	GUI.QueueSound( S_Confirm );
+	iLoadout.OnCustomiseScreenSelect();
+}
+
+hwindow SPCustomiseScreen_CreateOptionsListBox( hwindow splitter_pane_, int width_ )
+{
+	return none;
+}
+
+SPStatisticsScreen()
+{
+	hwindow gUI;
+	list localList;
+	hwindow window;
+	string local_3;
+	
+	localList = iGUI.CreateGreyBoxStyleScreen( Text.Field( "basemenu_statistics", FT_Text ), "iBaseGUI.SPStatisticsScreen_OnBackButton", "iBaseGUI.SPStatisticsScreen_OnBackToMainMenuButton" );
+	gUI = GUI.Cast( List.Head( localList ) );
+	window = iGUI.CreateTitledTextBox( gUI, Text.Field( "basemenu_statistics", FT_Text ), 0, "", 0, "", "" );
+	GUI.SetWindowFont( window, Global.String( "type_font" ) );
+	GUI.SetTextWindowString( window, iScore.HTMLisedStats() );
+	GUI.SetFirstControlFocus( window );
+	GUI.SetControlFocusCancelFunction( "iBaseGUI.SPStatisticsScreen_OnBackButton" );
+}
+
+SPStatisticsScreen_OnBackButton()
+{
+	GUI.RemoveLastOverlay();
+}
+
+SPStatisticsScreen_OnBackToMainMenuButton()
+{
+	SPStatisticsScreen_OnBackButton();
+}
+
+OnConversationStart()
+{
+	GUI.OverlayScreen( "icPopUpCommsScreen" );
+}
+
+hwindow local_function_24( string param_0_, list localList_ )
+{
+	hwindow window = iGUI.CreateInverseRadioButton( 0, 0, none );
+	
+	GUI.SetWindowTitle( window, param_0_ );
+	List.AddTail( localList_, window );
+	return window;
+}
+

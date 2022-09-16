@@ -1,0 +1,996 @@
+package iGUI;
+
+uses GUI,
+     Set,
+     List,
+     String,
+     Global,
+     Object,
+     Task;
+
+provides SetGUIGlobals,
+         CreateFancyButton,
+         CreateBackButton,
+         CreateBackToMainMenuButton,
+         CreateInverseButton,
+         CreateInverseRadioButton,
+         CreateFancyVerticalScrollbar,
+         CreateAndInitialiseTextWindow,
+         CreateAndInitialiseStaticWindow,
+         CreateAndInitialiseFancyButton,
+         CreateAndInitialiseFancyBorderedStatic,
+         CreateAndInitialiseTabStyleStatic,
+         CreateAndInitialiseInverseButton,
+         CreateAndInitialiseParentlessInverseButton,
+         CreateMenuButton,
+         CreateAndInitialiseRectangularInverseRadioButton,
+         CreateAndInitialiseRectangularInverseButton,
+         CreateShadyBar,
+         CreateShadyBarRight,
+         CreateWideShadyBar,
+         AddBackButtons,
+         AddBackButton,
+         AddTitle,
+         ArrangeWindowsVertically,
+         CreateMenu,
+         CreateGreyBoxStyleScreen,
+         CreateHTMLGreyBoxStyleScreen,
+         CreateWindowListInFancyBorder,
+         CreateWindowListInSplitter,
+         CreateTitledListBox,
+         CreateFancyListBox,
+         CreateTitledTextBox,
+         SetCyclicControlFocusPath,
+         CreateAndInitialiseListBoxEntryComponentWindow,
+         MakeInverseButtonIconic,
+         MakeRectangularInverseButtonIconic,
+         StartWindowFlashing,
+         StopWindowFlashing,
+         NullFunction;
+
+prototype SetGUIGlobals();
+prototype hwindow CreateFancyButton( int x_, int y_, hwindow parent_ );
+prototype hwindow CreateBackButton( int x_, int y_, hwindow parent_ );
+prototype hwindow CreateBackToMainMenuButton( int x_, int y_, hwindow parent_ );
+prototype hwindow CreateInverseButton( int x_, int y_, int width_, hwindow parent_ );
+prototype hwindow CreateInverseRadioButton( int x_, int y_, hwindow parent_ );
+prototype hwindow CreateFancyVerticalScrollbar( int x_, int y_, int height_, hwindow parent_, hwindow target_ );
+prototype hwindow CreateAndInitialiseTextWindow( int x_, int y_, int width_, int height_, hwindow parent_, string text_resource_ );
+prototype hwindow CreateAndInitialiseStaticWindow( int x_, int y_, int width_, int height_, hwindow parent_, string font_, string title_ );
+prototype hwindow CreateAndInitialiseFancyBorderedStatic( hwindow parent_, int y_offset_, string title_ );
+prototype hwindow CreateMenuButton( string button_function_, string title_, list window_list_ );
+prototype hwindow CreateAndInitialiseRectangularInverseButton( hwindow parent_, int x_, int y_, int width_, string title_, string function_ );
+prototype hwindow CreateAndInitialiseRectangularInverseRadioButton( hwindow parent_, int x_, int y_, int width_, string title_, bool checked_ );
+prototype hwindow CreateAndInitialiseFancyButton( hwindow parent_, int y_offset_, string title_, string function_ );
+prototype hwindow CreateAndInitialiseTabStyleStatic( hwindow parent_, int x_, int y_, int width_, string title_ );
+prototype hwindow CreateAndInitialiseInverseButton( hwindow parent_, int x_, int y_, int width_, string title_, string function_ );
+prototype hwindow CreateAndInitialiseParentlessInverseButton( string button_function_, string title_, list window_list_ );
+prototype hwindow CreateShadyBar();
+prototype hwindow CreateShadyBarRight();
+prototype hwindow CreateWideShadyBar();
+prototype list AddBackButtons( hwindow parent_, string back_function_, string back_to_main_menu_function_ );
+prototype hwindow AddBackButton( hwindow parent_, string back_function_ );
+prototype hwindow AddTitle( hwindow parent_, string title_ );
+prototype ArrangeWindowsVertically( list windows_, hwindow parent_, int x_offset_, int y_offset_, int inter_window_gap_ );
+prototype hwindow CreateMenu( list buttons_ );
+prototype list CreateGreyBoxStyleScreen( string title_, string back_function_, string back_to_main_function_ );
+prototype list CreateHTMLGreyBoxStyleScreen( string html_, int width_, int height_, string back_function_, string back_to_main_function_ );
+prototype hwindow CreateWindowListInFancyBorder( hwindow parent_, list windows_, int x_, int y_ );
+prototype hwindow CreateWindowListInSplitter( hwindow parent_, list windows_, int splitter_x_, int splitter_y_, string list_title_ );
+prototype hwindow CreateTitledListBox( hwindow parent_, string title_text_, int column1_width_, string column1_title_, int column2_width_, string column2_title_, int column3_width_, string column3_title_ );
+prototype hwindow CreateFancyListBox( hwindow parent_, int x_, int y_, int width_, int height_ );
+prototype hwindow CreateTitledTextBox( hwindow parent_, string title_text_, int column1_width_, string column1_title_, int column2_width_, string column2_title_, string text_resource_ );
+prototype SetCyclicControlFocusPath( list windows_ );
+prototype MakeInverseButtonIconic( hwindow window_ );
+prototype MakeRectangularInverseButtonIconic( hwindow window_ );
+prototype task local_function_2( hwindow window_, float param_1_, float param_2_, float param_3_, float param_4_, float param_5_, float param_6_, float param_7_, float param_8_, float param_9_ );
+prototype StartWindowFlashing( hwindow window_ );
+prototype StopWindowFlashing( hwindow window_ );
+prototype NullFunction();
+prototype int local_function_0( list localList_ );
+prototype int local_function_1( list localList_, int param_1_ );
+prototype hwindow CreateAndInitialiseListBoxEntryComponentWindow( int x_offset_, int width_, int height_, hwindow parent_, string font_, string name_ );
+
+SetGUIGlobals()
+{
+	int constant = 14;
+	
+	Global.CreateString( "GUI_texture_request", constant, "texture:/images/gui/gui" );
+	Global.CreateInt( "GUI_shader_width", constant, 240 );
+	Global.CreateFloat( "GUI_shader_opacity", constant, 0.80 );
+	Global.CreateInt( "GUI_greybox_left_left", constant, 8 );
+	Global.CreateInt( "GUI_greybox_left_top", constant, 30 );
+	Global.CreateInt( "GUI_greybox_left_right", constant, 10 );
+	Global.CreateInt( "GUI_greybox_left_bottom", constant, 32 );
+	Global.CreateInt( "GUI_greybox_body_left", constant, 10 );
+	Global.CreateInt( "GUI_greybox_body_top", constant, 30 );
+	Global.CreateInt( "GUI_greybox_body_right", constant, 12 );
+	Global.CreateInt( "GUI_greybox_body_bottom", constant, 32 );
+	Global.CreateInt( "GUI_greybox_right_left", constant, 12 );
+	Global.CreateInt( "GUI_greybox_right_top", constant, 30 );
+	Global.CreateInt( "GUI_greybox_right_right", constant, 14 );
+	Global.CreateInt( "GUI_greybox_right_bottom", constant, 32 );
+	Global.CreateInt( "GUI_alignment_offset", constant, 13 );
+	Global.CreateInt( "GUI_table_alignmentoffset", constant, 13 );
+	Global.CreateInt( "GUI_greybox_xoffset", constant, 12 );
+	Global.CreateInt( "GUI_title_yoffset", constant, 27 );
+	Global.CreateInt( "GUI_mainmenu_yoffset", constant, 27 );
+	Global.CreateInt( "GUI_mainmenu_gap", constant, 15 );
+	Global.CreateInt( "GUI_buttonlist_gap", constant, 4 );
+	Global.CreateInt( "GUI_main_title_x_offset", constant, 20 );
+	Global.CreateInt( "GUI_main_title_height", constant, 24 );
+	Global.CreateString( "GUI_main_title_font", constant, "font:/fonts/square721 bdex bt_19pt" );
+	Global.CreateString( "GUI_title_font", constant, "font:/fonts/square721 bdex bt_8pt" );
+	Global.CreateString( "GUI_subtitle_font", constant, "font:/fonts/square721 bdex bt_6pt" );
+	Global.CreateString( "GUI_detail_font", constant, "font:/fonts/handelgothic bt_7pt" );
+	Global.CreateString( "type_font", constant, "font:/fonts/handelgothic bt_8pt" );
+	Global.CreateFloat( "GUI_neutral_red", constant, 0.60 );
+	Global.CreateFloat( "GUI_neutral_green", constant, 0.4510 );
+	Global.CreateFloat( "GUI_neutral_blue", constant, 0.0 );
+	Global.CreateFloat( "GUI_focused_red", constant, 1.0 );
+	Global.CreateFloat( "GUI_focused_green", constant, 0.7490 );
+	Global.CreateFloat( "GUI_focused_blue", constant, 0.0 );
+	Global.CreateFloat( "GUI_selected_red", constant, 1.0 );
+	Global.CreateFloat( "GUI_selected_green", constant, 0.8590 );
+	Global.CreateFloat( "GUI_selected_blue", constant, 0.2780 );
+	Global.CreateFloat( "GUI_faded_red", constant, 0.50 );
+	Global.CreateFloat( "GUI_faded_green", constant, 0.37450 );
+	Global.CreateFloat( "GUI_faded_blue", constant, 0.0 );
+	Global.CreateInt( "GUI_backbutton_left", constant, 27 );
+	Global.CreateInt( "GUI_backbutton_rise", constant, 70 );
+	Global.CreateInt( "GUI_backbutton_width", constant, 19 );
+	Global.CreateInt( "GUI_backbutton_height", constant, 19 );
+	Global.CreateInt( "GUI_backbutton_xoffset", constant, 21 );
+	Global.CreateInt( "GUI_backbutton_yoffset", constant, 18 );
+	Global.CreateInt( "GUI_backbutton_neutral_left_left", constant, 178 );
+	Global.CreateInt( "GUI_backbutton_neutral_left_top", constant, 0 );
+	Global.CreateInt( "GUI_backbutton_neutral_left_right", constant, 186 );
+	Global.CreateInt( "GUI_backbutton_neutral_left_bottom", constant, 19 );
+	Global.CreateInt( "GUI_backbutton_neutral_body_left", constant, 186 );
+	Global.CreateInt( "GUI_backbutton_neutral_body_top", constant, 0 );
+	Global.CreateInt( "GUI_backbutton_neutral_body_right", constant, 189 );
+	Global.CreateInt( "GUI_backbutton_neutral_body_bottom", constant, 19 );
+	Global.CreateInt( "GUI_backbutton_neutral_right_left", constant, 189 );
+	Global.CreateInt( "GUI_backbutton_neutral_right_top", constant, 0 );
+	Global.CreateInt( "GUI_backbutton_neutral_right_right", constant, 197 );
+	Global.CreateInt( "GUI_backbutton_neutral_right_bottom", constant, 19 );
+	Global.CreateInt( "GUI_backbutton_focused_left_left", constant, 198 );
+	Global.CreateInt( "GUI_backbutton_focused_left_top", constant, 0 );
+	Global.CreateInt( "GUI_backbutton_focused_left_right", constant, 206 );
+	Global.CreateInt( "GUI_backbutton_focused_left_bottom", constant, 19 );
+	Global.CreateInt( "GUI_backbutton_focused_body_left", constant, 206 );
+	Global.CreateInt( "GUI_backbutton_focused_body_top", constant, 0 );
+	Global.CreateInt( "GUI_backbutton_focused_body_right", constant, 209 );
+	Global.CreateInt( "GUI_backbutton_focused_body_bottom", constant, 19 );
+	Global.CreateInt( "GUI_backbutton_focused_right_left", constant, 209 );
+	Global.CreateInt( "GUI_backbutton_focused_right_top", constant, 0 );
+	Global.CreateInt( "GUI_backbutton_focused_right_right", constant, 217 );
+	Global.CreateInt( "GUI_backbutton_focused_right_bottom", constant, 19 );
+	Global.CreateInt( "GUI_backbutton_selected_left_left", constant, 198 );
+	Global.CreateInt( "GUI_backbutton_selected_left_top", constant, 0 );
+	Global.CreateInt( "GUI_backbutton_selected_left_right", constant, 206 );
+	Global.CreateInt( "GUI_backbutton_selected_left_bottom", constant, 19 );
+	Global.CreateInt( "GUI_backbutton_selected_body_left", constant, 206 );
+	Global.CreateInt( "GUI_backbutton_selected_body_top", constant, 0 );
+	Global.CreateInt( "GUI_backbutton_selected_body_right", constant, 209 );
+	Global.CreateInt( "GUI_backbutton_selected_body_bottom", constant, 19 );
+	Global.CreateInt( "GUI_backbutton_selected_right_left", constant, 209 );
+	Global.CreateInt( "GUI_backbutton_selected_right_top", constant, 0 );
+	Global.CreateInt( "GUI_backbutton_selected_right_right", constant, 217 );
+	Global.CreateInt( "GUI_backbutton_selected_right_bottom", constant, 19 );
+	Global.CreateInt( "GUI_mainmenubackbutton_neutral_left_left", constant, 178 );
+	Global.CreateInt( "GUI_mainmenubackbutton_neutral_left_top", constant, 20 );
+	Global.CreateInt( "GUI_mainmenubackbutton_neutral_left_right", constant, 186 );
+	Global.CreateInt( "GUI_mainmenubackbutton_neutral_left_bottom", constant, 39 );
+	Global.CreateInt( "GUI_mainmenubackbutton_neutral_body_left", constant, 186 );
+	Global.CreateInt( "GUI_mainmenubackbutton_neutral_body_top", constant, 20 );
+	Global.CreateInt( "GUI_mainmenubackbutton_neutral_body_right", constant, 189 );
+	Global.CreateInt( "GUI_mainmenubackbutton_neutral_body_bottom", constant, 39 );
+	Global.CreateInt( "GUI_mainmenubackbutton_neutral_right_left", constant, 189 );
+	Global.CreateInt( "GUI_mainmenubackbutton_neutral_right_top", constant, 20 );
+	Global.CreateInt( "GUI_mainmenubackbutton_neutral_right_right", constant, 197 );
+	Global.CreateInt( "GUI_mainmenubackbutton_neutral_right_bottom", constant, 39 );
+	Global.CreateInt( "GUI_mainmenubackbutton_focused_left_left", constant, 198 );
+	Global.CreateInt( "GUI_mainmenubackbutton_focused_left_top", constant, 20 );
+	Global.CreateInt( "GUI_mainmenubackbutton_focused_left_right", constant, 206 );
+	Global.CreateInt( "GUI_mainmenubackbutton_focused_left_bottom", constant, 39 );
+	Global.CreateInt( "GUI_mainmenubackbutton_focused_body_left", constant, 206 );
+	Global.CreateInt( "GUI_mainmenubackbutton_focused_body_top", constant, 20 );
+	Global.CreateInt( "GUI_mainmenubackbutton_focused_body_right", constant, 209 );
+	Global.CreateInt( "GUI_mainmenubackbutton_focused_body_bottom", constant, 39 );
+	Global.CreateInt( "GUI_mainmenubackbutton_focused_right_left", constant, 209 );
+	Global.CreateInt( "GUI_mainmenubackbutton_focused_right_top", constant, 20 );
+	Global.CreateInt( "GUI_mainmenubackbutton_focused_right_right", constant, 217 );
+	Global.CreateInt( "GUI_mainmenubackbutton_focused_right_bottom", constant, 39 );
+	Global.CreateInt( "GUI_mainmenubackbutton_selected_left_left", constant, 198 );
+	Global.CreateInt( "GUI_mainmenubackbutton_selected_left_top", constant, 20 );
+	Global.CreateInt( "GUI_mainmenubackbutton_selected_left_right", constant, 206 );
+	Global.CreateInt( "GUI_mainmenubackbutton_selected_left_bottom", constant, 39 );
+	Global.CreateInt( "GUI_mainmenubackbutton_selected_body_left", constant, 206 );
+	Global.CreateInt( "GUI_mainmenubackbutton_selected_body_top", constant, 20 );
+	Global.CreateInt( "GUI_mainmenubackbutton_selected_body_right", constant, 209 );
+	Global.CreateInt( "GUI_mainmenubackbutton_selected_body_bottom", constant, 39 );
+	Global.CreateInt( "GUI_mainmenubackbutton_selected_right_left", constant, 209 );
+	Global.CreateInt( "GUI_mainmenubackbutton_selected_right_top", constant, 20 );
+	Global.CreateInt( "GUI_mainmenubackbutton_selected_right_right", constant, 217 );
+	Global.CreateInt( "GUI_mainmenubackbutton_selected_right_bottom", constant, 39 );
+	Global.CreateInt( "GUI_fancybutton_width", constant, 226 );
+	Global.CreateInt( "GUI_fancybutton_height", constant, 32 );
+	Global.CreateInt( "GUI_fancybutton_alignmentoffset", constant, -4 );
+	Global.CreateInt( "GUI_fancybutton_textoffset", constant, 22 );
+	Global.CreateInt( "GUI_fancybutton_neutral_left_left", constant, 0 );
+	Global.CreateInt( "GUI_fancybutton_neutral_left_top", constant, 36 );
+	Global.CreateInt( "GUI_fancybutton_neutral_left_right", constant, 19 );
+	Global.CreateInt( "GUI_fancybutton_neutral_left_bottom", constant, 68 );
+	Global.CreateInt( "GUI_fancybutton_neutral_body_left", constant, 20 );
+	Global.CreateInt( "GUI_fancybutton_neutral_body_top", constant, 36 );
+	Global.CreateInt( "GUI_fancybutton_neutral_body_right", constant, 21 );
+	Global.CreateInt( "GUI_fancybutton_neutral_body_bottom", constant, 68 );
+	Global.CreateInt( "GUI_fancybutton_neutral_right_left", constant, 22 );
+	Global.CreateInt( "GUI_fancybutton_neutral_right_top", constant, 36 );
+	Global.CreateInt( "GUI_fancybutton_neutral_right_right", constant, 39 );
+	Global.CreateInt( "GUI_fancybutton_neutral_right_bottom", constant, 68 );
+	Global.CreateInt( "GUI_fancybutton_focused_left_left", constant, 40 );
+	Global.CreateInt( "GUI_fancybutton_focused_left_top", constant, 36 );
+	Global.CreateInt( "GUI_fancybutton_focused_left_right", constant, 59 );
+	Global.CreateInt( "GUI_fancybutton_focused_left_bottom", constant, 68 );
+	Global.CreateInt( "GUI_fancybutton_focused_body_left", constant, 60 );
+	Global.CreateInt( "GUI_fancybutton_focused_body_top", constant, 36 );
+	Global.CreateInt( "GUI_fancybutton_focused_body_right", constant, 61 );
+	Global.CreateInt( "GUI_fancybutton_focused_body_bottom", constant, 68 );
+	Global.CreateInt( "GUI_fancybutton_focused_right_left", constant, 62 );
+	Global.CreateInt( "GUI_fancybutton_focused_right_top", constant, 36 );
+	Global.CreateInt( "GUI_fancybutton_focused_right_right", constant, 80 );
+	Global.CreateInt( "GUI_fancybutton_focused_right_bottom", constant, 68 );
+	Global.CreateInt( "GUI_fancybutton_selected_left_left", constant, 81 );
+	Global.CreateInt( "GUI_fancybutton_selected_left_top", constant, 36 );
+	Global.CreateInt( "GUI_fancybutton_selected_left_right", constant, 100 );
+	Global.CreateInt( "GUI_fancybutton_selected_left_bottom", constant, 68 );
+	Global.CreateInt( "GUI_fancybutton_selected_body_left", constant, 101 );
+	Global.CreateInt( "GUI_fancybutton_selected_body_top", constant, 36 );
+	Global.CreateInt( "GUI_fancybutton_selected_body_right", constant, 102 );
+	Global.CreateInt( "GUI_fancybutton_selected_body_bottom", constant, 68 );
+	Global.CreateInt( "GUI_fancybutton_selected_right_left", constant, 103 );
+	Global.CreateInt( "GUI_fancybutton_selected_right_top", constant, 36 );
+	Global.CreateInt( "GUI_fancybutton_selected_right_right", constant, 120 );
+	Global.CreateInt( "GUI_fancybutton_selected_right_bottom", constant, 68 );
+	Global.CreateInt( "GUI_fancybutton_faded_left_left", constant, 121 );
+	Global.CreateInt( "GUI_fancybutton_faded_left_top", constant, 36 );
+	Global.CreateInt( "GUI_fancybutton_faded_left_right", constant, 140 );
+	Global.CreateInt( "GUI_fancybutton_faded_left_bottom", constant, 68 );
+	Global.CreateInt( "GUI_fancybutton_faded_body_left", constant, 141 );
+	Global.CreateInt( "GUI_fancybutton_faded_body_top", constant, 36 );
+	Global.CreateInt( "GUI_fancybutton_faded_body_right", constant, 142 );
+	Global.CreateInt( "GUI_fancybutton_faded_body_bottom", constant, 68 );
+	Global.CreateInt( "GUI_fancybutton_faded_right_left", constant, 143 );
+	Global.CreateInt( "GUI_fancybutton_faded_right_top", constant, 36 );
+	Global.CreateInt( "GUI_fancybutton_faded_right_right", constant, 161 );
+	Global.CreateInt( "GUI_fancybutton_faded_right_bottom", constant, 68 );
+	Global.CreateInt( "GUI_inversebutton_width", constant, 199 );
+	Global.CreateInt( "GUI_inversebutton_height", constant, 16 );
+	Global.CreateInt( "GUI_inversebutton_textoffset", constant, 9 );
+	Global.CreateInt( "GUI_inversebutton_neutral_left_left", constant, 0 );
+	Global.CreateInt( "GUI_inversebutton_neutral_left_top", constant, 69 );
+	Global.CreateInt( "GUI_inversebutton_neutral_left_right", constant, 2 );
+	Global.CreateInt( "GUI_inversebutton_neutral_left_bottom", constant, 85 );
+	Global.CreateInt( "GUI_inversebutton_neutral_body_left", constant, 3 );
+	Global.CreateInt( "GUI_inversebutton_neutral_body_top", constant, 69 );
+	Global.CreateInt( "GUI_inversebutton_neutral_body_right", constant, 4 );
+	Global.CreateInt( "GUI_inversebutton_neutral_body_bottom", constant, 85 );
+	Global.CreateInt( "GUI_inversebutton_neutral_right_left", constant, 5 );
+	Global.CreateInt( "GUI_inversebutton_neutral_right_top", constant, 69 );
+	Global.CreateInt( "GUI_inversebutton_neutral_right_right", constant, 7 );
+	Global.CreateInt( "GUI_inversebutton_neutral_right_bottom", constant, 85 );
+	Global.CreateInt( "GUI_inversebutton_focused_left_left", constant, 8 );
+	Global.CreateInt( "GUI_inversebutton_focused_left_top", constant, 69 );
+	Global.CreateInt( "GUI_inversebutton_focused_left_right", constant, 10 );
+	Global.CreateInt( "GUI_inversebutton_focused_left_bottom", constant, 85 );
+	Global.CreateInt( "GUI_inversebutton_focused_body_left", constant, 11 );
+	Global.CreateInt( "GUI_inversebutton_focused_body_top", constant, 69 );
+	Global.CreateInt( "GUI_inversebutton_focused_body_right", constant, 12 );
+	Global.CreateInt( "GUI_inversebutton_focused_body_bottom", constant, 85 );
+	Global.CreateInt( "GUI_inversebutton_focused_right_left", constant, 13 );
+	Global.CreateInt( "GUI_inversebutton_focused_right_top", constant, 69 );
+	Global.CreateInt( "GUI_inversebutton_focused_right_right", constant, 15 );
+	Global.CreateInt( "GUI_inversebutton_focused_right_bottom", constant, 85 );
+	Global.CreateInt( "GUI_inversebutton_selected_left_left", constant, 16 );
+	Global.CreateInt( "GUI_inversebutton_selected_left_top", constant, 69 );
+	Global.CreateInt( "GUI_inversebutton_selected_left_right", constant, 18 );
+	Global.CreateInt( "GUI_inversebutton_selected_left_bottom", constant, 85 );
+	Global.CreateInt( "GUI_inversebutton_selected_body_left", constant, 19 );
+	Global.CreateInt( "GUI_inversebutton_selected_body_top", constant, 69 );
+	Global.CreateInt( "GUI_inversebutton_selected_body_right", constant, 20 );
+	Global.CreateInt( "GUI_inversebutton_selected_body_bottom", constant, 85 );
+	Global.CreateInt( "GUI_inversebutton_selected_right_left", constant, 21 );
+	Global.CreateInt( "GUI_inversebutton_selected_right_top", constant, 69 );
+	Global.CreateInt( "GUI_inversebutton_selected_right_right", constant, 23 );
+	Global.CreateInt( "GUI_inversebutton_selected_right_bottom", constant, 85 );
+	Global.CreateInt( "GUI_fancy_scrollbar_width", constant, 13 );
+	Global.CreateFloat( "GUI_fancy_scrollbar_buttonratio", constant, 3.0 );
+	Global.CreateInt( "GUI_scrollbar_width", constant, 12 );
+	Global.CreateFloat( "GUI_scrollbar_buttonratio", constant, 1.50 );
+	Global.CreateInt( "GUI_fancyborder_width", constant, 7 );
+	Global.CreateInt( "GUI_fancyborder_alignmentoffset", constant, 4 );
+	Global.CreateInt( "GUI_tab_height", constant, 12 );
+	Global.CreateInt( "GUI_tab_text_offset", constant, 20 );
+	Global.CreateInt( "GUI_tab_left_left", constant, 53 );
+	Global.CreateInt( "GUI_tab_left_top", constant, 0 );
+	Global.CreateInt( "GUI_tab_left_right", constant, 61 );
+	Global.CreateInt( "GUI_tab_left_bottom", constant, 12 );
+	Global.CreateInt( "GUI_tab_body_left", constant, 62 );
+	Global.CreateInt( "GUI_tab_body_top", constant, 0 );
+	Global.CreateInt( "GUI_tab_body_right", constant, 63 );
+	Global.CreateInt( "GUI_tab_body_bottom", constant, 12 );
+	Global.CreateInt( "GUI_tab_right_left", constant, 64 );
+	Global.CreateInt( "GUI_tab_right_top", constant, 0 );
+	Global.CreateInt( "GUI_tab_right_right", constant, 67 );
+	Global.CreateInt( "GUI_tab_right_bottom", constant, 12 );
+	Global.CreateInt( "GUI_listbox_entryheight", constant, 10 );
+	Global.CreateInt( "GUI_slidercontrol_height", constant, 3 );
+	Global.CreateInt( "GUI_slidercontrol_gap", constant, 0 );
+}
+
+hwindow CreateFancyButton( int x_, int y_, hwindow parent_ )
+{
+	hwindow window_1 = GUI.CreateButton( x_, y_, Global.Int( "GUI_fancybutton_width" ), Global.Int( "GUI_fancybutton_height" ), parent_ );
+	
+	GUI.SetWindowFont( window_1, Global.String( "GUI_title_font" ) );
+	GUI.SetWindowTextFormatting( window_1, false, Global.Int( "GUI_fancybutton_textoffset" ) );
+	GUI.SetWindowStateColours( window_1, Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_selected_red" ), Global.Float( "GUI_selected_green" ), Global.Float( "GUI_selected_blue" ) );
+	GUI.SetWindowStateTextures( window_1, Global.String( "GUI_texture_request" ), Global.Int( "GUI_fancybutton_neutral_left_left" ), Global.Int( "GUI_fancybutton_neutral_left_top" ), Global.Int( "GUI_fancybutton_neutral_left_right" ), Global.Int( "GUI_fancybutton_neutral_left_bottom" ), Global.Int( "GUI_fancybutton_neutral_body_left" ), Global.Int( "GUI_fancybutton_neutral_body_top" ), Global.Int( "GUI_fancybutton_neutral_body_right" ), Global.Int( "GUI_fancybutton_neutral_body_bottom" ), Global.Int( "GUI_fancybutton_neutral_right_left" ), Global.Int( "GUI_fancybutton_neutral_right_top" ), Global.Int( "GUI_fancybutton_neutral_right_right" ), Global.Int( "GUI_fancybutton_neutral_right_bottom" ), Global.Int( "GUI_fancybutton_focused_left_left" ), Global.Int( "GUI_fancybutton_focused_left_top" ), Global.Int( "GUI_fancybutton_focused_left_right" ), Global.Int( "GUI_fancybutton_focused_left_bottom" ), Global.Int( "GUI_fancybutton_focused_body_left" ), Global.Int( "GUI_fancybutton_focused_body_top" ), Global.Int( "GUI_fancybutton_focused_body_right" ), Global.Int( "GUI_fancybutton_focused_body_bottom" ), Global.Int( "GUI_fancybutton_focused_right_left" ), Global.Int( "GUI_fancybutton_focused_right_top" ), Global.Int( "GUI_fancybutton_focused_right_right" ), Global.Int( "GUI_fancybutton_focused_right_bottom" ), Global.Int( "GUI_fancybutton_selected_left_left" ), Global.Int( "GUI_fancybutton_selected_left_top" ), Global.Int( "GUI_fancybutton_selected_left_right" ), Global.Int( "GUI_fancybutton_selected_left_bottom" ), Global.Int( "GUI_fancybutton_selected_body_left" ), Global.Int( "GUI_fancybutton_selected_body_top" ), Global.Int( "GUI_fancybutton_selected_body_right" ), Global.Int( "GUI_fancybutton_selected_body_bottom" ), Global.Int( "GUI_fancybutton_selected_right_left" ), Global.Int( "GUI_fancybutton_selected_right_top" ), Global.Int( "GUI_fancybutton_selected_right_right" ), Global.Int( "GUI_fancybutton_selected_right_bottom" ) );
+	return window_1;
+}
+
+hwindow CreateBackButton( int x_, int y_, hwindow parent_ )
+{
+	hwindow window_1 = GUI.CreateBackButton( x_, y_, Global.Int( "GUI_backbutton_width" ), Global.Int( "GUI_backbutton_width" ), parent_ );
+	
+	GUI.SetWindowStateTextures( window_1, Global.String( "GUI_texture_request" ), Global.Int( "GUI_backbutton_neutral_left_left" ), Global.Int( "GUI_backbutton_neutral_left_top" ), Global.Int( "GUI_backbutton_neutral_left_right" ), Global.Int( "GUI_backbutton_neutral_left_bottom" ), Global.Int( "GUI_backbutton_neutral_body_left" ), Global.Int( "GUI_backbutton_neutral_body_top" ), Global.Int( "GUI_backbutton_neutral_body_right" ), Global.Int( "GUI_backbutton_neutral_body_bottom" ), Global.Int( "GUI_backbutton_neutral_right_left" ), Global.Int( "GUI_backbutton_neutral_right_top" ), Global.Int( "GUI_backbutton_neutral_right_right" ), Global.Int( "GUI_backbutton_neutral_right_bottom" ), Global.Int( "GUI_backbutton_focused_left_left" ), Global.Int( "GUI_backbutton_focused_left_top" ), Global.Int( "GUI_backbutton_focused_left_right" ), Global.Int( "GUI_backbutton_focused_left_bottom" ), Global.Int( "GUI_backbutton_focused_body_left" ), Global.Int( "GUI_backbutton_focused_body_top" ), Global.Int( "GUI_backbutton_focused_body_right" ), Global.Int( "GUI_backbutton_focused_body_bottom" ), Global.Int( "GUI_backbutton_focused_right_left" ), Global.Int( "GUI_backbutton_focused_right_top" ), Global.Int( "GUI_backbutton_focused_right_right" ), Global.Int( "GUI_backbutton_focused_right_bottom" ), Global.Int( "GUI_backbutton_selected_left_left" ), Global.Int( "GUI_backbutton_selected_left_top" ), Global.Int( "GUI_backbutton_selected_left_right" ), Global.Int( "GUI_backbutton_selected_left_bottom" ), Global.Int( "GUI_backbutton_selected_body_left" ), Global.Int( "GUI_backbutton_selected_body_top" ), Global.Int( "GUI_backbutton_selected_body_right" ), Global.Int( "GUI_backbutton_selected_body_bottom" ), Global.Int( "GUI_backbutton_selected_right_left" ), Global.Int( "GUI_backbutton_selected_right_top" ), Global.Int( "GUI_backbutton_selected_right_right" ), Global.Int( "GUI_backbutton_selected_right_bottom" ) );
+	GUI.SetWindowStateColours( window_1, Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_selected_red" ), Global.Float( "GUI_selected_green" ), Global.Float( "GUI_selected_blue" ) );
+	return window_1;
+}
+
+hwindow CreateBackToMainMenuButton( int x_, int y_, hwindow parent_ )
+{
+	hwindow window_1 = GUI.CreateBackButton( x_, y_, Global.Int( "GUI_backbutton_width" ), Global.Int( "GUI_backbutton_height" ), parent_ );
+	
+	GUI.SetWindowStateTextures( window_1, Global.String( "GUI_texture_request" ), Global.Int( "GUI_mainmenubackbutton_neutral_left_left" ), Global.Int( "GUI_mainmenubackbutton_neutral_left_top" ), Global.Int( "GUI_mainmenubackbutton_neutral_left_right" ), Global.Int( "GUI_mainmenubackbutton_neutral_left_bottom" ), Global.Int( "GUI_mainmenubackbutton_neutral_body_left" ), Global.Int( "GUI_mainmenubackbutton_neutral_body_top" ), Global.Int( "GUI_mainmenubackbutton_neutral_body_right" ), Global.Int( "GUI_mainmenubackbutton_neutral_body_bottom" ), Global.Int( "GUI_mainmenubackbutton_neutral_right_left" ), Global.Int( "GUI_mainmenubackbutton_neutral_right_top" ), Global.Int( "GUI_mainmenubackbutton_neutral_right_right" ), Global.Int( "GUI_mainmenubackbutton_neutral_right_bottom" ), Global.Int( "GUI_mainmenubackbutton_focused_left_left" ), Global.Int( "GUI_mainmenubackbutton_focused_left_top" ), Global.Int( "GUI_mainmenubackbutton_focused_left_right" ), Global.Int( "GUI_mainmenubackbutton_focused_left_bottom" ), Global.Int( "GUI_mainmenubackbutton_focused_body_left" ), Global.Int( "GUI_mainmenubackbutton_focused_body_top" ), Global.Int( "GUI_mainmenubackbutton_focused_body_right" ), Global.Int( "GUI_mainmenubackbutton_focused_body_bottom" ), Global.Int( "GUI_mainmenubackbutton_focused_right_left" ), Global.Int( "GUI_mainmenubackbutton_focused_right_top" ), Global.Int( "GUI_mainmenubackbutton_focused_right_right" ), Global.Int( "GUI_mainmenubackbutton_focused_right_bottom" ), Global.Int( "GUI_mainmenubackbutton_selected_left_left" ), Global.Int( "GUI_mainmenubackbutton_selected_left_top" ), Global.Int( "GUI_mainmenubackbutton_selected_left_right" ), Global.Int( "GUI_mainmenubackbutton_selected_left_bottom" ), Global.Int( "GUI_mainmenubackbutton_selected_body_left" ), Global.Int( "GUI_mainmenubackbutton_selected_body_top" ), Global.Int( "GUI_mainmenubackbutton_selected_body_right" ), Global.Int( "GUI_mainmenubackbutton_selected_body_bottom" ), Global.Int( "GUI_mainmenubackbutton_selected_right_left" ), Global.Int( "GUI_mainmenubackbutton_selected_right_top" ), Global.Int( "GUI_mainmenubackbutton_selected_right_right" ), Global.Int( "GUI_mainmenubackbutton_selected_right_bottom" ) );
+	GUI.SetWindowStateColours( window_1, Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_selected_red" ), Global.Float( "GUI_selected_green" ), Global.Float( "GUI_selected_blue" ) );
+	return window_1;
+}
+
+hwindow CreateInverseButton( int x_, int y_, int width_, hwindow parent_ )
+{
+	hwindow window_1 = GUI.CreateButton( x_, y_, width_, Global.Int( "GUI_inversebutton_height" ), parent_ );
+	
+	GUI.SetWindowFont( window_1, Global.String( "GUI_detail_font" ) );
+	GUI.SetWindowTextFormatting( window_1, false, Global.Int( "GUI_inversebutton_textoffset" ) );
+	GUI.SetWindowStateColours( window_1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 );
+	GUI.SetWindowStateTextures( window_1, Global.String( "GUI_texture_request" ), Global.Int( "GUI_inversebutton_neutral_left_left" ), Global.Int( "GUI_inversebutton_neutral_left_top" ), Global.Int( "GUI_inversebutton_neutral_left_right" ), Global.Int( "GUI_inversebutton_neutral_left_bottom" ), Global.Int( "GUI_inversebutton_neutral_body_left" ), Global.Int( "GUI_inversebutton_neutral_body_top" ), Global.Int( "GUI_inversebutton_neutral_body_right" ), Global.Int( "GUI_inversebutton_neutral_body_bottom" ), Global.Int( "GUI_inversebutton_neutral_right_left" ), Global.Int( "GUI_inversebutton_neutral_right_top" ), Global.Int( "GUI_inversebutton_neutral_right_right" ), Global.Int( "GUI_inversebutton_neutral_right_bottom" ), Global.Int( "GUI_inversebutton_focused_left_left" ), Global.Int( "GUI_inversebutton_focused_left_top" ), Global.Int( "GUI_inversebutton_focused_left_right" ), Global.Int( "GUI_inversebutton_focused_left_bottom" ), Global.Int( "GUI_inversebutton_focused_body_left" ), Global.Int( "GUI_inversebutton_focused_body_top" ), Global.Int( "GUI_inversebutton_focused_body_right" ), Global.Int( "GUI_inversebutton_focused_body_bottom" ), Global.Int( "GUI_inversebutton_focused_right_left" ), Global.Int( "GUI_inversebutton_focused_right_top" ), Global.Int( "GUI_inversebutton_focused_right_right" ), Global.Int( "GUI_inversebutton_focused_right_bottom" ), Global.Int( "GUI_inversebutton_selected_left_left" ), Global.Int( "GUI_inversebutton_selected_left_top" ), Global.Int( "GUI_inversebutton_selected_left_right" ), Global.Int( "GUI_inversebutton_selected_left_bottom" ), Global.Int( "GUI_inversebutton_selected_body_left" ), Global.Int( "GUI_inversebutton_selected_body_top" ), Global.Int( "GUI_inversebutton_selected_body_right" ), Global.Int( "GUI_inversebutton_selected_body_bottom" ), Global.Int( "GUI_inversebutton_selected_right_left" ), Global.Int( "GUI_inversebutton_selected_right_top" ), Global.Int( "GUI_inversebutton_selected_right_right" ), Global.Int( "GUI_inversebutton_selected_right_bottom" ) );
+	return window_1;
+}
+
+hwindow CreateInverseRadioButton( int x_, int y_, hwindow parent_ )
+{
+	hwindow window_1 = GUI.CreateRadioButton( x_, y_, Global.Int( "GUI_inversebutton_width" ), Global.Int( "GUI_inversebutton_height" ), parent_, false );
+	
+	GUI.SetWindowFont( window_1, Global.String( "GUI_detail_font" ) );
+	GUI.SetWindowTextFormatting( window_1, false, Global.Int( "GUI_inversebutton_textoffset" ) );
+	GUI.SetWindowStateColours( window_1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 );
+	GUI.SetWindowStateTextures( window_1, Global.String( "GUI_texture_request" ), Global.Int( "GUI_inversebutton_neutral_left_left" ), Global.Int( "GUI_inversebutton_neutral_left_top" ), Global.Int( "GUI_inversebutton_neutral_left_right" ), Global.Int( "GUI_inversebutton_neutral_left_bottom" ), Global.Int( "GUI_inversebutton_neutral_body_left" ), Global.Int( "GUI_inversebutton_neutral_body_top" ), Global.Int( "GUI_inversebutton_neutral_body_right" ), Global.Int( "GUI_inversebutton_neutral_body_bottom" ), Global.Int( "GUI_inversebutton_neutral_right_left" ), Global.Int( "GUI_inversebutton_neutral_right_top" ), Global.Int( "GUI_inversebutton_neutral_right_right" ), Global.Int( "GUI_inversebutton_neutral_right_bottom" ), Global.Int( "GUI_inversebutton_focused_left_left" ), Global.Int( "GUI_inversebutton_focused_left_top" ), Global.Int( "GUI_inversebutton_focused_left_right" ), Global.Int( "GUI_inversebutton_focused_left_bottom" ), Global.Int( "GUI_inversebutton_focused_body_left" ), Global.Int( "GUI_inversebutton_focused_body_top" ), Global.Int( "GUI_inversebutton_focused_body_right" ), Global.Int( "GUI_inversebutton_focused_body_bottom" ), Global.Int( "GUI_inversebutton_focused_right_left" ), Global.Int( "GUI_inversebutton_focused_right_top" ), Global.Int( "GUI_inversebutton_focused_right_right" ), Global.Int( "GUI_inversebutton_focused_right_bottom" ), Global.Int( "GUI_inversebutton_selected_left_left" ), Global.Int( "GUI_inversebutton_selected_left_top" ), Global.Int( "GUI_inversebutton_selected_left_right" ), Global.Int( "GUI_inversebutton_selected_left_bottom" ), Global.Int( "GUI_inversebutton_selected_body_left" ), Global.Int( "GUI_inversebutton_selected_body_top" ), Global.Int( "GUI_inversebutton_selected_body_right" ), Global.Int( "GUI_inversebutton_selected_body_bottom" ), Global.Int( "GUI_inversebutton_selected_right_left" ), Global.Int( "GUI_inversebutton_selected_right_top" ), Global.Int( "GUI_inversebutton_selected_right_right" ), Global.Int( "GUI_inversebutton_selected_right_bottom" ) );
+	return window_1;
+}
+
+hwindow CreateFancyVerticalScrollbar( int x_, int y_, int height_, hwindow parent_, hwindow target_ )
+{
+	return GUI.CreateVerticalScrollbar( x_, y_, Global.Int( "GUI_fancy_scrollbar_width" ), height_, parent_, target_, Global.Float( "GUI_fancy_scrollbar_buttonratio" ), "FancyVerticalScrollbar" );
+}
+
+hwindow CreateAndInitialiseTextWindow( int x_, int y_, int width_, int height_, hwindow parent_, string text_resource_ )
+{
+	hwindow window_1 = GUI.CreateTextWindow( x_, y_, width_, height_, parent_ );
+	
+	GUI.SetWindowFont( window_1, Global.String( "type_font" ) );
+	GUI.SetTextWindowResource( window_1, text_resource_ );
+	return window_1;
+}
+
+hwindow CreateAndInitialiseStaticWindow( int x_, int y_, int width_, int height_, hwindow parent_, string font_, string title_ )
+{
+	hwindow window_1 = GUI.CreateStaticWindow( x_, y_, width_, height_, parent_ );
+	
+	GUI.SetWindowFont( window_1, font_ );
+	GUI.SetWindowTextFormatting( window_1, true, 0 );
+	GUI.SetWindowTitle( window_1, title_ );
+	GUI.SetWindowStateColours( window_1, Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ) );
+	return window_1;
+}
+
+hwindow CreateAndInitialiseFancyBorderedStatic( hwindow parent_, int y_offset_, string title_ )
+{
+	hwindow window_1;
+	int local_1 = ( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancybutton_alignmentoffset" ) );
+	
+	window_1 = GUI.CreateStaticWindow( local_1, y_offset_, Global.Int( "GUI_fancybutton_width" ), Global.Int( "GUI_fancybutton_height" ), parent_ );
+	GUI.SetWindowTitle( window_1, title_ );
+	GUI.SetWindowTextFormatting( window_1, false, Global.Int( "GUI_fancybutton_textoffset" ) );
+	GUI.SetWindowFont( window_1, Global.String( "GUI_title_font" ) );
+	GUI.SetWindowStateColours( window_1, Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ) );
+	GUI.SetWindowStateTextures( window_1, Global.String( "GUI_texture_request" ), Global.Int( "GUI_fancybutton_faded_left_left" ), Global.Int( "GUI_fancybutton_faded_left_top" ), Global.Int( "GUI_fancybutton_faded_left_right" ), Global.Int( "GUI_fancybutton_faded_left_bottom" ), Global.Int( "GUI_fancybutton_faded_body_left" ), Global.Int( "GUI_fancybutton_faded_body_top" ), Global.Int( "GUI_fancybutton_faded_body_right" ), Global.Int( "GUI_fancybutton_faded_body_bottom" ), Global.Int( "GUI_fancybutton_faded_right_left" ), Global.Int( "GUI_fancybutton_faded_right_top" ), Global.Int( "GUI_fancybutton_faded_right_right" ), Global.Int( "GUI_fancybutton_faded_right_bottom" ), Global.Int( "GUI_fancybutton_faded_left_left" ), Global.Int( "GUI_fancybutton_faded_left_top" ), Global.Int( "GUI_fancybutton_faded_left_right" ), Global.Int( "GUI_fancybutton_faded_left_bottom" ), Global.Int( "GUI_fancybutton_faded_body_left" ), Global.Int( "GUI_fancybutton_faded_body_top" ), Global.Int( "GUI_fancybutton_faded_body_right" ), Global.Int( "GUI_fancybutton_faded_body_bottom" ), Global.Int( "GUI_fancybutton_faded_right_left" ), Global.Int( "GUI_fancybutton_faded_right_top" ), Global.Int( "GUI_fancybutton_faded_right_right" ), Global.Int( "GUI_fancybutton_faded_right_bottom" ), Global.Int( "GUI_fancybutton_faded_left_left" ), Global.Int( "GUI_fancybutton_faded_left_top" ), Global.Int( "GUI_fancybutton_faded_left_right" ), Global.Int( "GUI_fancybutton_faded_left_bottom" ), Global.Int( "GUI_fancybutton_faded_body_left" ), Global.Int( "GUI_fancybutton_faded_body_top" ), Global.Int( "GUI_fancybutton_faded_body_right" ), Global.Int( "GUI_fancybutton_faded_body_bottom" ), Global.Int( "GUI_fancybutton_faded_right_left" ), Global.Int( "GUI_fancybutton_faded_right_top" ), Global.Int( "GUI_fancybutton_faded_right_right" ), Global.Int( "GUI_fancybutton_faded_right_bottom" ) );
+	return window_1;
+}
+
+hwindow CreateMenuButton( string button_function_, string title_, list window_list_ )
+{
+	hwindow window = CreateFancyButton( 0, 0, none );
+	
+	GUI.SetButtonFunctionPog( window, button_function_ );
+	GUI.SetWindowTitle( window, title_ );
+	List.AddTail( window_list_, window );
+	return window;
+}
+
+hwindow CreateAndInitialiseRectangularInverseButton( hwindow parent_, int x_, int y_, int width_, string title_, string function_ )
+{
+	hwindow window_1 = GUI.CreateButton( x_, y_, width_, Global.Int( "GUI_inversebutton_height" ), parent_ );
+	
+	GUI.SetWindowFont( window_1, Global.String( "GUI_detail_font" ) );
+	GUI.SetWindowTextFormatting( window_1, false, Global.Int( "GUI_inversebutton_textoffset" ) );
+	GUI.SetWindowStateColours( window_1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 );
+	GUI.SetWindowStateTextures( window_1, Global.String( "GUI_texture_request" ), Global.Int( "GUI_inversebutton_neutral_body_left" ), Global.Int( "GUI_inversebutton_neutral_body_top" ), Global.Int( "GUI_inversebutton_neutral_body_right" ), Global.Int( "GUI_inversebutton_neutral_body_bottom" ), Global.Int( "GUI_inversebutton_neutral_body_left" ), Global.Int( "GUI_inversebutton_neutral_body_top" ), Global.Int( "GUI_inversebutton_neutral_body_right" ), Global.Int( "GUI_inversebutton_neutral_body_bottom" ), Global.Int( "GUI_inversebutton_neutral_body_left" ), Global.Int( "GUI_inversebutton_neutral_body_top" ), Global.Int( "GUI_inversebutton_neutral_body_right" ), Global.Int( "GUI_inversebutton_neutral_body_bottom" ), Global.Int( "GUI_inversebutton_focused_body_left" ), Global.Int( "GUI_inversebutton_focused_body_top" ), Global.Int( "GUI_inversebutton_focused_body_right" ), Global.Int( "GUI_inversebutton_focused_body_bottom" ), Global.Int( "GUI_inversebutton_focused_body_left" ), Global.Int( "GUI_inversebutton_focused_body_top" ), Global.Int( "GUI_inversebutton_focused_body_right" ), Global.Int( "GUI_inversebutton_focused_body_bottom" ), Global.Int( "GUI_inversebutton_focused_body_left" ), Global.Int( "GUI_inversebutton_focused_body_top" ), Global.Int( "GUI_inversebutton_focused_body_right" ), Global.Int( "GUI_inversebutton_focused_body_bottom" ), Global.Int( "GUI_inversebutton_selected_body_left" ), Global.Int( "GUI_inversebutton_selected_body_top" ), Global.Int( "GUI_inversebutton_selected_body_right" ), Global.Int( "GUI_inversebutton_selected_body_bottom" ), Global.Int( "GUI_inversebutton_selected_body_left" ), Global.Int( "GUI_inversebutton_selected_body_top" ), Global.Int( "GUI_inversebutton_selected_body_right" ), Global.Int( "GUI_inversebutton_selected_body_bottom" ), Global.Int( "GUI_inversebutton_selected_body_left" ), Global.Int( "GUI_inversebutton_selected_body_top" ), Global.Int( "GUI_inversebutton_selected_body_right" ), Global.Int( "GUI_inversebutton_selected_body_bottom" ) );
+	GUI.SetWindowTitle( window_1, title_ );
+	GUI.SetButtonFunctionPog( window_1, function_ );
+	return window_1;
+}
+
+hwindow CreateAndInitialiseRectangularInverseRadioButton( hwindow parent_, int x_, int y_, int width_, string title_, bool checked_ )
+{
+	hwindow window_1 = GUI.CreateRadioButton( x_, y_, width_, Global.Int( "GUI_inversebutton_height" ), parent_, checked_ );
+	
+	GUI.SetWindowFont( window_1, Global.String( "GUI_detail_font" ) );
+	GUI.SetWindowTextFormatting( window_1, false, Global.Int( "GUI_inversebutton_textoffset" ) );
+	GUI.SetWindowStateColours( window_1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 );
+	GUI.SetWindowStateTextures( window_1, Global.String( "GUI_texture_request" ), Global.Int( "GUI_inversebutton_neutral_body_left" ), Global.Int( "GUI_inversebutton_neutral_body_top" ), Global.Int( "GUI_inversebutton_neutral_body_right" ), Global.Int( "GUI_inversebutton_neutral_body_bottom" ), Global.Int( "GUI_inversebutton_neutral_body_left" ), Global.Int( "GUI_inversebutton_neutral_body_top" ), Global.Int( "GUI_inversebutton_neutral_body_right" ), Global.Int( "GUI_inversebutton_neutral_body_bottom" ), Global.Int( "GUI_inversebutton_neutral_body_left" ), Global.Int( "GUI_inversebutton_neutral_body_top" ), Global.Int( "GUI_inversebutton_neutral_body_right" ), Global.Int( "GUI_inversebutton_neutral_body_bottom" ), Global.Int( "GUI_inversebutton_focused_body_left" ), Global.Int( "GUI_inversebutton_focused_body_top" ), Global.Int( "GUI_inversebutton_focused_body_right" ), Global.Int( "GUI_inversebutton_focused_body_bottom" ), Global.Int( "GUI_inversebutton_focused_body_left" ), Global.Int( "GUI_inversebutton_focused_body_top" ), Global.Int( "GUI_inversebutton_focused_body_right" ), Global.Int( "GUI_inversebutton_focused_body_bottom" ), Global.Int( "GUI_inversebutton_focused_body_left" ), Global.Int( "GUI_inversebutton_focused_body_top" ), Global.Int( "GUI_inversebutton_focused_body_right" ), Global.Int( "GUI_inversebutton_focused_body_bottom" ), Global.Int( "GUI_inversebutton_selected_body_left" ), Global.Int( "GUI_inversebutton_selected_body_top" ), Global.Int( "GUI_inversebutton_selected_body_right" ), Global.Int( "GUI_inversebutton_selected_body_bottom" ), Global.Int( "GUI_inversebutton_selected_body_left" ), Global.Int( "GUI_inversebutton_selected_body_top" ), Global.Int( "GUI_inversebutton_selected_body_right" ), Global.Int( "GUI_inversebutton_selected_body_bottom" ), Global.Int( "GUI_inversebutton_selected_body_left" ), Global.Int( "GUI_inversebutton_selected_body_top" ), Global.Int( "GUI_inversebutton_selected_body_right" ), Global.Int( "GUI_inversebutton_selected_body_bottom" ) );
+	GUI.SetWindowTitle( window_1, title_ );
+	return window_1;
+}
+
+hwindow CreateAndInitialiseFancyButton( hwindow parent_, int y_offset_, string title_, string function_ )
+{
+	hwindow window_1;
+	int local_1 = ( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancybutton_alignmentoffset" ) );
+	
+	window_1 = CreateFancyButton( local_1, y_offset_, parent_ );
+	GUI.SetWindowTitle( window_1, title_ );
+	GUI.SetButtonFunctionPog( window_1, function_ );
+	return window_1;
+}
+
+hwindow CreateAndInitialiseTabStyleStatic( hwindow parent_, int x_, int y_, int width_, string title_ )
+{
+	hwindow window_1 = GUI.CreateStaticWindow( x_, y_, width_, Global.Int( "GUI_tab_height" ), parent_ );
+	
+	GUI.SetWindowStateTextures( window_1, Global.String( "GUI_texture_request" ), Global.Int( "GUI_tab_left_left" ), Global.Int( "GUI_tab_left_top" ), Global.Int( "GUI_tab_left_right" ), Global.Int( "GUI_tab_left_bottom" ), Global.Int( "GUI_tab_body_left" ), Global.Int( "GUI_tab_body_top" ), Global.Int( "GUI_tab_body_right" ), Global.Int( "GUI_tab_body_bottom" ), Global.Int( "GUI_tab_right_left" ), Global.Int( "GUI_tab_right_top" ), Global.Int( "GUI_tab_right_right" ), Global.Int( "GUI_tab_right_bottom" ), Global.Int( "GUI_tab_left_left" ), Global.Int( "GUI_tab_left_top" ), Global.Int( "GUI_tab_left_right" ), Global.Int( "GUI_tab_left_bottom" ), Global.Int( "GUI_tab_body_left" ), Global.Int( "GUI_tab_body_top" ), Global.Int( "GUI_tab_body_right" ), Global.Int( "GUI_tab_body_bottom" ), Global.Int( "GUI_tab_right_left" ), Global.Int( "GUI_tab_right_top" ), Global.Int( "GUI_tab_right_right" ), Global.Int( "GUI_tab_right_bottom" ), Global.Int( "GUI_tab_left_left" ), Global.Int( "GUI_tab_left_top" ), Global.Int( "GUI_tab_left_right" ), Global.Int( "GUI_tab_left_bottom" ), Global.Int( "GUI_tab_body_left" ), Global.Int( "GUI_tab_body_top" ), Global.Int( "GUI_tab_body_right" ), Global.Int( "GUI_tab_body_bottom" ), Global.Int( "GUI_tab_right_left" ), Global.Int( "GUI_tab_right_top" ), Global.Int( "GUI_tab_right_right" ), Global.Int( "GUI_tab_right_bottom" ) );
+	GUI.SetWindowFont( window_1, Global.String( "GUI_detail_font" ) );
+	GUI.SetWindowTitle( window_1, title_ );
+	GUI.SetWindowTextFormatting( window_1, false, 20 );
+	GUI.SetWindowStateColours( window_1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 );
+	return window_1;
+}
+
+hwindow CreateAndInitialiseInverseButton( hwindow parent_, int x_, int y_, int width_, string title_, string function_ )
+{
+	hwindow window_1 = CreateInverseButton( x_, y_, width_, parent_ );
+	
+	GUI.SetWindowTitle( window_1, title_ );
+	GUI.SetButtonFunctionPog( window_1, function_ );
+	return window_1;
+}
+
+hwindow CreateAndInitialiseParentlessInverseButton( string button_function_, string title_, list window_list_ )
+{
+	hwindow window = CreateInverseButton( 0, 0, Global.Int( "GUI_inversebutton_width" ), none );
+	
+	GUI.SetButtonFunctionPog( window, button_function_ );
+	GUI.SetWindowTitle( window, title_ );
+	List.AddTail( window_list_, window );
+	return window;
+}
+
+hwindow CreateShadyBar()
+{
+	GUI.SetShadyBarWidth( Global.Int( "GUI_shader_width" ) );
+	return GUI.CreateWindow( Global.Int( "GUI_alignment_offset" ), 0, Global.Int( "GUI_shader_width" ), GUI.FrameHeight(), GUI.TopWindow() );
+}
+
+hwindow CreateShadyBarRight()
+{
+	int local_0 = GUI.FrameWidth();
+	int gUIAlignmentOffset = Global.Int( "GUI_alignment_offset" );
+	int gUIShaderWidth = Global.Int( "GUI_shader_width" );
+	
+	GUI.SetRHSShadyBarWidth( gUIShaderWidth );
+	return GUI.CreateWindow( local_0 - (gUIAlignmentOffset + gUIShaderWidth), 0, gUIShaderWidth, GUI.FrameHeight(), GUI.TopWindow() );
+}
+
+hwindow CreateWideShadyBar()
+{
+	int gUIAlignmentOffset = Global.Int( "GUI_alignment_offset" );
+	int local_1 = ( 640 - (2 * gUIAlignmentOffset) );
+	
+	GUI.SetShadyBarWidth( local_1 );
+	return GUI.CreateWindow( Global.Int( "GUI_alignment_offset" ), 0, local_1, GUI.FrameHeight(), GUI.TopWindow() );
+}
+
+list AddBackButtons( hwindow parent_, string back_function_, string back_to_main_menu_function_ )
+{
+	int local_0;
+	hwindow window_1;
+	hwindow window_2;
+	int gUIBackbuttonLeft;
+	int local_4;
+	list localList;
+	
+	local_0 = GUI.WindowCanvasHeight( parent_ );
+	gUIBackbuttonLeft = Global.Int( "GUI_backbutton_left" );
+	local_4 = ( local_0 - Global.Int( "GUI_backbutton_rise" ) );
+	window_1 = CreateBackButton( gUIBackbuttonLeft, local_4, parent_ );
+	GUI.SetButtonFunctionPog( window_1, back_function_ );
+	window_2 = CreateBackToMainMenuButton( gUIBackbuttonLeft + Global.Int( "GUI_backbutton_xoffset" ), local_4 + Global.Int( "GUI_backbutton_yoffset" ), parent_ );
+	GUI.SetButtonFunctionPog( window_2, back_to_main_menu_function_ );
+	List.AddTail( localList, window_1 );
+	List.AddTail( localList, window_2 );
+	return localList;
+}
+
+hwindow AddBackButton( hwindow parent_, string back_function_ )
+{
+	int local_0 = GUI.WindowCanvasHeight( parent_ );
+	hwindow window_1;
+	int gUIBackbuttonLeft = Global.Int( "GUI_backbutton_left" );
+	int local_3 = ( local_0 - Global.Int( "GUI_backbutton_rise" ) );
+	
+	window_1 = CreateBackButton( gUIBackbuttonLeft, local_3, parent_ );
+	GUI.SetButtonFunctionPog( window_1, back_function_ );
+	return window_1;
+}
+
+hwindow AddTitle( hwindow parent_, string title_ )
+{
+	return CreateAndInitialiseFancyBorderedStatic( parent_, Global.Int( "GUI_title_yoffset" ), title_ );
+}
+
+ArrangeWindowsVertically( list windows_, hwindow parent_, int x_offset_, int y_offset_, int inter_window_gap_ )
+{
+	hwindow gUI;
+	int local_1 = y_offset_;
+	int ii;
+	
+	for ( ii = 0; ii < List.ItemCount( windows_ ); ++ii )
+	{
+		gUI = GUI.Cast( List.GetNth( windows_, ii ) );
+		GUI.RepositionWindow( gUI, parent_, x_offset_, local_1 );
+		local_1 = ( local_1 + (GUI.WindowCanvasHeight( gUI ) + inter_window_gap_) );
+	}
+}
+
+hwindow CreateMenu( list buttons_ )
+{
+	hwindow window = CreateShadyBar();
+	int local_1 = ( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancybutton_alignmentoffset" ) );
+	
+	ArrangeWindowsVertically( buttons_, window, local_1, Global.Int( "GUI_mainmenu_yoffset" ), Global.Int( "GUI_mainmenu_gap" ) );
+	return window;
+}
+
+list CreateGreyBoxStyleScreen( string title_, string back_function_, string back_to_main_function_ )
+{
+	hwindow window_0;
+	list localList;
+	hwindow window_1;
+	int local_3;
+	int local_4;
+	int gUIAlignmentOffset;
+	int local_6;
+	hwindow window_2 = GUI.TopWindow();
+	
+	local_3 = ( Global.Int( "GUI_title_yoffset" ) + Global.Int( "GUI_fancybutton_height" ) );
+	local_4 = ( GUI.FrameHeight() - (Global.Int( "GUI_backbutton_rise" ) + (local_3 + 10)) );
+	gUIAlignmentOffset = Global.Int( "GUI_alignment_offset" );
+	local_6 = ( 640 - (2 * gUIAlignmentOffset) );
+	GUI.SetShadyBarWidth( local_6 );
+	window_0 = GUI.CreateWindow( gUIAlignmentOffset, 0, local_6, GUI.FrameHeight(), window_2 );
+	gUIAlignmentOffset = Global.Int( "GUI_greybox_xoffset" );
+	local_6 = ( local_6 - (2 * gUIAlignmentOffset) );
+	window_1 = GUI.CreateWindow( gUIAlignmentOffset, local_3, local_6, local_4, window_0 );
+	List.AddTail( localList, window_1 );
+	window_1 = GUI.CreateWindow( Global.Int( "GUI_alignment_offset" ), 0, GUI.FrameWidth() - Global.Int( "GUI_alignment_offset" ), local_3 - 1, window_2 );
+	AddTitle( window_1, title_ );
+	window_1 = GUI.CreateWindow( Global.Int( "GUI_alignment_offset" ), local_3 + local_4, GUI.FrameWidth() - Global.Int( "GUI_alignment_offset" ), GUI.FrameHeight() - (local_3 + local_4), window_2 );
+	List.Append( localList, AddBackButtons( window_1, back_function_, back_to_main_function_ ) );
+	return localList;
+}
+
+list CreateHTMLGreyBoxStyleScreen( string html_, int width_, int height_, string back_function_, string back_to_main_function_ )
+{
+	hwindow window_0;
+	list localList;
+	hwindow window_1;
+	int local_3;
+	int local_4;
+	int gUIAlignmentOffset;
+	int local_6;
+	hwindow window_2 = GUI.TopWindow();
+	
+	local_3 = ( Global.Int( "GUI_title_yoffset" ) + Global.Int( "GUI_fancybutton_height" ) );
+	local_4 = ( GUI.FrameHeight() - (Global.Int( "GUI_backbutton_rise" ) + (local_3 + 10)) );
+	gUIAlignmentOffset = Global.Int( "GUI_alignment_offset" );
+	local_6 = ( 640 - (2 * gUIAlignmentOffset) );
+	GUI.SetShadyBarWidth( local_6 );
+	window_0 = GUI.CreateWindow( gUIAlignmentOffset, 0, local_6, GUI.FrameHeight(), window_2 );
+	gUIAlignmentOffset = Global.Int( "GUI_greybox_xoffset" );
+	local_6 = ( local_6 - (2 * gUIAlignmentOffset) );
+	window_1 = GUI.CreateWindow( gUIAlignmentOffset, local_3, local_6, local_4, window_0 );
+	List.AddTail( localList, window_1 );
+	window_1 = CreateAndInitialiseTextWindow( Global.Int( "GUI_alignment_offset" ), 0, width_, height_, window_2, "" );
+	GUI.SetTextWindowString( window_1, html_ );
+	window_1 = GUI.CreateWindow( Global.Int( "GUI_alignment_offset" ), local_3 + local_4, GUI.FrameWidth() - Global.Int( "GUI_alignment_offset" ), GUI.FrameHeight() - (local_3 + local_4), window_2 );
+	List.Append( localList, AddBackButtons( window_1, back_function_, back_to_main_function_ ) );
+	return localList;
+}
+
+hwindow CreateWindowListInFancyBorder( hwindow parent_, list windows_, int x_, int y_ )
+{
+	hwindow window_1;
+	hwindow window_2;
+	int local_2;
+	int local_3;
+	int gUIButtonlistGap = Global.Int( "GUI_buttonlist_gap" );
+	
+	if ( List.ItemCount( windows_ ) == 0 )
+	{
+		window_2 = GUI.CreateWindow( x_, y_, 1, 1, parent_ );
+		return window_2;
+	}
+	
+	local_2 = local_function_0( windows_ );
+	local_3 = local_function_1( windows_, gUIButtonlistGap );
+	window_2 = GUI.CreateWindow( x_ + Global.Int( "GUI_fancyborder_width" ), y_ + Global.Int( "GUI_fancyborder_width" ), local_2, local_3, parent_ );
+	ArrangeWindowsVertically( windows_, window_2, 0, 0, gUIButtonlistGap );
+	window_1 = GUI.CreateFancyBorder( window_2 );
+	return window_1;
+}
+
+hwindow CreateWindowListInSplitter( hwindow parent_, list windows_, int splitter_x_, int splitter_y_, string list_title_ )
+{
+	hwindow window_1;
+	hwindow window_2;
+	hwindow window_3;
+	hwindow window_4;
+	hwindow gUI;
+	int local_5 = 0;
+	int local_6 = 0;
+	int local_7;
+	int local_8 = 0;
+	int ii;
+	int gUIButtonlistGap = Global.Int( "GUI_buttonlist_gap" );
+	int gUIFancyborderWidth = Global.Int( "GUI_fancyborder_width" );
+	int constant = 9;
+	
+	local_6 = local_function_1( windows_, gUIButtonlistGap );
+	local_5 = local_function_0( windows_ );
+	local_5 = ( gUIFancyborderWidth + (local_5 + gUIFancyborderWidth) );
+	local_6 = ( gUIFancyborderWidth + (constant + (gUIFancyborderWidth + (local_6 + gUIFancyborderWidth))) );
+	local_7 = ( gUIFancyborderWidth + (constant + gUIFancyborderWidth) );
+	window_1 = GUI.CreateSplitterWindow( splitter_x_, splitter_y_, local_5, local_6, parent_, local_7, true );
+	window_2 = GUI.SplitterWindowTopWindow( window_1 );
+	window_3 = GUI.SplitterWindowBottomWindow( window_1 );
+	window_4 = GUI.CreateStaticWindow( 0, 0, GUI.WindowCanvasWidth( window_2 ), GUI.WindowCanvasHeight( window_2 ), window_2 );
+	GUI.SetWindowFont( window_4, Global.String( "GUI_subtitle_font" ) );
+	GUI.SetWindowTitle( window_4, list_title_ );
+	GUI.SetWindowTextFormatting( window_4, false, 9 );
+	GUI.SetWindowStateColours( window_4, Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ) );
+	
+	for ( ii = 0; ii < List.ItemCount( windows_ ); ++ii )
+	{
+		gUI = GUI.Cast( List.GetNth( windows_, ii ) );
+		GUI.RepositionWindow( gUI, window_3, 0, local_8 );
+		local_8 = ( local_8 + (GUI.WindowCanvasHeight( gUI ) + gUIButtonlistGap) );
+	}
+	
+	return window_1;
+}
+
+hwindow CreateTitledListBox( hwindow parent_, string title_text_, int column1_width_, string column1_title_, int column2_width_, string column2_title_, int column3_width_, string column3_title_ )
+{
+	hwindow window_1;
+	int gUIMainTitleHeight = Global.Int( "GUI_main_title_height" );
+	int gUIMainTitleXOffset = Global.Int( "GUI_main_title_x_offset" );
+	hwindow window_2;
+	int gUIFancyborderWidth;
+	int local_5;
+	int local_6;
+	int local_7;
+	int local_8;
+	int gUIScrollbarWidth = Global.Int( "GUI_scrollbar_width" );
+	hwindow window_3;
+	
+	window_1 = GUI.CreateStaticWindow( gUIMainTitleXOffset, 0, GUI.WindowCanvasWidth( parent_ ), gUIMainTitleHeight, parent_ );
+	title_text_ = String.UpperCase( title_text_ );
+	GUI.SetWindowTitle( window_1, title_text_ );
+	GUI.SetWindowTextFormatting( window_1, false, 0 );
+	GUI.SetWindowFont( window_1, Global.String( "GUI_main_title_font" ) );
+	GUI.SetWindowStateColours( window_1, Global.Float( "GUI_faded_red" ), Global.Float( "GUI_faded_green" ), Global.Float( "GUI_faded_blue" ), Global.Float( "GUI_faded_red" ), Global.Float( "GUI_faded_green" ), Global.Float( "GUI_faded_blue" ), Global.Float( "GUI_faded_red" ), Global.Float( "GUI_faded_green" ), Global.Float( "GUI_faded_blue" ) );
+	
+	if ( column1_width_ > 0 )
+	{
+		CreateAndInitialiseTabStyleStatic( parent_, 0, gUIMainTitleHeight + 5, column1_width_, column1_title_ );
+	}
+	
+	if ( column2_width_ > 0 )
+	{
+		CreateAndInitialiseTabStyleStatic( parent_, column1_width_, gUIMainTitleHeight + 5, column2_width_, column2_title_ );
+	}
+	
+	if ( column3_width_ > 0 )
+	{
+		CreateAndInitialiseTabStyleStatic( parent_, column1_width_ + column2_width_, gUIMainTitleHeight + 5, column3_width_, column3_title_ );
+	}
+	
+	gUIFancyborderWidth = Global.Int( "GUI_fancyborder_width" );
+	local_5 = ( (gUIMainTitleHeight + 5) + (Global.Int( "GUI_tab_height" ) + (Global.Int( "GUI_fancyborder_alignmentoffset" ) + 5)) );
+	local_6 = ( GUI.WindowCanvasWidth( parent_ ) - (gUIFancyborderWidth + Global.Int( "GUI_fancyborder_width" )) );
+	local_7 = ( GUI.WindowCanvasHeight( parent_ ) - (local_5 + (10 + Global.Int( "GUI_fancyborder_alignmentoffset" ))) );
+	window_2 = GUI.CreateWindow( gUIFancyborderWidth, local_5, local_6, local_7, parent_ );
+	GUI.CreateFancyBorder( window_2 );
+	window_3 = GUI.CreateListBox( 0, 0, local_6 - (2 * gUIScrollbarWidth), local_7, window_2, true, false );
+	GUI.CreateVerticalScrollbar( local_6 - gUIScrollbarWidth, 0, gUIScrollbarWidth, local_7, window_2, window_3, Global.Float( "GUI_scrollbar_buttonratio" ), "" );
+	return window_3;
+}
+
+hwindow CreateFancyListBox( hwindow parent_, int x_, int y_, int width_, int height_ )
+{
+	hwindow window_1;
+	int local_1 = x_;
+	int local_2 = y_;
+	int local_3 = width_;
+	int local_4 = height_;
+	int local_5;
+	int gUIScrollbarWidth = Global.Int( "GUI_scrollbar_width" );
+	hwindow window_2;
+	
+	window_1 = GUI.CreateWindow( local_1, local_2, local_3, local_4, parent_ );
+	GUI.CreateFancyBorder( window_1 );
+	window_2 = GUI.CreateListBox( 0, 0, local_3 - (2 * gUIScrollbarWidth), local_4, window_1, true, false );
+	GUI.CreateVerticalScrollbar( local_3 - gUIScrollbarWidth, 0, gUIScrollbarWidth, local_4, window_1, window_2, Global.Float( "GUI_scrollbar_buttonratio" ), "" );
+	return window_2;
+}
+
+hwindow CreateTitledTextBox( hwindow parent_, string title_text_, int column1_width_, string column1_title_, int column2_width_, string column2_title_, string text_resource_ )
+{
+	hwindow window_1;
+	int gUIMainTitleHeight = Global.Int( "GUI_main_title_height" );
+	int gUIMainTitleXOffset = Global.Int( "GUI_main_title_x_offset" );
+	hwindow window_2;
+	int gUIFancyborderWidth;
+	int local_5;
+	int local_6;
+	int local_7;
+	int local_8;
+	int gUIScrollbarWidth = Global.Int( "GUI_scrollbar_width" );
+	int gUITableAlignmentoffset = Global.Int( "GUI_table_alignmentoffset" );
+	hwindow window_3;
+	
+	window_1 = GUI.CreateStaticWindow( gUIMainTitleXOffset, 0, GUI.WindowCanvasWidth( parent_ ), gUIMainTitleHeight, parent_ );
+	title_text_ = String.UpperCase( title_text_ );
+	GUI.SetWindowTitle( window_1, title_text_ );
+	GUI.SetWindowTextFormatting( window_1, false, 0 );
+	GUI.SetWindowFont( window_1, Global.String( "GUI_main_title_font" ) );
+	GUI.SetWindowStateColours( window_1, Global.Float( "GUI_faded_red" ), Global.Float( "GUI_faded_green" ), Global.Float( "GUI_faded_blue" ), Global.Float( "GUI_faded_red" ), Global.Float( "GUI_faded_green" ), Global.Float( "GUI_faded_blue" ), Global.Float( "GUI_faded_red" ), Global.Float( "GUI_faded_green" ), Global.Float( "GUI_faded_blue" ) );
+	
+	if ( column1_width_ > 0 )
+	{
+		CreateAndInitialiseTabStyleStatic( parent_, 0, gUIMainTitleHeight + 5, column1_width_, column1_title_ );
+	}
+	
+	if ( column2_width_ > 0 )
+	{
+		CreateAndInitialiseTabStyleStatic( parent_, column1_width_, gUIMainTitleHeight + 5, column2_width_, column2_title_ );
+	}
+	
+	gUIFancyborderWidth = Global.Int( "GUI_fancyborder_width" );
+	local_5 = ( (gUIMainTitleHeight + 5) + (Global.Int( "GUI_tab_height" ) + (Global.Int( "GUI_fancyborder_alignmentoffset" ) + 5)) );
+	local_6 = ( GUI.WindowCanvasWidth( parent_ ) - (gUIFancyborderWidth + Global.Int( "GUI_fancyborder_width" )) );
+	local_7 = ( GUI.WindowCanvasHeight( parent_ ) - (local_5 + (10 + Global.Int( "GUI_fancyborder_alignmentoffset" ))) );
+	window_2 = GUI.CreateWindow( gUIFancyborderWidth, local_5, local_6, local_7, parent_ );
+	GUI.CreateFancyBorder( window_2 );
+	window_3 = CreateAndInitialiseTextWindow( gUITableAlignmentoffset, 0, local_6 - ((2 * gUIScrollbarWidth) + gUITableAlignmentoffset), local_7, window_2, text_resource_ );
+	GUI.CreateVerticalScrollbar( local_6 - gUIScrollbarWidth, 0, gUIScrollbarWidth, local_7, window_2, window_3, Global.Float( "GUI_scrollbar_buttonratio" ), "" );
+	return window_3;
+}
+
+SetCyclicControlFocusPath( list windows_ )
+{
+	int itemCount = List.ItemCount( windows_ );
+	hwindow gUI_0;
+	hwindow gUI_1;
+	hwindow gUI_2;
+	hwindow window = none;
+	int ii;
+	
+	if ( itemCount == 0 )
+	{
+		return;
+	}
+	
+	if ( itemCount == 1 )
+	{
+		gUI_0 = GUI.Cast( List.Head( windows_ ) );
+		GUI.SetWindowPreviousFocus( gUI_0, gUI_0 );
+		GUI.SetWindowNextFocus( gUI_0, gUI_0 );
+		return;
+	}
+	
+	gUI_0 = GUI.Cast( List.Head( windows_ ) );
+	gUI_2 = GUI.Cast( List.Tail( windows_ ) );
+	
+	for ( ii = 0; ii < List.ItemCount( windows_ ); ++ii )
+	{
+		gUI_1 = GUI.Cast( List.GetNth( windows_, ii ) );
+		GUI.SetWindowPreviousFocus( gUI_1, window );
+		
+		if ( window )
+		{
+			GUI.SetWindowNextFocus( window, gUI_1 );
+		}
+		
+		window = gUI_1;
+	}
+	
+	GUI.SetWindowPreviousFocus( gUI_0, gUI_2 );
+	GUI.SetWindowNextFocus( gUI_2, gUI_0 );
+}
+
+MakeInverseButtonIconic( hwindow window_ )
+{
+	GUI.SetWindowStateTextures( window_, Global.String( "GUI_texture_request" ), Global.Int( "GUI_inversebutton_neutral_left_left" ), Global.Int( "GUI_inversebutton_neutral_left_top" ), Global.Int( "GUI_inversebutton_neutral_left_right" ), Global.Int( "GUI_inversebutton_neutral_left_bottom" ), Global.Int( "GUI_inversebutton_neutral_body_left" ), Global.Int( "GUI_inversebutton_neutral_body_top" ), Global.Int( "GUI_inversebutton_neutral_body_right" ), Global.Int( "GUI_inversebutton_neutral_body_bottom" ), Global.Int( "GUI_inversebutton_neutral_right_left" ), Global.Int( "GUI_inversebutton_neutral_right_top" ), Global.Int( "GUI_inversebutton_neutral_right_right" ), Global.Int( "GUI_inversebutton_neutral_right_bottom" ), Global.Int( "GUI_inversebutton_focused_left_left" ), Global.Int( "GUI_inversebutton_focused_left_top" ), Global.Int( "GUI_inversebutton_focused_left_right" ), Global.Int( "GUI_inversebutton_focused_left_bottom" ), Global.Int( "GUI_inversebutton_focused_body_left" ), Global.Int( "GUI_inversebutton_focused_body_top" ), Global.Int( "GUI_inversebutton_focused_body_right" ), Global.Int( "GUI_inversebutton_focused_body_bottom" ), Global.Int( "GUI_inversebutton_focused_right_left" ), Global.Int( "GUI_inversebutton_focused_right_top" ), Global.Int( "GUI_inversebutton_focused_right_right" ), Global.Int( "GUI_inversebutton_focused_right_bottom" ), Global.Int( "GUI_inversebutton_neutral_left_left" ), Global.Int( "GUI_inversebutton_neutral_left_top" ), Global.Int( "GUI_inversebutton_neutral_left_right" ), Global.Int( "GUI_inversebutton_neutral_left_bottom" ), Global.Int( "GUI_inversebutton_neutral_body_left" ), Global.Int( "GUI_inversebutton_neutral_body_top" ), Global.Int( "GUI_inversebutton_neutral_body_right" ), Global.Int( "GUI_inversebutton_neutral_body_bottom" ), Global.Int( "GUI_inversebutton_neutral_right_left" ), Global.Int( "GUI_inversebutton_neutral_right_top" ), Global.Int( "GUI_inversebutton_neutral_right_right" ), Global.Int( "GUI_inversebutton_neutral_right_bottom" ) );
+	GUI.SetWindowStateIcons( window_, I_CircleOff, I_CircleOff, I_CircleOn );
+}
+
+MakeRectangularInverseButtonIconic( hwindow window_ )
+{
+	GUI.SetWindowStateTextures( window_, Global.String( "GUI_texture_request" ), Global.Int( "GUI_inversebutton_neutral_body_left" ), Global.Int( "GUI_inversebutton_neutral_body_top" ), Global.Int( "GUI_inversebutton_neutral_body_right" ), Global.Int( "GUI_inversebutton_neutral_body_bottom" ), Global.Int( "GUI_inversebutton_neutral_body_left" ), Global.Int( "GUI_inversebutton_neutral_body_top" ), Global.Int( "GUI_inversebutton_neutral_body_right" ), Global.Int( "GUI_inversebutton_neutral_body_bottom" ), Global.Int( "GUI_inversebutton_neutral_body_left" ), Global.Int( "GUI_inversebutton_neutral_body_top" ), Global.Int( "GUI_inversebutton_neutral_body_right" ), Global.Int( "GUI_inversebutton_neutral_body_bottom" ), Global.Int( "GUI_inversebutton_focused_body_left" ), Global.Int( "GUI_inversebutton_focused_body_top" ), Global.Int( "GUI_inversebutton_focused_body_right" ), Global.Int( "GUI_inversebutton_focused_body_bottom" ), Global.Int( "GUI_inversebutton_focused_body_left" ), Global.Int( "GUI_inversebutton_focused_body_top" ), Global.Int( "GUI_inversebutton_focused_body_right" ), Global.Int( "GUI_inversebutton_focused_body_bottom" ), Global.Int( "GUI_inversebutton_focused_body_left" ), Global.Int( "GUI_inversebutton_focused_body_top" ), Global.Int( "GUI_inversebutton_focused_body_right" ), Global.Int( "GUI_inversebutton_focused_body_bottom" ), Global.Int( "GUI_inversebutton_neutral_body_left" ), Global.Int( "GUI_inversebutton_neutral_body_top" ), Global.Int( "GUI_inversebutton_neutral_body_right" ), Global.Int( "GUI_inversebutton_neutral_body_bottom" ), Global.Int( "GUI_inversebutton_neutral_body_left" ), Global.Int( "GUI_inversebutton_neutral_body_top" ), Global.Int( "GUI_inversebutton_neutral_body_right" ), Global.Int( "GUI_inversebutton_neutral_body_bottom" ), Global.Int( "GUI_inversebutton_neutral_body_left" ), Global.Int( "GUI_inversebutton_neutral_body_top" ), Global.Int( "GUI_inversebutton_neutral_body_right" ), Global.Int( "GUI_inversebutton_neutral_body_bottom" ) );
+	GUI.SetWindowStateIcons( window_, I_CircleOff, I_CircleOff, I_CircleOn );
+}
+
+task local_function_2( hwindow window_, float param_1_, float param_2_, float param_3_, float param_4_, float param_5_, float param_6_, float param_7_, float param_8_, float param_9_ )
+{
+	bool local_0 = false;
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( local_0 )
+			{
+				GUI.SetWindowStateColours( window_, param_1_, param_2_, param_3_, param_4_, param_5_, param_6_, param_7_, param_8_, param_9_ );
+				local_0 = false;
+			}
+			else
+			{
+				GUI.SetWindowStateColours( window_, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0 );
+				local_0 = true;
+			}
+		}
+	}
+}
+
+StartWindowFlashing( hwindow window_ )
+{
+	int constant = 14;
+	htask local_1;
+	string local_2 = String.Join( "_", String.FromInt( Object.IntProperty( window_, "id" ) ) );
+	float local_3 = GUI.WindowNeutralRed( window_ );
+	float local_4 = GUI.WindowNeutralGreen( window_ );
+	float local_5 = GUI.WindowNeutralBlue( window_ );
+	float local_6 = GUI.WindowFocusedRed( window_ );
+	float local_7 = GUI.WindowFocusedGreen( window_ );
+	float local_8 = GUI.WindowFocusedBlue( window_ );
+	float local_9 = GUI.WindowSelectedRed( window_ );
+	float local_10 = GUI.WindowSelectedGreen( window_ );
+	float local_11 = GUI.WindowSelectedBlue( window_ );
+	
+	Global.CreateFloat( String.Join( "neutral_red", local_2 ), constant, local_3 );
+	Global.CreateFloat( String.Join( "neutral_green", local_2 ), constant, local_4 );
+	Global.CreateFloat( String.Join( "neutral_blue", local_2 ), constant, local_5 );
+	Global.CreateFloat( String.Join( "focused_red", local_2 ), constant, local_6 );
+	Global.CreateFloat( String.Join( "focused_green", local_2 ), constant, local_7 );
+	Global.CreateFloat( String.Join( "focused_blue", local_2 ), constant, local_8 );
+	Global.CreateFloat( String.Join( "selected_red", local_2 ), constant, local_9 );
+	Global.CreateFloat( String.Join( "selected_green", local_2 ), constant, local_10 );
+	Global.CreateFloat( String.Join( "selected_blue", local_2 ), constant, local_11 );
+	local_1 = start local_function_2( window_, local_3, local_4, local_5, local_6, local_7, local_8, local_9, local_10, local_11 );
+	Task.Detach( local_1 );
+	Global.CreateHandle( String.Join( "WindowFlashingTask", local_2 ), constant, local_1 );
+}
+
+StopWindowFlashing( hwindow window_ )
+{
+	string local_0 = String.Join( "_", String.FromInt( Object.IntProperty( window_, "id" ) ) );
+	float local_1 = Global.Float( String.Join( "neutral_red", local_0 ) );
+	float local_2 = Global.Float( String.Join( "neutral_green", local_0 ) );
+	float local_3 = Global.Float( String.Join( "neutral_blue", local_0 ) );
+	float local_4 = Global.Float( String.Join( "focused_red", local_0 ) );
+	float local_5 = Global.Float( String.Join( "focused_green", local_0 ) );
+	float local_6 = Global.Float( String.Join( "focused_blue", local_0 ) );
+	float local_7 = Global.Float( String.Join( "selected_red", local_0 ) );
+	float local_8 = Global.Float( String.Join( "selected_green", local_0 ) );
+	float local_9 = Global.Float( String.Join( "selected_blue", local_0 ) );
+	htask local_10 = Task.Cast( Global.Handle( String.Join( "WindowFlashingTask", local_0 ) ) );
+	
+	Task.Halt( local_10 );
+	GUI.SetWindowStateColours( window_, local_1, local_2, local_3, local_4, local_5, local_6, local_7, local_8, local_9 );
+	Global.Destroy( String.Join( "WindowFlashingTask", local_0 ) );
+	Global.Destroy( String.Join( "neutral_red", local_0 ) );
+	Global.Destroy( String.Join( "neutral_green", local_0 ) );
+	Global.Destroy( String.Join( "neutral_blue", local_0 ) );
+	Global.Destroy( String.Join( "focused_red", local_0 ) );
+	Global.Destroy( String.Join( "focused_green", local_0 ) );
+	Global.Destroy( String.Join( "focused_blue", local_0 ) );
+	Global.Destroy( String.Join( "selected_red", local_0 ) );
+	Global.Destroy( String.Join( "selected_green", local_0 ) );
+	Global.Destroy( String.Join( "selected_blue", local_0 ) );
+}
+
+NullFunction()
+{
+}
+
+int local_function_0( list localList_ )
+{
+	int ii;
+	int local_1 = 0;
+	hwindow gUI;
+	
+	for ( ii = 0; ii < List.ItemCount( localList_ ); ++ii )
+	{
+		gUI = GUI.Cast( List.GetNth( localList_, ii ) );
+		
+		if ( GUI.WindowCanvasWidth( gUI ) > local_1 )
+		{
+			local_1 = GUI.WindowCanvasWidth( gUI );
+		}
+	}
+	
+	return local_1;
+}
+
+int local_function_1( list localList_, int param_1_ )
+{
+	int ii;
+	int local_1 = 0;
+	hwindow gUI;
+	
+	for ( ii = 0; ii < List.ItemCount( localList_ ); ++ii )
+	{
+		gUI = GUI.Cast( List.GetNth( localList_, ii ) );
+		local_1 = ( local_1 + (GUI.WindowCanvasHeight( gUI ) + param_1_) );
+	}
+	
+	if ( local_1 > 0 )
+	{
+		local_1 = ( local_1 - param_1_ );
+	}
+	
+	return local_1;
+}
+
+hwindow CreateAndInitialiseListBoxEntryComponentWindow( int x_offset_, int width_, int height_, hwindow parent_, string font_, string name_ )
+{
+	hwindow window_1 = CreateAndInitialiseStaticWindow( x_offset_, 0, width_, height_, parent_, font_, name_ );
+	
+	GUI.SetWindowTextFormatting( window_1, false, 0 );
+	GUI.SetWindowStateColours( window_1, Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ), Global.Float( "GUI_listbox_focused_red" ), Global.Float( "GUI_listbox_focused_green" ), Global.Float( "GUI_listbox_focused_blue" ), Global.Float( "GUI_selected_red" ), Global.Float( "GUI_selected_green" ), Global.Float( "GUI_selected_blue" ) );
+	return window_1;
+}
+

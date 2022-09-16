@@ -1,0 +1,58 @@
+package iIgnore;
+
+uses String,
+     Set,
+     List,
+     Global,
+     INIFile,
+     Math,
+     Object,
+     Group,
+     Sim,
+     iComms,
+     MapEnumerations,
+     iFaction,
+     iMapEntity,
+     iSim,
+     iBody,
+     iHabitat,
+     iShip;
+
+provides WarnVessel;
+
+prototype hinifile local_function_0();
+prototype task WarnVessel( hship requestor_ship_, hship aggressor_ship_ );
+
+hinifile local_function_0()
+{
+	return INIFile.Cast( Global.Handle( "g_stock_utterance_ini" ) );
+}
+
+task WarnVessel( hship requestor_ship_, hship aggressor_ship_ )
+{
+	int random;
+	int local_1;
+	hinifile inifile;
+	string local_3;
+	hship playerShip;
+	
+	if ( Object.IDModulus( requestor_ship_, 2 ) == 1 )
+	{
+		local_3 = "_male_1";
+	}
+	else
+	{
+		local_3 = "_female_1";
+	}
+	
+	inifile = local_function_0();
+	local_1 = INIFile.Int( inifile, "stock_warn", "num_entries", 1 );
+	random = Math.RandomInt( 1, local_1 );
+	playerShip = iShip.FindPlayerShip();
+	
+	if ( (aggressor_ship_ == playerShip) && (Sim.DistanceBetween( playerShip, requestor_ship_ ) < 50000.0) )
+	{
+		iComms.Shout( requestor_ship_, "", String.Join( String.Join( "stock_warn_", String.FromInt( random ) ), local_3 ) );
+	}
+}
+

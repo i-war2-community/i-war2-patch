@@ -1,0 +1,675 @@
+package iAct1PiracySpecial;
+
+uses Debug,
+     Set,
+     List,
+     String,
+     Global,
+     Sim,
+     Group,
+     Math,
+     Object,
+     State,
+     Task,
+     iSim,
+     iBody,
+     iHabitat,
+     iShip,
+     Subsim,
+     iDockport,
+     iLagrangePoint,
+     iAI,
+     iCargo,
+     iComms,
+     iConversation,
+     GUI,
+     iEmail,
+     MapEnumerations,
+     iFaction,
+     iJafsScript,
+     iMapEntity,
+     iObjectives,
+     INIFile,
+     iUtilities;
+
+provides Main,
+         hitpointmonitortask,
+         PiracyMissionOneShutDownMonitor,
+         PiracyMissionOneShipGenerator,
+         cargo_hint_handler;
+
+prototype Main();
+prototype task local_function_0();
+prototype bool local_function_1();
+prototype local_function_2( string param_0_ );
+prototype task cargo_hint_handler( list localList_ );
+prototype local_function_3( hship ship_ );
+prototype task hitpointmonitortask( hship ship_ );
+prototype local_function_4( hship ship_0_ );
+prototype task PiracyMissionOneShipGenerator( hisim param_0_ );
+prototype task PiracyMissionOneShutDownMonitor( htask param_0_, htask param_1_ );
+
+Main()
+{
+	start local_function_0();
+}
+
+task local_function_0()
+{
+	htask currentTask = Task.Current();
+	htask local_1;
+	hstate taskState = State.Find( currentTask );
+	hisim simWaypoint;
+	hmapentity lucreciasBase;
+	bool local_5 = false;
+	hship playerShip = iShip.FindPlayerShip();
+	int convoResponse;
+	hship gMaasShip;
+	
+	if ( !Global.Exists( "g_piracy_mission_one_ship_flag" ) )
+	{
+		Global.CreateBool( "g_piracy_mission_one_ship_flag", 2, false );
+		Global.CreateBool( "g_ship_threat", 2, false );
+	}
+	
+	Global.CreateHandle( "g_maas_ship", 2, none );
+	Global.CreateHandle( "g_maas_ship", 2, none );
+	debug Debug.PrintString( "iActOne.PiracySpecialMissionOne - starting first piracy special mission. \n" );
+	
+	if ( !taskState )
+	{
+		taskState = State.Create( currentTask, 0 );
+	}
+	
+	switch ( State.Progress( taskState ) )
+	{
+		case 0:
+			debug Debug.PrintString( "iActOne.PiracySpecialMissionOne - starting intro loop\n" );
+			
+			while ( !local_5 )
+			{
+				if ( Sim.DistanceBetween( iMapEntity.FindByName( "Lucrecia's Base" ), playerShip ) < 300000.0 )
+				{
+					iConversation.Begin();
+					iConversation.Say( none, "name_smith", "a1_master_dialogue_picked_up_distress_1" );
+					iConversation.Say( none, "name_jafs", "a1_master_dialogue_jafs_signal_coment_1" );
+					iConversation.End();
+					iEmail.SendEmail( "a1_sender_the_stepsons", "a1_subject_greetings", "html:/text/act_1/act1_stepson_mail_1", false );
+					iObjectives.Add( "a1_m00_objective_checkout" );
+					State.SetProgress( taskState, 1 );
+					simWaypoint = iSim.Cast( Sim.Create( "ini:/sims/nav/waypoint", "a1_waypoint_name_distress" ) );
+					lucreciasBase = iMapEntity.FindByNameInSystem( "Lucrecia's Base", "map:/geog/badlands/hoffers_wake" );
+					debug Debug.PrintString( "iActOne.PiracySpecialMission: ERROR: unable to find player base!!\n" );
+					Sim.SetCullable( simWaypoint, false );
+					Sim.PlaceRelativeTo( simWaypoint, lucreciasBase, 1500000.0, 0.0, 0.0 );
+					iSim.SetSensorVisibility( iSim.Cast( simWaypoint ), true );
+					local_1 = start PiracyMissionOneShipGenerator( simWaypoint );
+					Task.Detach( local_1 );
+					Task.Detach( start PiracyMissionOneShutDownMonitor( currentTask, local_1 ) );
+					local_5 = true;
+				}
+				else
+				{
+					Task.Sleep( Task.Current(), 2.0 );
+				}
+			}
+		
+		case 1:
+			local_5 = false;
+			debug Debug.PrintString( "iActOne.PiracySpecialMissionOne - Starting first wait loop...\n" );
+			
+			while ( !local_5 )
+			{
+				if ( !Global.Bool( "g_piracy_mission_one_ship_flag" ) )
+				{
+					debug Debug.PrintString( "iActOne.PiracySpecialMissionOne - wait loop is waiting for target ship to awake. Sleeping for a bit \n" );
+					Task.Sleep( Task.Current(), 2.0 );
+				}
+				else
+				{
+					gMaasShip = iShip.Cast( Global.Handle( "g_maas_ship" ) );
+					
+					if ( gMaasShip == false )
+					{
+						debug Debug.Error( "iActOne.PiracySpecialMissionOne - Cannot find ship Spirit of Capitalism\n" );
+					}
+					
+					iObjectives.SetState( "a1_m00_objective_checkout", OS_Succeeded );
+					local_5 = true;
+				}
+			}
+			
+			State.SetProgress( taskState, 2 );
+		
+		case 2:
+			debug Debug.PrintString( "iActOneOne.PiracySpecialMissionOne - starting close loop\n" );
+			local_5 = false;
+			
+			while ( !local_5 )
+			{
+				if ( Sim.Cast( Global.Handle( "g_maas_ship" ) ) == false )
+				{
+					State.SetProgress( taskState, 3 );
+				}
+				
+				if ( Sim.DistanceBetween( Sim.Cast( Global.Handle( "g_maas_ship" ) ), playerShip ) < 9000.0 )
+				{
+					debug Debug.PrintString( "iActOne.PracySpecialMissionOne - spirit of capitalism is talking to the player\n" );
+					iConversation.Begin();
+					iConversation.AddResponse( "a1_master_player_option_1", "a1_master_player_option_1" );
+					iConversation.AddResponse( "a1_master_player_option_2", "a1_master_player_option_2" );
+					iConversation.AddResponse( "a1_master_player_option_3", "a1_master_player_option_3" );
+					iConversation.AddResponse( "a1_master_player_option_4", "a1_master_player_option_4" );
+					convoResponse = iConversation.Ask( gMaasShip, "a1_master_spirit_of_capitalism", "a1_master_dialogue_victim_threat_1" );
+					
+					if ( convoResponse == 1 )
+					{
+						iConversation.Say( gMaasShip, "a1_master_spirit_of_capitalism", "a1_victim_comment_1" );
+						iConversation.Say( gMaasShip, "a1_master_spirit_of_capitalism", "a1_victim_comment_2" );
+						iConversation.Say( none, "name_clay", "a1_master_clay_hes_bluffing" );
+						iConversation.End();
+						Global.SetBool( "g_ship_threat", true );
+						local_5 = true;
+					}
+					else if ( convoResponse == 2 )
+					{
+						iConversation.Say( gMaasShip, "a1_master_spirit_of_capitalism", "a1_victim_comment_3" );
+						iConversation.Say( gMaasShip, "a1_master_spirit_of_capitalism", "a1_victim_comment_2" );
+						iConversation.Say( none, "name_clay", "a1_master_clay_hes_bluffing" );
+						iConversation.End();
+						local_5 = true;
+					}
+					else if ( convoResponse == 3 )
+					{
+						iConversation.Say( gMaasShip, "a1_master_spirit_of_capitalism", "a1_victim_comment_4" );
+						iConversation.Say( gMaasShip, "a1_master_spirit_of_capitalism", "a1_victim_comment_2" );
+						iConversation.Say( none, "name_clay", "a1_master_clay_hes_bluffing" );
+						iConversation.End();
+						local_5 = true;
+					}
+					else if ( convoResponse == 4 )
+					{
+						iConversation.Say( gMaasShip, "a1_master_spirit_of_capitalism", "a1_victim_comment_5" );
+						iConversation.Say( gMaasShip, "a1_master_spirit_of_capitalism", "a1_victim_comment_2" );
+						iConversation.Say( none, "name_clay", "a1_master_clay_hes_bluffing" );
+						iConversation.End();
+						local_5 = true;
+					}
+				}
+				else
+				{
+					debug Debug.PrintString( "iActOne.PiracySpecialMissionOne - waiting for player to get close to targer ship so we can chat, sleeping\n" );
+					Task.Sleep( Task.Current(), 2.0 );
+				}
+			}
+			
+			State.SetProgress( taskState, 3 );
+		
+		case 3:
+			debug Debug.PrintString( "iActOne.PiracySpecialMissionOne - finished what i need to do here\n" );
+			
+			while ( Sim.DistanceBetween( simWaypoint, playerShip ) < 100000.0 )
+			{
+				Task.Sleep( Task.Current(), 1.0 );
+			}
+			
+			State.Destroy( Task.Current() );
+			return;
+	}
+}
+
+bool local_function_1()
+{
+	hmapentity lucreciasBase = iMapEntity.FindByName( "Lucrecia's Base" );
+	hship name_jafs = iShip.Cast( Sim.FindByName( "name_jafs" ) );
+	
+	if ( iJafsScript.JafsActive() )
+	{
+		if ( iShip.Cast( name_jafs ) != false )
+		{
+			if ( (iAI.CurrentOrderTarget( name_jafs ) == iSim.Cast( lucreciasBase )) && (iAI.CurrentOrderType( name_jafs ) == OT_Approach) )
+			{
+				return true;
+			}
+		}
+	}
+	
+	return false;
+}
+
+local_function_2( string param_0_ )
+{
+	if ( !iComms.IsInConversation() )
+	{
+		iComms.Shout( none, "name_clay", param_0_ );
+	}
+}
+
+task cargo_hint_handler( list localList_ )
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	bool local_2 = false;
+	hgroup group;
+	hship playerShip = iShip.FindPlayerShip();
+	set localSet;
+	hsim groupIter;
+	hsim waypoint;
+	int local_8;
+	int local_9 = 0;
+	int simCount = 0;
+	int ii;
+	
+	debug Debug.PrintString( "iAct1PiracySpecial.cargo_hint_handler: Starting hint handler\n" );
+	waypoint = iUtilities.CreateWaypointAt( playerShip );
+	Task.Sleep( Task.Current(), 5.0 );
+	iConversation.OneLiner( none, "name_clay", "a1_master_dialogue_clay_well_done" );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( Sim.DistanceBetween( playerShip, waypoint ) < 100000.0 )
+			{
+				localSet = iSim.SimsInRadius( iSim.Cast( waypoint ), 30000.0, 2048 );
+				
+				if ( (local_function_1() || (Set.ItemCount( localSet ) == 0)) && !local_1 )
+				{
+					local_1 = true;
+					Task.Sleep( Task.Current(), 6.0 );
+					iConversation.OneLiner( none, "name_clay", "a1_master_dialogue_clay_end_speech" );
+					iConversation.OneLiner( none, "name_clay", "a1_master_dialogue_clay_end_speech2" );
+					Sim.Destroy( waypoint );
+					return;
+				}
+			}
+			else
+			{
+				localSet = iSim.SimsInRadius( iSim.Cast( waypoint ), 30000.0, 2048 );
+				
+				if ( (Set.ItemCount( localSet ) != 0) && (!local_2 && !local_0) )
+				{
+					local_2 = true;
+					iConversation.OneLiner( none, "name_clay", "a1_master_dialogue_clay_go_back" );
+				}
+			}
+			
+			group = iJafsScript.GetTagGroup();
+			simCount = Group.SimCount( group );
+			
+			if ( simCount > local_9 )
+			{
+				local_9 = simCount;
+			}
+			
+			if ( !local_0 )
+			{
+				local_8 = ( local_8 + 1 );
+				
+				if ( (local_8 > 80) && !local_0 )
+				{
+					local_8 = 0;
+					iConversation.OneLiner( none, "name_clay", "a1_master_dialogue_clay_get_a_move_on" );
+				}
+				
+				for ( ii = 0; ii < simCount; ++ii )
+				{
+					groupIter = Group.NthSim( group, ii );
+					
+					if ( Object.PropertyExists( groupIter, "commented" ) == 0 )
+					{
+						Object.AddIntProperty( groupIter, "commented", 1 );
+						local_8 = 0;
+						
+						if ( iCargo.Value( iCargo.Find( Object.IntProperty( groupIter, "cargo" ) ) ) >= 6 )
+						{
+							local_function_2( "a1_master_dialogue_clay_good_comment_1" );
+						}
+						else if ( iCargo.Value( iCargo.Find( Object.IntProperty( groupIter, "cargo" ) ) ) >= 2 )
+						{
+							switch ( Math.RandomInt( 0, 2 ) )
+							{
+								case 0:
+									local_function_2( "a1_master_dialogue_clay_medium_comment_1" );
+									break;
+								
+								case 1:
+									local_function_2( "a1_master_dialogue_clay_medium_comment_2" );
+									break;
+								
+								case 2:
+									local_function_2( "a1_master_dialogue_clay_medium_comment_3" );
+									break;
+							}
+						}
+						else if ( iCargo.Value( iCargo.Find( Object.IntProperty( groupIter, "cargo" ) ) ) < 2 )
+						{
+							switch ( Math.RandomInt( 0, 2 ) )
+							{
+								case 0:
+									local_function_2( "a1_master_dialogue_clay_bad_comment_1" );
+									break;
+								
+								case 1:
+									local_function_2( "a1_master_dialogue_clay_bad_comment_2" );
+									break;
+								
+								case 2:
+									local_function_2( "a1_master_dialogue_clay_bad_comment_3" );
+									break;
+							}
+						}
+					}
+				}
+			}
+			else if ( (local_9 >= 6) && !iJafsScript.JafsActive() )
+			{
+				local_8 = ( local_8 + 1 );
+				
+				if ( local_8 > 50 )
+				{
+					local_8 = 0;
+					iConversation.OneLiner( none, "name_clay", "a1_master_dialogue_clay_call_jafs_long" );
+				}
+			}
+			
+			if ( (local_9 >= 6) && (!iJafsScript.JafsActive() && !local_0) )
+			{
+				local_8 = 0;
+				local_0 = true;
+				iConversation.OneLiner( none, "name_clay", "a1_master_dialogue_clay_call_jafs" );
+			}
+		}
+	}
+}
+
+local_function_3( hship ship_ )
+{
+	list localList = List.FromSet( Sim.Children( ship_ ) );
+	
+	Task.Detach( start iUtilities.JettisonCargo( localList, ship_ ) );
+	Global.SetInt( "g_jafs_comment", 1 );
+}
+
+task hitpointmonitortask( hship ship_ )
+{
+	list localList;
+	float hitPoints = Object.FloatProperty( ship_, "hit_points" );
+	int convoResponse;
+	bool local_3 = false;
+	int local_4 = 0;
+	string local_5 = String.Join( "iActOne.hitpointmonitor - ships hitpoints are - ", String.FromFloat( hitPoints ) );
+	
+	debug Debug.PrintString( "iAct1PiracySpecial.hitpointmonitor\n" );
+	debug Debug.PrintString( String.Join( local_5, "\n" ) );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( Sim.Cast( ship_ ) == false )
+			{
+				debug Debug.PrintString( "iAct1PiracySpecial: Ship has been destroyed. Starting hint task\n" );
+				local_3 = true;
+				Task.Detach( start cargo_hint_handler( localList ) );
+				return;
+			}
+			else if ( (Object.FloatProperty( ship_, "hit_points" ) + 150.0) < hitPoints )
+			{
+				if ( local_3 == 1 )
+				{
+					switch ( local_4 )
+					{
+						case 0:
+							iConversation.Begin();
+							iConversation.Say( ship_, "a1_master_spirit_of_capitalism", "a1_victim_plea_1" );
+							iConversation.End();
+							hitPoints = Object.FloatProperty( ship_, "hit_points" );
+							local_4 = ( local_4 + 1 );
+							break;
+						
+						case 1:
+							iConversation.Begin();
+							iConversation.Say( ship_, "a1_master_spirit_of_capitalism", "a1_victim_plea_2" );
+							iConversation.End();
+							hitPoints = Object.FloatProperty( ship_, "hit_points" );
+							local_4 = ( local_4 + 1 );
+							break;
+						
+						case 3:
+							iConversation.Begin();
+							iConversation.Say( ship_, "a1_master_spirit_of_capitalism", "a1_victim_plea_3" );
+							iConversation.End();
+							hitPoints = Object.FloatProperty( ship_, "hit_points" );
+							local_4 = ( local_4 + 1 );
+							break;
+					}
+				}
+				else if ( Global.Bool( "g_ship_threat" ) == 1 )
+				{
+					iConversation.Begin();
+					iConversation.Say( ship_, "a1_master_spirit_of_capitalism", "a1_victim_plea_2" );
+					iConversation.End();
+					localList = List.FromSet( Sim.Children( ship_ ) );
+					local_function_3( ship_ );
+					hitPoints = Object.FloatProperty( ship_, "hit_points" );
+					local_3 = true;
+					debug Debug.PrintString( "iAct1PiracySpecial: Ship has been threatened. Starting hint task\n" );
+					Task.Detach( start cargo_hint_handler( localList ) );
+					return;
+				}
+				else
+				{
+					iConversation.Begin();
+					iConversation.AddResponse( "a1_master_player_option_5", "a1_master_player_option_5" );
+					iConversation.AddResponse( "a1_master_player_option_6", "a1_master_player_option_6" );
+					iConversation.AddResponse( "a1_master_player_option_7", "a1_master_player_option_7" );
+					convoResponse = iConversation.Ask( ship_, "a1_master_spirit_of_capitalism", "a1_master_dialogue_victim_question_2" );
+					
+					if ( convoResponse == 1 )
+					{
+						iConversation.Say( ship_, "a1_master_spirit_of_capitalism", "a1_victim_plea_2" );
+						iConversation.End();
+						localList = List.FromSet( Sim.Children( ship_ ) );
+						local_function_3( ship_ );
+						hitPoints = Object.FloatProperty( ship_, "hit_points" );
+						local_3 = true;
+						Task.Detach( start cargo_hint_handler( localList ) );
+						return;
+					}
+					
+					if ( convoResponse == 2 )
+					{
+						iConversation.Say( ship_, "a1_master_spirit_of_capitalism", "a1_victim_plea_4" );
+						iConversation.Say( ship_, "a1_master_spirit_of_capitalism", "a1_victim_plea_2" );
+						iConversation.End();
+						localList = List.FromSet( Sim.Children( ship_ ) );
+						local_function_3( ship_ );
+						hitPoints = Object.FloatProperty( ship_, "hit_points" );
+						local_3 = true;
+						Task.Detach( start cargo_hint_handler( localList ) );
+						return;
+					}
+					else
+					{
+						iConversation.Say( ship_, "a1_master_spirit_of_capitalism", "a1_victim_plea_5" );
+						iConversation.End();
+						Global.SetBool( "g_ship_threat", true );
+						hitPoints = Object.FloatProperty( ship_, "hit_points" );
+					}
+				}
+			}
+		}
+	}
+}
+
+local_function_4( hship ship_0_ )
+{
+	int local_0;
+	int ii;
+	int local_2;
+	int constant = 9;
+	int local_4;
+	string local_5;
+	hship ship_1;
+	
+	for ( ii = 0; ii < constant; ++ii )
+	{
+		switch ( Math.RandomInt( 0, 2 ) )
+		{
+			case 0:
+				local_5 = "ini:/sims/ships/utility/cargo_pod";
+				break;
+			
+			case 1:
+				local_5 = "ini:/sims/ships/utility/freightpod";
+				break;
+			
+			case 2:
+				local_5 = "ini:/sims/ships/utility/containerpod";
+				break;
+		}
+		
+		ship_1 = iShip.Create( local_5, "name_cargo_pod" );
+		Sim.SetCullable( ship_1, false );
+		
+		switch ( ii )
+		{
+			case 0:
+				Object.SetIntProperty( ship_1, "cargo", 110 );
+				break;
+			
+			case 1:
+				Object.SetIntProperty( ship_1, "cargo", 365 );
+				break;
+			
+			case 2:
+				Object.SetIntProperty( ship_1, "cargo", 441 );
+				break;
+			
+			case 3:
+				Object.SetIntProperty( ship_1, "cargo", 280 );
+				break;
+			
+			case 4:
+				Object.SetIntProperty( ship_1, "cargo", 114 );
+				break;
+			
+			case 5:
+				Object.SetIntProperty( ship_1, "cargo", 482 );
+				break;
+			
+			case 6:
+				Object.SetIntProperty( ship_1, "cargo", 345 );
+				break;
+			
+			case 7:
+				Object.SetIntProperty( ship_1, "cargo", 26 );
+				break;
+			
+			case 8:
+				Object.SetIntProperty( ship_1, "cargo", 136 );
+				break;
+		}
+		
+		iUtilities.RenameSim( ship_1, iCargo.Name( iCargo.Find( Object.IntProperty( ship_1, "cargo" ) ) ) );
+		iSim.Dock( ship_1, ship_0_ );
+	}
+}
+
+task PiracyMissionOneShipGenerator( hisim param_0_ )
+{
+	bool local_0 = true;
+	int local_1;
+	hship shipFreighter;
+	htask currentTask;
+	hship playerShip = iShip.FindPlayerShip();
+	int local_5;
+	htask local_6;
+	
+	currentTask = Task.Current();
+	
+	do
+	{
+		if ( Sim.DistanceBetween( param_0_, playerShip ) > Global.Float( "g_player_sensor_range" ) )
+		{
+			if ( Global.Bool( "g_piracy_mission_one_ship_flag" ) == 1 )
+			{
+				debug Debug.PrintString( "iActOne.PiracyMissionOneShipGenerator - player is out of range, deleting the ship\n" );
+				Sim.Destroy( Sim.Cast( shipFreighter ) );
+				Global.SetBool( "g_piracy_mission_one_ship_flag", false );
+				
+				if ( Task.IsRunning( local_6 ) )
+				{
+					Task.Halt( local_6 );
+				}
+				
+				local_0 = true;
+			}
+			
+			debug Debug.PrintString( "iActOne.PiracyMissionOneShipGenerator - Player is not in range of the waypoint, sleeping.\n" );
+			Task.Sleep( currentTask, 1.0 );
+		}
+		else
+		{
+			if ( Global.Bool( "g_piracy_mission_one_ship_flag" ) == 0 )
+			{
+				debug Debug.PrintString( "iActOne.PiracyMissionOneShipGenerator - Player is in range of waypoint, generating ship\n" );
+				shipFreighter = iShip.Create( "ini:/sims/ships/utility/freighter", "a1_master_spirit_of_capitalism" );
+				iSim.SetFaction( shipFreighter, iFaction.Find( "Maas Corporation" ) );
+				Global.SetHandle( "g_maas_ship", shipFreighter );
+				debug Debug.PrintString( "iActOne.PiracyMissionOneShipGenerator - assigning cargo to ship\n" );
+				local_function_4( shipFreighter );
+				debug Debug.PrintString( "iActOne.piracyMissionOneShipGenerator - Placing ship\n" );
+				Sim.PlaceRelativeTo( shipFreighter, param_0_, 0.0, 0.0, -500.0 );
+				local_6 = start hitpointmonitortask( shipFreighter );
+				Task.Detach( local_6 );
+				Global.SetBool( "g_piracy_mission_one_ship_flag", true );
+			}
+			else debug Debug.PrintString( "iActone.PiracySpecialMissionOneShipGenerator - target ship is created, & player is within range, doing nowt & sleeping for a bit\n" );
+			
+			Task.Sleep( currentTask, 1.0 );
+		}
+	}
+	while ( local_0 );
+}
+
+task PiracyMissionOneShutDownMonitor( htask param_0_, htask param_1_ )
+{
+	Task.Sleep( Task.Current(), 50.0 );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( !Task.IsRunning( param_0_ ) )
+			{
+				debug Debug.PrintString( "iActOne.PiracyMissionOneShutDownMonitor : Main piracy special mission 1 task has finished/n" );
+				
+				if ( Global.Bool( "g_piracy_mission_one_ship_flag" ) && (Sim.Cast( Global.Handle( "g_maas_ship" ) ) != false) )
+				{
+					debug Debug.PrintString( "iActOne.PiracyMissionOneShutDownMonitor : Main task has halted, but the 'Spirit of Capitalism' is still alive\n" );
+				}
+				else
+				{
+					debug Debug.PrintString( "iActOne.PiracyMissionOneShutDownMonitor : Main task has halted, and target ship is not alive - shutting mission down...\n" );
+					Task.Halt( param_1_ );
+					Global.Destroy( "g_piracy_mission_one_ship_flag" );
+					break;
+				}
+			}
+			else if ( Global.Bool( "g_piracy_mission_one_ship_flag" ) )
+			{
+				debug Debug.PrintString( "iActOne.PiracyMissionOneShutDownMonitor : Target ship is alive and piracy special mission one task is still runnig - mission is underway/n" );
+			}
+			else
+			{
+				Task.Halt( param_0_ );
+				Task.Halt( param_1_ );
+				Global.Destroy( "g_piracy_mission_one_ship_flag" );
+				Global.SetInt( "g_story_1.25", 1 );
+			}
+		}
+	}
+}
+

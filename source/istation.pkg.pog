@@ -1,0 +1,908 @@
+package iStation;
+
+uses Debug,
+     Set,
+     List,
+     String,
+     Global,
+     Sim,
+     Group,
+     INIFile,
+     Math,
+     Object,
+     Task,
+     iSim,
+     iShip,
+     Subsim,
+     iDockport,
+     iLagrangePoint,
+     iAI,
+     iComms,
+     iEscort,
+     MapEnumerations,
+     iFaction,
+     iFormation,
+     iGame,
+     iMapEntity,
+     iBody,
+     iHabitat,
+     iRemotePilot,
+     iPilotSetup,
+     CargoTypes,
+     iCargoScript,
+     iUtilities,
+     iCargo,
+     iShipCreation;
+
+provides CheckStationReaction,
+         StationReactive,
+         DisableStationReactiveReport,
+         AddReactiveException,
+         RemoveReactiveException,
+         DisableReactiveInArea,
+         EnableReactiveInArea;
+
+prototype AddReactiveException( hhabitat station_ );
+prototype RemoveReactiveException( hhabitat station_ );
+prototype DisableStationReactiveReport();
+prototype DisableReactiveInArea( hsim centre_, float radius_ );
+prototype EnableReactiveInArea( hsim centre_, float radius_ );
+prototype local_function_4( string param_0_, hhabitat habitat_, hship ship_ );
+prototype bool local_function_2( hhabitat habitat_ );
+prototype hinifile local_function_0();
+prototype local_function_3( hhabitat habitat_, int param_1_ );
+prototype string local_function_1( int param_0_ );
+prototype local_function_12( hship ship_, hhabitat habitat_, float param_2_ );
+prototype task local_function_9( hhabitat habitat_, list localList_ );
+prototype hgroup local_function_6( hhabitat habitat_, hship ship_, int param_2_, int param_3_ );
+prototype hgroup local_function_7( hhabitat habitat_, hgroup group_0_, int param_2_, int param_3_ );
+prototype task local_function_8( hhabitat habitat_, list enemyList_, bool param_2_ );
+prototype list local_function_10( hhabitat habitat_ );
+prototype task local_function_11( hship ship_0_, hship ship_1_ );
+prototype task local_function_5( hhabitat habitat_ );
+prototype task CheckStationReaction();
+prototype task StationReactive( hhabitat station_, hisim aggressor_, float damage_ );
+
+AddReactiveException( hhabitat station_ )
+{
+	Object.AddBoolProperty( station_, "reactive_exception", true );
+	iSim.LockDownWeapons( station_ );
+}
+
+RemoveReactiveException( hhabitat station_ )
+{
+	Object.RemoveProperty( station_, "reactive_exception" );
+	iSim.WeaponTargetsFromContactList( station_ );
+}
+
+DisableStationReactiveReport()
+{
+	Global.CreateBool( "gl_station_reaction_no_report", 2, true );
+}
+
+DisableReactiveInArea( hsim centre_, float radius_ )
+{
+	set localSet = iSim.NonPlanetaryInRadius( iSim.Cast( centre_ ), radius_ );
+	hmapentity mapEntity;
+	
+	do
+	{
+		mapEntity = iMapEntity.Cast( Set.FirstElement( localSet ) );
+		AddReactiveException( iHabitat.Cast( mapEntity ) );
+		Set.Remove( localSet, mapEntity );
+	}
+	while ( !Set.IsEmpty( localSet ) );
+}
+
+EnableReactiveInArea( hsim centre_, float radius_ )
+{
+	set localSet = iSim.NonPlanetaryInRadius( iSim.Cast( centre_ ), radius_ );
+	hmapentity mapEntity;
+	
+	do
+	{
+		mapEntity = iMapEntity.Cast( Set.FirstElement( localSet ) );
+		RemoveReactiveException( iHabitat.Cast( mapEntity ) );
+		Set.Remove( localSet, mapEntity );
+	}
+	while ( !Set.IsEmpty( localSet ) );
+}
+
+local_function_4( string param_0_, hhabitat habitat_, hship ship_ )
+{
+	if ( Global.Exists( "gl_station_reaction_no_report" ) )
+	{
+		if ( Global.Bool( "gl_station_reaction_no_report" ) == 1 )
+		{
+			return;
+		}
+	}
+	
+	debug atomic
+	{
+		if ( habitat_ == false )
+		{
+			Debug.PrintString( "iStation : " );
+		}
+		else
+		{
+			Debug.PrintString( "iStation(" );
+			Debug.PrintHandle( habitat_ );
+			Debug.PrintString( "::" );
+			Debug.PrintHandle( ship_ );
+			Debug.PrintString( ") : " );
+		}
+		
+		Debug.PrintString( param_0_ );
+		Debug.PrintString( "\n" );
+	}
+}
+
+bool local_function_2( hhabitat habitat_ )
+{
+	if ( iFaction.Allegiance( iSim.Faction( habitat_ ) ) == A_Police )
+	{
+		return true;
+	}
+	
+	return false;
+}
+
+hinifile local_function_0()
+{
+	return INIFile.Cast( Global.Handle( "g_stock_utterance_ini" ) );
+}
+
+local_function_3( hhabitat habitat_, int param_1_ )
+{
+	string local_0;
+	hinifile inifile;
+	int local_2;
+	int random;
+	int local_4;
+	
+	if ( iHabitat.Allegiance( habitat_ ) == A_TheThirdWay )
+	{
+		return;
+	}
+	
+	if ( habitat_ == false )
+	{
+		return;
+	}
+	
+	inifile = local_function_0();
+	
+	if ( inifile == false )
+	{
+		return;
+	}
+	
+	local_0 = local_function_1( param_1_ );
+	
+	if ( local_function_2( habitat_ ) )
+	{
+		switch ( param_1_ )
+		{
+			case 6:
+				local_0 = "attack_guarded_cops_";
+				break;
+			
+			case 3:
+				local_0 = "warning_gentle_cops_";
+				break;
+		}
+	}
+	
+	local_0 = String.Join( "stock_station_", local_0 );
+	local_2 = INIFile.Int( inifile, local_0, "num_entries", 1 );
+	random = Math.RandomInt( 1, local_2 );
+	local_0 = String.Join( local_0, String.FromInt( random ) );
+	
+	if ( Object.IDModulus( habitat_, 13 ) > 7 )
+	{
+		local_0 = String.Join( local_0, "_male" );
+	}
+	else
+	{
+		local_0 = String.Join( local_0, "_female" );
+	}
+	
+	if ( !iComms.IsBusy() )
+	{
+		iComms.Shout( habitat_, "", local_0 );
+	}
+}
+
+string local_function_1( int param_0_ )
+{
+	switch ( param_0_ )
+	{
+		case 0:
+			return "ignore_";
+			break;
+		
+		case 1:
+			return "greet_neutral_";
+			break;
+		
+		case 2:
+			return "greet_friendly_";
+			break;
+		
+		case 3:
+			return "warning_gentle_";
+			break;
+		
+		case 4:
+			return "warning_restricted_";
+			break;
+		
+		case 5:
+			return "warning_severe_";
+			break;
+		
+		case 6:
+			return "attack_guarded_";
+			break;
+		
+		case 7:
+			return "attack_severe_";
+			break;
+		
+		default:
+			debug Debug.Error( "iStation.warning_name : Bad station reaction. !!!SHOULDNT HAPPEN" );
+			return "";
+			break;
+	}
+	
+	return "dummy string";
+}
+
+local_function_12( hship ship_, hhabitat habitat_, float param_2_ )
+{
+	float local_0;
+	list enemyList;
+	int warnedLevel;
+	htask local_3;
+	
+	if ( !Object.PropertyExists( habitat_, "enemy_list" ) )
+	{
+		Object.AddListProperty( habitat_, "enemy_list", enemyList );
+		Object.AddFloatProperty( ship_, "warned_time", iGame.GameTime() );
+		
+		if ( (ship_ == iShip.FindPlayerShip()) || (ship_ == iRemotePilot.ReturnCurrentRemoteVessel()) )
+		{
+			if ( param_2_ < 1000.0 )
+			{
+				local_function_3( habitat_, 3 );
+			}
+			else
+			{
+				local_function_3( habitat_, 5 );
+			}
+		}
+		
+		if ( param_2_ < 1000.0 )
+		{
+			Object.AddIntProperty( ship_, "warned_level", 1 );
+		}
+		else
+		{
+			Object.AddIntProperty( ship_, "warned_level", 2 );
+		}
+		
+		return;
+	}
+	
+	enemyList = Object.ListProperty( habitat_, "enemy_list" );
+	
+	if ( !Object.PropertyExists( ship_, "warned_level" ) )
+	{
+		if ( param_2_ < 1000.0 )
+		{
+			Object.AddIntProperty( ship_, "warned_level", 1 );
+		}
+		else
+		{
+			Object.AddIntProperty( ship_, "warned_level", 2 );
+		}
+		
+		Object.AddFloatProperty( ship_, "warned_time", iGame.GameTime() );
+		return;
+	}
+	
+	warnedLevel = Object.IntProperty( ship_, "warned_level" );
+	local_0 = ( iGame.GameTime() - Object.FloatProperty( ship_, "warned_time" ) );
+	
+	switch ( warnedLevel )
+	{
+		case 1:
+			if ( local_0 <= 10.0 )
+			{
+				if ( (ship_ == iShip.FindPlayerShip()) || (ship_ == iRemotePilot.ReturnCurrentRemoteVessel()) )
+				{
+					local_function_3( habitat_, 5 );
+				}
+				
+				Object.SetIntProperty( ship_, "warned_level", 2 );
+				Object.SetFloatProperty( ship_, "warned_time", iGame.GameTime() );
+			}
+			else
+			{
+				local_function_4( "add_station_enemy: This vessel was warned a while ago - sticking with gentle warn...", habitat_, ship_ );
+				
+				if ( (ship_ == iShip.FindPlayerShip()) || (ship_ == iRemotePilot.ReturnCurrentRemoteVessel()) )
+				{
+					if ( param_2_ < 1000.0 )
+					{
+						local_function_3( habitat_, 3 );
+					}
+					else
+					{
+						local_function_3( habitat_, 5 );
+					}
+				}
+				
+				if ( param_2_ < 1000.0 )
+				{
+					Object.SetIntProperty( ship_, "warned_level", 1 );
+				}
+				else
+				{
+					Object.SetIntProperty( ship_, "warned_level", 2 );
+				}
+				
+				Object.SetFloatProperty( ship_, "warned_time", iGame.GameTime() );
+			}
+			
+			return;
+		
+		case 2:
+			if ( (ship_ == iShip.FindPlayerShip()) || (ship_ == iRemotePilot.ReturnCurrentRemoteVessel()) )
+			{
+				local_function_3( habitat_, 6 );
+			}
+			
+			List.AddTail( enemyList, ship_ );
+			Object.SetListProperty( habitat_, "enemy_list", enemyList );
+			Object.SetIntProperty( ship_, "warned_level", 3 );
+			Object.SetFloatProperty( ship_, "warned_time", iGame.GameTime() );
+			
+			if ( !Object.PropertyExists( habitat_, "station_protection_handler" ) )
+			{
+				Task.Detach( local_3 = start local_function_5( habitat_ ) );
+				Object.AddHandleProperty( habitat_, "station_protection_handler", local_3 );
+			}
+			
+			return;
+		
+		default:
+			local_function_4( "add_station_enemy: This ship is already in the bad books....", habitat_, ship_ );
+			return;
+	}
+}
+
+task local_function_9( hhabitat habitat_, list localList_ )
+{
+	bool local_0 = false;
+	hisim local_1;
+	int itemCount = List.ItemCount( localList_ );
+	int local_3;
+	
+	do
+	{
+		local_1 = iSim.Cast( List.GetNth( localList_, local_3 ) );
+		
+		if ( (local_1 != false) && (!local_0 && (Sim.DistanceBetween( local_1, habitat_ ) < 15000.0)) )
+		{
+			local_0 = true;
+			iHabitat.SetArmedWithTarget( habitat_, local_1 );
+		}
+		else
+		{
+			local_0 = false;
+			local_3 = ( local_3 + 1 );
+		}
+	}
+	while ( local_3 < itemCount );
+}
+
+hgroup local_function_6( hhabitat habitat_, hship ship_, int param_2_, int param_3_ )
+{
+	IeAllegiance ieAllegiance = iFaction.Allegiance( iSim.Faction( habitat_ ) );
+	hgroup group;
+	int ii;
+	
+	if ( (ieAllegiance == A_Independent) || ((ieAllegiance == A_Exile) || (ieAllegiance == A_Transient)) )
+	{
+		ieAllegiance = A_Police;
+	}
+	
+	switch ( param_3_ )
+	{
+		case 0:
+			group = iShipCreation.GetTraffic( ST_CombatAll, ieAllegiance, param_2_ );
+			break;
+		
+		case 1:
+			group = iShipCreation.GetTraffic( ST_CombatHeavy, ieAllegiance, param_2_ );
+			break;
+		
+		case 2:
+			group = iShipCreation.GetTraffic( ST_CombatCaptial, ieAllegiance, param_2_ );
+			break;
+	}
+	
+	Sim.PlaceNear( Group.Leader( group ), ship_, 100000.0 );
+	iFormation.Goose( group, 100.0, true );
+	
+	for ( ii = 0; ii < param_2_; ++ii )
+	{
+		Object.SetBoolProperty( Group.NthSim( group, ii ), "ignore_speed_limit", true );
+		Object.AddHandleProperty( Group.NthSim( group, ii ), "traffic_handler_task", none );
+		Sim.SetCullable( Group.NthSim( group, ii ), true );
+	}
+	
+	return group;
+}
+
+hgroup local_function_7( hhabitat habitat_, hgroup group_0_, int param_2_, int param_3_ )
+{
+	IeAllegiance ieAllegiance = iFaction.Allegiance( iSim.Faction( habitat_ ) );
+	hgroup group_1;
+	int ii;
+	
+	switch ( param_3_ )
+	{
+		case 0:
+			group_1 = iShipCreation.GetTraffic( ST_CombatAll, ieAllegiance, param_2_ );
+			break;
+		
+		case 1:
+			group_1 = iShipCreation.GetTraffic( ST_CombatHeavy, ieAllegiance, param_2_ );
+			break;
+		
+		case 2:
+			group_1 = iShipCreation.GetTraffic( ST_CombatCaptial, ieAllegiance, param_2_ );
+			break;
+	}
+	
+	iEscort.InFormationGoose( group_1, group_0_, 0, 0.0, 300.0, 0.0, 70.0, 9000.0, true );
+	
+	for ( ii = 0; ii < param_2_; ++ii )
+	{
+		Object.SetBoolProperty( Group.NthSim( group_1, ii ), "ignore_speed_limit", true );
+		Object.AddHandleProperty( Group.NthSim( group_1, ii ), "traffic_handler_task", none );
+		Sim.SetCullable( Group.NthSim( group_1, ii ), true );
+	}
+	
+	return group_1;
+}
+
+task local_function_8( hhabitat habitat_, list enemyList_, bool param_2_ )
+{
+	bool local_0 = false;
+	hgroup group = Group.Create();
+	hship playerShip = iShip.FindPlayerShip();
+	hisim local_3;
+	hisim local_4;
+	int local_5;
+	
+	if ( group == false )
+	{
+		if ( List.ItemCount( enemyList_ ) >= 4 )
+		{
+			group = local_function_6( habitat_, playerShip, 3, 1 );
+		}
+		else
+		{
+			group = local_function_6( habitat_, playerShip, 3, 0 );
+		}
+	}
+	else if ( Group.TotalSimCount( group ) < 3 )
+	{
+		Group.AddGroup( group, local_function_6( habitat_, playerShip, 3, 0 ) );
+	}
+	
+	if ( Sim.FindSubsimByName( habitat_, "fortress_cannon" ) == false )
+	{
+		param_2_ = false;
+	}
+	
+	if ( param_2_ )
+	{
+		local_3 = iSim.Cast( List.Head( enemyList_ ) );
+		iHabitat.SetArmedWithTarget( habitat_, local_3 );
+		local_5 = ( local_5 + 1 );
+	}
+	
+	if ( List.ItemCount( enemyList_ ) == 1 )
+	{
+		local_4 = iSim.Cast( List.Head( enemyList_ ) );
+		iAI.GiveAttackOrder( group, local_4 );
+	}
+	else
+	{
+		local_4 = iSim.Cast( List.GetNth( enemyList_, local_5 ) );
+		iAI.GiveAttackOrder( group, local_4 );
+		local_5 = ( local_5 + 1 );
+	}
+	
+	schedule
+	{
+		every 1.0:
+		{
+			enemyList_ = Object.ListProperty( habitat_, "enemy_list" );
+			
+			if ( (List.ItemCount( enemyList_ ) == 0) && !local_0 )
+			{
+				local_0 = true;
+				iEscort.InFormationClaw( group, habitat_, 0, 0.0, 0.0, 0.0, 40.0, 10000.0, false );
+			}
+			else if ( List.ItemCount( enemyList_ ) != 0 )
+			{
+				if ( local_0 )
+				{
+					local_0 = false;
+					Group.AddGroup( group, local_function_6( habitat_, playerShip, 3, 0 ) );
+				}
+				
+				if ( param_2_ )
+				{
+					if ( (local_3 == false) || (Sim.DistanceBetween( local_3, habitat_ ) > 15000.0) )
+					{
+						if ( List.ItemCount( enemyList_ ) == 1 )
+						{
+							local_3 = iSim.Cast( List.Head( enemyList_ ) );
+							iHabitat.SetArmedWithTarget( habitat_, local_3 );
+							local_5 = ( local_5 + 1 );
+						}
+					}
+				}
+				
+				if ( Sim.DistanceBetween( local_4, habitat_ ) > 150000.0 )
+				{
+					List.Remove( enemyList_, local_4 );
+					Object.SetListProperty( habitat_, "enemy_list", enemyList_ );
+					Object.RemoveProperty( local_4, "warned_time" );
+					Object.RemoveProperty( local_4, "warned_level" );
+					local_4 = none;
+				}
+				
+				if ( (local_4 == false) && (Sim.DistanceBetween( local_4, habitat_ ) < 150000.0) )
+				{
+					if ( List.ItemCount( enemyList_ ) == 1 )
+					{
+						local_4 = iSim.Cast( List.Head( enemyList_ ) );
+						iAI.GiveAttackOrder( group, local_4 );
+					}
+					else
+					{
+						local_4 = iSim.Cast( List.GetNth( enemyList_, local_5 ) );
+						iAI.GiveAttackOrder( group, local_4 );
+						local_5 = ( local_5 + 1 );
+					}
+				}
+				
+				if ( Group.TotalSimCount( group ) == 0 )
+				{
+					atomic
+					{
+						group = local_function_6( habitat_, playerShip, 1, 2 );
+						iAI.GiveAttackOrder( group, local_4 );
+						Group.AddGroup( group, local_function_7( habitat_, group, 4, 0 ) );
+					}
+				}
+			}
+		}
+	}
+}
+
+list local_function_10( hhabitat habitat_ )
+{
+	float radius = Object.FloatProperty( habitat_, "radius" );
+	list localList = List.FromSet( iSim.SimsInRadius( iSim.Cast( habitat_ ), radius + 50000.0, 536838144 ) );
+	hfaction faction = iSim.Faction( iSim.Cast( habitat_ ) );
+	hfaction police = iFaction.Find( "Police" );
+	hfaction military = iFaction.Find( "Military" );
+	int local_5;
+	hisim local_6;
+	int itemCount = List.ItemCount( localList );
+	int ii;
+	
+	for ( ii = ( itemCount - 1 ); ii >= 0; --ii )
+	{
+		local_6 = iSim.Cast( List.GetNth( localList, ii ) );
+		
+		if ( ((faction != iSim.Faction( local_6 )) && ((faction != police) && (faction != military))) || !Object.PropertyExists( local_6, "traffic_handler_task" ) )
+		{
+			List.RemoveNth( localList, ii );
+		}
+	}
+	
+	return localList;
+}
+
+task local_function_11( hship ship_0_, hship ship_1_ )
+{
+	htask trafficHandlerTask = Task.Cast( Object.HandleProperty( ship_0_, "traffic_handler_task" ) );
+	hgroup group = Sim.Group( ship_0_ );
+	
+	Task.Suspend( trafficHandlerTask );
+	Object.AddBoolProperty( ship_0_, "support_handler", true );
+	
+	if ( group != false )
+	{
+		iAI.GiveAttackOrder( group, ship_1_ );
+	}
+	else
+	{
+		iAI.GiveAttackOrder( ship_0_, ship_1_ );
+	}
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( iShip.Cast( ship_0_ ) == false )
+			{
+				return;
+			}
+			
+			if ( iShip.Cast( ship_1_ ) == false )
+			{
+				Task.Resume( trafficHandlerTask );
+				
+				if ( group != false )
+				{
+					iEscort.Goose( group, 50.0, 8000.0, false );
+				}
+				
+				Object.RemoveProperty( ship_0_, "support_handler" );
+				return;
+			}
+		}
+	}
+}
+
+task local_function_5( hhabitat habitat_ )
+{
+	list localList_0;
+	list enemyList;
+	list localList_1;
+	hship ship_0;
+	hship ship_1;
+	htask local_5;
+	htask local_6;
+	int local_7;
+	int itemCount_0;
+	int itemCount_1;
+	int ii;
+	
+	schedule
+	{
+		every 1.0:
+		{
+			enemyList = Object.ListProperty( habitat_, "enemy_list" );
+			itemCount_0 = List.ItemCount( enemyList );
+			
+			for ( ii = ( itemCount_0 - 1 ); ii >= 0; --ii )
+			{
+				ship_0 = iShip.Cast( List.GetNth( enemyList, ii ) );
+				
+				if ( iSim.IsDying( ship_0 ) || (Sim.IsDead( ship_0 ) || (Sim.DistanceBetween( ship_0, habitat_ ) > 150000.0)) )
+				{
+					List.Remove( enemyList, ship_0 );
+				}
+			}
+			
+			Object.SetListProperty( habitat_, "enemy_list", enemyList );
+			itemCount_0 = List.ItemCount( enemyList );
+			
+			if ( itemCount_0 != local_7 )
+			{
+				if ( (itemCount_0 > 2) || (Sim.FindSubsimByName( habitat_, "fortress_cannon" ) == false) )
+				{
+					if ( !Task.IsRunning( local_6 ) )
+					{
+						local_6 = start local_function_8( habitat_, enemyList, true );
+					}
+				}
+				else if ( !Task.IsRunning( local_5 ) && !Task.IsRunning( local_6 ) )
+				{
+					local_5 = start local_function_9( habitat_, enemyList );
+				}
+			}
+			
+			local_7 = itemCount_0;
+			
+			if ( itemCount_0 != 0 )
+			{
+				localList_1 = local_function_10( habitat_ );
+				itemCount_1 = List.ItemCount( localList_1 );
+				
+				for ( ii = 0; ii < itemCount_1; ++ii )
+				{
+					ship_1 = iShip.Cast( List.GetNth( localList_1, ii ) );
+					
+					if ( Object.PropertyExists( ship_1, "support_handler" ) == 0 )
+					{
+						Task.Detach( start local_function_11( ship_1, iShip.Cast( List.GetNth( enemyList, Math.RandomInt( 0, itemCount_0 - 1 ) ) ) ) );
+					}
+				}
+			}
+		}
+		
+		every 10.0:
+		{
+			localList_0 = Global.List( "g_active_location_list" );
+			
+			if ( !List.Contains( localList_0, habitat_ ) )
+			{
+				debug atomic
+				{
+					Debug.PrintString( "iStation.station_protection_handler: Station: " );
+					Debug.PrintString( Object.StringProperty( habitat_, "name" ) );
+					Debug.PrintString( " no-longer in range of player - quiting handler...\n" );
+				}
+				
+				Object.RemoveProperty( habitat_, "station_protection_handler" );
+				Object.RemoveProperty( habitat_, "enemy_list" );
+				iHabitat.SetArmed( habitat_, false );
+				return;
+			}
+		}
+	}
+}
+
+task CheckStationReaction()
+{
+	list localList;
+	set localSet;
+	hfaction faction;
+	hhabitat habitat;
+	hfaction marauders = iFaction.Find( "Marauders" );
+	hfaction independent = iFaction.Find( "Independent" );
+	hship ship_0;
+	hship playerShip;
+	hship ship_1;
+	float radius;
+	int itemCount;
+	int local_11;
+	int ii;
+	
+	schedule
+	{
+		every 2.0:
+		{
+			local_function_4( "Checking active location list.\n", none, none );
+			playerShip = iShip.FindPlayerShip();
+			
+			if ( Global.Exists( "g_active_location_list" ) == 1 )
+			{
+				localList = Global.List( "g_active_location_list" );
+				
+				if ( List.IsEmpty( localList ) == 0 )
+				{
+					itemCount = List.ItemCount( localList );
+					local_function_4( String.Join( String.Join( "Found ", String.FromInt( itemCount ) ), " stations to check reactions for.\n" ), none, none );
+					
+					for ( ii = 0; ii < itemCount; ++ii )
+					{
+						habitat = iHabitat.Cast( List.GetNth( localList, ii ) );
+						radius = Object.FloatProperty( habitat, "radius" );
+						faction = iSim.Faction( habitat );
+						
+						if ( !Object.PropertyExists( habitat, "reactive_exception" ) )
+						{
+							if ( !Object.PropertyExists( habitat, "enemy_list" ) )
+							{
+								if ( (Sim.DistanceBetween( playerShip, habitat ) <= (radius + 50000.0)) && !Object.PropertyExists( habitat, "initial_greet" ) )
+								{
+									Object.AddBoolProperty( habitat, "initial_greet", true );
+									iShip.HasFired( playerShip );
+									
+									if ( iFaction.Feeling( faction, iSim.Faction( playerShip ) ) < 0.0 )
+									{
+										local_function_3( habitat, 4 );
+										Object.AddIntProperty( playerShip, "warned_level", 2 );
+									}
+									else if ( iFaction.Feeling( faction, iSim.Faction( playerShip ) ) == 0.0 )
+									{
+										local_function_3( habitat, 1 );
+									}
+									else if ( iFaction.Feeling( faction, iSim.Faction( playerShip ) ) > 0.0 )
+									{
+										local_function_3( habitat, 2 );
+									}
+								}
+								else if ( (Sim.DistanceBetween( playerShip, habitat ) <= (radius + 50000.0)) && Object.PropertyExists( habitat, "initial_greet" ) )
+								{
+									if ( iFaction.Feeling( faction, iSim.Faction( playerShip ) ) < 0.0 )
+									{
+										local_function_12( playerShip, habitat, 0.0 );
+									}
+								}
+							}
+							
+							if ( habitat != false )
+							{
+								localSet = iSim.SimsInRadius( habitat, radius + 50000.0, 502398976 );
+								
+								do
+								{
+									ship_0 = iShip.Cast( Set.FirstElement( localSet ) );
+									
+									if ( iShip.HasFired( ship_0 ) )
+									{
+										ship_1 = iShip.Cast( iShip.LastFireTarget( ship_0 ) );
+										
+										if ( ship_1 != habitat )
+										{
+											if ( (Sim.Cast( iShip.LastFireTarget( ship_1 ) ) == Sim.Cast( habitat )) || (((faction != marauders) && (iSim.Faction( ship_1 ) == marauders)) || ((faction == independent) || (Sim.Cast( iShip.LastFireTarget( ship_1 ) ) == Sim.Cast( ship_0 )))) )
+											{
+												debug Debug.PrintString( "iStation: Not getting mad at the player because they're trying to help us\n" );
+											}
+											else
+											{
+												local_function_12( ship_0, habitat, 0.0 );
+												iShip.HasFired( ship_0 );
+											}
+										}
+									}
+									
+									Set.Remove( localSet, ship_0 );
+								}
+								while ( !Set.IsEmpty( localSet ) );
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+task StationReactive( hhabitat station_, hisim aggressor_, float damage_ )
+{
+	list localList;
+	int local_1;
+	string local_2;
+	string local_3;
+	
+	if ( Global.Exists( "g_active_location_list" ) == 0 )
+	{
+		return;
+	}
+	
+	localList = Global.List( "g_active_location_list" );
+	
+	if ( List.Contains( localList, station_ ) && !Object.PropertyExists( station_, "reactive_exception" ) )
+	{
+		atomic
+		{
+			if ( !Object.PropertyExists( station_, "station_protection_handler" ) )
+			{
+				local_function_12( iShip.Cast( aggressor_ ), station_, damage_ );
+			}
+			else
+			{
+				if ( Object.PropertyExists( aggressor_, "warned_level" ) )
+				{
+					if ( Object.IntProperty( aggressor_, "warned_level" ) == 3 )
+					{
+						return;
+					}
+				}
+				
+				local_function_12( iShip.Cast( aggressor_ ), station_, damage_ );
+				debug Debug.PrintString( "iStation.StationReactive: Station protection handler already running... adding vessel to enermy list\n" );
+			}
+		}
+	}
+	else debug Debug.PrintString( "iStation.StationReactive: Attack going on outside active loaction list...\n" );
+	
+	return;
+}
+

@@ -1,0 +1,412 @@
+package iGMTracker;
+
+uses Debug,
+     String,
+     Set,
+     List,
+     Global,
+     Input,
+     Math,
+     State,
+     Task,
+     Text,
+     iComms,
+     iConversation,
+     iGMTemplates;
+
+provides GMTracker,
+         GiveAllGeneratedMissions,
+         InitialiseMissionGenerator,
+         AddGMEnum,
+         CheatTriggerMission,
+         RunGMission,
+         SetGMRange,
+         StepoverMission;
+
+prototype InitialiseMissionGenerator();
+prototype AddGMEnum( int thinglie_ );
+prototype local_function_1();
+prototype SetGMRange( int low_, int high_ );
+prototype task GMTracker();
+prototype StepoverMission();
+prototype task local_function_2();
+prototype GiveAllGeneratedMissions();
+prototype CheatTriggerMission( int mission_enum_ );
+prototype task local_function_0();
+prototype RunGMission();
+
+InitialiseMissionGenerator()
+{
+	htask local_0;
+	
+	if ( 0 == Global.Exists( "gl_missgen_number_available" ) )
+	{
+		atomic
+		{
+			Global.CreateInt( "gl_missgen_number_available", 2, 0 );
+			Global.CreateInt( "gl_missgen_number_max_active", 2, 1 );
+			Global.CreateInt( "gl_missgen_number_currently_active", 2, 0 );
+			Global.CreateInt( "gl_missgen_index", 2, 1 );
+			Global.CreateInt( "gl_missgen_max_index", 2, 0 );
+			Global.CreateString( "gl_genmission_jafs", 2, "" );
+			Text.Add( "csv:/generated_missions/GeneratedMissions" );
+			local_0 = start GMTracker();
+			Task.Detach( local_0 );
+			debug Debug.PrintString( "iGMTracker:InitialiseMissionGenerator created and detached task.\n" );
+		}
+		
+		return;
+	}
+	
+	debug Debug.PrintString( "iGMTracker:InitialiseMissionGenerator mission generator already initialised.\n" );
+}
+
+AddGMEnum( int thinglie_ )
+{
+	int glMissgenNumberAvailable;
+	string local_1;
+	
+	glMissgenNumberAvailable = Global.Int( "gl_missgen_number_available" );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iGMTracker.AddGMEnum: adding an enum mission " );
+		Debug.PrintInt( thinglie_ );
+		Debug.PrintString( "\n" );
+	}
+	
+	local_1 = String.Join( "gl_missgen_list_", String.FromInt( glMissgenNumberAvailable ) );
+	Global.CreateInt( local_1, 2, thinglie_ );
+	glMissgenNumberAvailable = ( glMissgenNumberAvailable + 1 );
+	Global.SetInt( "gl_missgen_number_available", glMissgenNumberAvailable );
+}
+
+local_function_1()
+{
+	Global.SetInt( "gl_missgen_number_available", 0 );
+}
+
+SetGMRange( int low_, int high_ )
+{
+	int glMissgenIndex = Global.Int( "gl_missgen_index" );
+	
+	if ( low_ < glMissgenIndex )
+	{
+		low_ = glMissgenIndex;
+	}
+	
+	atomic
+	{
+		Global.SetInt( "gl_missgen_index", low_ );
+		Global.SetInt( "gl_missgen_max_index", high_ );
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iGMTracker.SetGMRange setting range to " );
+		Debug.PrintInt( low_ );
+		Debug.PrintString( " to " );
+		Debug.PrintInt( high_ );
+		Debug.PrintString( " \n" );
+	}
+}
+
+task GMTracker()
+{
+	int local_0;
+	int local_1;
+	string local_2;
+	int local_3 = -1;
+	int glMissgenNumberCurrentlyActive;
+	int glMissgenNumberMaxActive;
+	int glMissgenIndex;
+	int glMissgenMaxIndex;
+	bool local_8 = false;
+	hstate taskState;
+	
+	Input.BindKey( "iGMTracker.RunGMission", "ScriptKeys.StartGMission" );
+	taskState = State.Find( Task.Current() );
+	
+	if ( taskState != false )
+	{
+		debug Debug.PrintString( "iGMTracker.GMTracker: restarted\n" );
+	}
+	else
+	{
+		debug Debug.PrintString( "iGMTracker.GMTracker: started\n" );
+		State.Create( Task.Current(), 0 );
+	}
+	
+	Text.Add( "csv:/text/generated_missions/generatedmissions" );
+	debug Debug.PrintString( "iGMTracker.GMTracker: checking count of existing missions.\n" );
+	
+	do
+	{
+		do
+		{
+			glMissgenNumberCurrentlyActive = Global.Int( "gl_missgen_number_currently_active" );
+			glMissgenNumberMaxActive = Global.Int( "gl_missgen_number_max_active" );
+			
+			debug atomic
+			{
+				Debug.PrintString( "iGMTracker.GMTracker: existing count " );
+				Debug.PrintInt( glMissgenNumberCurrentlyActive );
+				Debug.PrintString( " maximum is " );
+				Debug.PrintInt( glMissgenNumberMaxActive );
+				Debug.PrintString( " \n" );
+			}
+			
+			if ( glMissgenNumberCurrentlyActive < glMissgenNumberMaxActive )
+			{
+				Task.Sleep( Task.Current(), 5.0 );
+				glMissgenIndex = Global.Int( "gl_missgen_index" );
+				glMissgenMaxIndex = Global.Int( "gl_missgen_max_index" );
+				
+				debug atomic
+				{
+					Debug.PrintString( "iGMTracker.GMTracker: mission lower range " );
+					Debug.PrintInt( glMissgenIndex );
+					Debug.PrintString( " to " );
+					Debug.PrintInt( glMissgenMaxIndex );
+					Debug.PrintString( " \n" );
+				}
+				
+				if ( glMissgenIndex <= glMissgenMaxIndex )
+				{
+					local_3 = glMissgenIndex;
+				}
+				else
+				{
+					local_3 = -1;
+				}
+			}
+			
+			Task.Sleep( Task.Current(), 5.0 );
+		}
+		while ( local_3 == -1 );
+		
+		atomic
+		{
+			local_8 = iGMTemplates.InstantiateMission( local_3 );
+			
+			if ( local_8 )
+			{
+				Global.SetInt( local_2, -1 );
+				Global.SetInt( "gl_missgen_number_currently_active", glMissgenNumberCurrentlyActive + 1 );
+				Global.SetInt( "gl_missgen_index", Global.Int( "gl_missgen_index" ) + 1 );
+			}
+		}
+		
+		Task.Sleep( Task.Current(), 1.0 );
+	}
+	while ( !local_8 );
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 100.0 );
+	}
+	while ( 1 );
+}
+
+StepoverMission()
+{
+	Global.SetInt( "gl_missgen_index", Global.Int( "gl_missgen_index" ) + 1 );
+}
+
+task local_function_2()
+{
+	int glMissgenNumberAvailable;
+	int random;
+	string local_2;
+	int local_3;
+	int glMissgenNumberCurrentlyActive;
+	int glMissgenNumberMaxActive;
+	bool local_6;
+	hstate taskState;
+	
+	Input.BindKey( "iGMTracker.RunGMission", "ScriptKeys.StartGMission" );
+	taskState = State.Find( Task.Current() );
+	
+	if ( taskState != false )
+	{
+		debug Debug.PrintString( "iGMTracker.GMTracker: restarted\n" );
+	}
+	else
+	{
+		debug Debug.PrintString( "iGMTracker.GMTracker: started\n" );
+		State.Create( Task.Current(), 0 );
+	}
+	
+	Text.Add( "csv:/text/generated_missions/generatedmissions" );
+	debug Debug.PrintString( "iGMTracker.GMTracker: checking count of existing missions.\n" );
+	glMissgenNumberAvailable = Global.Int( "gl_missgen_number_available" );
+	glMissgenNumberCurrentlyActive = Global.Int( "gl_missgen_number_currently_active" );
+	glMissgenNumberMaxActive = Global.Int( "gl_missgen_number_max_active" );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iGMTracker.GMTracker: existing count " );
+		Debug.PrintInt( glMissgenNumberCurrentlyActive );
+		Debug.PrintString( " maximum is " );
+		Debug.PrintInt( glMissgenNumberMaxActive );
+		Debug.PrintString( "\n" );
+	}
+	
+	if ( (glMissgenNumberAvailable != 0) && (glMissgenNumberCurrentlyActive < glMissgenNumberMaxActive) )
+	{
+		do
+		{
+			Task.Sleep( Task.Current(), 5.0 );
+			debug Debug.PrintString( "iGMTracker.GMTracker: picking a mission to try and start.\n" );
+			
+			if ( glMissgenNumberAvailable > 1 )
+			{
+				random = Math.RandomInt( 0, glMissgenNumberAvailable - 1 );
+			}
+			else
+			{
+				glMissgenNumberAvailable = 0;
+			}
+			
+			local_2 = String.Join( "gl_missgen_list_", String.FromInt( random ) );
+			local_3 = Global.Int( local_2 );
+			
+			debug atomic
+			{
+				Debug.PrintString( "iGMTracker.GMTracker: name of global string is " );
+				Debug.PrintString( local_2 );
+				Debug.PrintString( "\n" );
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iGMTracker.GMTracker: picked mission enum is " );
+				Debug.PrintInt( local_3 );
+				Debug.PrintString( "\n" );
+			}
+		}
+		while ( local_3 == -1 );
+		
+		atomic
+		{
+			local_6 = iGMTemplates.InstantiateMission( local_3 );
+			
+			if ( local_6 )
+			{
+				Global.SetInt( local_2, -1 );
+				Global.SetInt( "gl_missgen_number_currently_active", glMissgenNumberCurrentlyActive + 1 );
+			}
+		}
+	}
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 100.0 );
+	}
+	while ( 1 );
+}
+
+GiveAllGeneratedMissions()
+{
+	debug Debug.PrintString( "iGMTracker.GiveAllGeneratedMissions: starting\n" );
+	AddGMEnum( 4 );
+	AddGMEnum( 3 );
+	AddGMEnum( 15 );
+	AddGMEnum( 16 );
+	AddGMEnum( 13 );
+	AddGMEnum( 10 );
+	AddGMEnum( 25 );
+	AddGMEnum( 9 );
+	AddGMEnum( 8 );
+	AddGMEnum( 12 );
+	AddGMEnum( 11 );
+	AddGMEnum( 18 );
+	AddGMEnum( 19 );
+	AddGMEnum( 21 );
+	AddGMEnum( 22 );
+	AddGMEnum( 30 );
+	AddGMEnum( 32 );
+	AddGMEnum( 35 );
+	Global.CreateBool( "g_debug_all_generated_missions_ok", 1, true );
+	debug Debug.PrintString( "iGMTracker.GiveAllGeneratedMissions: starting\n" );
+}
+
+CheatTriggerMission( int mission_enum_ )
+{
+	bool gDebugAllGeneratedMissionsOk;
+	
+	if ( Global.Exists( "g_debug_all_generated_missions_ok" ) )
+	{
+		gDebugAllGeneratedMissionsOk = Global.Bool( "g_debug_all_generated_missions_ok" );
+	}
+	else
+	{
+		gDebugAllGeneratedMissionsOk = false;
+	}
+	
+	Global.CreateBool( "g_debug_all_generated_missions_ok", 2, true );
+	iGMTemplates.InstantiateMission( mission_enum_ );
+	
+	if ( gDebugAllGeneratedMissionsOk == 0 )
+	{
+		Global.SetBool( "g_debug_all_generated_missions_ok", false );
+	}
+}
+
+task local_function_0()
+{
+	int local_0;
+	int convoResponse;
+	
+	debug
+	{
+		Text.Add( "csv:/text/utils" );
+		iConversation.Begin();
+		iComms.AddResponseWithCode( "01 - need ore", "01 - need ore", 2 );
+		iComms.AddResponseWithCode( "02_CounterfeitGoods", "02_CounterfeitGoods", 4 );
+		iComms.AddResponseWithCode( "03_Gardener", "03_Gardener", 3 );
+		iComms.AddResponseWithCode( "04_OmanExoticMetals", "04_OmanExoticMetals", 15 );
+		iComms.AddResponseWithCode( "05_OmanPowerPlant", "05_OmanPowerPlant", 16 );
+		iComms.AddResponseWithCode( "06_AcidBurn", "06_AcidBurn", 13 );
+		iComms.AddResponseWithCode( "07_ThePayoff", "07_ThePayoff", 14 );
+		iComms.AddResponseWithCode( "08_SimplePiracy", "08_SimplePiracy", 10 );
+		iComms.AddResponseWithCode( "09_PrisonData", "09_PrisonData", 25 );
+		iComms.AddResponseWithCode( "10_RareAnimalChef", "10_RareAnimalChef", 7 );
+		iComms.AddResponseWithCode( "11_FistfulOfNanites", "11_FistfulOfNanites", 1 );
+		iComms.AddResponseWithCode( "12_LibraryFine", "12_LibraryFine", 9 );
+		iComms.AddResponseWithCode( "13_MedicalSupplies", "13_MedicalSupplies", 6 );
+		iComms.AddResponseWithCode( "14_GunRobber", "14_GunRobber", 5 );
+		iComms.AddResponseWithCode( "15_TheSurvey", "15_TheSurvey", 26 );
+		iComms.AddResponseWithCode( "16_TheFreak", "16_TheFreak", 8 );
+		iComms.AddResponseWithCode( "17_GeriatricCyborgs", "17_GeriatricCyborgs", 29 );
+		iComms.AddResponseWithCode( "18_Goldminers", "18_Goldminers", 12 );
+		iComms.AddResponseWithCode( "19_BigJacksJewels", "19_BigJacksJewels", 24 );
+		iComms.AddResponseWithCode( "20_StationParts", "20_StationParts", 11 );
+		iComms.AddResponseWithCode( "21_CrookedCops", "21_CrookedCops", 27 );
+		iComms.AddResponseWithCode( "22_MaraudersDealing", "22_MaraudersDealing", 28 );
+		iComms.AddResponseWithCode( "23_OmanRaider", "23_OmanRaider", 17 );
+		iComms.AddResponseWithCode( "24_OmanPayback", "24_OmanPayback", 18 );
+		iComms.AddResponseWithCode( "25_OmanDisease", "25_OmanDisease", 19 );
+		iComms.AddResponseWithCode( "26_OmanWeaponParts", "26_OmanWeaponParts", 20 );
+		iComms.AddResponseWithCode( "27_OmanAntiPropaganda", "27_OmanAntiPropaganda", 21 );
+		iComms.AddResponseWithCode( "28_OmanMalfunction", "28_OmanMalfunction", 22 );
+		iComms.AddResponseWithCode( "29_OmanTechnology", "29_OmanTechnology", 23 );
+		iComms.AddResponseWithCode( "30_OmanCelebration", "30_OmanCelebration", 30 );
+		iComms.AddResponseWithCode( "31_MCAExcavations", "31_MCAExcavations", 31 );
+		iComms.AddResponseWithCode( "32_MCATerraforming", "32_MCATerraforming", 32 );
+		iComms.AddResponseWithCode( "33_MCAPlague", "33_MCAPlague", 33 );
+		iComms.AddResponseWithCode( "34_MCAArmy", "34_MCAArmy", 34 );
+		iComms.AddResponseWithCode( "35_MCASafetyDrive", "35_MCASafetyDrive", 35 );
+		convoResponse = iConversation.Ask( none, "utils_particle_employee", "Any particular generated mission you'd like to use?" );
+		CheatTriggerMission( convoResponse );
+		Text.Remove( "csv:/text/utils" );
+	}
+}
+
+RunGMission()
+{
+	htask local_0 = start local_function_0();
+	
+	Task.Detach( local_0 );
+}
+

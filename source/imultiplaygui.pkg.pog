@@ -1,0 +1,222 @@
+package iMultiplayGUI;
+
+uses GUI,
+     Set,
+     List,
+     String,
+     Global,
+     INIFile,
+     Text,
+     Group,
+     Sim,
+     iDirector,
+     iGUI,
+     MapEnumerations,
+     iMapEntity,
+     iFaction,
+     iSim,
+     iBody,
+     iHabitat,
+     iShip,
+     iMultiplay;
+
+provides MultiplayScoreScreen,
+         OnMultiplayScoreScreenStartButton,
+         OnMultiplayScoreScreenQuitButton,
+         ValidShipCount,
+         ValidShipDisplayName,
+         ValidShipINI;
+
+prototype int ValidShipCount();
+prototype string ValidShipDisplayName( int i_ );
+prototype string ValidShipINI( int i_ );
+prototype bool local_function_2( string param_0_ );
+prototype hwindow local_function_0( int param_0_, int param_1_, int param_2_, hwindow window_0_, string param_4_, string param_5_ );
+prototype hwindow local_function_1( string param_0_, int param_1_, int param_2_, hwindow window_0_ );
+prototype MultiplayScoreScreen();
+prototype OnMultiplayScoreScreenStartButton();
+prototype OnMultiplayScoreScreenQuitButton();
+
+int ValidShipCount()
+{
+	return iMultiplay.GetServerShipList();
+}
+
+string ValidShipDisplayName( int i_ )
+{
+	hinifile inifile;
+	string local_1;
+	
+	inifile = INIFile.Create( iMultiplay.ServerShipListItem( i_ ) );
+	local_1 = String.UpperCase( INIFile.String( inifile, "Properties", "name", "" ) );
+	INIFile.Destroy( inifile );
+	return Text.Field( local_1, FT_Text );
+}
+
+string ValidShipINI( int i_ )
+{
+	return iMultiplay.ServerShipListItem( i_ );
+}
+
+bool local_function_2( string param_0_ )
+{
+	int ii;
+	
+	for ( ii = 0; ii < ValidShipCount(); ++ii )
+	{
+		if ( ValidShipINI( ii ) == param_0_ )
+		{
+			return true;
+		}
+	}
+	
+	return false;
+}
+
+hwindow local_function_0( int param_0_, int param_1_, int param_2_, hwindow window_0_, string param_4_, string param_5_ )
+{
+	hwindow window_1 = iGUI.CreateAndInitialiseStaticWindow( param_0_, 0, param_1_, param_2_, window_0_, param_4_, param_5_ );
+	
+	GUI.SetWindowTextFormatting( window_1, false, 0 );
+	GUI.SetWindowStateColours( window_1, Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ), Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ), Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ) );
+	return window_1;
+}
+
+hwindow local_function_1( string param_0_, int param_1_, int param_2_, hwindow window_0_ )
+{
+	hwindow window_1;
+	int local_1;
+	hwindow window_2;
+	hwindow window_3;
+	hwindow window_4;
+	int gUITabTextOffset = Global.Int( "GUI_tab_text_offset" );
+	int local_6 = GUI.WindowCanvasWidth( window_0_ );
+	int local_7 = ( local_6 / 3 );
+	int local_8 = ( (local_6 / 3) + 100 );
+	int local_9 = local_6;
+	int constant_0 = 13;
+	int local_11;
+	int local_12;
+	int local_13;
+	int local_14;
+	int local_15;
+	int local_16;
+	int gUIListboxEntryheight = Global.Int( "GUI_listbox_entryheight" );
+	int constant_1 = 5;
+	string local_19 = Global.String( "type_font" );
+	string local_20 = Global.String( "type_font" );
+	
+	window_1 = GUI.CreateWindow( 0, 0, local_6, Global.Int( "GUI_listbox_entryheight" ), none );
+	local_12 = constant_0;
+	local_11 = ( local_7 - (local_12 + 5) );
+	local_14 = ( local_7 + (gUITabTextOffset - 2) );
+	local_13 = ( local_8 - (local_14 + 5) );
+	local_16 = ( local_8 + (gUITabTextOffset - 2) );
+	local_15 = ( local_9 - (local_16 + 5) );
+	window_2 = local_function_0( local_12, local_11, gUIListboxEntryheight, window_1, local_19, param_0_ );
+	window_3 = local_function_0( local_14, local_13, gUIListboxEntryheight, window_1, local_20, String.FromInt( param_1_ ) );
+	window_4 = local_function_0( local_16, local_15, gUIListboxEntryheight, window_1, local_20, String.FromInt( param_2_ ) );
+	GUI.AddListBoxEntry( window_0_, window_1 );
+	return window_1;
+}
+
+MultiplayScoreScreen()
+{
+	hwindow gUI;
+	list localList_0;
+	list localList_1;
+	hwindow window;
+	int constant_0 = 135;
+	int constant_1 = 63;
+	int constant_2 = 220;
+	int constant_3 = 82;
+	int local_8 = ( constant_2 - constant_0 );
+	int local_9 = ( constant_3 - constant_1 );
+	int local_10 = ( constant_0 + (local_8 / 3) );
+	int local_11 = ( constant_0 + (2 * local_10) );
+	int ii;
+	int clientEndGameInfoCount;
+	int constant_4 = 200;
+	int constant_5 = 100;
+	int constant_6 = 100;
+	string local_17;
+	string local_18;
+	int local_19;
+	string local_20;
+	int local_21;
+	int local_22;
+	
+	GUI.StopAllMovies();
+	
+	if ( iMultiplay.IsGameEnded() )
+	{
+		iDirector.Begin();
+		iDirector.SetFocus( iShip.FindPlayerShip() );
+		iDirector.SetCamera( CAM_DistantDrop );
+	}
+	
+	clientEndGameInfoCount = iMultiplay.ClientEndGameInfoCount();
+	localList_0 = iGUI.CreateGreyBoxStyleScreen( Text.Field( "mp_game_scores_title", FT_Text ), "iMultiplayGUI.OnMultiplayScoreScreenStartButton", "iMultiplayGUI.OnMultiplayScoreScreenQuitButton" );
+	gUI = GUI.Cast( List.Head( localList_0 ) );
+	List.RemoveHead( localList_0 );
+	
+	if ( Global.Exists( "g_mp_score_title_key" ) )
+	{
+		local_18 = Global.String( "g_mp_score_title_key" );
+		Global.Destroy( "g_mp_score_title_key" );
+	}
+	else
+	{
+		local_18 = "mp_game_frags";
+	}
+	
+	window = iGUI.CreateTitledListBox( gUI, Global.String( "GUI_titles_texture_request" ), constant_4, Text.Field( "mp_game_player", FT_Text ), constant_5, Text.Field( local_18, FT_Text ), constant_6, Text.Field( "mp_game_died", FT_Text ) );
+	
+	for ( ii = 0; ii < clientEndGameInfoCount; ++ii )
+	{
+		local_20 = Text.Field( iMultiplay.ClientEndGameInfoName( ii ), FT_Text );
+		local_21 = iMultiplay.ClientEndGameInfoFrags( ii );
+		local_22 = iMultiplay.ClientEndGameInfoDied( ii );
+		local_function_1( local_20, local_21, local_22, window );
+	}
+	
+	if ( !List.IsEmpty( localList_1 ) )
+	{
+		GUI.SetFirstControlFocus( GUI.Cast( List.Head( localList_1 ) ) );
+	}
+	
+	iGUI.SetCyclicControlFocusPath( localList_1 );
+	
+	if ( iMultiplay.IsGameEnded() )
+	{
+		GUI.SetControlFocusCancelFunction( "iMultiplayGUI.OnMultiplayScoreScreenQuitButton" );
+	}
+}
+
+OnMultiplayScoreScreenStartButton()
+{
+	if ( iMultiplay.IsGameEnded() )
+	{
+		iMultiplay.ClientSetRequestedToCycle( false );
+		GUI.PopScreen();
+		GUI.PushScreen( "icPDAOverlayManager" );
+		GUI.OverlayScreen( "icNetworkScreen" );
+		return;
+	}
+	
+	GUI.RemoveOverlaysAfter( "icSpaceFlightScreenOverlay" );
+}
+
+OnMultiplayScoreScreenQuitButton()
+{
+	if ( iMultiplay.IsGameEnded() )
+	{
+		iMultiplay.ClientSetRequestedToCycle( false );
+		GUI.PopScreen();
+		GUI.PopScreen();
+		return;
+	}
+	
+	GUI.RemoveOverlaysAfter( "icSpaceFlightScreenOverlay" );
+}
+

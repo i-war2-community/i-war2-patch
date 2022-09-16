@@ -1,0 +1,4544 @@
+package actonecsvs;
+
+uses String,
+     Set,
+     List,
+     Global,
+     Task,
+     Text,
+     iConversation;
+
+provides Main;
+
+prototype local_function_0();
+prototype local_function_1();
+prototype local_function_2();
+prototype local_function_3();
+prototype local_function_4();
+prototype local_function_5();
+prototype local_function_6();
+prototype local_function_7();
+prototype local_function_8();
+prototype local_function_9();
+prototype local_function_10();
+prototype local_function_11();
+prototype local_function_12();
+prototype local_function_13();
+prototype local_function_14();
+prototype local_function_15();
+prototype local_function_16();
+prototype local_function_17();
+prototype local_function_18();
+prototype local_function_19();
+prototype local_function_20();
+prototype local_function_21();
+prototype local_function_22();
+prototype local_function_23();
+prototype task local_function_24();
+prototype Main();
+
+local_function_0()
+{
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_picked_up_distress_1_:", "a1_master_dialogue_picked_up_distress_1" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_jafs_signal_coment_1_:", "a1_master_dialogue_jafs_signal_coment_1" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_spirit_of_capitalism_:", "a1_master_spirit_of_capitalism" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_victim_threat_1_:", "a1_master_dialogue_victim_threat_1" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_player_option_1_:", "a1_master_player_option_1" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_player_option_2_:", "a1_master_player_option_2" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_player_option_3_:", "a1_master_player_option_3" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_player_option_4_:", "a1_master_player_option_4" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_victim_comment_1_:", "a1_victim_comment_1" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_victim_comment_2_:", "a1_victim_comment_2" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_victim_comment_3_:", "a1_victim_comment_3" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_victim_comment_4_:", "a1_victim_comment_4" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_victim_comment_5_:", "a1_victim_comment_5" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_victim_plea_1_:", "a1_victim_plea_1" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_victim_plea_2_:", "a1_victim_plea_2" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_victim_plea_3_:", "a1_victim_plea_3" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_victim_question_2_:", "a1_master_dialogue_victim_question_2" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_player_option_5_:", "a1_master_player_option_5" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_player_option_6_:", "a1_master_player_option_6" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_player_option_7_:", "a1_master_player_option_7" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_victim_plea_4_:", "a1_victim_plea_4" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_victim_plea_5_:", "a1_victim_plea_5" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_clay_hes_bluffing_:", "a1_master_clay_hes_bluffing" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_tiger_lilly_:", "a1_master_tiger_lilly" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_tl_player_affirmative_:", "a1_master_tl_player_affirmative" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_player_tl_player_negative_:", "a1_master_player_tl_player_negative" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_tl_want_to_go_to_haven_station_:", "a1_master_tl_want_to_go_to_haven_station" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_tl_then_dock_to_me_:", "a1_master_tl_then_dock_to_me" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_tl_hold_on_tight_:", "a1_master_tl_hold_on_tight" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_suit_yourself_:", "a1_master_suit_yourself" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_welcome_haven_station_:", "a1_master_welcome_haven_station" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_tl_want_to_go_to_hoffers_wake_alpha_:", "a1_master_tl_want_to_go_to_hoffers_wake_alpha" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_welcome_hoffers_alpha_:", "a1_master_welcome_hoffers_alpha" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_sure_got_ourselves_:", "a1_master_sure_got_ourselves" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_and_fitted_out_with_eveything_a_man_like_me_:", "a1_master_and_fitted_out_with_eveything_a_man_like_me" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_ive_already_has_a_play_:", "a1_master_ive_already_has_a_play" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_reackon_itll_fly_like_a_dream_:", "a1_master_reackon_itll_fly_like_a_dream" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_only_thing_she_needs_now_is_a_name_:", "a1_master_only_thing_she_needs_now_is_a_name" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_lamb_chop_:", "a1_master_lamb_chop" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_lamb_chop_how_about_that_:", "a1_master_lamb_chop_how_about_that" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_southern_cross_:", "a1_master_southern_cross" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_the_southern_cross_thats_a_good_name_:", "a1_master_the_southern_cross_thats_a_good_name" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_crazy_horse_:", "a1_master_crazy_horse" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_how_about_crazy_horse_:", "a1_master_how_about_crazy_horse" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_jolly_roger_:", "a1_master_jolly_roger" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_what_about_jolly_roger_:", "a1_master_what_about_jolly_roger" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_black_pig_:", "a1_master_black_pig" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_mmmm_black_pig_is_a_good_name_:", "a1_master_mmmm_black_pig_is_a_good_name" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_lambchop_what_kind_of_stupid_name_is_that_:", "a1_master_lambchop_what_kind_of_stupid_name_is_that" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_well_you_did_ask_:", "a1_master_well_you_did_ask" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_sigh_lambchop_it_is_:", "a1_master_sigh_lambchop_it_is" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_good_name_:", "a1_master_good_name" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_crazy_horse_good_has_a_fugative_edge_:", "a1_master_crazy_horse_good_has_a_fugative_edge" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_well_its_not_the_most_subtle_:", "a1_master_well_its_not_the_most_subtle" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_black_pig_well_its_you_who_will_flying_it_:", "a1_master_black_pig_well_its_you_who_will_flying_it" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_smith_want_to_use_:", "a1_master_smith_want_to_use" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_player_yes_:", "a1_master_player_yes" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_player_no_:", "a1_master_player_no" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_smith_thats_right_:", "a1_master_smith_thats_right" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_lori_look_outside_:", "a1_master_lori_look_outside" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_smith_thats_wrong_:", "a1_master_smith_thats_wrong" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_smith_email_:", "a1_master_smith_email" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_lori_now_what_:", "a1_master_lori_now_what" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_cal_I_have_a_plan_:", "a1_master_cal_I_have_a_plan" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_jafs_space_pirates_:", "a1_master_jafs_space_pirates" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_lori_ok_im_in_:", "a1_master_lori_ok_im_in" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_ibuki_well_our_:", "a1_master_ibuki_well_our" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_smith_ibuki_right_:", "a1_master_smith_ibuki_right" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_cal_youre_right_:", "a1_master_cal_youre_right" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_smith_ok_kid_:", "a1_master_smith_ok_kid" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_jafs_hey_cal_:", "a1_master_jafs_hey_cal" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_cal_while_you_:", "a1_master_cal_while_you" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_jafs_yeah_while_i_:", "a1_master_jafs_yeah_while_i" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_jafs_ive_been_looking_:", "a1_master_jafs_ive_been_looking" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_cal_i_thought_you_had_contacts_:", "a1_master_cal_i_thought_you_had_contacts" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_jafs_times_have_changed_:", "a1_master_jafs_times_have_changed" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_jafs_tick_off_:", "a1_master_jafs_tick_off" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_jafs_bad_news_:", "a1_master_jafs_bad_news" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_stepsons_mail_sender_:", "a1_master_stepsons_mail_sender" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_story1.40_mail_subject_:", "a1_master_story1.40_mail_subject" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_story1.40_mail_subject_:", "a1_master_story1.40_mail_subject" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_cal_brand_new_turret_fighters_:", "a1_master_cal_brand_new_turret_fighters" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_ibuki_what_do_you_think_:", "a1_master_ibuki_what_do_you_think" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_cal_what_about_you_:", "a1_master_cal_what_about_you" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_lori_listen_up_:", "a1_master_lori_listen_up" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_cal_ok_ok_im_sorry_:", "a1_master_cal_ok_ok_im_sorry" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_story1.40_mail_subject_:", "a1_master_story1.40_mail_subject" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_smith_my_buddy_maurice_:", "a1_master_smith_my_buddy_maurice" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_maurice_mail_sender_:", "a1_master_maurice_mail_sender" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_story1.80_maurice_mail_subject_:", "a1_master_story1.80_maurice_mail_subject" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_story1.90_stepson_mail_subject_:", "a1_master_story1.90_stepson_mail_subject" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_story1.90_maurice_mail_subject_:", "a1_master_story1.90_maurice_mail_subject" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_ibuki_latest_mails_:", "a1_master_ibuki_latest_mails" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_smith_dunno_but_im_inclined_to_think_:", "a1_master_smith_dunno_but_im_inclined_to_think" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_cal_and_thats_the_problem_:", "a1_master_cal_and_thats_the_problem" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_jafs_how_about_exploit_the_situation_:", "a1_master_jafs_how_about_exploit_the_situation" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_cal_not_quite_the_plan_:", "a1_master_cal_not_quite_the_plan" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_story1.100_mail_subject_:", "a1_master_story1.100_mail_subject" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_league_mail_sender_:", "a1_master_league_mail_sender" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_story1.110_mail_subject_:", "a1_master_story1.110_mail_subject" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_jafs_lucrecias_horde_hey_aint_lucrecia_your_grandma_:", "a1_master_jafs_lucrecias_horde_hey_aint_lucrecia_your_grandma" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_cal_yup_thats_her_but_I_dont_know_what_this_horde_is_all_about_:", "a1_master_cal_yup_thats_her_but_I_dont_know_what_this_horde_is_all_about" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_clay_before_she_dissapeared_your_grandma_stashed_a_good_portion_of_her_loot_:", "a1_master_clay_before_she_dissapeared_your_grandma_stashed_a_good_portion_of_her_loot" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_cal_so_we_know_where_both_the_locations_to_triangulate_from_are_but_what_about_the_date_:", "a1_master_cal_so_we_know_where_both_the_locations_to_triangulate_from_are_but_what_about_the_date" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_clay_i_dont_know_as_i_could_be_hacked_she_trusted_me_even_less_:", "a1_master_clay_i_dont_know_as_i_could_be_hacked_she_trusted_me_even_less" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_jafs_you_dumb_piece_of_jumk_think_:", "a1_master_jafs_you_dumb_piece_of_jumk_think" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+}
+
+local_function_1()
+{
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_cal_hey_anyone_home_:", "a1_master_dialogue_cal_hey_anyone_home" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_cal_clay_its_me_cal_:", "a1_master_dialogue_cal_clay_its_me_cal" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_clay_thats_it_fifteen_years_and_you_come_back_with_just_a_hi_honey_im_home_:", "a1_master_dialogue_clay_thats_it_fifteen_years_and_you_come_back_with_just_a_hi_honey_im_home" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_cal_er_its_a_long_story_:", "a1_master_dialogue_cal_er_its_a_long_story" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_clay_ill_give_you_long_story_:", "a1_master_dialogue_clay_ill_give_you_long_story" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_cal_sorry_clay_but_i_had_run_in_with_kaleb_maas_:", "a1_master_dialogue_cal_sorry_clay_but_i_had_run_in_with_kaleb_maas" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_clay_oh_right_well_i_guess_you_guys_better_make_yourself_at_home_:", "a1_master_dialogue_clay_oh_right_well_i_guess_you_guys_better_make_yourself_at_home" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_victim_question_1_:", "a1_master_dialogue_victim_question_1" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_jafs_mail_from_stepsons_:", "a1_master_dialogue_jafs_mail_from_stepsons" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+}
+
+local_function_2()
+{
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_waypoint_name_distress_:", "a1_waypoint_name_distress" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_ship_name_1_:", "a1_ship_name_1" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_ship_name_2_:", "a1_ship_name_2" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_ship_name_3_:", "a1_ship_name_3" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_ship_name_4_:", "a1_ship_name_4" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_ship_name_5_:", "a1_ship_name_5" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+}
+
+local_function_3()
+{
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_clay_its_a_good_:", "a1_master_dialogue_clay_its_a_good" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_clay_well_done_:", "a1_master_dialogue_clay_well_done" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_clay_call_jafs_:", "a1_master_dialogue_clay_call_jafs" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_clay_good_comment_1_:", "a1_master_dialogue_clay_good_comment_1" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_clay_medium_comment_1_:", "a1_master_dialogue_clay_medium_comment_1" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_clay_medium_comment_2_:", "a1_master_dialogue_clay_medium_comment_2" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_clay_medium_comment_3_:", "a1_master_dialogue_clay_medium_comment_3" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_clay_bad_comment_1_:", "a1_master_dialogue_clay_bad_comment_1" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_clay_bad_comment_2_:", "a1_master_dialogue_clay_bad_comment_2" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_clay_bad_comment_3_:", "a1_master_dialogue_clay_bad_comment_3" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_clay_get_a_move_on_:", "a1_master_dialogue_clay_get_a_move_on" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_clay_call_jafs_long_:", "a1_master_dialogue_clay_call_jafs_long" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_clay_end_speech_:", "a1_master_dialogue_clay_end_speech" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_clay_go_back_:", "a1_master_dialogue_clay_go_back" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_clay_end_speech2_:", "a1_master_dialogue_clay_end_speech2" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+}
+
+local_function_4()
+{
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_master_dialogue_clay_end_speech2_:", "a1_master_dialogue_clay_end_speech2" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+}
+
+local_function_5()
+{
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_after_a_daring_:", "a1_m01_dialogue_after_a_daring" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_ibuki_well_we_cant_:", "a1_m01_dialogue_ibuki_well_we_cant" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_lori_yeah_at_least_:", "a1_m01_dialogue_lori_yeah_at_least" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_jafs_hey_this_is_natural_:", "a1_m01_dialogue_jafs_hey_this_is_natural" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_lori_uggh_:", "a1_m01_dialogue_lori_uggh" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_cal_calm_down_:", "a1_m01_dialogue_cal_calm_down" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_lori_well_what_:", "a1_m01_dialogue_lori_well_what" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_smith_uh_oh_looks_like_:", "a1_m01_dialogue_smith_uh_oh_looks_like" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_marshall_what_do_we_have_here_:", "a1_m01_dialogue_marshall_what_do_we_have_here" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_smith_o_dear_:", "a1_m01_dialogue_smith_o_dear" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_ibuki_well_thats_just_great_:", "a1_m01_dialogue_ibuki_well_thats_just_great" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_smith_calm_down_:", "a1_m01_dialogue_smith_calm_down" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_ibuki_and_the_point_:", "a1_m01_dialogue_ibuki_and_the_point" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_smith_the_point_is_:", "a1_m01_dialogue_smith_the_point_is" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_lori_but_hoffers_gap_:", "a1_m01_dialogue_lori_but_hoffers_gap" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_smith_got_a_better_:", "a1_m01_dialogue_smith_got_a_better" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_jafs_whatever_we_do_:", "a1_m01_dialogue_jafs_whatever_we_do" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_smith_lds_disrupt_:", "a1_m01_smith_lds_disrupt" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_piratescout_c1_who_are_you_:", "a1_m01_dialogue_piratescout_c1_who_are_you" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_text_player_c1_option_1_im_the_law_:", "a1_m01_text_player_c1_option_1_im_the_law" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_player_c1_option_1_im_the_law_:", "a1_m01_dialogue_player_c1_option_1_im_the_law" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_piratescout_c1_response_1_holly_cow_:", "a1_m01_dialogue_piratescout_c1_response_1_holly_cow" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_text_player_c1_option_2_help_im_:", "a1_m01_text_player_c1_option_2_help_im" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_player_c1_option_2_help_im_:", "a1_m01_dialogue_player_c1_option_2_help_im" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_piratescout_c1_response_2_shit_boy_:", "a1_m01_dialogue_piratescout_c1_response_2_shit_boy" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_text_player_c1_option_3_look_over_:", "a1_m01_text_player_c1_option_3_look_over" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_player_c1_option_3_look_over_:", "a1_m01_dialogue_player_c1_option_3_look_over" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_piratescout_c1_response_3_eh_what_:", "a1_m01_dialogue_piratescout_c1_response_3_eh_what" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_piratescout_c1_response_3_damn_u_:", "a1_m01_dialogue_piratescout_c1_response_3_damn_u" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_smith_now_were_in_trouble_:", "a1_m01_dialogue_smith_now_were_in_trouble" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_jafs_i_think_:", "a1_m01_dialogue_jafs_i_think" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_jafs_er_i_think_:", "a1_m01_dialogue_jafs_er_i_think" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_cal_where_is_your_mate_:", "a1_m01_dialogue_cal_where_is_your_mate" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_smith_should_be_any_minute_:", "a1_m01_dialogue_smith_should_be_any_minute" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_smith_ah_there_it_is_:", "a1_m01_dialogue_smith_ah_there_it_is" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_maurice_smith_you_old_dog_:", "a1_m01_dialogue_maurice_smith_you_old_dog" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_smith_just_in_the_area_:", "a1_m01_dialogue_smith_just_in_the_area" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_maurice_ha_same_old_smith_:", "a1_m01_dialogue_maurice_ha_same_old_smith" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_smith_just_be_a_jiffy_:", "a1_m01_dialogue_smith_just_be_a_jiffy" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_smith_ive_set_a_waypoint_:", "a1_m01_dialogue_smith_ive_set_a_waypoint" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_jafs_the_fuzz_:", "a1_m01_dialogue_jafs_the_fuzz" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_police_hold_your_positon_:", "a1_m01_dialogue_police_hold_your_positon" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_police_we_warned_you_:", "a1_m01_dialogue_police_we_warned_you" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_police_all_vessels_attack_:", "a1_m01_dialogue_police_all_vessels_attack" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_police_c2_hm_vessel_mona_lisa_:", "a1_m01_dialogue_police_c2_hm_vessel_mona_lisa" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_text_player_c2_option_1_special_tour_:", "a1_m01_text_player_c2_option_1_special_tour" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_player_c2_option_1_special_tour_:", "a1_m01_dialogue_player_c2_option_1_special_tour" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_text_player_c2_option_2_er_yeah_:", "a1_m01_text_player_c2_option_2_er_yeah" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_player_c2_option_2_er_yeah_:", "a1_m01_dialogue_player_c2_option_2_er_yeah" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_police_c3_i_see_:", "a1_m01_dialogue_police_c3_i_see" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_text_player_c3_option_1_after_my_ex_girlfried_:", "a1_m01_text_player_c3_option_1_after_my_ex_girlfried" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_player_c3_option_1_my_ex_girlfriend_:", "a1_m01_dialogue_player_c3_option_1_my_ex_girlfriend" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_text_player_c3_option_2_its_my_favourite_:", "a1_m01_text_player_c3_option_2_its_my_favourite" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_player_c3_option_2_its_my_favourite_:", "a1_m01_dialogue_player_c3_option_2_its_my_favourite" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_police_c4_right_so_why_:", "a1_m01_dialogue_police_c4_right_so_why" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_text_player_c4_option_1_my_last_one_:", "a1_m01_text_player_c4_option_1_my_last_one" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_player_c4_option_1_my_last_one_:", "a1_m01_dialogue_player_c4_option_1_my_last_one" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_text_player_c4_option_2_this_is_a_tug_:", "a1_m01_text_player_c4_option_2_this_is_a_tug" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_player_c4_option_2_this_is_a_tug_:", "a1_m01_dialogue_player_c4_option_2_this_is_a_tug" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_police_all_right_:", "a1_m01_dialogue_police_all_right" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_police_not_convinced_:", "a1_m01_dialogue_police_not_convinced" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_text_player_c2_option_3_look_over_:", "a1_m01_text_player_c2_option_3_look_over" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_player_c2_option_3_look_over_:", "a1_m01_dialogue_player_c2_option_3_look_over" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_police_c2_response_3_where_:", "a1_m01_dialogue_police_c2_response_3_where" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_jafs_lets_move_:", "a1_m01_dialogue_jafs_lets_move" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_cal_there_it_is_:", "a1_m01_dialogue_cal_there_it_is" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_jafs_base_coment_:", "a1_m01_dialogue_jafs_base_coment" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_lori_lori_base_coment_:", "a1_m01_dialogue_lori_lori_base_coment" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_cal_did_i_neglect_to_mention_:", "a1_m01_dialogue_cal_did_i_neglect_to_mention" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+}
+
+local_function_6()
+{
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m01_dialogue_after_a_daring_:", "a1_m01_dialogue_after_a_daring" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_narrator_intro2_:", "a1_m04_dialogue_narrator_intro2" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+}
+
+local_function_7()
+{
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_stepson_c1_come_to_join_:", "a1_m02_dialogue_stepson_c1_come_to_join" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_text_player_c1_option_1_yes_:", "a1_m02_text_player_c1_option_1_yes" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_player_c1_option_1_yes_:", "a1_m02_dialogue_player_c1_option_1_yes" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_stepson_c1_response_1_excellant_we_want_:", "a1_m02_dialogue_stepson_c1_response_1_excellant_we_want" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_stepson_c1_response_1_maas_courier_:", "a1_m02_dialogue_stepson_c1_response_1_maas_courier" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_stepson_c1_response_1_well_armed_:", "a1_m02_dialogue_stepson_c1_response_1_well_armed" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_text_player_c1_option_2_no_:", "a1_m02_text_player_c1_option_2_no" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_player_c1_option_2_no_:", "a1_m02_dialogue_player_c1_option_2_no" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_stepson_c1_reponse_2_bye_:", "a1_m02_dialogue_stepson_c1_reponse_2_bye" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_text_player_c1_option_3_kill_you_:", "a1_m02_text_player_c1_option_3_kill_you" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_player_c1_option_3_kill_you_:", "a1_m02_dialogue_player_c1_option_3_kill_you" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_stepson_c1_response_3_crush_you_:", "a1_m02_dialogue_stepson_c1_response_3_crush_you" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_text_player_c1_option_1_sorry_:", "a1_m02_text_player_c1_option_1_sorry" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_player_c1_option_1_sorry_:", "a1_m02_dialogue_player_c1_option_1_sorry" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_stepson_c1_response_1_let_off_:", "a1_m02_dialogue_stepson_c1_response_1_let_off" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_text_player_c1_option_2_die_:", "a1_m02_text_player_c1_option_2_die" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_player_c1_option_2_die_:", "a1_m02_dialogue_player_c1_option_2_die" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_stepson_c1_response_2_have_at_you_:", "a1_m02_dialogue_stepson_c1_response_2_have_at_you" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_stepson_c2_your_back_:", "a1_m02_dialogue_stepson_c2_your_back" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_text_player_c2_thread_1_option_1_forgot_:", "a1_m02_text_player_c2_thread_1_option_1_forgot" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_player_c2_thread_1_option_1_forgot_:", "a1_m02_dialogue_player_c2_thread_1_option_1_forgot" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_stepson_c2_thread_1_response_1_want_you_:", "a1_m02_dialogue_stepson_c2_thread_1_response_1_want_you" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_text_player_c2_thread_2_option_1_changed_mind_:", "a1_m02_text_player_c2_thread_2_option_1_changed_mind" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_player_c2_thread_2_option_1_changed_mind_:", "a1_m02_dialogue_player_c2_thread_2_option_1_changed_mind" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_stepson_c2_thread_2_response_1_do_something_:", "a1_m02_dialogue_stepson_c2_thread_2_response_1_do_something" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_text_player_c2_option_2_passing_through_:", "a1_m02_text_player_c2_option_2_passing_through" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_player_c2_option_2_passing_through_:", "a1_m02_dialogue_player_c2_option_2_passing_through" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_stepson_c2_response_2_dont_miss_:", "a1_m02_dialogue_stepson_c2_response_2_dont_miss" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_text_player_c2_option_3_kill_you_:", "a1_m02_text_player_c2_option_3_kill_you" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_player_c2_option_3_kill_you_:", "a1_m02_dialogue_player_c2_option_3_kill_you" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_maas_unidentified_order_:", "a1_m02_dialogue_maas_unidentified_order" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_maas_warned_you_:", "a1_m02_dialogue_maas_warned_you" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_maas_take_anything_:", "a1_m02_dialogue_maas_take_anything" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_clay_nice_one_:", "a1_m02_dialogue_clay_nice_one" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_clay_got_away_:", "a1_m02_dialogue_clay_got_away" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_stepson_c3_done_it_:", "a1_m02_dialogue_stepson_c3_done_it" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_text_player_c3_option_1_yes_:", "a1_m02_text_player_c3_option_1_yes" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_player_c3_option_1_yes_:", "a1_m02_dialogue_player_c3_option_1_yes" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_stepson_c3_response_1_well_done_:", "a1_m02_dialogue_stepson_c3_response_1_well_done" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_stepson_c3_response_1_drop_off_:", "a1_m02_dialogue_stepson_c3_response_1_drop_off" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_stepson_c3_response_1_thanks_:", "a1_m02_dialogue_stepson_c3_response_1_thanks" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_text_player_c3_option_2_no_:", "a1_m02_text_player_c3_option_2_no" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_player_c3_option_2_no_:", "a1_m02_dialogue_player_c3_option_2_no" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_stepson_c3_response_2_damn_you_:", "a1_m02_dialogue_stepson_c3_response_2_damn_you" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_dialogue_maas_you_again_:", "a1_m02_dialogue_maas_you_again" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+}
+
+local_function_8()
+{
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_name_stepson_waypoint_:", "a1_m02_name_stepson_waypoint" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_name_maas_courier_:", "a1_m02_name_maas_courier" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_name_black_:", "a1_m02_name_black" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_name_tyrant_:", "a1_m02_name_tyrant" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m02_name_snapper_:", "a1_m02_name_snapper" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+}
+
+local_function_9()
+{
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m03_name_defense1_:", "a1_m03_name_defense1" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m03_name_defense2_:", "a1_m03_name_defense2" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m03_name_meeting_:", "a1_m03_name_meeting" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m03_name_base_loc_:", "a1_m03_name_base_loc" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m03_dialogue_stepson_:", "a1_m03_dialogue_stepson" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m03_text_player_:", "a1_m03_text_player" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m03_dialogue_player_:", "a1_m03_dialogue_player" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m03_dialogue_clay_:", "a1_m03_dialogue_clay" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m03_dialogue_any_:", "a1_m03_dialogue_any" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m03_dialogue_stepson_c1_cal_youve_arrived_:", "a1_m03_dialogue_stepson_c1_cal_youve_arrived" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m03_dialogue_stepson_c1_youre_back_:", "a1_m03_dialogue_stepson_c1_youre_back" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m03_text_player_c1_option_1_yes_:", "a1_m03_text_player_c1_option_1_yes" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m03_dialogue_player_c1_option_1_yes_:", "a1_m03_dialogue_player_c1_option_1_yes" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m03_dialogue_stepson_c1_response_1_ok_were_sending_:", "a1_m03_dialogue_stepson_c1_response_1_ok_were_sending" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m03_text_player_c1_option_2_no_:", "a1_m03_text_player_c1_option_2_no" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m03_dialogue_player_c1_option_2_no_:", "a1_m03_dialogue_player_c1_option_2_no" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m03_dialogue_stepson_c1_response_2_wait_:", "a1_m03_dialogue_stepson_c1_response_2_wait" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m03_dialogue_clay_theres_the_base_:", "a1_m03_dialogue_clay_theres_the_base" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m03_dialogue_any_the_station_:", "a1_m03_dialogue_any_the_station" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m03_dialogue_wingmen_thanks_for_:", "a1_m03_dialogue_wingmen_thanks_for" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m03_dialogue_wingmen_there_you_go_:", "a1_m03_dialogue_wingmen_there_you_go" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m03_dialogue_guess_we_can_:", "a1_m03_dialogue_guess_we_can" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m03_dialogue_clay_hm_too_bad_:", "a1_m03_dialogue_clay_hm_too_bad" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m03_dialogue_stepsons_youve_returned_:", "a1_m03_dialogue_stepsons_youve_returned" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+}
+
+local_function_10()
+{
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_name_fighter_:", "a1_m04_name_fighter" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_name_fighters_:", "a1_m04_name_fighters" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_name_pod_:", "a1_m04_name_pod" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_name_refuse_:", "a1_m04_name_refuse" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_name_drone_:", "a1_m04_name_drone" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_name_gabage_:", "a1_m04_name_gabage" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_name_bill_:", "a1_m04_name_bill" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_name_ben_:", "a1_m04_name_ben" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_name_doxer_:", "a1_m04_name_doxer" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_name_crane_:", "a1_m04_name_crane" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_name_psycho_:", "a1_m04_name_psycho" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_name_badger_:", "a1_m04_name_badger" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_name_security_:", "a1_m04_name_security" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_name_meeting_:", "a1_m04_name_meeting" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_name_jafsmeeting_:", "a1_m04_name_jafsmeeting" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_name_junk_:", "a1_m04_name_junk" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_stepson_c1_ah_cal_:", "a1_m04_dialogue_stepson_c1_ah_cal" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_text_player_c1_option_1_yes_:", "a1_m04_text_player_c1_option_1_yes" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_player_c1_option_1_yes_:", "a1_m04_dialogue_player_c1_option_1_yes" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_stepson_c1_response_1_we_thought_we_were_:", "a1_m04_dialogue_stepson_c1_response_1_we_thought_we_were" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_text_player_c1_option_2_no_:", "a1_m04_text_player_c1_option_2_no" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_player_c1_option_2_no_:", "a1_m04_dialogue_player_c1_option_2_no" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_stepson_c1_response_2_go_away_:", "a1_m04_dialogue_stepson_c1_response_2_go_away" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_clay_try_the_junkyard_:", "a1_m04_dialogue_clay_try_the_junkyard" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_junker_c2_what_do_you_want_:", "a1_m04_dialogue_junker_c2_what_do_you_want" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_text_player_c2_option_1_how_going_:", "a1_m04_text_player_c2_option_1_how_going" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_player_c2_option_1_how_going_:", "a1_m04_dialogue_player_c2_option_1_how_going" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_junker_c2_response_1_whats_it_to_you_:", "a1_m04_dialogue_junker_c2_response_1_whats_it_to_you" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_text_player_c2_option_2_help_me_:", "a1_m04_text_player_c2_option_2_help_me" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_player_c2_option_2_help_me_:", "a1_m04_dialogue_player_c2_option_2_help_me" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_junker_c2_response_2_ah_let_see_:", "a1_m04_dialogue_junker_c2_response_2_ah_let_see" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_junker_c2_response_2_recieved_old_vessel_:", "a1_m04_dialogue_junker_c2_response_2_recieved_old_vessel" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_junker_c2_response_2_your_for_price_:", "a1_m04_dialogue_junker_c2_response_2_your_for_price" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_player_c2_response_2_here_:", "a1_m04_dialogue_player_c2_response_2_here" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_clay_right_now_:", "a1_m04_dialogue_clay_right_now" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_cal_cal_to_jafs_:", "a1_m04_dialogue_cal_cal_to_jafs" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_jafs_go_ahead_:", "a1_m04_dialogue_jafs_go_ahead" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_cal_can_you_meet_:", "a1_m04_dialogue_cal_can_you_meet" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_jafs_sure_:", "a1_m04_dialogue_jafs_sure" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_jafs_hi_cal_:", "a1_m04_dialogue_jafs_hi_cal" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_cal_urm_well_:", "a1_m04_dialogue_cal_urm_well" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_jafs_no_probs_:", "a1_m04_dialogue_jafs_no_probs" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_cal_er_a_mass_:", "a1_m04_dialogue_cal_er_a_mass" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_jafs_what_:", "a1_m04_dialogue_jafs_what" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_clay_hey_chill_:", "a1_m04_dialogue_clay_hey_chill" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_jafs_i_hope_:", "a1_m04_dialogue_jafs_i_hope" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_jafs_iff_active_:", "a1_m04_dialogue_jafs_iff_active" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_maas_vessel_cz9_:", "a1_m04_dialogue_maas_vessel_cz9" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_maas_cleared_for_refuse_:", "a1_m04_dialogue_maas_cleared_for_refuse" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_clay_hm_that_looks_:", "a1_m04_dialogue_clay_hm_that_looks" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_jafs_nice_one_:", "a1_m04_dialogue_jafs_nice_one" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_jafs_im_setting_off_:", "a1_m04_dialogue_jafs_im_setting_off" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_security_alert_:", "a1_m04_dialogue_security_alert" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+}
+
+local_function_11()
+{
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_junker_c2_response_2_bring_us_:", "a1_m04_dialogue_junker_c2_response_2_bring_us" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_junker_c2_response_2_havin_a_joke_:", "a1_m04_dialogue_junker_c2_response_2_havin_a_joke" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_dialogue_junker_c2_response_2_thatll_do_nicely_:", "a1_m04_dialogue_junker_c2_response_2_thatll_do_nicely" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m04_objective_obtain_:", "a1_m04_objective_obtain" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+}
+
+local_function_12()
+{
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_ship_miner_1_:", "a1_m05_ship_miner_1" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_ship_miner_2_:", "a1_m05_ship_miner_2" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_ship_miner_3_:", "a1_m05_ship_miner_3" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_ship_marauder_freighter_:", "a1_m05_ship_marauder_freighter" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_ship_asteroid_:", "a1_m05_ship_asteroid" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_ship_marauder_1_:", "a1_m05_ship_marauder_1" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_ship_marauder_2_:", "a1_m05_ship_marauder_2" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_ship_marauder_3_:", "a1_m05_ship_marauder_3" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_ship_marauder_4_:", "a1_m05_ship_marauder_4" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_ship_marauder_5_:", "a1_m05_ship_marauder_5" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_ship_marauder_6_:", "a1_m05_ship_marauder_6" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_ship_cargo_pod_:", "a1_m05_ship_cargo_pod" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_waypoint_meeting_:", "a1_m05_waypoint_meeting" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_waypoint_cache_:", "a1_m05_waypoint_cache" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_dialogue_miner_who_goes_there_:", "a1_m05_dialogue_miner_who_goes_there" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_dialogue_player_its_cal_what_did_you_want_:", "a1_m05_dialogue_player_its_cal_what_did_you_want" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_dialogue_miner_i_have_some_marauder_info_:", "a1_m05_dialogue_miner_i_have_some_marauder_info" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_dialogue_miner_oh_no_its_the_marauders_:", "a1_m05_dialogue_miner_oh_no_its_the_marauders" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_dialogue_miner_help_the_marauders_are_here_:", "a1_m05_dialogue_miner_help_the_marauders_are_here" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_dialogue_miner_arrrghhh_:", "a1_m05_dialogue_miner_arrrghhh" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_dialogue_clay_we_cant_help_him_now_:", "a1_m05_dialogue_clay_we_cant_help_him_now" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_dialogue_clay_darn_the_marauders_got_him_:", "a1_m05_dialogue_clay_darn_the_marauders_got_him" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_dialogue_clay_we_messed_up_there_:", "a1_m05_dialogue_clay_we_messed_up_there" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_dialogue_miner_thanks_:", "a1_m05_dialogue_miner_thanks" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_dialogue_miner_i_found_a_marauder_supply_cache_:", "a1_m05_dialogue_miner_i_found_a_marauder_supply_cache" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_dialogue_miner_ive_transmitted_you_the_waypoint_:", "a1_m05_dialogue_miner_ive_transmitted_you_the_waypoint" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_dialogue_clay_well_we_avenged_him_for_what_its_worth_:", "a1_m05_dialogue_clay_well_we_avenged_him_for_what_its_worth" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_dialogue_clay_hey_kid_check_your_sensors_:", "a1_m05_dialogue_clay_hey_kid_check_your_sensors" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_dialogue_clay_there_it_is_:", "a1_m05_dialogue_clay_there_it_is" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_dialogue_clay_uhoh_marauders_ahead_:", "a1_m05_dialogue_clay_uhoh_marauders_ahead" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_dialogue_clay_that_took_care_of_the_marauders_:", "a1_m05_dialogue_clay_that_took_care_of_the_marauders" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_dialogue_clay_the_freighters_running_for_it_:", "a1_m05_dialogue_clay_the_freighters_running_for_it" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_dialogue_clay_the_freighters_escaped_:", "a1_m05_dialogue_clay_the_freighters_escaped" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m05_dialogue_clay_darn_the_beacons_gone_:", "a1_m05_dialogue_clay_darn_the_beacons_gone" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+}
+
+local_function_13()
+{
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_ship_gunstar_1_:", "a1_m06_ship_gunstar_1" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_ship_gunstar_2_:", "a1_m06_ship_gunstar_2" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_ship_gunstar_3_:", "a1_m06_ship_gunstar_3" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_ship_gunstar_4_:", "a1_m06_ship_gunstar_4" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_ship_gunstar_5_:", "a1_m06_ship_gunstar_5" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_ship_gunstar_6_:", "a1_m06_ship_gunstar_6" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_waypoint_:", "a1_m06_waypoint" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_clay_lets_go_:", "a1_m06_dialogue_clay_lets_go" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_smith_lets_dock_:", "a1_m06_dialogue_smith_lets_dock" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_smith_ill_get_the_arming_codes_:", "a1_m06_dialogue_smith_ill_get_the_arming_codes" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_cal_be_careful_:", "a1_m06_dialogue_cal_be_careful" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_smith_dont_worry_:", "a1_m06_dialogue_smith_dont_worry" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_smith_oops_:", "a1_m06_dialogue_smith_oops" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_cal_whats_wrong_:", "a1_m06_dialogue_cal_whats_wrong" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_smith_we_have_a_problem_:", "a1_m06_dialogue_smith_we_have_a_problem" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_cal_what_did_you_do_:", "a1_m06_dialogue_cal_what_did_you_do" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_smith_the_gunstars_are_online_:", "a1_m06_dialogue_smith_the_gunstars_are_online" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_cal_thats_great_:", "a1_m06_dialogue_cal_thats_great" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_smith_theres_a_mine_field_:", "a1_m06_dialogue_smith_theres_a_mine_field" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_clay_clever_comment_:", "a1_m06_dialogue_clay_clever_comment" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_cal_what_do_we_do_:", "a1_m06_dialogue_cal_what_do_we_do" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_smith_we_could_remove_the_arming_keys_:", "a1_m06_dialogue_smith_we_could_remove_the_arming_keys" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_cal_thats_suicide_:", "a1_m06_dialogue_cal_thats_suicide" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_clay_its_our_only_way_out_:", "a1_m06_dialogue_clay_its_our_only_way_out" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_smith_the_gunstars_have_low_power_:", "a1_m06_dialogue_smith_the_gunstars_have_low_power" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_smith_thats_one_:", "a1_m06_dialogue_smith_thats_one" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_smith_thats_two_:", "a1_m06_dialogue_smith_thats_two" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_smith_half_done_:", "a1_m06_dialogue_smith_half_done" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_smith_two_more_:", "a1_m06_dialogue_smith_two_more" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_smith_one_to_go_:", "a1_m06_dialogue_smith_one_to_go" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_smith_thats_the_last_one_:", "a1_m06_dialogue_smith_thats_the_last_one" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_clay_the_mines_have_deactivated_:", "a1_m06_dialogue_clay_the_mines_have_deactivated" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_cal_call_in_the_freighter_:", "a1_m06_dialogue_cal_call_in_the_freighter" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_clay_minefield_:", "a1_m06_dialogue_clay_minefield" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+}
+
+local_function_14()
+{
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_jafs_brought_the_freighter_:", "a1_m06_dialogue_jafs_brought_the_freighter" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m06_dialogue_cal_we_had_a_few_problems_:", "a1_m06_dialogue_cal_we_had_a_few_problems" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+}
+
+local_function_15()
+{
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_name_hoffers_gap_:", "a1_m07_name_hoffers_gap" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_stepson_truck_1_:", "a1_m07_ship_stepson_truck_1" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_stepson_truck_2_:", "a1_m07_ship_stepson_truck_2" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_stepson_truck_3_:", "a1_m07_ship_stepson_truck_3" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_league_1_:", "a1_m07_ship_league_1" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_league_2_:", "a1_m07_ship_league_2" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_league_3_:", "a1_m07_ship_league_3" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_league_4_:", "a1_m07_ship_league_4" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_carva_1_:", "a1_m07_ship_carva_1" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_carva_2_:", "a1_m07_ship_carva_2" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_carva_3_:", "a1_m07_ship_carva_3" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_carva_4_:", "a1_m07_ship_carva_4" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_kong_1_:", "a1_m07_ship_kong_1" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_kong_2_:", "a1_m07_ship_kong_2" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_kong_3_:", "a1_m07_ship_kong_3" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_marauder_reinforcement_1_:", "a1_m07_ship_marauder_reinforcement_1" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_marauder_reinforcement_2_:", "a1_m07_ship_marauder_reinforcement_2" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_marauder_reinforcement_3_:", "a1_m07_ship_marauder_reinforcement_3" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_marauder_mother_:", "a1_m07_ship_marauder_mother" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_marauder_escort_1_:", "a1_m07_ship_marauder_escort_1" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_marauder_escort_2_:", "a1_m07_ship_marauder_escort_2" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_marauder_escort_3_:", "a1_m07_ship_marauder_escort_3" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_marauder_escort_4_:", "a1_m07_ship_marauder_escort_4" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_marauder_gunstar_1_:", "a1_m07_ship_marauder_gunstar_1" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_marauder_gunstar_2_:", "a1_m07_ship_marauder_gunstar_2" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_marauder_gunstar_3_:", "a1_m07_ship_marauder_gunstar_3" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_marauder_gunstar_4_:", "a1_m07_ship_marauder_gunstar_4" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_marauder_gunstar_5_:", "a1_m07_ship_marauder_gunstar_5" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_marauder_gunstar_6_:", "a1_m07_ship_marauder_gunstar_6" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_ship_marauder_bomber_:", "a1_m07_ship_marauder_bomber" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_text_reactor_integrity_:", "a1_m07_text_reactor_integrity" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_smith_boarding_1_:", "a1_m07_dialogue_smith_boarding_1" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_smith_armed_1_:", "a1_m07_dialogue_smith_armed_1" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_smith_boarding_2_:", "a1_m07_dialogue_smith_boarding_2" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_smith_armed_2_:", "a1_m07_dialogue_smith_armed_2" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_smith_boarding_3_:", "a1_m07_dialogue_smith_boarding_3" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_smith_armed_3_:", "a1_m07_dialogue_smith_armed_3" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_smith_boarding_4_:", "a1_m07_dialogue_smith_boarding_4" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_smith_armed_4_:", "a1_m07_dialogue_smith_armed_4" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_smith_boarding_5_:", "a1_m07_dialogue_smith_boarding_5" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_smith_armed_5_:", "a1_m07_dialogue_smith_armed_5" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_smith_boarding_6_:", "a1_m07_dialogue_smith_boarding_6" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_smith_armed_6_:", "a1_m07_dialogue_smith_armed_6" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_cal_well_done_thats_all_of_them_:", "a1_m07_dialogue_cal_well_done_thats_all_of_them" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_smith_looks_like_they_got_the_gunstars_in_place_:", "a1_m07_dialogue_smith_looks_like_they_got_the_gunstars_in_place" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_hoffers_gap_good_to_see_you_:", "a1_m07_dialogue_hoffers_gap_good_to_see_you" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_cal_weve_got_the_keys_:", "a1_m07_dialogue_cal_weve_got_the_keys" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_hoffers_gap_great_just_stick_them_on_will_you_:", "a1_m07_dialogue_hoffers_gap_great_just_stick_them_on_will_you" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_cal_willdo_whats_going_on_:", "a1_m07_dialogue_cal_willdo_whats_going_on" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_hoffers_gap_this_is_the_hoffers_wake_defense_fleet_:", "a1_m07_dialogue_hoffers_gap_this_is_the_hoffers_wake_defense_fleet" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_cal_wheres_the_traffic_:", "a1_m07_dialogue_cal_wheres_the_traffic" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_hoffers_gap_we_kept_them_away_:", "a1_m07_dialogue_hoffers_gap_we_kept_them_away" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_hoffers_gap_weve_detected_incoming_marauders_:", "a1_m07_dialogue_hoffers_gap_weve_detected_incoming_marauders" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_cal_dammit_they_must_have_heard_about_the_gunstars_:", "a1_m07_dialogue_cal_dammit_they_must_have_heard_about_the_gunstars" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_clay_you_got_a_choice_you_can_arm_the_gunstars_or_leave_them_:", "a1_m07_dialogue_clay_you_got_a_choice_you_can_arm_the_gunstars_or_leave_them" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_smith_id_choose_quick_:", "a1_m07_dialogue_smith_id_choose_quick" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_hoffers_gap_the_kong_have_offered_to_be_your_wingmen_:", "a1_m07_dialogue_hoffers_gap_the_kong_have_offered_to_be_your_wingmen" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_hoffers_gap_we_lost_a_gunstar_:", "a1_m07_dialogue_hoffers_gap_we_lost_a_gunstar" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_cal_how_did_they_do_it_:", "a1_m07_dialogue_cal_how_did_they_do_it" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_smith_using_short_range_disruptors_:", "a1_m07_dialogue_smith_using_short_range_disruptors" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_clay_those_old_gunstars_are_vulnerable_:", "a1_m07_dialogue_clay_those_old_gunstars_are_vulnerable" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_smith_it_takes_time_to_work_:", "a1_m07_dialogue_smith_it_takes_time_to_work" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_smith_the_mothership_launched_a_ship_:", "a1_m07_dialogue_smith_the_mothership_launched_a_ship" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_cal_theyre_headed_into_the_gap_what_are_they_doing_:", "a1_m07_dialogue_cal_theyre_headed_into_the_gap_what_are_they_doing" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_smith_the_power_core_:", "a1_m07_dialogue_smith_the_power_core" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_clay_youd_better_stop_them_:", "a1_m07_dialogue_clay_youd_better_stop_them" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_clay_havent_you_got_a_job_to_do_:", "a1_m07_dialogue_clay_havent_you_got_a_job_to_do" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_clay_ill_say_it_again_go_back_:", "a1_m07_dialogue_clay_ill_say_it_again_go_back" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_hoffers_gap_thanks_:", "a1_m07_dialogue_hoffers_gap_thanks" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_cal_youre_welcome_:", "a1_m07_dialogue_cal_youre_welcome" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_clay_im_impressed_:", "a1_m07_dialogue_clay_im_impressed" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_smith_we_got_the_marauders_:", "a1_m07_dialogue_smith_we_got_the_marauders" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_dialogue_cal_dont_get_overconfident_:", "a1_m07_dialogue_cal_dont_get_overconfident" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+}
+
+local_function_16()
+{
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m07_text_caption_mission_failed_:", "a1_m07_text_caption_mission_failed" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+}
+
+local_function_17()
+{
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_dialogue_league_c1_cal_there_you_:", "a1_m08_dialogue_league_c1_cal_there_you" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_text_player_c1_option_1_yes_:", "a1_m08_text_player_c1_option_1_yes" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_dialogue_player_c1_option_1_yes_:", "a1_m08_dialogue_player_c1_option_1_yes" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_dialogue_league_c1_response_1_good_we_want_:", "a1_m08_dialogue_league_c1_response_1_good_we_want" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_dialogue_league_c1_response_1_we_have_been_:", "a1_m08_dialogue_league_c1_response_1_we_have_been" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_dialogue_league_c1_response_1_heres_the_droid_:", "a1_m08_dialogue_league_c1_response_1_heres_the_droid" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_text_player_c1_option_2_no_:", "a1_m08_text_player_c1_option_2_no" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_dialogue_player_c1_option_2_no_:", "a1_m08_dialogue_player_c1_option_2_no" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_dialogue_league_c1_response_2_well_be_waiting_:", "a1_m08_dialogue_league_c1_response_2_well_be_waiting" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_clay_well_done_:", "a1_m08_clay_well_done" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_clay_that_munitions_store_:", "a1_m08_clay_that_munitions_store" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_security_alert_:", "a1_m08_security_alert" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_dialogue_league_c2_did_you_do_:", "a1_m08_dialogue_league_c2_did_you_do" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_text_player_c2_option_1_yes_:", "a1_m08_text_player_c2_option_1_yes" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_dialogue_player_c2_option_1_yes_:", "a1_m08_dialogue_player_c2_option_1_yes" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_dialogue_league_c2_response_1_what_have_you_done_:", "a1_m08_dialogue_league_c2_response_1_what_have_you_done" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_dialogue_league_c2_response_1_and_the_drone_:", "a1_m08_dialogue_league_c2_response_1_and_the_drone" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_dialogue_league_c2_response_1_welcome_:", "a1_m08_dialogue_league_c2_response_1_welcome" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_text_player_c2_option_2_no_:", "a1_m08_text_player_c2_option_2_no" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_dialogue_player_c2_option_2_no_:", "a1_m08_dialogue_player_c2_option_2_no" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_dialogue_league_c2_response_2_failed_:", "a1_m08_dialogue_league_c2_response_2_failed" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+}
+
+local_function_18()
+{
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_name_league_waypoint_:", "a1_m08_name_league_waypoint" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_name_munitions_:", "a1_m08_name_munitions" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_name_flag_ship_:", "a1_m08_name_flag_ship" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_name_paint_droid_:", "a1_m08_name_paint_droid" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_name_wilbert_:", "a1_m08_name_wilbert" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_name_little_:", "a1_m08_name_little" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_name_security_patrol_:", "a1_m08_name_security_patrol" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_dialogue_paint_droid_sfx_:", "a1_m08_dialogue_paint_droid_sfx" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m08_dialogue_clay_flying_droid_too_fast_:", "a1_m08_dialogue_clay_flying_droid_too_fast" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+}
+
+local_function_19()
+{
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m09_name_lor_:", "a1_m09_name_lor" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m09_name_security_:", "a1_m09_name_security" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m09_name_droid_:", "a1_m09_name_droid" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m09_name_hab_module_:", "a1_m09_name_hab_module" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m09_name_league_waypoint_:", "a1_m09_name_league_waypoint" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m09_name_lor_waypoint_:", "a1_m09_name_lor_waypoint" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m09_dialogue_security_alert_:", "a1_m09_dialogue_security_alert" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+}
+
+local_function_20()
+{
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_mad_bill_c1_who_are_you_:", "a1_m10_dialogue_mad_bill_c1_who_are_you" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_text_player_c1_option_1_greet_im_cal_:", "a1_m10_text_player_c1_option_1_greet_im_cal" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_player_c1_option_1_greet_im_cal_:", "a1_m10_dialogue_player_c1_option_1_greet_im_cal" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_mad_bill_c1_response_1_ahh_clay_:", "a1_m10_dialogue_mad_bill_c1_response_1_ahh_clay" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_text_player_c1_option_2_threaten_im_cal_:", "a1_m10_text_player_c1_option_2_threaten_im_cal" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_player_c1_option_2_threaten_im_cal_:", "a1_m10_dialogue_player_c1_option_2_threaten_im_cal" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_mad_bill_c1_response_2_really_and_what_:", "a1_m10_dialogue_mad_bill_c1_response_2_really_and_what" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_malcomb_tezler_c2_who_are_you_:", "a1_m10_dialogue_malcomb_tezler_c2_who_are_you" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_text_player_c2_option_1_im_cal_device_:", "a1_m10_text_player_c2_option_1_im_cal_device" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_player_c2_option_1_im_cal_device_:", "a1_m10_dialogue_player_c2_option_1_im_cal_device" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_malcomb_tezler_c2_response_1_you_must_mean_:", "a1_m10_dialogue_malcomb_tezler_c2_response_1_you_must_mean" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_malcomb_tezler_c2_response_1_here_ya_go_:", "a1_m10_dialogue_malcomb_tezler_c2_response_1_here_ya_go" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_text_player_c2_option_2_no_need_to_be_rude_:", "a1_m10_text_player_c2_option_2_no_need_to_be_rude" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_player_c2_option_2_no_need_to_be_rude_:", "a1_m10_dialogue_player_c2_option_2_no_need_to_be_rude" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_malcomb_tezler_c2_response_2_really_bugger_off_:", "a1_m10_dialogue_malcomb_tezler_c2_response_2_really_bugger_off" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_jacob_gareth_we_have_your_friends_:", "a1_m10_dialogue_jacob_gareth_we_have_your_friends" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_jacob_gareth_ok_i_want_you_to_:", "a1_m10_dialogue_jacob_gareth_ok_i_want_you_to" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_jacob_gareth_im_engaging_now_:", "a1_m10_dialogue_jacob_gareth_im_engaging_now" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_jacob_gareth_here_we_are_:", "a1_m10_dialogue_jacob_gareth_here_we_are" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_clay_that_ice_asteroid_looks_like_:", "a1_m10_dialogue_clay_that_ice_asteroid_looks_like" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_clay_hey_theres_a_failsafe_on_the_:", "a1_m10_dialogue_clay_hey_theres_a_failsafe_on_the" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_jacob_gareth_what_the_:", "a1_m10_dialogue_jacob_gareth_what_the" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_clay_theres_the_device_:", "a1_m10_dialogue_clay_theres_the_device" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_clay_weve_got_the_device_:", "a1_m10_dialogue_clay_weve_got_the_device" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_lori_what_took_you_:", "a1_m10_dialogue_lori_what_took_you" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_lori_never_thought_id_be_:", "a1_m10_dialogue_lori_never_thought_id_be" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_temp_info_:", "a1_m10_temp_info" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_temp_info2_:", "a1_m10_temp_info2" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_clay_hey_call_old_mad_:", "a1_m10_dialogue_clay_hey_call_old_mad" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_cal_you_always_said_all_my_grandmas_henchemen_were_dead_:", "a1_m10_dialogue_cal_you_always_said_all_my_grandmas_henchemen_were_dead" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_clay_trust_me_when_you_meet_mad_bill_youll_know_why_:", "a1_m10_dialogue_clay_trust_me_when_you_meet_mad_bill_youll_know_why" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+}
+
+local_function_21()
+{
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_ship_name_will_:", "a1_m10_ship_name_will" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_ship_name_red_:", "a1_m10_ship_name_red" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_ship_name_rogue_:", "a1_m10_ship_name_rogue" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_ship_name_tiger_:", "a1_m10_ship_name_tiger" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_ship_name_fighter_:", "a1_m10_ship_name_fighter" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_ship_name_hostages_:", "a1_m10_ship_name_hostages" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_ship_name_ice_:", "a1_m10_ship_name_ice" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_ship_name_alien_:", "a1_m10_ship_name_alien" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_name_waypoint_hoffers_heel_:", "a1_m10_name_waypoint_hoffers_heel" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+}
+
+local_function_22()
+{
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_ship_name_league_:", "a1_m10_ship_name_league" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_ship_name_league_two_:", "a1_m10_ship_name_league_two" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_cal_i_found_the_hoard_:", "a1_m10_dialogue_cal_i_found_the_hoard" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_league_well_done_:", "a1_m10_dialogue_league_well_done" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_smith_damn_things_glowing_:", "a1_m10_dialogue_smith_damn_things_glowing" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_cal_i_did_indeed_:", "a1_m10_dialogue_cal_i_did_indeed" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_league_we_can_take_it_:", "a1_m10_dialogue_league_we_can_take_it" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_cal_a_capsule_drive_:", "a1_m10_dialogue_cal_a_capsule_drive" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_league_pretty_expensive_:", "a1_m10_dialogue_league_pretty_expensive" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_cal_holding_out_:", "a1_m10_dialogue_cal_holding_out" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_league_we_can_get_you_one_:", "a1_m10_dialogue_league_we_can_get_you_one" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_league_youre_in_luck_:", "a1_m10_dialogue_league_youre_in_luck" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_league_two_heres_the_drive_:", "a1_m10_dialogue_league_two_heres_the_drive" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_league_two_enjoy_your_drive_:", "a1_m10_dialogue_league_two_enjoy_your_drive" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_m10_dialogue_smith_lets_go_fit_it_:", "a1_m10_dialogue_smith_lets_go_fit_it" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+}
+
+local_function_23()
+{
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_clay_try_them_out_:", "a1_training_clay_try_them_out" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_clay_just_fly_:", "a1_training_clay_just_fly" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_waypoint_training_point_:", "a1_training_waypoint_training_point" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_name_dock_:", "a1_training_name_dock" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_name_mine_:", "a1_training_name_mine" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_name_mine_layer_:", "a1_training_name_mine_layer" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_time_remain_:", "a1_training_time_remain" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_dialogue_clay_at_course_:", "a1_training_dialogue_clay_at_course" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_text_cal_about_:", "a1_training_text_cal_about" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_dialogue_cal_about_:", "a1_training_dialogue_cal_about" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_dialogue_clay_about_tfighters_:", "a1_training_dialogue_clay_about_tfighters" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_text_cal_fastest_:", "a1_training_text_cal_fastest" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_dialogue_cal_fastest_:", "a1_training_dialogue_cal_fastest" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_dialogue_clay_the_fastest_:", "a1_training_dialogue_clay_the_fastest" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_text_cal_start_:", "a1_training_text_cal_start" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_dialogue_cal_start_:", "a1_training_dialogue_cal_start" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_dialogue_clay_ok_:", "a1_training_dialogue_clay_ok" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_dialogue_clay_ok2_:", "a1_training_dialogue_clay_ok2" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_dialogue_clay_alt_ok_:", "a1_training_dialogue_clay_alt_ok" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_dialogue_clay_alt_ok2_:", "a1_training_dialogue_clay_alt_ok2" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_text_cal_nothing_:", "a1_training_text_cal_nothing" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_dialogue_cal_nothing_:", "a1_training_dialogue_cal_nothing" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_dialogue_clay_go_:", "a1_training_dialogue_clay_go" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_dialogue_clay_lets_see_:", "a1_training_dialogue_clay_lets_see" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_dialogue_clay_good_:", "a1_training_dialogue_clay_good" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_dialogue_clay_good_bad_:", "a1_training_dialogue_clay_good_bad" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_dialogue_clay_tough_luck_:", "a1_training_dialogue_clay_tough_luck" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_dialogue_clay_whats_wrong_:", "a1_training_dialogue_clay_whats_wrong" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_dialogue_clay_reseting_:", "a1_training_dialogue_clay_reseting" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_dialogue_clay_ready_:", "a1_training_dialogue_clay_ready" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+	
+	do
+	{
+		Global.SetBool( "g_repeat_last_string", false );
+		iConversation.OneLiner( none, "a1_training_dialogue_clay_wait_:", "a1_training_dialogue_clay_wait" );
+	}
+	while ( Global.Bool( "g_repeat_last_string" ) == 1 );
+}
+
+task local_function_24()
+{
+	int convoResponse;
+	
+	Global.CreateBool( "g_repeat_last_string", 2, false );
+	Text.Add( "csv:/text/act_1/act1_master" );
+	Text.Add( "csv:/text/act_1/act1_master_addendum" );
+	Text.Add( "csv:/text/act_1/act1_master_addendum2" );
+	Text.Add( "csv:/text/act_1/act1_master_addendum3" );
+	Text.Add( "csv:/text/act_1/act1_master_addendum4" );
+	Text.Add( "csv:/text/act_1/act1_mission01" );
+	Text.Add( "csv:/text/act_1/act1_mission01_addendum" );
+	Text.Add( "csv:/text/act_1/act1_mission02" );
+	Text.Add( "csv:/text/act_1/act1_mission02_addendum" );
+	Text.Add( "csv:/text/act_1/act1_mission03" );
+	Text.Add( "csv:/text/act_1/act1_mission04" );
+	Text.Add( "csv:/text/act_1/act1_mission04_addendum" );
+	Text.Add( "csv:/text/act_1/act1_mission05" );
+	Text.Add( "csv:/text/act_1/act1_mission06" );
+	Text.Add( "csv:/text/act_1/act1_mission06_addendum" );
+	Text.Add( "csv:/text/act_1/act1_mission07" );
+	Text.Add( "csv:/text/act_1/act1_mission07_addendum" );
+	Text.Add( "csv:/text/act_1/act1_mission08" );
+	Text.Add( "csv:/text/act_1/act1_mission08_addendum" );
+	Text.Add( "csv:/text/act_1/act1_mission09_addendum" );
+	Text.Add( "csv:/text/act_1/act1_mission10" );
+	Text.Add( "csv:/text/act_1/act1_mission10_addendum" );
+	Text.Add( "csv:/text/act_1/act1_mission10_addendum_2" );
+	Text.Add( "csv:/text/act_1/act1_wingmen_training" );
+	
+	while ( 1 )
+	{
+		iConversation.Begin();
+		iConversation.AddResponse( "act_1/act1_master.csv", "I'd like to see file act_1/act1_master.csv, please" );
+		iConversation.AddResponse( "act_1/act1_master_addendum.csv", "I'd like to see file act_1/act1_master_addendum.csv, please" );
+		iConversation.AddResponse( "act_1/act1_master_addendum2.csv", "I'd like to see file act_1/act1_master_addendum2.csv, please" );
+		iConversation.AddResponse( "act_1/act1_master_addendum3.csv", "I'd like to see file act_1/act1_master_addendum3.csv, please" );
+		iConversation.AddResponse( "act_1/act1_master_addendum4.csv", "I'd like to see file act_1/act1_master_addendum4.csv, please" );
+		iConversation.AddResponse( "act_1/act1_mission01.csv", "I'd like to see file act_1/act1_mission01.csv, please" );
+		iConversation.AddResponse( "act_1/act1_mission01_addendum.csv", "I'd like to see file act_1/act1_mission01_addendum.csv, please" );
+		iConversation.AddResponse( "act_1/act1_mission02.csv", "I'd like to see file act_1/act1_mission02.csv, please" );
+		iConversation.AddResponse( "act_1/act1_mission02_addendum.csv", "I'd like to see file act_1/act1_mission02_addendum.csv, please" );
+		iConversation.AddResponse( "act_1/act1_mission03.csv", "I'd like to see file act_1/act1_mission03.csv, please" );
+		iConversation.AddResponse( "act_1/act1_mission04.csv", "I'd like to see file act_1/act1_mission04.csv, please" );
+		iConversation.AddResponse( "act_1/act1_mission04_addendum.csv", "I'd like to see file act_1/act1_mission04_addendum.csv, please" );
+		iConversation.AddResponse( "act_1/act1_mission05.csv", "I'd like to see file act_1/act1_mission05.csv, please" );
+		iConversation.AddResponse( "act_1/act1_mission06.csv", "I'd like to see file act_1/act1_mission06.csv, please" );
+		iConversation.AddResponse( "act_1/act1_mission06_addendum.csv", "I'd like to see file act_1/act1_mission06_addendum.csv, please" );
+		iConversation.AddResponse( "act_1/act1_mission07.csv", "I'd like to see file act_1/act1_mission07.csv, please" );
+		iConversation.AddResponse( "act_1/act1_mission07_addendum.csv", "I'd like to see file act_1/act1_mission07_addendum.csv, please" );
+		iConversation.AddResponse( "act_1/act1_mission08.csv", "I'd like to see file act_1/act1_mission08.csv, please" );
+		iConversation.AddResponse( "act_1/act1_mission08_addendum.csv", "I'd like to see file act_1/act1_mission08_addendum.csv, please" );
+		iConversation.AddResponse( "act_1/act1_mission09_addendum.csv", "I'd like to see file act_1/act1_mission09_addendum.csv, please" );
+		iConversation.AddResponse( "act_1/act1_mission10.csv", "I'd like to see file act_1/act1_mission10.csv, please" );
+		iConversation.AddResponse( "act_1/act1_mission10_addendum.csv", "I'd like to see file act_1/act1_mission10_addendum.csv, please" );
+		iConversation.AddResponse( "act_1/act1_mission10_addendum_2.csv", "I'd like to see file act_1/act1_mission10_addendum_2.csv, please" );
+		iConversation.AddResponse( "act_1/act1_wingmen_training.csv", "I'd like to see file act_1/act1_wingmen_training.csv, please" );
+		convoResponse = iConversation.Ask( none, "particle_employee", "which file do you want to test?" );
+		iConversation.End();
+		
+		switch ( convoResponse )
+		{
+			case 1:
+				local_function_0();
+				break;
+			
+			case 2:
+				local_function_1();
+				break;
+			
+			case 3:
+				local_function_2();
+				break;
+			
+			case 4:
+				local_function_3();
+				break;
+			
+			case 5:
+				local_function_4();
+				break;
+			
+			case 6:
+				local_function_5();
+				break;
+			
+			case 7:
+				local_function_6();
+				break;
+			
+			case 8:
+				local_function_7();
+				break;
+			
+			case 9:
+				local_function_8();
+				break;
+			
+			case 10:
+				local_function_9();
+				break;
+			
+			case 11:
+				local_function_10();
+				break;
+			
+			case 12:
+				local_function_11();
+				break;
+			
+			case 13:
+				local_function_12();
+				break;
+			
+			case 14:
+				local_function_13();
+				break;
+			
+			case 15:
+				local_function_14();
+				break;
+			
+			case 16:
+				local_function_15();
+				break;
+			
+			case 17:
+				local_function_16();
+				break;
+			
+			case 18:
+				local_function_17();
+				break;
+			
+			case 19:
+				local_function_18();
+				break;
+			
+			case 20:
+				local_function_19();
+				break;
+			
+			case 21:
+				local_function_20();
+				break;
+			
+			case 22:
+				local_function_21();
+				break;
+			
+			case 23:
+				local_function_22();
+				break;
+			
+			case 24:
+				local_function_23();
+				break;
+		}
+	}
+	
+	Text.Remove( "csv:/text/act_1/act1_master" );
+	Text.Remove( "csv:/text/act_1/act1_master_addendum" );
+	Text.Remove( "csv:/text/act_1/act1_master_addendum2" );
+	Text.Remove( "csv:/text/act_1/act1_master_addendum3" );
+	Text.Remove( "csv:/text/act_1/act1_master_addendum4" );
+	Text.Remove( "csv:/text/act_1/act1_mission01" );
+	Text.Remove( "csv:/text/act_1/act1_mission01_addendum" );
+	Text.Remove( "csv:/text/act_1/act1_mission02" );
+	Text.Remove( "csv:/text/act_1/act1_mission02_addendum" );
+	Text.Remove( "csv:/text/act_1/act1_mission03" );
+	Text.Remove( "csv:/text/act_1/act1_mission04" );
+	Text.Remove( "csv:/text/act_1/act1_mission04_addendum" );
+	Text.Remove( "csv:/text/act_1/act1_mission05" );
+	Text.Remove( "csv:/text/act_1/act1_mission06" );
+	Text.Remove( "csv:/text/act_1/act1_mission06_addendum" );
+	Text.Remove( "csv:/text/act_1/act1_mission07" );
+	Text.Remove( "csv:/text/act_1/act1_mission07_addendum" );
+	Text.Remove( "csv:/text/act_1/act1_mission08" );
+	Text.Remove( "csv:/text/act_1/act1_mission08_addendum" );
+	Text.Remove( "csv:/text/act_1/act1_mission09_addendum" );
+	Text.Remove( "csv:/text/act_1/act1_mission10" );
+	Text.Remove( "csv:/text/act_1/act1_mission10_addendum" );
+	Text.Remove( "csv:/text/act_1/act1_mission10_addendum_2" );
+	Text.Remove( "csv:/text/act_1/act1_wingmen_training" );
+}
+
+Main()
+{
+	Task.Detach( start local_function_24() );
+}
+

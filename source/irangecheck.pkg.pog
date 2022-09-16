@@ -1,0 +1,269 @@
+package iRangeCheck;
+
+uses Debug,
+     Set,
+     List,
+     String,
+     Global,
+     Group,
+     Sim,
+     MapEnumerations,
+     iFaction,
+     iSim,
+     iMapEntity,
+     iBody,
+     iHabitat,
+     iShip;
+
+provides MonitorRange,
+         AddTrafficException,
+         RemoveTrafficException,
+         PurgeTrafficException,
+         DisableRangeReport,
+         AddOutOfSystemTrafficException,
+         RemoveOutOfSystemTrafficException,
+         PurgeOutOfSystemTrafficExceptions,
+         AddTrafficExceptionsInArea,
+         RemoveTrafficExceptionsInArea;
+
+prototype DisableRangeReport();
+prototype local_function_0( string param_0_ );
+prototype local_function_1( set localSet_ );
+prototype AddTrafficException( hmapentity location_ );
+prototype AddTrafficExceptionsInArea( hmapentity location_, float radius_ );
+prototype AddOutOfSystemTrafficException( hmapentity location_ );
+prototype RemoveTrafficException( hmapentity location_ );
+prototype RemoveTrafficExceptionsInArea( hmapentity location_, float radius_ );
+prototype RemoveOutOfSystemTrafficException( hmapentity location_ );
+prototype PurgeOutOfSystemTrafficExceptions();
+prototype PurgeTrafficException();
+prototype task MonitorRange();
+
+DisableRangeReport()
+{
+	Global.CreateBool( "gl_Range_creation_no_report", 2, true );
+}
+
+local_function_0( string param_0_ )
+{
+	if ( Global.Exists( "gl_Range_creation_no_report" ) )
+	{
+		if ( Global.Bool( "gl_Range_creation_no_report" ) == 1 )
+		{
+			return;
+		}
+	}
+	
+	debug Debug.PrintString( param_0_ );
+}
+
+local_function_1( set localSet_ )
+{
+	list localList = List.FromSet( localSet_ );
+	int itemCount = List.ItemCount( localList );
+	int ii;
+	
+	debug atomic
+	{
+		Debug.PrintString( "SET DUMP:\n" );
+		
+		for ( ii = 0; ii < itemCount; ++ii )
+		{
+			Debug.PrintString( "Set Item " );
+			Debug.PrintString( String.FromInt( ii ) );
+			Debug.PrintString( " " );
+			Debug.PrintHandle( List.GetNth( localList, ii ) );
+			Debug.PrintString( "\n" );
+		}
+	}
+}
+
+AddTrafficException( hmapentity location_ )
+{
+	set localSet;
+	
+	debug
+	{
+		if ( Global.Exists( "g_filtered_system_habitats" ) == 0 )
+		{
+			Debug.PrintString( "iRangeCheck.AddTrafficException: g_filtered_system_habitats does not exist.  assuming traffic is turned off\n" );
+			return;
+		}
+	}
+	
+	localSet = Global.Set( "g_filtered_system_habitats" );
+	
+	debug atomic
+	{
+		local_function_0( " iRangecheck.AddTrafficException - removing the location " );
+		local_function_0( iMapEntity.Name( iMapEntity.Cast( location_ ) ) );
+		local_function_0( " from the filtered system habitats list.\n" );
+	}
+	
+	if ( Set.Contains( localSet, location_ ) )
+	{
+		Set.Remove( localSet, location_ );
+	}
+	else debug local_function_0( "iRangeCheck.AddTrafficexception : Filtered system habitat set does not contain this location 1" );
+	
+	Global.SetSet( "g_filtered_system_habitats", localSet );
+}
+
+AddTrafficExceptionsInArea( hmapentity location_, float radius_ )
+{
+	set localSet = iSim.NonPlanetaryInRadius( iSim.Cast( location_ ), radius_ );
+	hmapentity mapEntity;
+	
+	AddTrafficException( location_ );
+	
+	do
+	{
+		mapEntity = iMapEntity.Cast( Set.FirstElement( localSet ) );
+		AddTrafficException( iMapEntity.Cast( mapEntity ) );
+		Set.Remove( localSet, mapEntity );
+	}
+	while ( !Set.IsEmpty( localSet ) );
+}
+
+AddOutOfSystemTrafficException( hmapentity location_ )
+{
+	set localSet;
+	
+	if ( Global.Exists( "g_out_of_system_exceptions" ) == 0 )
+	{
+		Set.Add( localSet, location_ );
+		Global.CreateSet( "g_out_of_system_exceptions", 2, localSet );
+		return;
+	}
+	
+	localSet = Global.Set( "g_out_of_system_exceptions" );
+	Set.Add( localSet, location_ );
+	Global.SetSet( "g_out_of_system_exceptions", localSet );
+}
+
+RemoveTrafficException( hmapentity location_ )
+{
+	set localSet = Global.Set( "g_filtered_system_habitats" );
+	
+	debug atomic
+	{
+		local_function_0( " iRangecheck.RemoveTrafficException - Adding the location " );
+		local_function_0( iMapEntity.Name( iMapEntity.Cast( location_ ) ) );
+		local_function_0( " to the filtered system habitats\n" );
+	}
+	
+	Set.Add( localSet, location_ );
+	Global.SetSet( "g_traffic_exception_list", localSet );
+}
+
+RemoveTrafficExceptionsInArea( hmapentity location_, float radius_ )
+{
+	set localSet = iSim.NonPlanetaryInRadius( iSim.Cast( location_ ), radius_ );
+	hmapentity mapEntity;
+	
+	RemoveTrafficException( location_ );
+	
+	do
+	{
+		mapEntity = iMapEntity.Cast( Set.FirstElement( localSet ) );
+		RemoveTrafficException( iMapEntity.Cast( mapEntity ) );
+		Set.Remove( localSet, mapEntity );
+	}
+	while ( !Set.IsEmpty( localSet ) );
+}
+
+RemoveOutOfSystemTrafficException( hmapentity location_ )
+{
+	set localSet_0;
+	set localSet_1;
+	
+	if ( Global.Exists( "g_out_of_system_exceptions" ) == 1 )
+	{
+		localSet_0 = Global.Set( "g_out_of_system_exceptions" );
+		Set.Add( localSet_1, location_ );
+		Set.Difference( localSet_0, localSet_1 );
+		Global.SetSet( "g_out_of_system_exceptions", localSet_0 );
+	}
+}
+
+PurgeOutOfSystemTrafficExceptions()
+{
+	Global.Destroy( "g_out_of_system_exceptions" );
+}
+
+PurgeTrafficException()
+{
+	int local_0;
+	set localSet_0 = Global.Set( "g_filtered_system_habitats" );
+	set localSet_1;
+	hmapentity lucreciasBase;
+	
+	debug local_function_0( "iRangeCheck.PurgeTrafficException - rebuilding filtered system set, but still without player base....\n" );
+	localSet_0 = localSet_1;
+	localSet_0 = iHabitat.FilterOrbiting( iMapEntity.SystemHabitats() );
+	Set.Union( localSet_0, iMapEntity.SystemLagrangePoints() );
+	lucreciasBase = iMapEntity.FindByName( "Lucrecia's Base" );
+	
+	if ( Set.Contains( localSet_0, lucreciasBase ) )
+	{
+		Set.Remove( localSet_0, lucreciasBase );
+		return;
+	}
+	
+	debug local_function_0( "iRangeCheck.PurgeTrafficException - cannot find lucrecias base in current system habitat set\n" );
+}
+
+task MonitorRange()
+{
+	bool local_0 = true;
+	bool local_1 = false;
+	int local_2;
+	int local_3;
+	int local_4;
+	string local_5;
+	list localList_0;
+	hship playerShip;
+	hfaction marauders = iFaction.Find( "Marauders" );
+	string local_9;
+	list localList_1;
+	string local_11;
+	set localSet;
+	hmapentity mapEntity;
+	int itemCount;
+	int ii;
+	float gPlayerSensorRange = Global.Float( "g_player_sensor_range" );
+	
+	debug local_function_0( "iRangeCheck.MonitorRange - Starting range monitor task.\n" );
+	Global.SetList( "g_active_location_list", localList_1 );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( local_0 && (Global.Exists( "g_disable_traffic_monitor" ) == 0) )
+			{
+				localSet = Global.Set( "g_filtered_system_habitats" );
+				playerShip = iShip.FindPlayerShip();
+				localList_0 = List.FromSet( iSim.SimsInRadiusFromSet( localSet, playerShip, Global.Float( "g_station_awareness_radius" ), 8208 ) );
+				itemCount = List.ItemCount( localList_0 );
+				
+				for ( ii = 0; ii < itemCount; ++ii )
+				{
+					mapEntity = iMapEntity.Cast( List.GetNth( localList_0, ii ) );
+					
+					if ( ((iSim.Faction( iSim.Cast( mapEntity ) ) == marauders) && !iMapEntity.IsVisibleOnMap( mapEntity )) && !iMapEntity.IsDestroyed( mapEntity ) )
+					{
+						if ( Sim.DistanceBetween( playerShip, mapEntity ) < 300000.0 )
+						{
+							iMapEntity.SetMapVisibility( mapEntity, true );
+						}
+					}
+				}
+				
+				Global.SetList( "g_active_location_list", localList_0 );
+				debug local_function_0( "iRangeCheck.MonitorRange - Sleeping for a bit\n" );
+			}
+		}
+	}
+}
+

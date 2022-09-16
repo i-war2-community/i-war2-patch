@@ -1,0 +1,1165 @@
+package iAct2Mission09;
+
+uses Debug,
+     String,
+     Set,
+     List,
+     Global,
+     Sim,
+     Group,
+     Object,
+     State,
+     Task,
+     Text,
+     iSim,
+     iShip,
+     iLagrangePoint,
+     Subsim,
+     iDockport,
+     iAI,
+     iConversation,
+     iCutsceneUtilities,
+     iDirector,
+     GUI,
+     iEmail,
+     MapEnumerations,
+     iFaction,
+     iMapEntity,
+     iBody,
+     iHabitat,
+     iMissionTracker,
+     iObjectives,
+     iPilotSetup,
+     iRegion,
+     iStation,
+     INIFile,
+     iUtilities,
+     iWingmen;
+
+provides Main,
+         MissionHandler;
+
+prototype Main();
+prototype local_function_1( hstate state_ );
+prototype local_function_14();
+prototype task local_function_0();
+prototype hgroup local_function_2();
+prototype task local_function_13( hstate state_ );
+prototype task local_function_9( hstate state_, hship ship_, hgroup group_0_, hgroup group_1_ );
+prototype task local_function_4( hsim param_0_, hstate state_, hship ship_ );
+prototype task local_function_5( hsim param_0_, hstate state_, hship ship_ );
+prototype task local_function_6( hsim param_0_, hstate state_, hship ship_ );
+prototype task local_function_12( hship ship_0_, hmapentity mapentity_, hgroup group_0_, hship ship_1_, hgroup group_1_, hgroup group_2_ );
+prototype task local_function_10( hgroup group_0_, hship ship_, hstate state_ );
+prototype task local_function_3( hship ship_, hstate state_, hgroup group_ );
+prototype task local_function_11( hstate state_, hsim param_1_, hship ship_ );
+prototype task local_function_7( hsim param_0_ );
+prototype task local_function_8( hsim param_0_ );
+prototype hship local_function_15( hsim param_0_, int param_1_, float param_2_ );
+prototype task MissionHandler();
+
+Main()
+{
+	Task.Detach( start local_function_0() );
+}
+
+local_function_1( hstate state_ )
+{
+	hsim waypointLongshotMCADefenceHQ;
+	hship playerShip = iShip.FindPlayerShip();
+	
+	waypointLongshotMCADefenceHQ = iUtilities.CreateWaypointRelativeTo( iMapEntity.FindByNameInSystem( "Longshot MCA Defence HQ", "map:/geog/badlands/mwari" ), 0.0, 900000.0, 0.0 );
+	Object.AddHandleProperty( playerShip, "restart_waypoint", waypointLongshotMCADefenceHQ );
+	Object.AddHandleProperty( playerShip, "current_mission_state", state_ );
+}
+
+local_function_14()
+{
+	iObjectives.Remove( "a2_m09_objecitves_patrol" );
+	iObjectives.Remove( "a2_m09_objectives_assault" );
+	iObjectives.Remove( "a2_m09_objectives_mca_base" );
+}
+
+task local_function_0()
+{
+	htask local_0;
+	int local_1;
+	int local_2;
+	hfaction m_C_A_;
+	hfaction marauders;
+	
+	if ( iUtilities.SkipMission( "Marauder Base?" ) )
+	{
+		Global.SetBool( "g_act2_marauder_base_mission_complete", true );
+		return;
+	}
+	
+	m_C_A_ = iFaction.Find( "M.C.A." );
+	marauders = iFaction.Find( "Marauders" );
+	
+	if ( m_C_A_ == false )
+	{
+		debug Debug.Error( "Invalid mca handle." );
+	}
+	
+	if ( marauders == false )
+	{
+		debug Debug.Error( "Invalid marauder handle." );
+	}
+	
+	atomic
+	{
+		if ( Global.Exists( "g_a2_m9_running" ) )
+		{
+			debug Debug.PrintString( "iAct2_Mission10.Main: Mission already running. Exiting\n" );
+			return;
+		}
+		
+		Global.CreateInt( "g_a2_m9_running", 1, 1 );
+	}
+	
+	Task.Detach( local_0 = start MissionHandler() );
+}
+
+hgroup local_function_2()
+{
+	hgroup group = Group.Create();
+	hgroup gCleanupStuff = Group.Create();
+	hship shipHeavyCorvetteMca_0;
+	hship shipHeavyCorvetteMca_1;
+	hship shipHeavyCorvetteMca_2;
+	hship shipHeavyCorvetteMca_3;
+	hship shipHeavyCorvetteMca_4;
+	hship shipSnrv;
+	hfaction m_C_A_ = iFaction.Find( "M.C.A." );
+	hfaction marauders = iFaction.Find( "Marauders" );
+	
+	debug Debug.PrintString( "MCA Ships set up\n" );
+	shipHeavyCorvetteMca_0 = iShip.Create( "ini:/sims/ships/independent/heavy_corvette_mca", "a2_m09_MCA_Force_leader" );
+	iPilotSetup.GenericMilitary( iShip.Cast( shipHeavyCorvetteMca_0 ) );
+	Group.AddSim( group, shipHeavyCorvetteMca_0 );
+	Sim.SetCullable( shipHeavyCorvetteMca_0, false );
+	iSim.SetFaction( iSim.Cast( shipHeavyCorvetteMca_0 ), m_C_A_ );
+	shipHeavyCorvetteMca_1 = iShip.Create( "ini:/sims/ships/independent/heavy_corvette_mca", "a2_m09_MCA2" );
+	iPilotSetup.GenericMilitary( iShip.Cast( shipHeavyCorvetteMca_1 ) );
+	Group.AddSim( group, shipHeavyCorvetteMca_1 );
+	Sim.SetCullable( shipHeavyCorvetteMca_1, false );
+	iSim.SetFaction( iSim.Cast( shipHeavyCorvetteMca_1 ), m_C_A_ );
+	shipHeavyCorvetteMca_2 = iShip.Create( "ini:/sims/ships/independent/heavy_corvette_mca", "a2_m09_MCA3" );
+	iPilotSetup.GenericMilitary( iShip.Cast( shipHeavyCorvetteMca_2 ) );
+	Group.AddSim( group, shipHeavyCorvetteMca_2 );
+	Sim.SetCullable( shipHeavyCorvetteMca_2, false );
+	iSim.SetFaction( iSim.Cast( shipHeavyCorvetteMca_2 ), m_C_A_ );
+	shipHeavyCorvetteMca_3 = iShip.Create( "ini:/sims/ships/independent/heavy_corvette_mca", "a2_m09_MCA4" );
+	iPilotSetup.GenericMilitary( iShip.Cast( shipHeavyCorvetteMca_3 ) );
+	Group.AddSim( group, shipHeavyCorvetteMca_3 );
+	Sim.SetCullable( shipHeavyCorvetteMca_3, false );
+	iSim.SetFaction( iSim.Cast( shipHeavyCorvetteMca_3 ), m_C_A_ );
+	shipHeavyCorvetteMca_4 = iShip.Create( "ini:/sims/ships/independent/heavy_corvette_mca", "a2_m09_MCA5" );
+	iPilotSetup.GenericMilitary( iShip.Cast( shipHeavyCorvetteMca_4 ) );
+	Group.AddSim( group, shipHeavyCorvetteMca_4 );
+	Sim.SetCullable( shipHeavyCorvetteMca_4, false );
+	iSim.SetFaction( iSim.Cast( shipHeavyCorvetteMca_4 ), m_C_A_ );
+	shipSnrv = iShip.Create( "ini:/sims/ships/utility/snrv", "a2_m09_Sensor_ship" );
+	iPilotSetup.GenericMilitary( iShip.Cast( shipSnrv ) );
+	Group.AddSim( group, shipSnrv );
+	Sim.SetCullable( shipSnrv, false );
+	iSim.SetMissionCritical( iSim.Cast( shipSnrv ), true );
+	iSim.SetFaction( iSim.Cast( shipSnrv ), m_C_A_ );
+	Object.SetStringProperty( shipSnrv, "death_script", "iDeathScript.CriticalShipDeath" );
+	gCleanupStuff = Group.Cast( Global.Handle( "g_cleanup_stuff" ) );
+	Group.AddGroup( gCleanupStuff, group );
+	Global.SetHandle( "g_cleanup_stuff", gCleanupStuff );
+	return group;
+}
+
+task local_function_13( hstate state_ )
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	bool local_2 = false;
+	bool local_3 = false;
+	hgroup group_0 = Group.Create();
+	hgroup gCleanupStuff = Group.Create();
+	hmapentity longshotMCADefenceHQ = iMapEntity.FindByNameInSystem( "Longshot MCA Defence HQ", "map:/geog/badlands/mwari" );
+	hsim waypoint_0;
+	hship playerShip = iShip.FindPlayerShip();
+	htask local_9;
+	hship groupLeader;
+	hsim waypoint_1;
+	hsim waypoint_2;
+	hsim waypoint_3;
+	hsim waypoint_4;
+	hsim waypoint_5;
+	int local_16;
+	bool local_17 = false;
+	bool local_18 = false;
+	bool local_19 = false;
+	hgroup group_1 = Group.Create();
+	
+	waypoint_0 = iUtilities.CreateWaypointRelativeTo( longshotMCADefenceHQ, 30000.0, 40000.0, 0.0 );
+	Object.SetStringProperty( waypoint_0, "name", "a2_m09_MCA_patrol_force" );
+	iSim.SetSensorVisibility( iSim.Cast( waypoint_0 ), true );
+	gCleanupStuff = Group.Cast( Global.Handle( "g_cleanup_stuff" ) );
+	Group.AddSim( gCleanupStuff, waypoint_0 );
+	Global.SetHandle( "g_cleanup_stuff", gCleanupStuff );
+	
+	schedule
+	{
+		every 2.0:
+		{
+			if ( Sim.DistanceBetween( playerShip, longshotMCADefenceHQ ) <= 400000.0 )
+			{
+				if ( local_1 == 0 )
+				{
+					local_function_1( state_ );
+					local_1 = true;
+					group_0 = local_function_2();
+					Sim.PlaceRelativeTo( Group.NthSim( group_0, 0 ), waypoint_0, 0.0, 0.0, 1000.0 );
+					Sim.PlaceRelativeTo( Group.NthSim( group_0, 1 ), waypoint_0, 0.0, 0.0, -1000.0 );
+					Sim.PlaceRelativeTo( Group.NthSim( group_0, 2 ), waypoint_0, 0.0, 1000.0, 0.0 );
+					Sim.PlaceRelativeTo( Group.NthSim( group_0, 3 ), waypoint_0, 0.0, -1000.0, 0.0 );
+					Sim.PlaceRelativeTo( Group.NthSim( group_0, 4 ), waypoint_0, 1000.0, 0.0, 0.0 );
+					Sim.PlaceRelativeTo( Group.NthSim( group_0, 5 ), waypoint_0, -1000.0, 0.0, 0.0 );
+					Global.CreateHandle( "g_mca_force", 1, group_0 );
+					groupLeader = iShip.Cast( Group.Leader( group_0 ) );
+				}
+				else if ( Sim.DistanceBetween( playerShip, groupLeader ) <= 10000.0 )
+				{
+					if ( local_3 == 0 )
+					{
+						local_function_1( state_ );
+						iObjectives.SetState( "a2_m09_objectives_mca_base", OS_Succeeded );
+						debug Debug.PrintString( "close enough to talk\n" );
+						local_9 = start local_function_3( groupLeader, state_, group_0 );
+						local_3 = true;
+					}
+					else if ( (local_3 == 1) && (!Task.IsRunning( local_9 ) && ((local_2 == 0) && (State.Progress( state_ ) == 2))) )
+					{
+						debug Debug.PrintString( "create the patrol points\n" );
+						local_2 = true;
+						waypoint_1 = iUtilities.CreateWaypointRelativeTo( longshotMCADefenceHQ, 2000000000.0, -4000000.0, 40000000.0 );
+						Object.SetStringProperty( waypoint_1, "name", "a2_m09_Patrol_Waypoint_One" );
+						iSim.SetSensorVisibility( iSim.Cast( waypoint_1 ), true );
+						waypoint_2 = iUtilities.CreateWaypointRelativeTo( longshotMCADefenceHQ, -419466368.0, -234562336.0, 2102739840.0 );
+						Object.SetStringProperty( waypoint_2, "name", "a2_m09_Patrol_Waypoint_Two" );
+						iSim.SetSensorVisibility( iSim.Cast( waypoint_2 ), true );
+						waypoint_3 = iUtilities.CreateWaypointRelativeTo( longshotMCADefenceHQ, -3464570.0, 239732704.0, -6345650.0 );
+						Object.SetStringProperty( waypoint_3, "name", "a2_m09_Patrol_Waypoint_Three" );
+						iSim.SetSensorVisibility( iSim.Cast( waypoint_3 ), true );
+						waypoint_4 = iUtilities.CreateWaypointRelativeTo( longshotMCADefenceHQ, -2062813824.0, -540.0, 34653448.0 );
+						Object.SetStringProperty( waypoint_4, "name", "a2_m09_Patrol_Waypoint_Four" );
+						iSim.SetSensorVisibility( iSim.Cast( waypoint_4 ), true );
+						waypoint_5 = iUtilities.CreateWaypointRelativeTo( longshotMCADefenceHQ, 1717700224.0, 1038366144.0, -1979608704.0 );
+						Object.SetStringProperty( waypoint_5, "name", "a2_m09_Patrol_Waypoint_Five" );
+						iSim.SetSensorVisibility( iSim.Cast( waypoint_5 ), true );
+						gCleanupStuff = Group.Cast( Global.Handle( "g_cleanup_stuff" ) );
+						Group.AddSim( gCleanupStuff, waypoint_1 );
+						Group.AddSim( gCleanupStuff, waypoint_2 );
+						Group.AddSim( gCleanupStuff, waypoint_3 );
+						Group.AddSim( gCleanupStuff, waypoint_4 );
+						Group.AddSim( gCleanupStuff, waypoint_5 );
+						Global.SetHandle( "g_cleanup_stuff", gCleanupStuff );
+						Group.AddSim( group_1, waypoint_1 );
+						Group.AddSim( group_1, waypoint_2 );
+						Group.AddSim( group_1, waypoint_3 );
+						Group.AddSim( group_1, waypoint_4 );
+						Group.AddSim( group_1, waypoint_5 );
+						iAI.GiveFormateOrder( Group.NthSim( group_0, 0 ), playerShip, 100.0, 0.0, 0.0 );
+						iAI.GiveFormateOrder( Group.NthSim( group_0, 5 ), playerShip, 500.0, 100.0, -1000.0 );
+						start local_function_4( waypoint_1, state_, iShip.Cast( Group.NthSim( group_0, 5 ) ) );
+						start local_function_5( waypoint_3, state_, iShip.Cast( Group.NthSim( group_0, 5 ) ) );
+						start local_function_6( waypoint_5, state_, iShip.Cast( Group.NthSim( group_0, 5 ) ) );
+						start local_function_7( waypoint_2 );
+						start local_function_8( waypoint_4 );
+						iAI.GiveEscortOrder( Group.NthSim( group_0, 0 ), playerShip, -300.0, 300.0, -300.0, 10000.0 );
+						iAI.GiveEscortOrder( Group.NthSim( group_0, 1 ), Group.NthSim( group_0, 5 ), 200.0, 0.0, -500.0, 10000.0 );
+						iAI.GiveEscortOrder( Group.NthSim( group_0, 2 ), Group.NthSim( group_0, 5 ), -200.0, 0.0, -500.0, 10000.0 );
+						iWingmen.Initialise();
+						iWingmen.AddWingman( iShip.Cast( Group.NthSim( group_0, 3 ) ) );
+						iWingmen.AddWingman( iShip.Cast( Group.NthSim( group_0, 4 ) ) );
+						iWingmen.DefendPlayer();
+						iObjectives.Add( "a2_m09_objecitves_patrol" );
+					}
+					else if ( local_19 == 0 )
+					{
+						local_function_1( state_ );
+						start local_function_9( state_, iShip.Cast( Group.NthSim( group_0, 5 ) ), group_0, group_1 );
+						local_19 = true;
+						Sim.Destroy( waypoint_0 );
+					}
+				}
+			}
+		}
+	}
+}
+
+task local_function_9( hstate state_, hship ship_, hgroup group_0_, hgroup group_1_ )
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	bool local_2 = false;
+	bool local_3 = false;
+	int local_4;
+	
+	schedule
+	{
+		every 3.0:
+		{
+			if ( Object.IntProperty( state_, "g_a2_m09_signal_1" ) == 1 )
+			{
+				if ( local_1 == 0 )
+				{
+					debug Debug.PrintString( "completed point one\n" );
+					local_1 = true;
+				}
+			}
+			
+			if ( Object.IntProperty( state_, "g_a2_m09_signal_2" ) == 1 )
+			{
+				if ( local_2 == 0 )
+				{
+					debug Debug.PrintString( "completed point two\n" );
+					local_2 = true;
+				}
+			}
+			
+			if ( Object.IntProperty( state_, "g_a2_m09_signal_3" ) == 1 )
+			{
+				if ( local_3 == 0 )
+				{
+					debug Debug.PrintString( "completed point three\n" );
+					local_3 = true;
+				}
+			}
+		}
+		
+		every 4.0:
+		{
+			if ( ((Object.IntProperty( state_, "g_a2_m09_signal_1" ) == 1) && ((Object.IntProperty( state_, "g_a2_m09_signal_2" ) == 1) && (local_0 == 0))) || (((Object.IntProperty( state_, "g_a2_m09_signal_1" ) == 1) && ((Object.IntProperty( state_, "g_a2_m09_signal_3" ) == 1) && (local_0 == 0))) || ((Object.IntProperty( state_, "g_a2_m09_signal_3" ) == 1) && ((Object.IntProperty( state_, "g_a2_m09_signal_2" ) == 1) && (local_0 == 0)))) )
+			{
+				iObjectives.SetState( "a2_m09_objecitves_patrol", OS_Succeeded );
+				iConversation.OneLiner( ship_, "", "a2_m09_dialogue_sensorship_triangulating" );
+				iConversation.OneLiner( ship_, "", "a2_m09_dialogue_sensorship_location" );
+				iConversation.OneLiner( none, "a2_m09_MCA_Command", "a2_m09_dialogue_mca_command" );
+				iObjectives.Add( "a2_m09_objectives_assault" );
+				Group.Destroy( group_1_, true );
+				start local_function_10( group_0_, ship_, state_ );
+				debug Debug.PrintString( "start the base attack!\n" );
+				local_0 = true;
+			}
+		}
+	}
+}
+
+task local_function_4( hsim param_0_, hstate state_, hship ship_ )
+{
+	hship playerShip = iShip.FindPlayerShip();
+	bool local_1 = false;
+	int local_2 = 0;
+	
+	debug Debug.PrintString( "Waypoint one\n" );
+	
+	schedule
+	{
+		every 3.0:
+		{
+			if ( local_1 == 1 )
+			{
+				local_2 = ( local_2 + 1 );
+				debug Debug.PrintString( "counter going" );
+				
+				if ( param_0_ == false )
+				{
+					debug Debug.PrintString( "can't find the first waypoint \n" );
+				}
+				
+				if ( local_2 == 5 )
+				{
+					start local_function_11( state_, param_0_, ship_ );
+				}
+			}
+			else if ( Sim.DistanceBetween( playerShip, param_0_ ) <= 50000.0 )
+			{
+				local_1 = true;
+			}
+		}
+	}
+}
+
+task local_function_5( hsim param_0_, hstate state_, hship ship_ )
+{
+	hship playerShip = iShip.FindPlayerShip();
+	bool local_1 = false;
+	hship shipMarauderCutter_0;
+	hship shipMarauderCutter_1;
+	hgroup group = Group.Create();
+	hgroup gCleanupStuff = Group.Create();
+	hfaction marauders;
+	bool local_7 = false;
+	
+	marauders = iFaction.Find( "Marauders" );
+	debug Debug.PrintString( "Waypoint Two\n" );
+	
+	schedule
+	{
+		every 3.0:
+		{
+			if ( Sim.DistanceBetween( playerShip, param_0_ ) <= 50000.0 )
+			{
+				if ( local_1 == 0 )
+				{
+					local_1 = true;
+					Object.SetIntProperty( state_, "g_a2_m09_signal_2", 1 );
+					debug Debug.PrintString( "arrived at Encounter  Two\n" );
+					shipMarauderCutter_0 = iShip.Create( "ini:/sims/ships/marauder/marauder_cutter", "a2_m09_Havoc" );
+					iPilotSetup.Marauder( iShip.Cast( shipMarauderCutter_0 ) );
+					Group.AddSim( group, shipMarauderCutter_0 );
+					Sim.PlaceRelativeTo( shipMarauderCutter_0, param_0_, 0.0, 500.0, 1000.0 );
+					iSim.SetFaction( iSim.Cast( shipMarauderCutter_0 ), marauders );
+					shipMarauderCutter_1 = iShip.Create( "ini:/sims/ships/marauder/marauder_cutter", "a2_m09_Ruin" );
+					iPilotSetup.Marauder( iShip.Cast( shipMarauderCutter_1 ) );
+					Group.AddSim( group, shipMarauderCutter_1 );
+					Sim.PlaceRelativeTo( shipMarauderCutter_1, param_0_, 0.0, 500.0, -1000.0 );
+					iSim.SetFaction( iSim.Cast( shipMarauderCutter_1 ), marauders );
+					gCleanupStuff = Group.Cast( Global.Handle( "g_cleanup_stuff" ) );
+					Group.AddGroup( gCleanupStuff, group );
+					Global.SetHandle( "g_cleanup_stuff", gCleanupStuff );
+					iAI.GiveGenericAttackOrder( group );
+					iConversation.OneLiner( shipMarauderCutter_0, "", "a2_m09_dialogue_marauders_attacked" );
+					iConversation.OneLiner( none, "a2_m09_Marauder_base", "a2_m09_dialogue_marauder_command" );
+					iConversation.OneLiner( shipMarauderCutter_1, "", "a2_m09_dialogue_marauders_fighting" );
+					iConversation.OneLiner( ship_, "", "a2_m09_dialogue_sensorship_lock_on_that" );
+					Sim.Destroy( param_0_ );
+				}
+			}
+		}
+	}
+}
+
+task local_function_6( hsim param_0_, hstate state_, hship ship_ )
+{
+	hship playerShip = iShip.FindPlayerShip();
+	bool local_1 = false;
+	hgroup group = Group.Create();
+	hgroup gCleanupStuff = Group.Create();
+	hship shipMarauderCutter_0;
+	hship shipMarauderCutter_1;
+	hship shipMarauderCutter_2;
+	hship shipMarauderCutter_3;
+	hship shipMarauderCutter_4;
+	hship shipMarauderCutter_5;
+	bool local_10 = false;
+	hfaction marauders;
+	bool local_12 = false;
+	
+	marauders = iFaction.Find( "Marauders" );
+	debug Debug.PrintString( "Waypoint Three\n" );
+	
+	schedule
+	{
+		every 5.0:
+		{
+			if ( Sim.DistanceBetween( playerShip, param_0_ ) <= 10000.0 )
+			{
+				if ( local_1 == 0 )
+				{
+					local_1 = true;
+					shipMarauderCutter_0 = iShip.Create( "ini:/sims/ships/marauder/marauder_cutter", "a2_m09_Oubiliette" );
+					iPilotSetup.Marauder( iShip.Cast( shipMarauderCutter_0 ) );
+					Group.AddSim( group, shipMarauderCutter_0 );
+					Sim.PlaceRelativeTo( shipMarauderCutter_0, param_0_, 0.0, 500.0, 1000.0 );
+					iSim.SetFaction( iSim.Cast( shipMarauderCutter_0 ), marauders );
+					gCleanupStuff = Group.Cast( Global.Handle( "g_cleanup_stuff" ) );
+					Group.AddGroup( gCleanupStuff, group );
+					Global.SetHandle( "g_cleanup_stuff", gCleanupStuff );
+					debug Debug.PrintString( "arrived at Encounter  Three\n" );
+				}
+				else if ( local_10 == 0 )
+				{
+					local_10 = true;
+					shipMarauderCutter_1 = iShip.Create( "ini:/sims/ships/marauder/marauder_cutter", "a2_m09_Fatal" );
+					iPilotSetup.Marauder( iShip.Cast( shipMarauderCutter_1 ) );
+					Group.AddSim( group, shipMarauderCutter_1 );
+					Sim.PlaceRelativeTo( shipMarauderCutter_1, playerShip, 0.0, 500.0, 20000.0 );
+					iSim.SetFaction( iSim.Cast( shipMarauderCutter_1 ), marauders );
+					shipMarauderCutter_2 = iShip.Create( "ini:/sims/ships/marauder/marauder_cutter", "a2_m09_Escaton" );
+					iPilotSetup.Marauder( iShip.Cast( shipMarauderCutter_2 ) );
+					Group.AddSim( group, shipMarauderCutter_2 );
+					Sim.PlaceRelativeTo( shipMarauderCutter_2, playerShip, 0.0, 0.0, 20000.0 );
+					iSim.SetFaction( iSim.Cast( shipMarauderCutter_2 ), marauders );
+					shipMarauderCutter_3 = iShip.Create( "ini:/sims/ships/marauder/marauder_cutter", "a2_m09_Eviscerate" );
+					iPilotSetup.Marauder( iShip.Cast( shipMarauderCutter_3 ) );
+					Group.AddSim( group, shipMarauderCutter_3 );
+					Sim.PlaceRelativeTo( shipMarauderCutter_3, playerShip, 0.0, -500.0, 20000.0 );
+					iSim.SetFaction( iSim.Cast( shipMarauderCutter_3 ), marauders );
+					shipMarauderCutter_4 = iShip.Create( "ini:/sims/ships/marauder/marauder_cutter", "a2_m09_Spear" );
+					iPilotSetup.Marauder( iShip.Cast( shipMarauderCutter_4 ) );
+					Group.AddSim( group, shipMarauderCutter_4 );
+					Sim.PlaceRelativeTo( shipMarauderCutter_4, playerShip, 0.0, 800.0, 20000.0 );
+					iSim.SetFaction( iSim.Cast( shipMarauderCutter_4 ), marauders );
+					shipMarauderCutter_5 = iShip.Create( "ini:/sims/ships/marauder/marauder_cutter", "a2_m09_Chainblade" );
+					iPilotSetup.Marauder( iShip.Cast( shipMarauderCutter_5 ) );
+					Group.AddSim( group, shipMarauderCutter_5 );
+					Sim.PlaceRelativeTo( shipMarauderCutter_5, playerShip, 0.0, -800.0, 20000.0 );
+					iSim.SetFaction( iSim.Cast( shipMarauderCutter_5 ), marauders );
+					gCleanupStuff = Group.Cast( Global.Handle( "g_cleanup_stuff" ) );
+					Group.AddGroup( gCleanupStuff, group );
+					Global.SetHandle( "g_cleanup_stuff", gCleanupStuff );
+					iAI.GiveGenericAttackOrder( group );
+					iAI.GiveGenericAttackOrder( shipMarauderCutter_1 );
+					iAI.GiveGenericAttackOrder( shipMarauderCutter_2 );
+					iAI.GiveGenericAttackOrder( shipMarauderCutter_3 );
+					iAI.GiveGenericAttackOrder( shipMarauderCutter_4 );
+					iAI.GiveGenericAttackOrder( shipMarauderCutter_5 );
+					iConversation.OneLiner( ship_, "", "a2_m09_dialogue_sensorship_ambushed" );
+					iConversation.OneLiner( shipMarauderCutter_1, "", "a2_m09_dialogue_marauder_ambushers" );
+					iConversation.OneLiner( none, "a2_m09_Marauder_base", "a2_m09_dialogue_marauder_command_wipe_them_out" );
+					iConversation.OneLiner( ship_, "", "a2_m09_dialogue_sensorship_got_that" );
+					Object.SetIntProperty( state_, "g_a2_m09_signal_3", 1 );
+					Sim.Destroy( param_0_ );
+				}
+			}
+		}
+	}
+}
+
+task local_function_12( hship ship_0_, hmapentity mapentity_, hgroup group_0_, hship ship_1_, hgroup group_1_, hgroup group_2_ )
+{
+	iDirector.Begin();
+	iAI.PurgeOrders( group_1_ );
+	iAI.PurgeOrders( group_2_ );
+	debug Debug.Error( "making player indestructable " );
+	iSim.SetIndestructable( iSim.Cast( ship_1_ ), true );
+	Sim.PointAt( ship_0_, mapentity_ );
+	iDirector.SetFocus( ship_0_ );
+	iDirector.SetCamera( CAM_External );
+	debug Debug.PrintString( "undock the pods\n" );
+	iAI.RemoveOrder( ship_0_ );
+	Sim.SetVelocityLocalToSim( ship_0_, 0.0, 0.0, 0.0 );
+	iShip.Undock( iShip.Cast( Group.NthSim( group_0_, 0 ) ), ship_0_ );
+	Sim.PointAt( Group.NthSim( group_0_, 0 ), mapentity_ );
+	Sim.SetVelocityLocalToSim( Group.NthSim( group_0_, 0 ), 0.0, 0.0, 500.0 );
+	iShip.Undock( iShip.Cast( Group.NthSim( group_0_, 1 ) ), ship_0_ );
+	Sim.PointAt( Group.NthSim( group_0_, 1 ), mapentity_ );
+	Sim.SetVelocityLocalToSim( Group.NthSim( group_0_, 1 ), 0.0, 0.0, 500.0 );
+	iShip.Undock( iShip.Cast( Group.NthSim( group_0_, 2 ) ), ship_0_ );
+	Sim.PointAt( Group.NthSim( group_0_, 2 ), mapentity_ );
+	Sim.SetVelocityLocalToSim( Group.NthSim( group_0_, 2 ), 0.0, 0.0, 500.0 );
+	iShip.Undock( iShip.Cast( Group.NthSim( group_0_, 3 ) ), ship_0_ );
+	Sim.PointAt( Group.NthSim( group_0_, 3 ), mapentity_ );
+	Sim.SetVelocityLocalToSim( Group.NthSim( group_0_, 3 ), 0.0, 0.0, 500.0 );
+	iShip.Undock( iShip.Cast( Group.NthSim( group_0_, 4 ) ), ship_0_ );
+	Sim.PointAt( Group.NthSim( group_0_, 4 ), mapentity_ );
+	Sim.SetVelocityLocalToSim( Group.NthSim( group_0_, 4 ), 0.0, 0.0, 500.0 );
+	iShip.Undock( iShip.Cast( Group.NthSim( group_0_, 5 ) ), ship_0_ );
+	Sim.PointAt( Group.NthSim( group_0_, 5 ), mapentity_ );
+	Sim.SetVelocityLocalToSim( Group.NthSim( group_0_, 5 ), 0.0, 0.0, 500.0 );
+	iConversation.OneLiner( ship_0_, "", "a2_m09_dialogue_ramship_pods_away" );
+	iSim.SetMissionCritical( iSim.Cast( ship_0_ ), false );
+	Object.SetStringProperty( ship_0_, "death_script", "" );
+	iDirector.FadeOut( 1.0, 0.0, 0.0, 0.0 );
+	iUtilities.SimPlaceBetweenExact( Group.NthSim( group_0_, 0 ), mapentity_, ship_0_, 9000.0 );
+	Sim.PlaceRelativeTo( Group.NthSim( group_0_, 1 ), Group.NthSim( group_0_, 0 ), 0.0, 100.0, 0.0 );
+	Sim.PlaceRelativeTo( Group.NthSim( group_0_, 2 ), Group.NthSim( group_0_, 0 ), 0.0, -100.0, 0.0 );
+	Sim.PlaceRelativeTo( Group.NthSim( group_0_, 3 ), Group.NthSim( group_0_, 0 ), 0.0, 0.0, 100.0 );
+	Sim.PlaceRelativeTo( Group.NthSim( group_0_, 4 ), Group.NthSim( group_0_, 0 ), 0.0, 0.0, -100.0 );
+	Sim.PlaceRelativeTo( Group.NthSim( group_0_, 5 ), Group.NthSim( group_0_, 0 ), 0.0, 100.0, 100.0 );
+	Sim.SetAngularVelocityEuler( Group.NthSim( group_0_, 0 ), 0.0, 0.0, 0.0 );
+	Sim.SetAngularVelocityEuler( Group.NthSim( group_0_, 1 ), 0.0, 0.0, 0.0 );
+	Sim.SetAngularVelocityEuler( Group.NthSim( group_0_, 2 ), 0.0, 0.0, 0.0 );
+	Sim.SetAngularVelocityEuler( Group.NthSim( group_0_, 3 ), 0.0, 0.0, 0.0 );
+	Sim.SetAngularVelocityEuler( Group.NthSim( group_0_, 4 ), 0.0, 0.0, 0.0 );
+	Sim.SetAngularVelocityEuler( Group.NthSim( group_0_, 5 ), 0.0, 0.0, 0.0 );
+	Sim.PointAt( Group.NthSim( group_0_, 0 ), mapentity_ );
+	Sim.SetVelocityLocalToSim( Group.NthSim( group_0_, 0 ), 0.0, 0.0, 2000.0 );
+	Sim.PointAt( Group.NthSim( group_0_, 1 ), mapentity_ );
+	Sim.SetVelocityLocalToSim( Group.NthSim( group_0_, 1 ), 0.0, 0.0, 2000.0 );
+	Sim.PointAt( Group.NthSim( group_0_, 2 ), mapentity_ );
+	Sim.SetVelocityLocalToSim( Group.NthSim( group_0_, 2 ), 0.0, 0.0, 2000.0 );
+	Sim.PointAt( Group.NthSim( group_0_, 3 ), mapentity_ );
+	Sim.SetVelocityLocalToSim( Group.NthSim( group_0_, 3 ), 0.0, 0.0, 2000.0 );
+	Sim.PointAt( Group.NthSim( group_0_, 4 ), mapentity_ );
+	Sim.SetVelocityLocalToSim( Group.NthSim( group_0_, 4 ), 0.0, 0.0, 2000.0 );
+	Sim.PointAt( Group.NthSim( group_0_, 5 ), mapentity_ );
+	Sim.SetVelocityLocalToSim( Group.NthSim( group_0_, 5 ), 0.0, 0.0, 2000.0 );
+	iDirector.SetFocus( iSim.Cast( iShip.Cast( Group.NthSim( group_0_, 0 ) ) ) );
+	iDirector.SetSecondaryFocus( mapentity_ );
+	iDirector.SetCamera( CAM_TwoShot );
+	iDirector.FadeIn( 1.0, 0.0, 0.0, 0.0 );
+	Task.Sleep( Task.Current(), 4.0 );
+	iSim.Kill( iSim.Cast( Group.NthSim( group_0_, 0 ) ) );
+	iSim.Kill( iSim.Cast( Group.NthSim( group_0_, 1 ) ) );
+	iSim.Kill( iSim.Cast( Group.NthSim( group_0_, 2 ) ) );
+	iSim.SetIndestructable( iSim.Cast( mapentity_ ), false );
+	iSim.Kill( iSim.Cast( mapentity_ ) );
+	iSim.Kill( iSim.Cast( Group.NthSim( group_0_, 3 ) ) );
+	iSim.Kill( iSim.Cast( Group.NthSim( group_0_, 4 ) ) );
+	iSim.Kill( iSim.Cast( Group.NthSim( group_0_, 5 ) ) );
+	Task.Sleep( Task.Current(), 6.0 );
+	debug Debug.Error( "about to end the director mode " );
+	iSim.SetIndestructable( iSim.Cast( ship_1_ ), false );
+	iAI.GiveGenericAttackOrder( group_1_ );
+	iAI.GiveGenericAttackOrder( group_2_ );
+	debug Debug.Error( "given ships their orders back " );
+	iDirector.SetCamera( CAM_Internal );
+	iDirector.End();
+	debug Debug.Error( " ended the director mode " );
+}
+
+task local_function_10( hgroup group_0_, hship ship_, hstate state_ )
+{
+	hmapentity platoExileHideout = iMapEntity.FindByNameInSystem( "Plato Exile Hideout", "map:/geog/badlands/mwari" );
+	bool local_1 = false;
+	hsim waypoint_0 = iUtilities.CreateWaypointRelativeTo( platoExileHideout, 100.0, -200.0, 200.0 );
+	hship playerShip = iShip.FindPlayerShip();
+	hgroup group_1 = Group.Create();
+	hgroup group_2 = Group.Create();
+	hgroup gCleanupStuff = Group.Create();
+	hship shipMarauderCutter_0;
+	hship shipMarauderCutter_1;
+	hship shipMarauderCutter_2;
+	hship shipMarauderCutter_3;
+	hship shipMarauderCutter_4;
+	hship shipMarauderCutter_5;
+	hship shipHeavyCorvetteMca_0;
+	hship shipHeavyCorvetteMca_1;
+	hship shipHeavyCorvetteMca_2;
+	hship shipHeavyCorvetteMca_3;
+	hship shipHeavyCorvetteMca_4;
+	bool local_18 = false;
+	int constant = 10;
+	hship shipFreighter;
+	hship shipFreightpod_0;
+	hship shipFreightpod_1;
+	hship shipFreightpod_2;
+	hship shipFreightpod_3;
+	hship shipFreightpod_4;
+	hship shipFreightpod_5;
+	hgroup group_3 = Group.Create();
+	bool local_28 = false;
+	hfaction marauders;
+	hfaction m_C_A_;
+	int local_31;
+	int local_32 = 0;
+	bool local_33 = false;
+	hsim waypoint_1 = iUtilities.CreateWaypointRelativeTo( platoExileHideout, 100.0, 100.0, 100.0 );
+	hsim waypoint_2 = iUtilities.CreateWaypointRelativeTo( platoExileHideout, 200.0, 100.0, 100.0 );
+	hsim waypoint_3 = iUtilities.CreateWaypointRelativeTo( platoExileHideout, 300.0, 100.0, 100.0 );
+	
+	m_C_A_ = iFaction.Find( "M.C.A." );
+	marauders = iFaction.Find( "Marauders" );
+	Object.AddIntProperty( platoExileHideout, "reactive_exception", 1 );
+	iSim.SetMissionCritical( iSim.Cast( ship_ ), false );
+	Object.SetStringProperty( ship_, "death_script", "" );
+	debug Debug.PrintString( "Lets go get the base!\n" );
+	
+	if ( platoExileHideout == false )
+	{
+		debug Debug.PrintString( "can't find the rock\n" );
+	}
+	
+	iStation.AddReactiveException( iHabitat.Cast( platoExileHideout ) );
+	Object.SetStringProperty( waypoint_0, "name", "a2_m09_Marauder_base_location" );
+	iSim.SetSensorVisibility( iSim.Cast( waypoint_0 ), true );
+	Sim.SetCullable( waypoint_0, false );
+	
+	if ( waypoint_0 == false )
+	{
+		debug Debug.PrintString( "can't find the base location waypoint \n" );
+	}
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( Sim.DistanceBetween( playerShip, waypoint_0 ) <= 300000.0 )
+			{
+				if ( local_1 == 0 )
+				{
+					local_1 = true;
+					iRegion.CreateLDSI( platoExileHideout, 25000.0 );
+					
+					if ( platoExileHideout == false )
+					{
+						debug Debug.PrintString( "can't find the rock\n" );
+					}
+					
+					iUtilities.SimPlaceBetweenExact( waypoint_1, platoExileHideout, playerShip, 5000.0 );
+					iUtilities.SimPlaceBetweenExact( waypoint_2, platoExileHideout, playerShip, 15000.0 );
+					iUtilities.SimPlaceBetweenExact( waypoint_3, platoExileHideout, playerShip, 30000.0 );
+					shipMarauderCutter_0 = iShip.Create( "ini:/sims/ships/marauder/marauder_cutter", "a2_m09_Razor_Blade" );
+					iPilotSetup.Marauder( iShip.Cast( shipMarauderCutter_0 ) );
+					Group.AddSim( group_1, shipMarauderCutter_0 );
+					Sim.SetCullable( shipMarauderCutter_0, false );
+					Sim.PlaceRelativeTo( shipMarauderCutter_0, waypoint_1, 0.0, 0.0, 0.0 );
+					iSim.SetFaction( iSim.Cast( shipMarauderCutter_0 ), marauders );
+					shipMarauderCutter_1 = iShip.Create( "ini:/sims/ships/marauder/marauder_cutter", "a2_m09_Necrosis" );
+					iPilotSetup.Marauder( iShip.Cast( shipMarauderCutter_1 ) );
+					Group.AddSim( group_1, shipMarauderCutter_1 );
+					Sim.SetCullable( shipMarauderCutter_1, false );
+					Sim.PlaceRelativeTo( shipMarauderCutter_1, waypoint_1, 0.0, 500.0, 1500.0 );
+					iSim.SetFaction( iSim.Cast( shipMarauderCutter_1 ), marauders );
+					shipMarauderCutter_2 = iShip.Create( "ini:/sims/ships/marauder/marauder_cutter", "a2_m09_Flagellent" );
+					iPilotSetup.Marauder( iShip.Cast( shipMarauderCutter_2 ) );
+					Group.AddSim( group_1, shipMarauderCutter_2 );
+					Sim.SetCullable( shipMarauderCutter_2, false );
+					Sim.PlaceRelativeTo( shipMarauderCutter_2, waypoint_1, 0.0, 0.0, 1500.0 );
+					iSim.SetFaction( iSim.Cast( shipMarauderCutter_2 ), marauders );
+					shipMarauderCutter_3 = iShip.Create( "ini:/sims/ships/marauder/marauder_cutter", "a2_m09_Destructor" );
+					iPilotSetup.Marauder( iShip.Cast( shipMarauderCutter_3 ) );
+					Group.AddSim( group_1, shipMarauderCutter_3 );
+					Sim.SetCullable( shipMarauderCutter_3, false );
+					Sim.PlaceRelativeTo( shipMarauderCutter_3, waypoint_1, 0.0, -500.0, 2000.0 );
+					iSim.SetFaction( iSim.Cast( shipMarauderCutter_3 ), marauders );
+					shipMarauderCutter_4 = iShip.Create( "ini:/sims/ships/marauder/marauder_cutter", "a2_m09_Sword" );
+					iPilotSetup.Marauder( iShip.Cast( shipMarauderCutter_4 ) );
+					Group.AddSim( group_1, shipMarauderCutter_4 );
+					Sim.SetCullable( shipMarauderCutter_4, false );
+					Sim.PlaceRelativeTo( shipMarauderCutter_4, waypoint_1, 200.0, 800.0, 2500.0 );
+					iSim.SetFaction( iSim.Cast( shipMarauderCutter_4 ), marauders );
+					shipMarauderCutter_5 = iShip.Create( "ini:/sims/ships/marauder/marauder_cutter", "a2_m09_Ripsaw" );
+					iPilotSetup.Marauder( iShip.Cast( shipMarauderCutter_5 ) );
+					Group.AddSim( group_1, shipMarauderCutter_5 );
+					Sim.SetCullable( shipMarauderCutter_5, false );
+					Sim.PlaceRelativeTo( shipMarauderCutter_5, waypoint_1, -100.0, -800.0, 2000.0 );
+					iSim.SetFaction( iSim.Cast( shipMarauderCutter_5 ), marauders );
+					gCleanupStuff = Group.Cast( Global.Handle( "g_cleanup_stuff" ) );
+					Group.AddGroup( gCleanupStuff, group_1 );
+					Global.SetHandle( "g_cleanup_stuff", gCleanupStuff );
+					shipHeavyCorvetteMca_4 = iShip.Create( "ini:/sims/ships/independent/heavy_corvette_mca", "a2_m09_MCA_Assault_leader" );
+					iPilotSetup.GenericMilitary( iShip.Cast( shipHeavyCorvetteMca_4 ) );
+					Group.AddSim( group_2, shipHeavyCorvetteMca_4 );
+					Sim.SetCullable( shipHeavyCorvetteMca_4, false );
+					Sim.PlaceRelativeTo( shipHeavyCorvetteMca_4, waypoint_2, 0.0, -80.0, 300.0 );
+					iSim.SetFaction( iSim.Cast( shipHeavyCorvetteMca_4 ), m_C_A_ );
+					shipHeavyCorvetteMca_3 = iShip.Create( "ini:/sims/ships/independent/heavy_corvette_mca", "a2_m09_MCA_Assault_1" );
+					iPilotSetup.GenericMilitary( iShip.Cast( shipHeavyCorvetteMca_3 ) );
+					Group.AddSim( group_2, shipHeavyCorvetteMca_3 );
+					Sim.SetCullable( shipHeavyCorvetteMca_3, false );
+					Sim.PlaceRelativeTo( shipHeavyCorvetteMca_3, waypoint_2, 0.0, 80.0, 300.0 );
+					iSim.SetFaction( iSim.Cast( shipHeavyCorvetteMca_3 ), m_C_A_ );
+					shipHeavyCorvetteMca_2 = iShip.Create( "ini:/sims/ships/independent/heavy_corvette_mca", "a2_m09_MCA_Assault_2" );
+					iPilotSetup.GenericMilitary( iShip.Cast( shipHeavyCorvetteMca_2 ) );
+					Group.AddSim( group_2, shipHeavyCorvetteMca_2 );
+					Sim.SetCullable( shipHeavyCorvetteMca_2, false );
+					Sim.PlaceRelativeTo( shipHeavyCorvetteMca_2, waypoint_2, -500.0, -50.0, 300.0 );
+					iSim.SetFaction( iSim.Cast( shipHeavyCorvetteMca_2 ), m_C_A_ );
+					shipHeavyCorvetteMca_1 = iShip.Create( "ini:/sims/ships/independent/heavy_corvette_mca", "a2_m09_MCA_Assault_3" );
+					iPilotSetup.GenericMilitary( iShip.Cast( shipHeavyCorvetteMca_1 ) );
+					Group.AddSim( group_2, shipHeavyCorvetteMca_1 );
+					Sim.SetCullable( shipHeavyCorvetteMca_1, false );
+					Sim.PlaceRelativeTo( shipHeavyCorvetteMca_1, waypoint_2, 500.0, 50.0, 300.0 );
+					iSim.SetFaction( iSim.Cast( shipHeavyCorvetteMca_1 ), m_C_A_ );
+					shipHeavyCorvetteMca_0 = iShip.Create( "ini:/sims/ships/independent/heavy_corvette_mca", "a2_m09_MCA_Assault_4" );
+					iPilotSetup.GenericMilitary( iShip.Cast( shipHeavyCorvetteMca_0 ) );
+					Group.AddSim( group_2, shipHeavyCorvetteMca_0 );
+					Sim.SetCullable( shipHeavyCorvetteMca_0, false );
+					Sim.PlaceRelativeTo( shipHeavyCorvetteMca_0, waypoint_2, 0.0, 0.0, 300.0 );
+					iSim.SetFaction( iSim.Cast( shipHeavyCorvetteMca_0 ), m_C_A_ );
+					gCleanupStuff = Group.Cast( Global.Handle( "g_cleanup_stuff" ) );
+					Group.AddGroup( gCleanupStuff, group_2 );
+					Global.SetHandle( "g_cleanup_stuff", gCleanupStuff );
+					shipFreighter = iShip.Create( "ini:/sims/ships/utility/freighter", "a2_m09_MCA_Cargo_Ram_ship" );
+					Sim.SetCullable( shipFreighter, false );
+					Sim.PlaceRelativeTo( shipFreighter, waypoint_3, 0.0, 0.0, 0.0 );
+					iPilotSetup.GenericCargoPod( iShip.Cast( shipFreighter ) );
+					iSim.SetFaction( iSim.Cast( shipFreighter ), m_C_A_ );
+					iSim.SetMissionCritical( iSim.Cast( shipFreighter ), true );
+					Object.SetStringProperty( shipFreighter, "death_script", "iDeathScript.CriticalShipDeath" );
+					gCleanupStuff = Group.Cast( Global.Handle( "g_cleanup_stuff" ) );
+					Group.AddSim( gCleanupStuff, shipFreighter );
+					Global.SetHandle( "g_cleanup_stuff", gCleanupStuff );
+					shipFreightpod_0 = iShip.Create( "ini:/sims/ships/utility/freightpod", "a2_m09_Cargo_Pod" );
+					iShip.Dock( shipFreightpod_0, shipFreighter );
+					Sim.SetCullable( shipFreightpod_0, false );
+					Group.AddSim( group_3, shipFreightpod_0 );
+					iPilotSetup.GenericCargoPod( iShip.Cast( shipFreightpod_0 ) );
+					Object.SetIntProperty( shipFreightpod_0, "cargo", 397 );
+					shipFreightpod_1 = iShip.Create( "ini:/sims/ships/utility/freightpod", "a2_m09_Cargo_Pod" );
+					iShip.Dock( shipFreightpod_1, shipFreighter );
+					Sim.SetCullable( shipFreightpod_1, false );
+					Group.AddSim( group_3, shipFreightpod_1 );
+					iPilotSetup.GenericCargoPod( iShip.Cast( shipFreightpod_1 ) );
+					Object.SetIntProperty( shipFreightpod_1, "cargo", 438 );
+					shipFreightpod_2 = iShip.Create( "ini:/sims/ships/utility/freightpod", "a2_m09_Cargo_Pod" );
+					iShip.Dock( shipFreightpod_2, shipFreighter );
+					Sim.SetCullable( shipFreightpod_2, false );
+					Group.AddSim( group_3, shipFreightpod_2 );
+					iPilotSetup.GenericCargoPod( iShip.Cast( shipFreightpod_2 ) );
+					Object.SetIntProperty( shipFreightpod_2, "cargo", 427 );
+					shipFreightpod_3 = iShip.Create( "ini:/sims/ships/utility/freightpod", "a2_m09_Cargo_Pod" );
+					iShip.Dock( shipFreightpod_3, shipFreighter );
+					Sim.SetCullable( shipFreightpod_3, false );
+					Group.AddSim( group_3, shipFreightpod_3 );
+					iPilotSetup.GenericCargoPod( iShip.Cast( shipFreightpod_3 ) );
+					Object.SetIntProperty( shipFreightpod_3, "cargo", 397 );
+					shipFreightpod_4 = iShip.Create( "ini:/sims/ships/utility/freightpod", "a2_m09_Cargo_Pod" );
+					iShip.Dock( shipFreightpod_4, shipFreighter );
+					Sim.SetCullable( shipFreightpod_4, false );
+					Group.AddSim( group_3, shipFreightpod_4 );
+					iPilotSetup.GenericCargoPod( iShip.Cast( shipFreightpod_4 ) );
+					Object.SetIntProperty( shipFreightpod_4, "cargo", 426 );
+					shipFreightpod_5 = iShip.Create( "ini:/sims/ships/utility/freightpod", "a2_m09_Cargo_Pod" );
+					iShip.Dock( shipFreightpod_5, shipFreighter );
+					Sim.SetCullable( shipFreightpod_5, false );
+					Group.AddSim( group_3, shipFreightpod_5 );
+					iPilotSetup.GenericCargoPod( iShip.Cast( shipFreightpod_5 ) );
+					Object.SetIntProperty( shipFreightpod_5, "cargo", 410 );
+					Sim.PlaceRelativeTo( shipFreighter, platoExileHideout, 0.0, -1000.0, 20000.0 );
+					Sim.PointAt( shipFreighter, platoExileHideout );
+				}
+				else if ( local_28 == 0 )
+				{
+					local_28 = true;
+					debug Debug.PrintString( "give the attack order!\n" );
+					iAI.GiveGenericAttackOrder( group_1 );
+					iAI.GiveGenericAttackOrder( group_2 );
+					iAI.GiveAttackOrder( shipMarauderCutter_4, shipFreighter );
+					iAI.GiveAttackOrder( shipMarauderCutter_5, shipFreighter );
+					iConversation.OneLiner( shipHeavyCorvetteMca_4, "", "a2_m09_dialogue_mca_assault" );
+					Sim.PointAt( shipFreighter, platoExileHideout );
+				}
+				else
+				{
+					if ( (local_32 >= 25) && (local_33 == 0) )
+					{
+						local_33 = true;
+						iAI.GiveApproachOrder( shipFreighter, platoExileHideout );
+						iConversation.OneLiner( shipFreighter, "", "a2_m09_dialogue_ramship_powering_up" );
+					}
+					else if ( local_33 == 0 )
+					{
+						local_32 = ( local_32 + 1 );
+					}
+					
+					if ( Sim.DistanceBetween( shipFreighter, platoExileHideout ) <= 10000.0 )
+					{
+						if ( iCutsceneUtilities.HandleAbort( start local_function_12( shipFreighter, platoExileHideout, group_3, playerShip, group_1, group_2 ) ) )
+						{
+							atomic
+							{
+								Sim.Destroy( Sim.Cast( Group.NthSim( group_3, 0 ) ) );
+								Sim.Destroy( Sim.Cast( Group.NthSim( group_3, 1 ) ) );
+								Sim.Destroy( Sim.Cast( Group.NthSim( group_3, 2 ) ) );
+								Sim.Destroy( Sim.Cast( Group.NthSim( group_3, 3 ) ) );
+								Sim.Destroy( Sim.Cast( Group.NthSim( group_3, 4 ) ) );
+								Sim.Destroy( Sim.Cast( Group.NthSim( group_3, 5 ) ) );
+								iSim.SetIndestructable( iSim.Cast( platoExileHideout ), false );
+								iSim.Kill( iSim.Cast( platoExileHideout ) );
+								iSim.SetMissionCritical( iSim.Cast( shipFreighter ), false );
+								Object.SetStringProperty( shipFreighter, "death_script", "" );
+							}
+						}
+						
+						iSim.SetMissionCritical( iSim.Cast( shipFreighter ), false );
+						iConversation.OneLiner( none, "a2_m09_MCA_Command", "a2_m09_dialogue_mca_victory" );
+						Sim.Destroy( waypoint_0 );
+						iObjectives.SetState( "a2_m09_objectives_assault", OS_Succeeded );
+						Global.SetBool( "g_act2_marauder_base_mission_complete", true );
+						State.SetProgress( state_, 6 );
+						iAI.GiveFleeOrder( group_2, iShip.Cast( playerShip ) );
+						iAI.GiveFleeOrder( group_1, iShip.Cast( playerShip ) );
+						iAI.GiveFleeOrder( group_0_, iShip.Cast( playerShip ) );
+						return;
+					}
+				}
+			}
+		}
+	}
+}
+
+task local_function_3( hship ship_, hstate state_, hgroup group_ )
+{
+	int convoResponse;
+	int local_1;
+	
+	debug Debug.PrintString( "MCA conversation\n" );
+	iConversation.Begin();
+	iConversation.AddResponse( "a2_m09_text_player_c1_option_1_yes", "a2_m09_dialogue_player_c1_option_1_yes" );
+	iConversation.AddResponse( "a2_m09_text_player_c1_option_2_no", "a2_m09_dialogue_player_c1_option_2_no" );
+	convoResponse = iConversation.Ask( ship_, "", "a2_m09_dialogue_mca_leader_c1_are_you_ready" );
+	
+	switch ( convoResponse )
+	{
+		case 1:
+			debug Debug.PrintString( "MCA conversation accepted\n" );
+			iConversation.Say( ship_, "", "a2_m09_dialogue_mca_leader_c1_response_then_lets_go" );
+			State.SetProgress( state_, 2 );
+			break;
+		
+		case 2:
+			iConversation.Say( ship_, "", "a2_m09_dialogue_mca_leader_c1_response_then_get_ready" );
+			debug Debug.PrintString( "MCA conversation declined\n" );
+			State.SetProgress( state_, 1 );
+			break;
+	}
+	
+	iConversation.End();
+}
+
+task local_function_11( hstate state_, hsim param_1_, hship ship_ )
+{
+	hsim waypoint;
+	hship playerShip = iShip.FindPlayerShip();
+	bool local_2 = false;
+	bool local_3 = false;
+	int local_4 = 0;
+	hgroup group = Group.Create();
+	hgroup gCleanupStuff = Group.Create();
+	hship shipMarauderCutter_0;
+	hship shipMarauderCutter_1;
+	hship shipMarauderCutter_2;
+	hship shipMarauderCutter_3;
+	hship shipFreighter;
+	hship shipFreightpod;
+	int ii = 0;
+	int constant = 4;
+	bool local_15 = false;
+	hfaction m_C_A_ = iFaction.Find( "M.C.A." );
+	hfaction marauders = iFaction.Find( "Marauders" );
+	
+	waypoint = iUtilities.CreateWaypointRelativeTo( param_1_, 20000000.0, 50000.0, -30000.0 );
+	Object.SetStringProperty( waypoint, "name", "a2_m09_Distress_Signal" );
+	iSim.SetSensorVisibility( iSim.Cast( waypoint ), true );
+	debug Debug.PrintString( "Distress signal Waypoint\n" );
+	Sim.Destroy( param_1_ );
+	iConversation.OneLiner( none, "a2_m09_Distress_Signal", "a2_m09_dialogue_freighter_mayday" );
+	
+	schedule
+	{
+		every 5.0:
+		{
+			if ( Sim.DistanceBetween( playerShip, waypoint ) <= 40000.0 )
+			{
+				if ( local_2 == 0 )
+				{
+					local_2 = true;
+					shipFreighter = iShip.Create( "ini:/sims/ships/utility/freighter", "a2_m09_Freighter" );
+					Sim.PlaceNear( shipFreighter, waypoint, 0.0 );
+					iSim.SetFaction( iSim.Cast( shipFreighter ), m_C_A_ );
+					gCleanupStuff = Group.Cast( Global.Handle( "g_cleanup_stuff" ) );
+					Group.AddSim( gCleanupStuff, shipFreighter );
+					Global.SetHandle( "g_cleanup_stuff", gCleanupStuff );
+					
+					for ( ii = 0; ii < constant; ++ii )
+					{
+						shipFreightpod = iShip.Create( "ini:/sims/ships/utility/freightpod", "a2_m09_Cargo_Pod" );
+						iShip.Dock( shipFreightpod, shipFreighter );
+						Object.SetIntProperty( shipFreightpod, "cargo", 438 );
+					}
+					
+					shipMarauderCutter_0 = iShip.Create( "ini:/sims/ships/marauder/marauder_cutter", "a2_m09_Sorrow" );
+					iPilotSetup.Marauder( iShip.Cast( shipMarauderCutter_0 ) );
+					Group.AddSim( group, shipMarauderCutter_0 );
+					Sim.PlaceRelativeTo( shipMarauderCutter_0, waypoint, 0.0, 500.0, 1000.0 );
+					iSim.SetFaction( iSim.Cast( shipMarauderCutter_0 ), marauders );
+					shipMarauderCutter_1 = iShip.Create( "ini:/sims/ships/marauder/marauder_cutter", "a2_m09_Lament" );
+					iPilotSetup.Marauder( iShip.Cast( shipMarauderCutter_1 ) );
+					Group.AddSim( group, shipMarauderCutter_1 );
+					Sim.PlaceRelativeTo( shipMarauderCutter_1, waypoint, 0.0, 500.0, -1000.0 );
+					iSim.SetFaction( iSim.Cast( shipMarauderCutter_1 ), marauders );
+					gCleanupStuff = Group.Cast( Global.Handle( "g_cleanup_stuff" ) );
+					Group.AddGroup( gCleanupStuff, group );
+					Global.SetHandle( "g_cleanup_stuff", gCleanupStuff );
+				}
+				else
+				{
+					iAI.GiveGenericAttackOrder( group );
+					
+					if ( local_3 == 0 )
+					{
+						local_3 = true;
+						iConversation.OneLiner( shipMarauderCutter_0, "", "a2_m09_dialogue_signal_group1_under_attack" );
+						iConversation.OneLiner( none, "a2_m09_Marauder_base", "a2_m09_dialogue_signal_base_support" );
+						Object.SetIntProperty( state_, "g_a2_m09_signal_1", 1 );
+						iConversation.OneLiner( ship_, "", "a2_m09_dialogue_sensorship_we_have_lock" );
+						
+						if ( shipFreighter != false )
+						{
+							iConversation.OneLiner( shipFreighter, "", "a2_m09_dialogue_freighter_thanks_were_off" );
+						}
+					}
+					
+					if ( local_4 == 10 )
+					{
+						debug Debug.PrintString( "reinforcements arrive\n" );
+						shipMarauderCutter_2 = iShip.Create( "ini:/sims/ships/marauder/marauder_cutter", "a2_m09_Screwfly" );
+						iPilotSetup.Marauder( iShip.Cast( shipMarauderCutter_2 ) );
+						Group.AddSim( group, shipMarauderCutter_2 );
+						Sim.PlaceRelativeTo( shipMarauderCutter_2, waypoint, 0.0, 20000.0, 1000.0 );
+						iSim.SetFaction( iSim.Cast( shipMarauderCutter_2 ), marauders );
+						shipMarauderCutter_3 = iShip.Create( "ini:/sims/ships/marauder/marauder_cutter", "a2_m09_Hookworm" );
+						iPilotSetup.Marauder( iShip.Cast( shipMarauderCutter_3 ) );
+						Group.AddSim( group, shipMarauderCutter_3 );
+						Sim.PlaceRelativeTo( shipMarauderCutter_3, waypoint, 0.0, 20000.0, -1000.0 );
+						iSim.SetFaction( iSim.Cast( shipMarauderCutter_3 ), marauders );
+						gCleanupStuff = Group.Cast( Global.Handle( "g_cleanup_stuff" ) );
+						Group.AddGroup( gCleanupStuff, group );
+						Global.SetHandle( "g_cleanup_stuff", gCleanupStuff );
+						iAI.GiveGenericAttackOrder( group );
+						Sim.Destroy( waypoint );
+						Sim.Destroy( param_1_ );
+						break;
+					}
+					else
+					{
+						local_4 = ( local_4 + 1 );
+						debug Debug.PrintString( "counting till reinforcements arrive\n" );
+					}
+				}
+			}
+		}
+	}
+}
+
+task local_function_7( hsim param_0_ )
+{
+	hship playerShip = iShip.FindPlayerShip();
+	
+	schedule
+	{
+		every 5.0:
+		{
+			if ( Sim.DistanceBetween( playerShip, param_0_ ) <= 10000.0 )
+			{
+				Sim.Destroy( param_0_ );
+				break;
+			}
+		}
+	}
+}
+
+task local_function_8( hsim param_0_ )
+{
+	hship playerShip = iShip.FindPlayerShip();
+	
+	schedule
+	{
+		every 5.0:
+		{
+			if ( Sim.DistanceBetween( playerShip, param_0_ ) <= 10000.0 )
+			{
+				Sim.Destroy( param_0_ );
+				break;
+			}
+		}
+	}
+}
+
+hship local_function_15( hsim param_0_, int param_1_, float param_2_ )
+{
+	hship shipFreighter;
+	hship shipFreightpod;
+	int ii;
+	
+	if ( (param_1_ < 1) || (param_1_ > 20) )
+	{
+		debug Debug.PrintString( "create_freighter: ERROR - Number of pods incorrect. Must be between 1 & 20\n " );
+		return none;
+	}
+	
+	shipFreighter = iShip.Create( "ini:/sims/ships/utility/freighter", "a2_m09_Freighter" );
+	Sim.PlaceNear( shipFreighter, param_0_, param_2_ );
+	
+	for ( ii = 0; ii < param_1_; ++ii )
+	{
+		shipFreightpod = iShip.Create( "ini:/sims/ships/utility/freightpod", "a2_m09_Cargo_Pod" );
+		iShip.Dock( shipFreightpod, shipFreighter );
+	}
+	
+	return shipFreighter;
+}
+
+task MissionHandler()
+{
+	bool local_0 = false;
+	hemail email;
+	hstate taskState;
+	htask currentTask = Task.Current();
+	
+	taskState = State.Find( currentTask );
+	
+	if ( !taskState )
+	{
+		taskState = State.Create( currentTask, 0 );
+	}
+	
+	local_function_1( taskState );
+	iMissionTracker.AddMission( Task.Current(), 2, 9 );
+	
+	if ( Global.Exists( "g_cleanup_stuff" ) )
+	{
+		Global.Destroy( "g_cleanup_stuff" );
+	}
+	
+	Global.CreateHandle( "g_cleanup_stuff", 2, Group.Create() );
+	Global.CreateInt( "g_a2_m09_signal", 1, 0 );
+	Object.AddIntProperty( taskState, "g_a2_m09_signal_1", 0 );
+	Object.AddIntProperty( taskState, "g_a2_m09_signal_2", 0 );
+	Object.AddIntProperty( taskState, "g_a2_m09_signal_3", 0 );
+	Text.Add( "csv:/text/act_2/act2_mission09" );
+	email = iEmail.Find( "html:/text/act_2/act2_mission09_email" );
+	
+	if ( !email )
+	{
+		iEmail.SendEmail( "a2_m09_email_sender", "a2_m09_email_subject", "html:/text/act_2/act2_mission09_email", true );
+		iMissionTracker.RemoveMission( Task.Current() );
+		return;
+	}
+	else if ( !iEmail.Read( email ) )
+	{
+		iMissionTracker.RemoveMission( Task.Current() );
+		debug Debug.PrintString( "Go read your email\n" );
+		return;
+	}
+	
+	debug Debug.PrintString( "Mission handler started schedule\n" );
+	iObjectives.Add( "a2_m09_objectives_mca_base" );
+	
+	schedule
+	{
+		every 2.0:
+		{
+			if ( iSim.ActiveWorld() == "map:/geog/badlands/mwari" )
+			{
+				if ( local_0 == 0 )
+				{
+					start local_function_13( taskState );
+					debug Debug.PrintString( "hello again, you're in Mwari\n" );
+					local_0 = true;
+				}
+			}
+			
+			if ( (State.Progress( taskState ) == 6) || (State.Progress( taskState ) == 100) )
+			{
+				if ( State.Progress( taskState ) == 100 )
+				{
+					Group.Destroy( Group.Cast( Global.Handle( "g_cleanup_stuff" ) ), true );
+					
+					atomic
+					{
+						Global.SetBool( "g_skip_locked", false );
+					}
+					
+					Task.Detach( start local_function_0() );
+					local_function_14();
+					
+					if ( iMapEntity.IsDestroyed( iMapEntity.FindByNameInSystem( "Plato Exile Hideout", "map:/geog/badlands/mwari" ) ) )
+					{
+						iMapEntity.SetDestroyed( iMapEntity.FindByNameInSystem( "Plato Exile Hideout", "map:/geog/badlands/mwari" ), false );
+					}
+				}
+				
+				Global.Destroy( "g_cleanup_stuff" );
+				Global.Destroy( "g_a2_m9_running" );
+				Global.Destroy( "g_mca_force" );
+				iWingmen.Purge();
+				State.Destroy( Task.Current() );
+				iMissionTracker.RemoveMission( Task.Current() );
+				return;
+			}
+		}
+	}
+}
+

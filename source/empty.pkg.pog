@@ -1,0 +1,59 @@
+package empty;
+
+uses Debug,
+     Set,
+     List,
+     String,
+     Global,
+     Task,
+     CargoTypes,
+     GUI,
+     iInventory,
+     iFaction,
+     Sim,
+     iSim,
+     MapEnumerations,
+     iMapEntity,
+     iMissionGenerator,
+     Group,
+     iBody,
+     iHabitat,
+     iShip,
+     INIFile,
+     iUtilities;
+
+provides Main,
+         MainTask,
+         BaseMain;
+
+prototype task MainTask();
+prototype Main();
+prototype BaseMain();
+
+task MainTask()
+{
+	int local_0;
+	int local_1;
+	
+	if ( Global.Exists( "ran_empty" ) == 0 )
+	{
+		debug Debug.PrintString( "empty.MainTask: creating a ship for the player.\n" );
+		iUtilities.CreatePlayer( "ini:/sims/ships/player/heavy_corvette_prefitted", iMapEntity.FindByName( "Hoffer's Gap" ) );
+		Global.CreateBool( "g_jafs_menu_option_enabled", 2, true );
+		iInventory.AddFastAttackShip();
+		iInventory.Add( CT_CapsuleDrive, 1 );
+		Global.CreateBool( "ran_empty", 2, true );
+	}
+}
+
+Main()
+{
+	debug Debug.PrintString( "empty.Main bin' called." );
+	Task.Detach( start MainTask() );
+}
+
+BaseMain()
+{
+	iMissionGenerator.BaseMain();
+}
+

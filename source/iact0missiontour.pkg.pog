@@ -1,0 +1,631 @@
+package iAct0MissionTour;
+
+uses String,
+     Set,
+     List,
+     Global,
+     Sim,
+     Group,
+     Math,
+     Object,
+     State,
+     Task,
+     Text,
+     iSim,
+     iShip,
+     Subsim,
+     iDockport,
+     iLagrangePoint,
+     iAI,
+     iComms,
+     iConversation,
+     iCutsceneUtilities,
+     iDirector,
+     iEscort,
+     MapEnumerations,
+     iFaction,
+     iFormation,
+     iMapEntity,
+     iBody,
+     iHabitat,
+     GUI,
+     iLoadout,
+     iMissionTracker,
+     iObjectives,
+     iPilotSetup,
+     iScriptedOrders,
+     INIFile,
+     iUtilities,
+     Debug,
+     CargoTypes,
+     iCargoScript,
+     iCargo,
+     iShipCreation,
+     iStation;
+
+provides Main,
+         MissionHandler,
+         Stub;
+
+prototype Main();
+prototype Stub();
+prototype local_function_8( hstate state_ );
+prototype local_function_11();
+prototype task local_function_0();
+prototype hgroup local_function_1();
+prototype task local_function_2( hmapentity mapentity_, hship ship_ );
+prototype task local_function_9( hsim param_0_, hmapentity mapentity_, hship ship_, hstate state_ );
+prototype hgroup local_function_3( int param_0_, bool param_1_ );
+prototype hgroup local_function_7();
+prototype task local_function_5( hgroup group_, hship ship_0_, hship ship_1_ );
+prototype local_function_6( hgroup group_ );
+prototype task local_function_4( hship ship_, hgroup group_ );
+prototype task local_function_10( hship ship_0_, hstate state_ );
+prototype task MissionHandler();
+
+Main()
+{
+	start local_function_0();
+}
+
+Stub()
+{
+	Global.SetBool( "g_act0_tour_complete", true );
+}
+
+local_function_8( hstate state_ )
+{
+	hsim waypointTouchdownOrbitalTransferStation;
+	hship playerShip = iShip.FindPlayerShip();
+	
+	waypointTouchdownOrbitalTransferStation = iUtilities.CreateWaypointRelativeTo( iMapEntity.FindByName( "Touchdown Orbital Transfer Station" ), 0.0, 0.0, 900000.0 );
+	Object.AddHandleProperty( playerShip, "restart_waypoint", waypointTouchdownOrbitalTransferStation );
+	Object.AddHandleProperty( playerShip, "current_mission_state", state_ );
+}
+
+local_function_11()
+{
+	iObjectives.Remove( "a0_m35_objectives_fly_to" );
+}
+
+task local_function_0()
+{
+	htask local_0;
+	int local_1;
+	
+	while ( iComms.IsInConversation() )
+	{
+		Task.Sleep( Task.Current(), 0.50 );
+	}
+	
+	if ( !iUtilities.SkipMission( "Hoffers Wake Tour?" ) )
+	{
+		Task.Detach( local_0 = start MissionHandler() );
+		return;
+	}
+	
+	Stub();
+	return;
+}
+
+hgroup local_function_1()
+{
+	hgroup group = Group.Create();
+	hship ship;
+	hfaction stepson = iFaction.Find( "Stepson" );
+	
+	ship = iShip.Create( "ini:/sims/ships/utility/tug", iShipCreation.ShipName( "Stepson", -1 ) );
+	iSim.SetFaction( ship, stepson );
+	iPilotSetup.GenericCargoPod( ship );
+	Group.AddSim( group, ship );
+	iSim.SetIndestructable( ship, true );
+	Object.SetBoolProperty( ship, "ignore_speed_limit", true );
+	ship = iShip.Create( "ini:/sims/ships/utility/puffin", iShipCreation.ShipName( "Stepson", -1 ) );
+	iSim.SetFaction( ship, stepson );
+	iPilotSetup.GenericCargoPod( ship );
+	Group.AddSim( group, ship );
+	Object.SetBoolProperty( ship, "ignore_speed_limit", true );
+	ship = iShip.Create( "ini:/sims/ships/utility/tug", iShipCreation.ShipName( "Stepson", -1 ) );
+	iSim.SetFaction( ship, stepson );
+	iPilotSetup.GenericCargoPod( ship );
+	Group.AddSim( group, ship );
+	Object.SetBoolProperty( ship, "ignore_speed_limit", true );
+	return group;
+}
+
+task local_function_2( hmapentity mapentity_, hship ship_ )
+{
+	iDirector.SetFocus( mapentity_ );
+	iDirector.SetSecondaryFocus( ship_ );
+	iDirector.SetCamera( CAM_TwoShot );
+	iConversation.OneLiner( none, "name_clay", "a0_m35_dialogue_clay_here_we" );
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 1.0 );
+	}
+	while ( iComms.IsInConversation() );
+	
+	Task.Sleep( Task.Current(), 4.0 );
+	iDirector.End();
+}
+
+task local_function_9( hsim param_0_, hmapentity mapentity_, hship ship_, hstate state_ )
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	hgroup group;
+	hship groupLeader;
+	htask local_4;
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( !local_0 && iUtilities.PlayerInRange( param_0_ ) )
+			{
+				local_0 = true;
+				group = local_function_1();
+				Sim.PlaceNear( Group.Leader( group ), param_0_, 2000.0 );
+				iFormation.Goose( group, 80.0, true );
+				Task.Detach( local_4 = start iScriptedOrders.LocalPatrol( group ) );
+				groupLeader = iShip.Cast( Group.Leader( group ) );
+			}
+			else if ( local_0 && !iUtilities.PlayerInRange( param_0_ ) )
+			{
+				local_0 = false;
+				Group.Destroy( group, true );
+			}
+			
+			if ( (Sim.DistanceBetween( param_0_, ship_ ) < 10000.0) && local_0 )
+			{
+				iDirector.Begin();
+				Sim.PlaceAt( ship_, param_0_ );
+				Sim.PointAt( ship_, mapentity_ );
+				iCutsceneUtilities.HandleAbort( start local_function_2( mapentity_, ship_ ) );
+				break;
+			}
+		}
+	}
+	
+	iAI.PurgeOrders( groupLeader );
+	Task.Suspend( local_4 );
+	iAI.GiveApproachOrderNoDropOff( groupLeader, ship_ );
+	iObjectives.SetState( "a0_m35_objectives_fly_to", OS_Succeeded );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( (iAI.IsOrderComplete( groupLeader ) || (Sim.DistanceBetween( groupLeader, ship_ ) < 800.0)) && !local_1 )
+			{
+				local_1 = true;
+				iConversation.Begin();
+				iConversation.Say( groupLeader, "", "a0_m35_dialogue_stepson_ah_judging" );
+				iConversation.Say( none, "name_young_cal", "a0_m35_dialogue_young_cal_uh_yeah" );
+				iConversation.Say( groupLeader, "", "a0_m35_dialogue_stepson_well_in" );
+				iConversation.End();
+				iAI.PurgeOrders( groupLeader );
+				Task.Resume( local_4 );
+				iConversation.OneLiner( none, "name_clay", "a0_m35_dialogue_clay_hmm_they" );
+				State.SetProgress( state_, 2 );
+				Sim.Destroy( param_0_ );
+				return;
+			}
+		}
+	}
+}
+
+hgroup local_function_3( int param_0_, bool param_1_ )
+{
+	hgroup group = Group.Create();
+	hship ship;
+	hfaction independent = iFaction.Find( "Independent" );
+	int ii;
+	
+	for ( ii = 0; ii < param_0_; ++ii )
+	{
+		if ( param_1_ )
+		{
+			switch ( Math.RandomInt( 0, 1 ) )
+			{
+				case 0:
+					ship = iShip.Create( "ini:/sims/ships/independent/cutter_mercenary", iShipCreation.ShipName( "General", -1 ) );
+					iSim.SetFaction( ship, independent );
+					iPilotSetup.GenericCargoPod( ship );
+					iShip.SetPilotSkillLevel( ship, 0.50 );
+					Group.AddSim( group, ship );
+					Object.SetBoolProperty( ship, "ignore_speed_limit", true );
+					break;
+				
+				case 1:
+					ship = iShip.Create( "ini:/sims/ships/navy/old_corvette", iShipCreation.ShipName( "General", -1 ) );
+					iSim.SetFaction( ship, independent );
+					iPilotSetup.GenericCargoPod( ship );
+					iShip.SetPilotSkillLevel( ship, 0.50 );
+					Group.AddSim( group, ship );
+					Object.SetBoolProperty( ship, "ignore_speed_limit", true );
+					break;
+			}
+		}
+		else switch ( Math.RandomInt( 0, 1 ) )
+		{
+			case 0:
+				ship = iShip.Create( "ini:/sims/ships/independent/tug_armed", iShipCreation.ShipName( "General", -1 ) );
+				iSim.SetFaction( ship, independent );
+				iPilotSetup.GenericCargoPod( ship );
+				iShip.SetPilotSkillLevel( ship, 0.50 );
+				Group.AddSim( group, ship );
+				Object.SetBoolProperty( ship, "ignore_speed_limit", true );
+				break;
+			
+			case 1:
+				ship = iShip.Create( "ini:/sims/ships/independent/puffin_armed", iShipCreation.ShipName( "General", -1 ) );
+				iSim.SetFaction( ship, independent );
+				iPilotSetup.GenericCargoPod( ship );
+				iShip.SetPilotSkillLevel( ship, 0.50 );
+				Group.AddSim( group, ship );
+				Object.SetBoolProperty( ship, "ignore_speed_limit", true );
+				break;
+		}
+	}
+	
+	return group;
+}
+
+hgroup local_function_7()
+{
+	hgroup group = Group.Create();
+	hship shipCutterMercenary;
+	hfaction independent = iFaction.Find( "Independent" );
+	int ii;
+	
+	shipCutterMercenary = iShip.Create( "ini:/sims/ships/independent/cutter_mercenary", "a0_m35_name_wolf" );
+	iSim.SetFaction( shipCutterMercenary, independent );
+	iSim.SetIndestructable( shipCutterMercenary, true );
+	iPilotSetup.GenericCargoPod( shipCutterMercenary );
+	Object.SetIntProperty( shipCutterMercenary, "ignore_speed_limit", 1 );
+	Group.AddSim( group, shipCutterMercenary );
+	
+	for ( ii = 0; ii < 4; ++ii )
+	{
+		switch ( Math.RandomInt( 0, 1 ) )
+		{
+			case 0:
+				shipCutterMercenary = iShip.Create( "ini:/sims/ships/independent/cutter_mercenary", iShipCreation.ShipName( "General", -1 ) );
+				iSim.SetFaction( shipCutterMercenary, independent );
+				iPilotSetup.GenericCargoPod( shipCutterMercenary );
+				Group.AddSim( group, shipCutterMercenary );
+				Object.SetBoolProperty( shipCutterMercenary, "ignore_speed_limit", true );
+				break;
+			
+			case 1:
+				shipCutterMercenary = iShip.Create( "ini:/sims/ships/navy/old_corvette_hard", iShipCreation.ShipName( "General", -1 ) );
+				iSim.SetFaction( shipCutterMercenary, independent );
+				iPilotSetup.GenericCargoPod( shipCutterMercenary );
+				Group.AddSim( group, shipCutterMercenary );
+				Object.SetBoolProperty( shipCutterMercenary, "ignore_speed_limit", true );
+				break;
+		}
+	}
+	
+	return group;
+}
+
+task local_function_5( hgroup group_, hship ship_0_, hship ship_1_ )
+{
+	hsim local_0;
+	
+	iDirector.Begin();
+	local_0 = iDirector.CreateDolly();
+	Sim.PlaceRelativeTo( local_0, ship_0_, 0.0, 200.0, -200.0 );
+	iDirector.SetFocus( ship_1_ );
+	iDirector.SetDollyCamera( local_0 );
+	iConversation.Begin();
+	iConversation.Say( ship_0_, "", "a0_m35_dialogue_bullies_what_do" );
+	Sim.PlaceRelativeTo( local_0, ship_1_, 0.0, 200.0, -200.0 );
+	iDirector.SetFocus( ship_0_ );
+	iDirector.SetDollyCamera( local_0 );
+	
+	if ( iLoadout.Ship() != S_CommandSection )
+	{
+		iConversation.Say( none, "name_clay", "a0_m35_dialogue_clay_guess_i" );
+	}
+	
+	Sim.PlaceRelativeTo( local_0, ship_0_, 0.0, 200.0, -200.0 );
+	iDirector.SetFocus( ship_1_ );
+	iDirector.SetDollyCamera( local_0 );
+	iConversation.Say( Group.NthSim( group_, 1 ), "", "a0_m35_dialogue_baddies_i_think" );
+	iConversation.End();
+	iDirector.End();
+	Sim.Destroy( local_0 );
+}
+
+local_function_6( hgroup group_ )
+{
+	int simCount = Group.SimCount( group_ );
+	int ii;
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		iSim.SetHostile( iSim.Cast( Group.NthSim( group_, ii ) ), true );
+	}
+}
+
+task local_function_4( hship ship_, hgroup group_ )
+{
+	iShip.DisruptLDSDrive( ship_, 9999000.0 );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( Group.SimCount( group_ ) > 0 )
+			{
+				if ( (Sim.DistanceBetween( ship_, Group.Leader( group_ ) ) > 28000.0) && !iShip.IsDisrupted( ship_ ) )
+				{
+					iShip.Disrupt( ship_, 99999000.0, false );
+					iConversation.OneLiner( none, "name_clay", "a2_m25_dialogue_clay_we_have_been_disrupted" );
+				}
+				
+				if ( (Sim.DistanceBetween( Group.Leader( group_ ), ship_ ) < 20000.0) && iShip.IsDisrupted( ship_ ) )
+				{
+					iShip.CancelDisrupt( ship_ );
+				}
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+}
+
+task local_function_10( hship ship_0_, hstate state_ )
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	bool local_2 = false;
+	bool local_3 = false;
+	bool local_4 = false;
+	bool local_5 = false;
+	bool local_6 = false;
+	bool local_7 = false;
+	hgroup group_0;
+	hgroup group_1;
+	int local_10;
+	int simCount;
+	int random_0 = Math.RandomInt( 9, 16 );
+	int random_1;
+	hship ship_1;
+	hship groupLeader_0;
+	hship groupLeader_1;
+	
+	group_0 = local_function_3( 2, false );
+	groupLeader_0 = iShip.Cast( Group.Leader( group_0 ) );
+	Sim.PlaceNear( groupLeader_0, ship_0_, 15000.0 );
+	iEscort.LineAbreast( group_0, 70.0, 8000.0, true );
+	iAI.GiveApproachOrderNoDropOff( groupLeader_0, ship_0_ );
+	start local_function_4( ship_0_, group_0 );
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 1.0 );
+	}
+	while ( !iAI.IsOrderComplete( groupLeader_0 ) && (Sim.DistanceBetween( ship_0_, groupLeader_0 ) > 900.0) );
+	
+	iAI.PurgeOrders( group_0 );
+	iShip.CancelDisrupt( ship_0_ );
+	iCutsceneUtilities.HandleAbort( start local_function_5( group_0, groupLeader_0, ship_0_ ) );
+	iAI.PurgeOrders( group_0 );
+	iShip.LockDownWeapons( iShip.Cast( Group.Leader( group_0 ) ) );
+	iShip.LockDownWeapons( iShip.Cast( Group.NthSim( group_0, 1 ) ) );
+	ship_1 = iShip.Cast( Group.NthSim( group_0, Math.RandomInt( 0, Group.SimCount( group_0 ) - 1 ) ) );
+	iAI.GiveAttackOrder( ship_1, ship_0_ );
+	simCount = Group.SimCount( group_0 );
+	local_10 = simCount;
+	iConversation.OneLiner( none, "name_clay", "a0_m35_dialogue_clay_come_on" );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			simCount = Group.SimCount( group_0 );
+			
+			if ( !iShip.IsDisrupted( ship_0_ ) )
+			{
+				random_0 = ( random_0 + -1 );
+			}
+			
+			if ( (Group.SimCount( group_0 ) == 0) && (State.Progress( state_ ) != 100) )
+			{
+				break;
+			}
+			
+			if ( (local_10 > simCount) && (State.Progress( state_ ) != 100) )
+			{
+				local_10 = simCount;
+				random_1 = Math.RandomInt( 0, simCount - 1 );
+				ship_1 = iShip.Cast( Group.NthSim( group_0, random_1 ) );
+				iAI.GiveAttackOrder( ship_1, ship_0_ );
+				
+				if ( simCount == 2 )
+				{
+					iConversation.OneLiner( ship_1, "", "a0_m35_dialogue_baddies_o_a_tough" );
+				}
+				else if ( simCount == 1 )
+				{
+					iConversation.OneLiner( ship_1, "", "a0_m35_dialogue_baddies_you_just" );
+				}
+			}
+			else if ( (random_0 <= 0) && (State.Progress( state_ ) != 100) )
+			{
+				random_0 = Math.RandomInt( 9, 17 );
+				
+				if ( !local_0 )
+				{
+					local_0 = true;
+					iConversation.OneLiner( none, "name_clay", "a0_m35_dialogue_clay_help_1" );
+				}
+				else if ( !local_1 )
+				{
+					local_1 = true;
+					iConversation.OneLiner( none, "name_clay", "a0_m35_dialogue_clay_help_2" );
+				}
+				else if ( !local_2 )
+				{
+					local_2 = true;
+					iConversation.OneLiner( none, "name_clay", "a0_m35_dialogue_clay_help_3" );
+				}
+				else if ( !local_3 )
+				{
+					local_3 = true;
+					iConversation.OneLiner( none, "name_clay", "a0_m35_dialogue_clay_help_4" );
+				}
+				else if ( !local_4 )
+				{
+					local_4 = true;
+					iConversation.OneLiner( none, "name_clay", "a0_m35_dialogue_clay_help_5" );
+				}
+			}
+		}
+	}
+	
+	group_0 = local_function_3( 4, false );
+	local_function_6( group_0 );
+	group_1 = local_function_7();
+	groupLeader_1 = iShip.Cast( Group.Leader( group_1 ) );
+	groupLeader_0 = iShip.Cast( Group.Leader( group_0 ) );
+	Sim.PlaceNear( groupLeader_0, ship_0_, 18000.0 );
+	Sim.PlaceNear( groupLeader_1, ship_0_, 19000.0 );
+	iFormation.Claw( group_0, 70.0, true );
+	iFormation.Goose( group_1, 70.0, true );
+	iAI.GiveApproachOrder( group_0, ship_0_ );
+	iAI.GiveAttackOrder( group_1, group_0 );
+	iConversation.OneLiner( none, "name_clay", "a0_m35_dialogue_clay_phew" );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( (Sim.DistanceBetween( Group.Leader( group_1 ), Group.Leader( group_0 ) ) < 10000.0) && !local_5 )
+			{
+				local_5 = true;
+				iConversation.OneLiner( none, "name_clay", "a0_m35_dialogue_clay_hey_there" );
+				iConversation.OneLiner( groupLeader_1, "", "a0_m35_dialogue_wolfgang_looks_like" );
+				iShip.DisruptLDSDrive( ship_0_, 0.10 );
+			}
+			
+			if ( iShip.Attacked( iShip.Cast( Group.Leader( group_0 ) ) ) && !local_7 )
+			{
+				local_7 = true;
+				iAI.GiveAttackOrder( group_0, group_1 );
+			}
+			
+			if ( (Group.SimCount( group_0 ) == 0) && (!local_6 && (State.Progress( state_ ) != 100)) )
+			{
+				local_6 = true;
+				iAI.GiveApproachOrder( groupLeader_1, ship_0_ );
+				
+				do
+				{
+					Task.Sleep( Task.Current(), 0.50 );
+				}
+				while ( !iAI.IsOrderComplete( groupLeader_1 ) );
+				
+				iConversation.OneLiner( groupLeader_1, "", "a0_m35_dialogue_wolfgang_guess_youve" );
+				iAI.PurgeOrders( groupLeader_1 );
+				iAI.GiveApproachOrder( groupLeader_1, iMapEntity.FindByName( "Charlesworth Freight Service Depot" ) );
+				Group.Destroy( group_0, true );
+				Group.Destroy( group_1, false );
+				
+				if ( State.Progress( state_ ) != 100 )
+				{
+					State.SetProgress( state_, 8 );
+				}
+				
+				return;
+			}
+		}
+	}
+}
+
+task MissionHandler()
+{
+	bool local_0 = false;
+	hship playerShip = iShip.FindPlayerShip();
+	hmapentity touchdownOrbitalTransferStation = iMapEntity.FindByName( "Touchdown Orbital Transfer Station" );
+	hsim waypoint = iUtilities.CreateWaypointRelativeTo( touchdownOrbitalTransferStation, 0.0, 2000.0, 4000.0 );
+	hstate taskState;
+	int local_5;
+	htask currentTask = Task.Current();
+	
+	Text.Add( "csv:/text/act_0/act0_mission35" );
+	Text.Add( "csv:/text/act_0/act0_mission35_addendum" );
+	Text.Add( "csv:/text/act_2/act2_mission25" );
+	iStation.AddReactiveException( iHabitat.Cast( touchdownOrbitalTransferStation ) );
+	taskState = State.Find( currentTask );
+	
+	if ( !taskState )
+	{
+		taskState = State.Create( currentTask, 0 );
+	}
+	
+	local_function_8( taskState );
+	iMissionTracker.AddMission( Task.Current(), 0, 35 );
+	
+	if ( State.Progress( taskState ) == 0 )
+	{
+		iConversation.OneLiner( none, "name_clay", "a0_m35_dialogue_clay_right_well" );
+	}
+	
+	if ( State.Progress( taskState ) < 2 )
+	{
+		iObjectives.Add( "a0_m35_objectives_fly_to" );
+	}
+	
+	State.SetProgress( taskState, 1 );
+	Sim.PointAt( waypoint, touchdownOrbitalTransferStation );
+	iUtilities.MakeWaypointVisible( waypoint, true, "a0_m35_name_marker" );
+	start local_function_9( waypoint, touchdownOrbitalTransferStation, playerShip, taskState );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( (State.Progress( taskState ) == 2) && !local_0 )
+			{
+				local_0 = true;
+				start local_function_10( playerShip, taskState );
+			}
+			
+			if ( (State.Progress( taskState ) == 8) || (State.Progress( taskState ) == 100) )
+			{
+				if ( State.Progress( taskState ) != 100 )
+				{
+					Global.SetBool( "g_act0_tour_complete", true );
+				}
+				else
+				{
+					atomic
+					{
+						Global.SetBool( "g_skip_locked", false );
+					}
+					
+					Task.Detach( start local_function_0() );
+					Sim.Destroy( waypoint );
+					local_function_11();
+				}
+				
+				iShip.DisruptLDSDrive( playerShip, 0.10 );
+				iUtilities.RemoveMissionRestart();
+				State.Destroy( Task.Current() );
+				iMissionTracker.RemoveMission( Task.Current() );
+				Text.Remove( "csv:/text/act_2/act2_mission25" );
+				iStation.RemoveReactiveException( iHabitat.Cast( iMapEntity.FindByName( "Touchdown Orbital Transfer Station" ) ) );
+				return;
+			}
+		}
+	}
+}
+

@@ -1,0 +1,782 @@
+package iCutsceneUtilities;
+
+uses Debug,
+     Set,
+     List,
+     String,
+     Global,
+     Sim,
+     Group,
+     Math,
+     Object,
+     Task,
+     MapEnumerations,
+     iFaction,
+     iMapEntity,
+     iSim,
+     iBody,
+     iHabitat,
+     iShip,
+     Subsim,
+     iDockport,
+     iLagrangePoint,
+     iAI,
+     iComms,
+     iConversation,
+     iDeathScript,
+     iDirector,
+     iPilotSetup,
+     iRemotePilot,
+     INIFile,
+     iUtilities,
+     iWingmen;
+
+provides HandleAbort,
+         EnablePlayerAutopilot,
+         DisablePlayerAutopilot,
+         GetKillGroup,
+         CreateGhostShip,
+         Watch,
+         BuzzCamera,
+         FollowRoute,
+         FollowRouteTask,
+         BuildCircularPath,
+         OrbitSim,
+         SetupDirectedDeath,
+         SetupDirectedGroupDeath,
+         DirectedDeath,
+         DirectedGroupDeath,
+         GetStationModules,
+         GetThingsCalled,
+         FindStationModule;
+
+enum eAxis
+{
+	AXIS_x = 0x00000000,
+	AXIS_y = 0x00000001,
+	AXIS_z = 0x00000002
+};
+
+enum eStationModuleFind
+{
+	SMF_Comms = 0x00000000,
+	SMF_Engineering = 0x00000001,
+	SMF_Docking_Arm = 0x00000002,
+	SMF_Pod_Spewer = 0x00000003,
+	SMF_Habitat = 0x00000004,
+	SMF_Hotel = 0x00000005,
+	SMF_Processing_Plant = 0x00000006
+};
+
+prototype list local_function_0();
+prototype local_function_2( list localList_ );
+prototype bool HandleAbort( htask cutscene_task_ );
+prototype hship CreateGhostShip();
+prototype hship EnablePlayerAutopilot();
+prototype DisablePlayerAutopilot();
+prototype local_function_1( bool param_0_ );
+prototype FollowRoute( hsim follower_, hgroup route_, float completion_ratio_, float time_step_, int loop_count_, int index_ );
+prototype task FollowRouteTask( hsim follower_, hgroup route_, float completion_ratio_, float time_step_, int loop_count_, int index_ );
+prototype hgroup BuildCircularPath( hsim center_, eAxis axis_, float radius_, float start_angle_, float end_angle_, int count_ );
+prototype hgroup GetKillGroup();
+prototype Watch( hsim from_, hsim to_ );
+prototype hsim BuzzCamera( hsim flying_, float xoffset_, float yoffset_, float zdistanceahead_ );
+prototype OrbitSim( hsim look_from_, hsim look_at_, hsim moves_, hsim move_around_, string caption_, eAxis axis_, float radius_, float start_angle_, float end_angle_ );
+prototype local_function_5( hsim param_0_, hsim param_1_, hsim param_2_, string param_3_ );
+prototype local_function_6( hsim param_0_, hsim param_1_, hsim param_2_, string param_3_ );
+prototype SetupDirectedDeath( hobject directed_death_object_, hsim speaker_, string speaker_name_, string obituary_or_last_words_, string epitaph_, bool end_game_ );
+prototype SetupDirectedGroupDeath( hobject directed_death_object_, hsim speaker_, string speaker_name_, string obituary_or_last_words_, string epitaph_, bool end_game_ );
+prototype task local_function_3( hisim param_0_, hsim param_1_, string param_2_, string param_3_, string param_4_ );
+prototype local_function_4( hisim param_0_, bool param_1_ );
+prototype task DirectedDeath( hobject param_0_ );
+prototype task DirectedGroupDeath( hobject param_0_ );
+prototype set GetStationModules( hsim station_ );
+prototype set GetThingsCalled( set in_, string name_ );
+prototype hisim FindStationModule( hsim station_, eStationModuleFind module_type_ );
+
+list local_function_0()
+{
+	list localList = List.FromSet( iSim.PlayerHostilesInRadius( 300000.0, 536850432 ) );
+	int itemCount = List.ItemCount( localList );
+	int ii;
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		iShip.SetAIDisabled( iShip.Cast( List.GetNth( localList, ii ) ), true );
+	}
+	
+	return localList;
+}
+
+local_function_2( list localList_ )
+{
+	int itemCount = List.ItemCount( localList_ );
+	int ii;
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		iShip.SetAIDisabled( iShip.Cast( List.GetNth( localList_, ii ) ), false );
+	}
+}
+
+bool HandleAbort( htask cutscene_task_ )
+{
+	htask currentTask = Task.Current();
+	bool local_1 = false;
+	hgroup group_0 = GetKillGroup();
+	list localList_0;
+	string local_4;
+	hship playerShip = iShip.FindPlayerShip();
+	int local_6;
+	hgroup group_1 = iWingmen.Group();
+	hship ship_0 = iWingmen.GetLori();
+	hship ship_1 = iWingmen.GetAz();
+	list localList_1;
+	
+	if ( Object.PropertyExists( iShip.FindPlayerShip(), "player_dying" ) )
+	{
+		return local_1;
+	}
+	
+	atomic
+	{
+		if ( !Global.Exists( "g_cutscene_skip" ) )
+		{
+			debug Debug.PrintString( "Cutscene skipper does not exist\n" );
+		}
+		
+		Global.SetBool( "g_cutscene_skip", false );
+		
+		if ( iRemotePilot.RemoteActive() )
+		{
+			debug Debug.PrintString( "iCutsceneUtilities.HandleAbort: WARNING: Player was remote piloting. Deactivating connection.\n" );
+			iRemotePilot.DeactivateConnection();
+		}
+		
+		localList_1 = iWingmen.GetDetachedTFighters();
+		
+		if ( List.ItemCount( localList_1 ) > 0 )
+		{
+			debug Debug.PrintString( "iCutsceneUtilities.HandleAbort: Turret fighters detached. Re-attaching for cut-scene\n" );
+			
+			if ( Sim.IsAlive( ship_0 ) )
+			{
+				debug Debug.PrintString( "iCutsceneUtilities.HandleAbort: Removing LORI as a wingman \n" );
+				
+				if ( Sim.Group( ship_0 ) == group_1 )
+				{
+					iWingmen.RemoveWingman( ship_0 );
+				}
+				
+				if ( iSim.IsDocked( ship_0 ) && !iSim.IsDockedTo( ship_0, playerShip ) )
+				{
+					iShip.UndockSelf( ship_0 );
+				}
+			}
+			
+			if ( Sim.IsAlive( ship_1 ) )
+			{
+				debug Debug.PrintString( "iCutsceneUtilities.HandleAbort: Removing Az as a wingman \n" );
+				
+				if ( Sim.Group( ship_1 ) == group_1 )
+				{
+					iWingmen.RemoveWingman( ship_1 );
+				}
+				
+				if ( iSim.IsDocked( ship_1 ) && !iSim.IsDockedTo( ship_1, playerShip ) )
+				{
+					iShip.UndockSelf( ship_1 );
+				}
+			}
+			
+			iWingmen.AddTFighters( playerShip, localList_1 );
+			iAI.PurgeOrders( ship_1 );
+			iAI.PurgeOrders( ship_0 );
+			iShip.LockDownWeapons( ship_1 );
+			iShip.LockDownWeapons( ship_0 );
+		}
+	}
+	
+	localList_0 = local_function_0();
+	iAI.ClearAutopilot();
+	Sim.SetVelocity( playerShip, 0.0, 0.0, 0.0 );
+	
+	do
+	{
+		if ( Object.PropertyExists( iShip.FindPlayerShip(), "player_dying" ) )
+		{
+			break;
+		}
+		
+		if ( Global.Bool( "g_cutscene_skip" ) == 1 )
+		{
+			debug Debug.PrintString( "iDirectorUtilities.HandleAbort: cutscene aborted early\n" );
+			Task.Halt( cutscene_task_ );
+			iDirector.End();
+			local_1 = true;
+			break;
+		}
+		
+		Task.Sleep( currentTask, 0.10 );
+	}
+	while ( !Task.IsHalted( cutscene_task_ ) );
+	
+	local_function_1( true );
+	local_function_2( localList_0 );
+	Group.Destroy( group_0, true );
+	iComms.Abort( false );
+	return local_1;
+}
+
+hship CreateGhostShip()
+{
+	hship shipGhost = iShip.Create( "ini:/sims/ships/player/ghost", "" );
+	
+	Sim.SetCullable( shipGhost, false );
+	iSim.SetIndestructable( shipGhost, true );
+	iSim.SetSensorVisibility( shipGhost, false );
+	iPilotSetup.GenericCargoPod( shipGhost );
+	return shipGhost;
+}
+
+hship EnablePlayerAutopilot()
+{
+	hship ship;
+	hship playerShip = iShip.FindPlayerShip();
+	hgroup group = GetKillGroup();
+	
+	atomic
+	{
+		do
+		{
+			if ( Object.PropertyExists( playerShip, "cutscene_utilities_player_autopilot_enabled_count" ) )
+			{
+				Object.SetIntProperty( playerShip, "cutscene_utilities_player_autopilot_enabled_count", Object.IntProperty( playerShip, "cutscene_utilities_player_autopilot_enabled_count" ) + 1 );
+				playerShip = iShip.Cast( Sim.Parent( playerShip ) );
+				break;
+			}
+			
+			ship = CreateGhostShip();
+			Group.AddSim( group, ship );
+			Object.AddIntProperty( ship, "cutscene_utilities_player_autopilot_enabled_count", 1 );
+			Sim.PlaceAt( ship, playerShip );
+			Sim.AttachChild( playerShip, ship );
+			Sim.PlaceAt( ship, playerShip );
+			Sim.SetCullable( playerShip, false );
+			iShip.InstallPlayerPilot( ship );
+			
+			if ( Object.PropertyExists( playerShip, "name_az" ) || (Object.PropertyExists( playerShip, "name_lori" ) || Object.PropertyExists( playerShip, "wingmen_group" )) )
+			{
+				Object.AddHandleProperty( ship, "wingmen_group", Object.HandleProperty( playerShip, "wingmen_group" ) );
+				Object.AddHandleProperty( ship, "name_az", Object.HandleProperty( playerShip, "name_az" ) );
+				Object.AddHandleProperty( ship, "name_lori", Object.HandleProperty( playerShip, "name_lori" ) );
+			}
+			
+			iPilotSetup.GenericCargoPod( playerShip );
+		}
+		while ( 0 );
+	}
+	
+	return playerShip;
+}
+
+DisablePlayerAutopilot()
+{
+	local_function_1( false );
+}
+
+local_function_1( bool param_0_ )
+{
+	hship ship;
+	hship playerShip = iShip.FindPlayerShip();
+	int cutsceneUtilitiesPlayerAutopilotEnabledCount;
+	
+	atomic
+	{
+		do
+		{
+			if ( !Object.PropertyExists( playerShip, "cutscene_utilities_player_autopilot_enabled_count" ) )
+			{
+				debug Debug.PrintString( "iCutSceneUtilities.DisablePlayerAutopilot: WARNING: attempt to disable player autopilot more times than it was enabled\n" );
+				break;
+			}
+			
+			if ( !param_0_ )
+			{
+				cutsceneUtilitiesPlayerAutopilotEnabledCount = Object.IntProperty( playerShip, "cutscene_utilities_player_autopilot_enabled_count" );
+				
+				if ( cutsceneUtilitiesPlayerAutopilotEnabledCount > 1 )
+				{
+					Object.SetIntProperty( playerShip, "cutscene_utilities_player_autopilot_enabled_count", cutsceneUtilitiesPlayerAutopilotEnabledCount - 1 );
+					debug Debug.PrintString( "iCutSceneUtilities.DisablePlayerAutopilot: NOTE: attempt to disable player autopilot delayed until a subsequent call\n" );
+					break;
+				}
+			}
+			
+			ship = iShip.Cast( Sim.Parent( playerShip ) );
+			iShip.InstallPlayerPilot( ship );
+			Sim.Destroy( playerShip );
+		}
+		while ( 0 );
+	}
+}
+
+FollowRoute( hsim follower_, hgroup route_, float completion_ratio_, float time_step_, int loop_count_, int index_ )
+{
+	hisim local_0;
+	float local_1;
+	
+	debug Debug.PrintString( "FollowRoute: Ordering Sim: " );
+	debug Debug.PrintString( Object.StringProperty( follower_, "name" ) );
+	debug Debug.PrintString( " to follow route.\n" );
+	
+	if ( (completion_ratio_ <= 0.0) || (completion_ratio_ > 1.0) )
+	{
+		completion_ratio_ = 0.990;
+	}
+	
+	if ( time_step_ <= 0.0 )
+	{
+		time_step_ = 1.0;
+	}
+	
+	if ( (index_ < 0) || (index_ > Group.SimCount( route_ )) )
+	{
+		index_ = 0;
+	}
+	
+	if ( Group.SimCount( route_ ) < 2 )
+	{
+		debug Debug.PrintString( "FollowWaypoints: Less than 2 sims in route group. Exiting\n" );
+		return;
+	}
+	
+	do
+	{
+		local_0 = iSim.Cast( Group.NthSim( route_, index_ ) );
+		
+		if ( iSim.Cast( local_0 ) != false )
+		{
+			local_1 = ( Sim.DistanceBetween( follower_, local_0 ) * completion_ratio_ );
+			iAI.GiveApproachOrderAdvanced( follower_, local_0, 0.0, 1.0, false );
+			
+			debug
+			{
+				Debug.PrintString( "FollowRoute: Ship " );
+				Debug.PrintString( Object.StringProperty( follower_, "name" ) );
+				Debug.PrintString( " approaching location " );
+				Debug.PrintInt( index_ );
+				Debug.PrintString( " radius " );
+				Debug.PrintFloat( local_1 );
+				Debug.PrintString( "\n" );
+			}
+			
+			do
+			{
+				if ( Group.SimCount( route_ ) < 2 )
+				{
+					debug Debug.PrintString( "FollowWaypoints: Less than 2 sims in route group. Exiting\n" );
+					return;
+				}
+				
+				Task.Sleep( Task.Current(), time_step_ );
+			}
+			while ( (Sim.DistanceBetween( follower_, local_0 ) > local_1) && !iAI.IsOrderComplete( follower_ ) );
+			
+			index_ = ( index_ + 1 );
+		}
+		else
+		{
+			debug Debug.PrintString( "FollowWaypoints: Last route marker reached. Looping back to beginning\n" );
+			index_ = 0;
+		}
+		
+		if ( !iSim.Cast( local_0 ) )
+		{
+			loop_count_ = ( loop_count_ + -1 );
+		}
+	}
+	while ( loop_count_ > 0 );
+	
+	debug Debug.PrintString( "FollowWaypoints: Completed. \n" );
+}
+
+task FollowRouteTask( hsim follower_, hgroup route_, float completion_ratio_, float time_step_, int loop_count_, int index_ )
+{
+	FollowRoute( follower_, route_, completion_ratio_, time_step_, loop_count_, index_ );
+}
+
+hgroup BuildCircularPath( hsim center_, eAxis axis_, float radius_, float start_angle_, float end_angle_, int count_ )
+{
+	int ii;
+	hisim local_1;
+	float local_2;
+	float local_3 = ( (end_angle_ - start_angle_) / (count_ - 1.0) );
+	float local_4;
+	float local_5;
+	float local_6;
+	float local_7;
+	float local_8;
+	hgroup group_0 = GetKillGroup();
+	hgroup group_1 = Group.Create();
+	
+	for ( ii = 0; ii < count_; ++ii )
+	{
+		local_2 = ( start_angle_ + (ii * local_3) );
+		local_4 = ( radius_ * Math.Cos( local_2 ) );
+		local_5 = ( radius_ * Math.Sin( local_2 ) );
+		
+		debug
+		{
+			Debug.PrintString( "Creating waypoint at radius " );
+			Debug.PrintFloat( radius_ );
+			Debug.PrintString( " Meters, with cos " );
+			Debug.PrintFloat( Math.Cos( local_2 ) );
+			Debug.PrintString( " and position (" );
+			Debug.PrintFloat( local_4 );
+			Debug.PrintString( " , " );
+			Debug.PrintFloat( local_5 );
+			Debug.PrintString( ")\n" );
+		}
+		
+		switch ( axis_ )
+		{
+			case AXIS_x:
+				local_6 = 0.0;
+				local_7 = local_4;
+				local_8 = local_5;
+				break;
+			
+			case AXIS_y:
+				local_6 = local_5;
+				local_7 = 0.0;
+				local_8 = local_4;
+				break;
+			
+			case AXIS_z:
+				local_6 = local_4;
+				local_7 = local_5;
+				local_8 = 0.0;
+				break;
+		}
+		
+		local_1 = iSim.Cast( iUtilities.CreateWaypointRelativeTo( center_, local_6, local_7, local_8 ) );
+		Group.AddSim( group_1, local_1 );
+	}
+	
+	Group.AddGroup( group_0, group_1 );
+	return group_1;
+}
+
+hgroup GetKillGroup()
+{
+	hgroup gCutsceneKillGroup;
+	
+	atomic
+	{
+		gCutsceneKillGroup = Group.Cast( Global.Handle( "g_cutscene_kill_group" ) );
+		
+		if ( !gCutsceneKillGroup )
+		{
+			gCutsceneKillGroup = Group.Create();
+			Global.SetHandle( "g_cutscene_kill_group", gCutsceneKillGroup );
+		}
+	}
+	
+	return gCutsceneKillGroup;
+}
+
+Watch( hsim from_, hsim to_ )
+{
+	hsim local_0;
+	hgroup group = GetKillGroup();
+	
+	local_0 = iDirector.CreateDolly();
+	Group.AddSim( group, local_0 );
+	iDirector.AttachDollyToSim( local_0, from_ );
+	iDirector.SetDollyCamera( local_0 );
+	iDirector.SetFocus( to_ );
+}
+
+hsim BuzzCamera( hsim flying_, float xoffset_, float yoffset_, float zdistanceahead_ )
+{
+	hsim simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "default" );
+	hsim local_1 = iDirector.CreateDolly();
+	hgroup group = GetKillGroup();
+	
+	Group.AddSim( group, simWaypoint );
+	Group.AddSim( group, local_1 );
+	Sim.PlaceRelativeTo( local_1, flying_, xoffset_, yoffset_, zdistanceahead_ );
+	Sim.SetCullable( simWaypoint, false );
+	Sim.PlaceAt( simWaypoint, flying_ );
+	iDirector.SetFocus( simWaypoint );
+	iDirector.SetDollyCamera( local_1 );
+	return local_1;
+}
+
+OrbitSim( hsim look_from_, hsim look_at_, hsim moves_, hsim move_around_, string caption_, eAxis axis_, float radius_, float start_angle_, float end_angle_ )
+{
+	float local_0 = ( 16.0 * (Math.Abs( end_angle_ - start_angle_ ) / 360.0) );
+	hgroup group = BuildCircularPath( move_around_, axis_, radius_, start_angle_, end_angle_, local_0 );
+	
+	Sim.PlaceAt( moves_, Group.NthSim( group, 0 ) );
+	Watch( look_from_, look_at_ );
+	iDirector.SetCaption( caption_, 2.0 );
+	FollowRoute( moves_, group, 0.60, 0.30, 1, 0 );
+	Task.Sleep( Task.Current(), 5.0 );
+}
+
+local_function_5( hsim param_0_, hsim param_1_, hsim param_2_, string param_3_ )
+{
+	hsim local_0;
+	hgroup group_0 = GetKillGroup();
+	hgroup group_1 = BuildCircularPath( param_1_, AXIS_z, 2800.0, 0.0, 360.0, 16 );
+	
+	local_0 = iDirector.CreateDolly();
+	iDirector.AttachDollyToSim( local_0, param_0_ );
+	iDirector.SetDollyCamera( local_0 );
+	iDirector.SetFocus( param_2_ );
+	iDirector.SetCaption( param_3_, 2.0 );
+	FollowRoute( param_0_, group_1, 0.60, 0.30, 1, 0 );
+	Task.Sleep( Task.Current(), 5.0 );
+}
+
+local_function_6( hsim param_0_, hsim param_1_, hsim param_2_, string param_3_ )
+{
+	hsim local_0;
+	hgroup group_0 = GetKillGroup();
+	hgroup group_1 = BuildCircularPath( param_1_, AXIS_z, 2800.0, 0.0, 360.0, 16 );
+	
+	local_0 = iDirector.CreateDolly();
+	iDirector.AttachDollyToSim( local_0, param_0_ );
+	iDirector.SetDollyCamera( local_0 );
+	iDirector.SetFocus( param_2_ );
+	iDirector.SetCaption( param_3_, 2.0 );
+	FollowRoute( param_2_, group_1, 0.60, 0.30, 1, 0 );
+	Task.Sleep( Task.Current(), 5.0 );
+}
+
+SetupDirectedDeath( hobject directed_death_object_, hsim speaker_, string speaker_name_, string obituary_or_last_words_, string epitaph_, bool end_game_ )
+{
+	hgroup group = Group.Cast( directed_death_object_ );
+	hisim local_1 = iSim.Cast( directed_death_object_ );
+	int ii;
+	int jj;
+	int simCount;
+	int groupCount;
+	
+	if ( group )
+	{
+		simCount = Group.SimCount( group );
+		groupCount = Group.GroupCount( group );
+		
+		for ( ii = 0; ii < simCount; ++ii )
+		{
+			SetupDirectedDeath( Group.NthSim( group, ii ), speaker_, speaker_name_, obituary_or_last_words_, epitaph_, end_game_ );
+		}
+		
+		for ( jj = 0; jj < groupCount; ++jj )
+		{
+			SetupDirectedDeath( Group.NthGroup( group, jj ), speaker_, speaker_name_, obituary_or_last_words_, epitaph_, end_game_ );
+		}
+		
+		return;
+	}
+	
+	if ( local_1 )
+	{
+		Object.AddHandleProperty( local_1, "Cutscene_DirectedDeath_Speaker", speaker_ );
+		Object.AddStringProperty( local_1, "Cutscene_DirectedDeath_Speaker_Name", speaker_name_ );
+		Object.AddStringProperty( local_1, "Cutscene_DirectedDeath_Obituary", obituary_or_last_words_ );
+		Object.AddStringProperty( local_1, "Cutscene_DirectedDeath_Epitaph", epitaph_ );
+		Object.AddIntProperty( local_1, "Cutscene_DirectedDeath_EndGame", end_game_ );
+		Object.SetStringProperty( local_1, "death_script", "iCutsceneUtilities.DirectedDeath" );
+	}
+}
+
+SetupDirectedGroupDeath( hobject directed_death_object_, hsim speaker_, string speaker_name_, string obituary_or_last_words_, string epitaph_, bool end_game_ )
+{
+	hgroup group = Group.Cast( directed_death_object_ );
+	hisim local_1 = iSim.Cast( directed_death_object_ );
+	int ii;
+	int simCount;
+	
+	if ( group )
+	{
+		simCount = Group.SimCount( group );
+		
+		for ( ii = 0; ii < simCount; ++ii )
+		{
+			SetupDirectedDeath( Group.NthSim( group, ii ), speaker_, speaker_name_, obituary_or_last_words_, epitaph_, end_game_ );
+		}
+		
+		return;
+		Object.AddHandleProperty( group, "Cutscene_DirectedDeath_Speaker", speaker_ );
+		Object.AddStringProperty( group, "Cutscene_DirectedDeath_Speaker_Name", speaker_name_ );
+		Object.AddStringProperty( group, "Cutscene_DirectedDeath_Obituary", obituary_or_last_words_ );
+		Object.AddStringProperty( group, "Cutscene_DirectedDeath_Epitaph", epitaph_ );
+		Object.AddIntProperty( group, "Cutscene_DirectedDeath_EndGame", end_game_ );
+	}
+	
+	if ( local_1 )
+	{
+		Object.SetStringProperty( local_1, "death_script", "iCutsceneUtilities.DirectedGroupDeath" );
+	}
+}
+
+task local_function_3( hisim param_0_, hsim param_1_, string param_2_, string param_3_, string param_4_ )
+{
+	hsim local_0;
+	hgroup group = GetKillGroup();
+	
+	iDirector.Begin();
+	local_0 = iDirector.CreateDolly();
+	Sim.PlaceNear( local_0, param_0_, Object.FloatProperty( param_0_, "radius" ) * 7.0 );
+	iDirector.SetDollyCamera( local_0 );
+	iDirector.SetFocus( param_0_ );
+	iSim.Kill( param_0_ );
+	iConversation.OneLiner( param_1_, param_2_, param_3_ );
+	iDirector.SetCaption( param_4_, 2.0 );
+	Task.Sleep( Task.Current(), 9.0 );
+	iDirector.End();
+}
+
+local_function_4( hisim param_0_, bool param_1_ )
+{
+	int local_0;
+	hgroup group;
+	hobject local_2;
+	bool cutsceneDirectedDeathEndGame;
+	hsim cutsceneDirectedDeathSpeaker;
+	string cutsceneDirectedDeathSpeakerName;
+	string cutsceneDirectedDeathObituary;
+	string cutsceneDirectedDeathEpitaph;
+	int local_8;
+	
+	if ( param_1_ )
+	{
+		if ( Group.SimCount( group ) > 1 )
+		{
+			debug Debug.PrintString( "iCutsceneUtilities.DirectedDeath: NOTE: death cutscene not appropriate yet - wait for (if) rest of group to die\n" );
+			return;
+		}
+		
+		group = Sim.Group( param_0_ );
+		local_2 = group;
+	}
+	else
+	{
+		local_2 = param_0_;
+	}
+	
+	cutsceneDirectedDeathSpeaker = Sim.Cast( Object.HandleProperty( local_2, "Cutscene_DirectedDeath_Speaker" ) );
+	cutsceneDirectedDeathSpeakerName = Object.StringProperty( local_2, "Cutscene_DirectedDeath_Speaker_Name" );
+	cutsceneDirectedDeathObituary = Object.StringProperty( local_2, "Cutscene_DirectedDeath_Obituary" );
+	cutsceneDirectedDeathEpitaph = Object.StringProperty( local_2, "Cutscene_DirectedDeath_Epitaph" );
+	cutsceneDirectedDeathEndGame = Object.IntProperty( local_2, "Cutscene_DirectedDeath_EndGame" );
+	
+	if ( (cutsceneDirectedDeathSpeaker == false) && (cutsceneDirectedDeathSpeakerName == "") )
+	{
+		cutsceneDirectedDeathSpeaker = param_0_;
+	}
+	
+	HandleAbort( start local_function_3( param_0_, cutsceneDirectedDeathSpeaker, cutsceneDirectedDeathSpeakerName, cutsceneDirectedDeathObituary, cutsceneDirectedDeathEpitaph ) );
+	Task.Sleep( Task.Current(), 5.0 );
+	
+	if ( cutsceneDirectedDeathEndGame && (Object.PropertyExists( iShip.FindPlayerShip(), "player_dying" ) == 0) )
+	{
+		Object.AddBoolProperty( iShip.FindPlayerShip(), "destroy_sim", false );
+		Object.AddStringProperty( iShip.FindPlayerShip(), "death_caption", "caption_failed_generic" );
+		Task.Detach( start iDeathScript.PlayerDeathScript( iShip.FindPlayerShip() ) );
+	}
+}
+
+task DirectedDeath( hobject param_0_ )
+{
+	local_function_4( iSim.Cast( param_0_ ), false );
+}
+
+task DirectedGroupDeath( hobject param_0_ )
+{
+	local_function_4( iSim.Cast( param_0_ ), true );
+}
+
+set GetStationModules( hsim station_ )
+{
+	return iSim.SimsInRadius( iSim.Cast( station_ ), Object.FloatProperty( station_, "radius" ) * 1.50, 8192 );
+}
+
+set GetThingsCalled( set in_, string name_ )
+{
+	hisim local_0;
+	set localSet_1;
+	set localSet_2;
+	
+	Set.Union( localSet_1, in_ );
+	
+	do
+	{
+		local_0 = iSim.Cast( Set.FirstElement( localSet_1 ) );
+		
+		if ( Object.StringProperty( local_0, "name" ) == name_ )
+		{
+			Set.Add( localSet_2, local_0 );
+		}
+		
+		Set.Remove( localSet_1, local_0 );
+	}
+	while ( !Set.IsEmpty( localSet_1 ) );
+	
+	return localSet_2;
+}
+
+hisim FindStationModule( hsim station_, eStationModuleFind module_type_ )
+{
+	set localSet_0 = GetStationModules( station_ );
+	set localSet_1;
+	
+	switch ( module_type_ )
+	{
+		case SMF_Comms:
+			Set.Union( localSet_1, GetThingsCalled( localSet_0, "Comms" ) );
+			break;
+		
+		case SMF_Engineering:
+			Set.Union( localSet_1, GetThingsCalled( localSet_0, "Large Engineering Module" ) );
+			Set.Union( localSet_1, GetThingsCalled( localSet_0, "Small Engineering Module" ) );
+			break;
+		
+		case SMF_Docking_Arm:
+			Set.Union( localSet_1, GetThingsCalled( localSet_0, "Docking Arm" ) );
+			break;
+		
+		case SMF_Pod_Spewer:
+			Set.Union( localSet_1, GetThingsCalled( localSet_0, "Pod Spewer" ) );
+			break;
+		
+		case SMF_Habitat:
+			Set.Union( localSet_1, GetThingsCalled( localSet_0, "Large Habitat" ) );
+			break;
+		
+		case SMF_Hotel:
+			Set.Union( localSet_1, GetThingsCalled( localSet_0, "Police Interceptor" ) );
+			break;
+		
+		case SMF_Processing_Plant:
+			Set.Union( localSet_1, GetThingsCalled( localSet_0, "Processing Plant" ) );
+			break;
+	}
+	
+	if ( Set.IsEmpty( localSet_1 ) )
+	{
+		debug Debug.PrintString( "iUtilities.FindStationModule failed to find a module of the requested type.  this may be due to (a) localisation or (b) a change to the way stations are constructed!\n" );
+		return none;
+	}
+	else
+	{
+		return iSim.Cast( Set.FirstElement( localSet_1 ) );
+	}
+	
+	return none;
+}
+

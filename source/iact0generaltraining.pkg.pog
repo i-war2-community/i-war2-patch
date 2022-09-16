@@ -1,0 +1,353 @@
+package iAct0GeneralTraining;
+
+uses Debug,
+     GUI,
+     String,
+     Set,
+     List,
+     Global,
+     Object,
+     State,
+     Task,
+     iBaseGUI,
+     iConversation,
+     Group,
+     Sim,
+     iHUD;
+
+provides BaseExplorationHandler,
+         BaseOnlineHandler,
+         HUDTraininer;
+
+prototype task BaseExplorationHandler();
+prototype task BaseOnlineHandler();
+prototype local_function_0( string param_0_ );
+prototype task local_function_1( string param_0_ );
+prototype task HUDTraininer();
+
+task BaseExplorationHandler()
+{
+	string screenClass;
+	int local_1;
+	int local_2;
+	hstate taskState = State.Find( Task.Current() );
+	bool saidPhrase = false;
+	
+	debug Debug.PrintString( "iPrelude.BaseExplorationHandler : Task has started\n" );
+	Global.SetBool( "g_act0_started_proving_grounds", true );
+	
+	if ( Object.PropertyExists( taskState, "said_phrase" ) == 0 )
+	{
+		Object.AddBoolProperty( taskState, "said_phrase", false );
+	}
+	else
+	{
+		saidPhrase = Object.BoolProperty( taskState, "said_phrase" );
+	}
+	
+	schedule
+	{
+		every 1.0:
+		{
+			local_2 = ( local_2 + 1 );
+			screenClass = GUI.CurrentScreenClassname();
+			
+			if ( (screenClass == "icSPBaseScreen") && (Object.PropertyExists( taskState, "act0_visited_main_screen" ) == 0) )
+			{
+				Object.AddIntProperty( taskState, "act0_visited_main_screen", 1 );
+				debug Debug.PrintString( "iPrelude.BaseExplorationHandler : Player has entered the main base screen for the first time\n" );
+				iConversation.Begin();
+				iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_well_this_is_the_nerve_centre_of_the_base" );
+				iConversation.End();
+			}
+			else if ( (screenClass == "icSPHangarScreen") && (Object.PropertyExists( taskState, "act0_visited_hangar" ) == 0) )
+			{
+				debug Debug.PrintString( "iPrelude.BaseExplorationHandler :  Player has entered the hangar screen for the first time\n" );
+				Object.AddIntProperty( taskState, "act0_visited_hangar", 1 );
+				iConversation.Begin();
+				iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_heres_the_hanger" );
+				iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_the_hanger_is_where_you_can_access_all_the_systems_for_fitting_out_a_ship" );
+				iConversation.Say( none, "name_young_cal", "a0_master_dialogue_young_cal_wow_look_at_that_ship" );
+				iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_yeah_thats_the_storm_petrol" );
+				iConversation.Say( none, "name_young_cal", "a0_master_dialogue_young_cal_can_i_fly_it" );
+				iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_sure_you_can_but_lets_take_things_one_step_at_a_time" );
+				iConversation.End();
+			}
+			else if ( (screenClass == "icSPShipTypeScreen") && (Object.PropertyExists( taskState, "act0_visited_ship_selector" ) == 0) )
+			{
+				debug Debug.PrintString( "iPrelude.BaseExplorationHandler :  Player has entered the ship selection screen for the first time\n" );
+				Object.AddIntProperty( taskState, "act0_visited_ship_selector", 1 );
+				iConversation.Begin();
+				iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_here_you_can_select_the_ship" );
+				iConversation.End();
+			}
+			else if ( (screenClass == "icSPLoadoutScreen") && (Object.PropertyExists( taskState, "act0_visited_loadout" ) == 0) )
+			{
+				debug Debug.PrintString( "iPrelude.BaseExplorationHandler : Player has entered the loadout screen for the first time. how thrilling\n" );
+				Object.AddIntProperty( taskState, "act0_visited_loadout", 1 );
+				iConversation.Begin();
+				iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_there_are_four_types_of_loadout_you_can_pick_for_a_ship" );
+				iConversation.End();
+			}
+			else if ( (screenClass == "icSPAddCargoScreen") && (Object.PropertyExists( taskState, "act0_visited_add_cargo" ) == 0) )
+			{
+				debug Debug.PrintString( "iPrelude.BaseExplorationHandler : player has entered the add cargo screen for the fist time\n" );
+				Object.AddIntProperty( taskState, "act0_visited_add_cargo", 1 );
+				iConversation.Begin();
+				iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_here_you_can_load_any_cargo_in_the_bases_stores" );
+				iConversation.End();
+			}
+			else if ( (screenClass == "icSPCustomiseScreen") && (Object.PropertyExists( taskState, "act0_visited_customise_loadout" ) == 0) )
+			{
+				debug Debug.PrintString( "iPrelude.BaseExplorationHandler : player has entered the customise loadout screen for the fist time\n" );
+				Object.AddIntProperty( taskState, "act0_visited_customise_loadout", 1 );
+				iConversation.Begin();
+				iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_this_console_allows_you_to_modify" );
+				iConversation.End();
+			}
+			else if ( (screenClass == "icSPManifestScreen") && (Object.PropertyExists( taskState, "act0_visited_manifest" ) == 0) )
+			{
+				debug Debug.PrintString( "iPrelude.BaseExplorationHandler : player has entered the manifest screen for the fist time\n" );
+				Object.AddIntProperty( taskState, "act0_visited_manifest", 1 );
+				iConversation.Begin();
+				iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_this_console_shows_all_the_current_systems_loaded_onto_your_currently_selected_ship" );
+				iConversation.End();
+			}
+			else if ( (screenClass == "icSPInventoryScreen") && (Object.PropertyExists( taskState, "act0_visited_inventory" ) == 0) )
+			{
+				debug Debug.PrintString( "iPrelude.BaseExplorationHandler : player has entered the inventory screen for the fist time\n" );
+				Object.AddIntProperty( taskState, "act0_visited_inventory", 1 );
+				iConversation.Begin();
+				iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_this_console_shows_you_all_the_cargo_kept_in_the_bases_hold" );
+				iConversation.End();
+			}
+			else if ( (screenClass == "icSPCommsMainMenuScreen") && (Object.PropertyExists( taskState, "act0_visited_communications" ) == 0) )
+			{
+				debug Debug.PrintString( "iPrelude.BaseExplorationHandler : player has entered the icommunications screen for the fist time\n" );
+				Object.AddIntProperty( taskState, "act0_visited_communications", 1 );
+				iConversation.Begin();
+				iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_on_this_console_you_can_access_all_the_e_mail_sent_to_the_base" );
+				iConversation.Say( none, "name_young_cal", "a0_master_dialogue_young_cal_but_i_thought_this_place_was_supposed_to_be_secret" );
+				iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_well_it_is_the_mail_is_routed_through_a_nmuber_of_comms_satellites" );
+				iConversation.Say( none, "name_young_cal", "a0_master_dialogue_young_cal_hey_clay_theres_a_message_here" );
+				iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_well_open_it_up_kid" );
+				iConversation.End();
+			}
+			else if ( (screenClass == "icSPEncyclopaediaScreen") && (Object.PropertyExists( taskState, "act0_visited_encyclopedia" ) == 0) )
+			{
+				debug Debug.PrintString( "iPrelude.BaseExplorationHandler : player has entered the encyclopedia screen for the fist time\n" );
+				Object.AddIntProperty( taskState, "act0_visited_encyclopedia", 1 );
+				iConversation.Begin();
+				iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_ok_kid_if_theres_anything_you_need_to_know" );
+				iConversation.End();
+			}
+			else if ( (screenClass == "icSPStatisticsScreen") && (Object.PropertyExists( taskState, "act0_visited_statistics" ) == 0) )
+			{
+				Object.AddIntProperty( taskState, "act0_visited_statistics", 1 );
+				iConversation.Begin();
+				iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_this_is_stats" );
+				iConversation.End();
+			}
+			
+			if ( (screenClass == "icSPBaseScreen") && ((Global.Bool( "g_act0_lucrecias_mail_conversation" ) == 1) && !saidPhrase) )
+			{
+				saidPhrase = true;
+				Object.SetBoolProperty( taskState, "said_phrase", true );
+				local_2 = 0;
+				iConversation.OneLiner( none, "name_clay", "a0_master_dialogue_clay_right_before" );
+			}
+		}
+	}
+}
+
+task BaseOnlineHandler()
+{
+	string screenClass;
+	bool local_1 = false;
+	int local_2;
+	bool local_3 = false;
+	hstate taskState = State.Find( Task.Current() );
+	
+	debug Debug.PrintString( "iPrelude.BaseOnlineHandler : Task has started\n" );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			screenClass = GUI.CurrentScreenClassname();
+			
+			if ( Object.PropertyExists( taskState, "act0_done_introduction" ) == 0 )
+			{
+				Object.AddIntProperty( taskState, "act0_done_introduction", 1 );
+				iConversation.Begin();
+				iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_ok_the_systems_are_online" );
+				Global.SetBool( "g_base_lights_on", true );
+				iBaseGUI.SetTradeScreenEnabled( true );
+				iBaseGUI.SetRecyclingScreenEnabled( true );
+				iBaseGUI.SetManufacturingScreenEnabled( true );
+				iConversation.Say( none, "name_young_cal", "a0_master_dialogue_young_cal_no_everything_is_reporting_in_as_fuctional_so_far" );
+				iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_ok_that_needs_sorting_out_but" );
+				iConversation.End();
+				Global.SetInt( "g_story_0.50", 1 );
+				Global.SetBool( "g_act0_online_base_complete", true );
+			}
+			else if ( (screenClass == "icSPRecyclingScreen") && (Object.PropertyExists( taskState, "act0_done_recycling" ) == 0) )
+			{
+				Object.AddIntProperty( taskState, "act0_done_recycling", 1 );
+				iConversation.Begin();
+				iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_this_console_allows_you_to_take_anything_in_the" );
+				iConversation.End();
+			}
+			else if ( (screenClass == "icSPManufacturingScreen") && (Object.PropertyExists( taskState, "act0_done_manufacturing" ) == 0) )
+			{
+				Object.AddIntProperty( taskState, "act0_done_manufacturing", 1 );
+				iConversation.Begin();
+				iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_this_here_is_the_manufacturing_console" );
+				iConversation.End();
+			}
+			else if ( (screenClass == "icSPTradingScreen") && (Object.PropertyExists( taskState, "act0_done_trade" ) == 0) )
+			{
+				Object.AddIntProperty( taskState, "act0_done_trade", 1 );
+				iConversation.Begin();
+				iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_this_is_trade" );
+				iConversation.End();
+			}
+		}
+	}
+}
+
+local_function_0( string param_0_ )
+{
+	do
+	{
+		Task.Sleep( Task.Current(), 0.50 );
+	}
+	while ( !( iHUD.CurrentMenuNode() == param_0_ ) );
+}
+
+task local_function_1( string param_0_ )
+{
+	do
+	{
+		Task.Sleep( Task.Current(), 0.50 );
+	}
+	while ( iHUD.CurrentMenuNode() == param_0_ );
+}
+
+task HUDTraininer()
+{
+	hstate taskState = State.Find( Task.Current() );
+	
+	if ( (Object.PropertyExists( taskState, "number_completed_hud_nodes" ) == 0) && !Global.Exists( "g_training_disabled" ) )
+	{
+		iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_hud_menu2" );
+		local_function_0( "hud_menu_menu" );
+		iHUD.SetPrompt( "", "" );
+		iHUD.LockMenu( true );
+		iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_hud_select" );
+		iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_as_you" );
+		iHUD.LockMenu( false );
+		local_function_0( "hud_menu_menu" );
+		
+		if ( Object.PropertyExists( taskState, "number_completed_hud_nodes" ) == 0 )
+		{
+			Object.AddIntProperty( taskState, "number_completed_hud_nodes", 0 );
+		}
+	}
+	
+	schedule
+	{
+		every 1.0:
+		{
+			debug Debug.PrintString( "iact0GeneralTraining: Still running the HUD traininer!\n" );
+			
+			if ( !Global.Exists( "g_training_disabled" ) )
+			{
+				if ( Object.IntProperty( taskState, "number_completed_hud_nodes" ) == 10 )
+				{
+					State.Destroy( Task.Current() );
+					return;
+				}
+				
+				if ( (iHUD.CurrentMenuNode() == "hud_menu_eng") && (Object.PropertyExists( taskState, "done_eng" ) == 0) )
+				{
+					Object.AddIntProperty( taskState, "done_eng", 1 );
+					Object.SetIntProperty( taskState, "number_completed_hud_nodes", Object.IntProperty( taskState, "number_completed_hud_nodes" ) + 1 );
+					start local_function_1( "hud_menu_eng" );
+					iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_eng_screen" );
+				}
+				
+				if ( (iHUD.CurrentMenuNode() == "hud_menu_wep") && (Object.PropertyExists( taskState, "done_wep" ) == 0) )
+				{
+					Object.AddIntProperty( taskState, "done_wep", 1 );
+					Object.SetIntProperty( taskState, "number_completed_hud_nodes", Object.IntProperty( taskState, "number_completed_hud_nodes" ) + 1 );
+				}
+				
+				if ( (iHUD.CurrentMenuNode() == "hud_menu_cmd") && (Object.PropertyExists( taskState, "done_cmd" ) == 0) )
+				{
+					Object.AddIntProperty( taskState, "done_cmd", 1 );
+					Object.SetIntProperty( taskState, "number_completed_hud_nodes", Object.IntProperty( taskState, "number_completed_hud_nodes" ) + 1 );
+					start local_function_1( "hud_menu_cmd" );
+					iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_new_cmd_menu" );
+				}
+				
+				if ( (iHUD.CurrentMenuNode() == "hud_menu_doc") && (Object.PropertyExists( taskState, "done_doc" ) == 0) )
+				{
+					Object.AddIntProperty( taskState, "done_doc", 1 );
+					Object.SetIntProperty( taskState, "number_completed_hud_nodes", Object.IntProperty( taskState, "number_completed_hud_nodes" ) + 1 );
+					start local_function_1( "hud_menu_doc" );
+					iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_doc_menu" );
+				}
+				
+				if ( (iHUD.CurrentMenuNode() == "hud_menu_log") && (Object.PropertyExists( taskState, "done_log" ) == 0) )
+				{
+					Object.AddIntProperty( taskState, "done_log", 1 );
+					Object.SetIntProperty( taskState, "number_completed_hud_nodes", Object.IntProperty( taskState, "number_completed_hud_nodes" ) + 1 );
+					start local_function_1( "hud_menu_log" );
+					iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_log_screen" );
+				}
+				
+				if ( (iHUD.CurrentMenuNode() == "hud_menu_objectives") && (Object.PropertyExists( taskState, "done_obj" ) == 0) )
+				{
+					Object.AddIntProperty( taskState, "done_obj", 1 );
+					Object.SetIntProperty( taskState, "number_completed_hud_nodes", Object.IntProperty( taskState, "number_completed_hud_nodes" ) + 1 );
+					start local_function_1( "hud_menu_objectives" );
+					iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_objective_screen" );
+				}
+				
+				if ( (iHUD.CurrentMenuNode() == "hud_menu_comms") && (Object.PropertyExists( taskState, "done_coms" ) == 0) )
+				{
+					Object.AddIntProperty( taskState, "done_coms", 1 );
+					Object.SetIntProperty( taskState, "number_completed_hud_nodes", Object.IntProperty( taskState, "number_completed_hud_nodes" ) + 1 );
+					start local_function_1( "hud_menu_comms" );
+					iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_comms_menu" );
+				}
+				
+				if ( (iHUD.CurrentMenuNode() == "hud_menu_nav") && (Object.PropertyExists( taskState, "done_nav" ) == 0) )
+				{
+					Object.AddIntProperty( taskState, "done_nav", 1 );
+					Object.SetIntProperty( taskState, "number_completed_hud_nodes", Object.IntProperty( taskState, "number_completed_hud_nodes" ) + 1 );
+					start local_function_1( "hud_menu_nav" );
+					iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_nav_menu" );
+				}
+				
+				if ( (iHUD.CurrentMenuNode() == "hud_menu_map") && (Object.PropertyExists( taskState, "done_map" ) == 0) )
+				{
+					Object.AddIntProperty( taskState, "done_map", 1 );
+					Object.SetIntProperty( taskState, "number_completed_hud_nodes", Object.IntProperty( taskState, "number_completed_hud_nodes" ) + 1 );
+					start local_function_1( "hud_menu_map" );
+					iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_starmap" );
+				}
+				
+				if ( (iHUD.CurrentMenuNode() == "hud_menu_autopilot") && (Object.PropertyExists( taskState, "done_auto" ) == 0) )
+				{
+					Object.AddIntProperty( taskState, "done_auto", 1 );
+					Object.SetIntProperty( taskState, "number_completed_hud_nodes", Object.IntProperty( taskState, "number_completed_hud_nodes" ) + 1 );
+					start local_function_1( "hud_menu_autopilot" );
+					iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_autop" );
+				}
+			}
+		}
+	}
+}
+

@@ -1,0 +1,948 @@
+package iAct2Mission10;
+
+uses Debug,
+     GUI,
+     Set,
+     List,
+     String,
+     Global,
+     Sim,
+     Group,
+     Math,
+     Object,
+     State,
+     Task,
+     Text,
+     iSim,
+     iShip,
+     Subsim,
+     iDockport,
+     iLagrangePoint,
+     iAI,
+     iBackToBase,
+     iComms,
+     iConversation,
+     iEmail,
+     MapEnumerations,
+     iFaction,
+     iFormation,
+     iHUD,
+     iMapEntity,
+     iBody,
+     iHabitat,
+     CargoTypes,
+     iInventory,
+     iMissionTracker,
+     iObjectives,
+     iPilotSetup,
+     iRangeCheck,
+     iRegion,
+     iStation,
+     iTrade,
+     INIFile,
+     iUtilities,
+     iWingmen;
+
+provides Main,
+         MissionHandler,
+         Stub;
+
+prototype Main();
+prototype Stub();
+prototype local_function_11( hstate state_ );
+prototype local_function_17();
+prototype task local_function_0();
+prototype task local_function_6( list localList_, hstate state_, hsim param_2_ );
+prototype local_function_15( hstate state_ );
+prototype local_function_14( hstate state_ );
+prototype list local_function_5( hsim param_0_ );
+prototype hgroup local_function_1( hmapentity mapentity_ );
+prototype local_function_7( hgroup group_ );
+prototype task local_function_2( hgroup group_, hstate state_, hmapentity mapentity_0_ );
+prototype task local_function_3( hsim param_0_, hmapentity mapentity_ );
+prototype task local_function_4( hmapentity mapentity_, hsim param_1_, hstate state_ );
+prototype task local_function_8( hstate state_ );
+prototype local_function_9( hsim param_0_, hstate state_ );
+prototype task local_function_10( hgroup group_0_, hgroup group_1_, hsim param_2_, hstate state_ );
+prototype task local_function_12( hship ship_ );
+prototype local_function_16();
+prototype task local_function_18( hstate state_ );
+prototype task MissionHandler();
+prototype local_function_13( hstate state_ );
+
+Main()
+{
+	Task.Detach( start local_function_0() );
+}
+
+Stub()
+{
+	Global.SetBool( "g_act2_grassy_knoll_complete", true );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "M.C.A." ), 572, 1, 20, 1, 0 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "M.C.A." ), 572, 1, 6, 1, 0 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "M.C.A." ), 566, 1, 11, 4, 2 ) );
+}
+
+local_function_11( hstate state_ )
+{
+	hsim waypointHotRockIndependentWaystation;
+	hship playerShip = iShip.FindPlayerShip();
+	
+	waypointHotRockIndependentWaystation = iUtilities.CreateWaypointRelativeTo( iMapEntity.FindByNameInSystem( "Hot Rock Independent Waystation", "map:/geog/badlands/santa_romera" ), 0.0, 200000.0, 50000.0 );
+	Object.AddHandleProperty( playerShip, "restart_waypoint", waypointHotRockIndependentWaystation );
+	Object.AddHandleProperty( playerShip, "current_mission_state", state_ );
+}
+
+local_function_17()
+{
+	iObjectives.Remove( "a2_m10_objectives_equip" );
+	iObjectives.Remove( "a2_m10_objectives_shoot" );
+	iObjectives.Remove( "a2_m10_objectives_collect" );
+	iObjectives.Remove( "a2_m10_objectives_redezvous" );
+	iObjectives.Remove( "a2_m10_objectives_ammo" );
+}
+
+task local_function_0()
+{
+	while ( iComms.IsInConversation() )
+	{
+		Task.Sleep( Task.Current(), 0.50 );
+	}
+	
+	if ( !iUtilities.SkipMission( " Grassy Knoll??" ) )
+	{
+		Task.Detach( start MissionHandler() );
+		return;
+	}
+	
+	Stub();
+}
+
+task local_function_6( list localList_, hstate state_, hsim param_2_ )
+{
+	bool local_0 = false;
+	int convoResponse;
+	int local_2;
+	hship ship_0 = iShip.Cast( List.GetNth( localList_, 0 ) );
+	hship ship_1 = iShip.Cast( List.GetNth( localList_, 1 ) );
+	hship playerShip;
+	hfaction player = iFaction.Find( "Player" );
+	hfaction league = iFaction.Find( "League" );
+	
+	debug Debug.PrintString( "Act2 Mission 10 - meeting_dialogue_monitor going\n" );
+	iSim.SetFaction( ship_0, league );
+	playerShip = iShip.FindPlayerShip();
+	
+	schedule
+	{
+		every 5.0:
+		{
+			if ( State.Progress( state_ ) != 0 )
+			{
+				break;
+			}
+			
+			if ( Sim.IsAlive( ship_0 ) && (local_0 == 0) )
+			{
+				if ( Sim.DistanceBetween( playerShip, ship_0 ) <= 2500.0 )
+				{
+					iObjectives.SetState( "a2_m10_objectives_redezvous", OS_Succeeded );
+					local_0 = true;
+					iConversation.Begin();
+					iConversation.AddResponse( "a2_m10_text_player_c1_option_1_yes", "a2_m10_dialogue_player_c1_option_1_yes" );
+					iConversation.AddResponse( "a2_m10_text_player_c1_option_2_no", "a2_m10_dialogue_player_c1_option_2_no" );
+					convoResponse = iConversation.Ask( ship_0, "", "a2_m10_dialogue_thirdman_c1_will_you_do_it" );
+					iConversation.End();
+					
+					switch ( convoResponse )
+					{
+						case 1:
+							iConversation.Begin();
+							iConversation.Say( ship_0, "", "a2_m10_dialogue_thirdman_c1_response_1_good" );
+							iConversation.Say( ship_0, "", "a2_m10_dialogue_thirdman_c1_response_1_beacon" );
+							iConversation.Say( ship_0, "", "a2_m10_dialogue_thirdman_c1_response_1_pod_of_books" );
+							iConversation.Say( ship_0, "", "a2_m10_dialogue_thirdman_c1_response_1_dock" );
+							iConversation.Say( ship_0, "", "a2_m10_dialogue_thirdman_c1_response_1_payoff" );
+							iConversation.End();
+							iShip.Undock( ship_0, ship_1 );
+							Sim.SetVelocityLocalToSim( ship_1, 0.0, 0.0, -200.0 );
+							Task.Sleep( Task.Current(), 1.0 );
+							iSim.SetIndestructable( ship_0, false );
+							iAI.GiveFleeOrder( ship_0, playerShip );
+							Sim.SetCullable( ship_0, false );
+							State.SetProgress( state_, 2 );
+							iConversation.OneLiner( none, "name_clay", "a2_m10_dialogue_clay_fit_the_weapon" );
+							iObjectives.Add( "a2_m10_objectives_equip" );
+							local_0 = false;
+							break;
+						
+						case 2:
+							iConversation.OneLiner( ship_0, "", "a2_m10_dialogue_thirdman_c1_response_2_keep_quiet" );
+							iAI.GiveFleeOrder( ship_0, playerShip );
+							Sim.SetCullable( ship_0, true );
+							Sim.SetCullable( ship_1, true );
+							State.SetProgress( state_, 1 );
+							local_0 = false;
+					}
+				}
+			}
+		}
+	}
+	
+	Sim.Destroy( param_2_ );
+}
+
+local_function_15( hstate state_ )
+{
+	hship playerShip = iShip.FindPlayerShip();
+	bool local_1 = false;
+	bool local_2 = false;
+	hsim waypoint;
+	hmapentity nymasMAASSecurityStation = iMapEntity.FindByNameInSystem( "Nymas MAAS Security Station", "map:/geog/badlands/santa_romera" );
+	
+	debug Debug.PrintString( "Act2 Mission 10 - Setting up security waypoint\n" );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( iSim.ActiveWorld() == "map:/geog/badlands/santa_romera" )
+			{
+				if ( local_2 == 0 )
+				{
+					waypoint = iUtilities.CreateWaypointRelativeTo( nymasMAASSecurityStation, 0.0, 0.0, 0.0 );
+					iUtilities.SimPlaceBetweenExact( waypoint, nymasMAASSecurityStation, iSim.Cast( playerShip ), 30000.0 );
+					Object.AddIntProperty( nymasMAASSecurityStation, "reactive_exception", 1 );
+					
+					debug
+					{
+						if ( waypoint == false )
+						{
+							Debug.PrintString( "Act2 Mission 10 - O bobbins its not here\n" );
+						}
+					}
+					
+					Object.SetStringProperty( waypoint, "name", "a2_m10_target_waypoint" );
+					iSim.SetSensorVisibility( iSim.Cast( waypoint ), true );
+					iStation.AddReactiveException( iHabitat.Cast( nymasMAASSecurityStation ) );
+					iRangeCheck.AddTrafficException( iMapEntity.Cast( nymasMAASSecurityStation ) );
+					Object.AddIntProperty( nymasMAASSecurityStation, "reactive_exception", 1 );
+					debug Debug.PrintString( "Act 2 Mission 10 - security waypoint set up\n" );
+					local_2 = true;
+				}
+				else if ( Sim.DistanceBetween( playerShip, waypoint ) <= 250000.0 )
+				{
+					if ( local_1 == 0 )
+					{
+						iRegion.CreateLDSI( waypoint, 25000.0 );
+						start local_function_2( local_function_1( nymasMAASSecurityStation ), state_, nymasMAASSecurityStation );
+						debug Debug.PrintString( "security near-to schedule triggered" );
+						start local_function_3( waypoint, nymasMAASSecurityStation );
+						debug Debug.PrintString( "dump created" );
+						start local_function_4( nymasMAASSecurityStation, waypoint, state_ );
+						debug Debug.PrintString( "window made" );
+						local_1 = true;
+						iBackToBase.Inhibit();
+					}
+				}
+			}
+		}
+	}
+}
+
+local_function_14( hstate state_ )
+{
+	hsim waypoint;
+	hmapentity hotRockIndependentWaystation = iMapEntity.FindByNameInSystem( "Hot Rock Independent Waystation", "map:/geog/badlands/santa_romera" );
+	bool local_2 = false;
+	hship playerShip;
+	
+	debug
+	{
+		if ( hotRockIndependentWaystation == false )
+		{
+			Debug.PrintString( "O bobbins its not here" );
+		}
+	}
+	
+	iStation.AddReactiveException( iHabitat.Cast( hotRockIndependentWaystation ) );
+	iRangeCheck.AddTrafficException( iMapEntity.Cast( hotRockIndependentWaystation ) );
+	Object.AddIntProperty( hotRockIndependentWaystation, "reactive_exception", 1 );
+	waypoint = iUtilities.CreateWaypointRelativeTo( hotRockIndependentWaystation, Math.Random( 3000.0, 5000.0 ), Math.Random( 3000.0, 5000.0 ), Math.Random( 3000.0, 5000.0 ) );
+	Object.SetStringProperty( waypoint, "name", "a2_m10_meeting_place" );
+	iSim.SetSensorVisibility( iSim.Cast( waypoint ), true );
+	iStation.AddReactiveException( iHabitat.Cast( hotRockIndependentWaystation ) );
+	debug Debug.PrintString( "Act2 Mission 10 - meeting waypoint setup" );
+	
+	schedule
+	{
+		every 5.0:
+		{
+			playerShip = iShip.FindPlayerShip();
+			
+			if ( Sim.DistanceBetween( playerShip, waypoint ) <= 300000.0 )
+			{
+				if ( local_2 == 0 )
+				{
+					start local_function_6( local_function_5( waypoint ), state_, waypoint );
+					local_2 = true;
+				}
+			}
+		}
+	}
+}
+
+list local_function_5( hsim param_0_ )
+{
+	list localList;
+	hship shipTugArmed = iShip.Create( "ini:/sims/ships/independent/tug_armed", "a2_m10_third_man" );
+	hship shipTempCargopod;
+	
+	iPilotSetup.GenericMilitary( shipTugArmed );
+	Sim.SetCullable( shipTugArmed, false );
+	List.AddTail( localList, shipTugArmed );
+	Sim.PlaceRelativeTo( shipTugArmed, param_0_, 0.0, 0.0, 400.0 );
+	Sim.PointAt( shipTugArmed, param_0_ );
+	iSim.SetIndestructable( shipTugArmed, true );
+	debug Debug.PrintString( "Act2 Mission 10: Meeting ship set up\n" );
+	debug Debug.PrintString( "Act2 Mission 10: Don't forget to make him VITAL\n" );
+	shipTempCargopod = iShip.Create( "ini:/sims/ships/utility/temp_cargopod", "Cargo_LongRangeCannon" );
+	List.AddTail( localList, shipTempCargopod );
+	Object.SetIntProperty( shipTempCargopod, "cargo", 566 );
+	iShip.Dock( shipTempCargopod, shipTugArmed );
+	return localList;
+}
+
+hgroup local_function_1( hmapentity mapentity_ )
+{
+	hgroup group = Group.Create();
+	hship shipInterceptor_0;
+	hship shipInterceptor_1;
+	hship shipInterceptor_2;
+	hship shipInterceptor_3;
+	hship shipInterceptor_4;
+	hfaction mAASCorporation = iFaction.Find( "MAAS Corporation" );
+	
+	shipInterceptor_0 = iShip.Create( "ini:/sims/ships/corporate/interceptor", "a2_m10_security_one" );
+	iPilotSetup.GenericMilitary( iShip.Cast( shipInterceptor_0 ) );
+	iSim.SetFaction( iSim.Cast( shipInterceptor_0 ), mAASCorporation );
+	Group.AddSim( group, shipInterceptor_0 );
+	shipInterceptor_1 = iShip.Create( "ini:/sims/ships/corporate/interceptor", "a2_m10_security_two" );
+	iPilotSetup.GenericMilitary( iShip.Cast( shipInterceptor_1 ) );
+	iSim.SetFaction( iSim.Cast( shipInterceptor_1 ), mAASCorporation );
+	Group.AddSim( group, shipInterceptor_1 );
+	shipInterceptor_2 = iShip.Create( "ini:/sims/ships/corporate/interceptor", "a2_m10_security_three" );
+	iPilotSetup.GenericMilitary( iShip.Cast( shipInterceptor_2 ) );
+	iSim.SetFaction( iSim.Cast( shipInterceptor_2 ), mAASCorporation );
+	Group.AddSim( group, shipInterceptor_2 );
+	shipInterceptor_3 = iShip.Create( "ini:/sims/ships/corporate/interceptor", "a2_m10_security_four" );
+	iPilotSetup.GenericMilitary( iShip.Cast( shipInterceptor_3 ) );
+	iSim.SetFaction( iSim.Cast( shipInterceptor_3 ), mAASCorporation );
+	Group.AddSim( group, shipInterceptor_3 );
+	shipInterceptor_4 = iShip.Create( "ini:/sims/ships/corporate/interceptor", "a2_m10_security_five" );
+	iPilotSetup.GenericMilitary( iShip.Cast( shipInterceptor_4 ) );
+	iSim.SetFaction( iSim.Cast( shipInterceptor_4 ), mAASCorporation );
+	Group.AddSim( group, shipInterceptor_4 );
+	Sim.PlaceRelativeTo( shipInterceptor_0, mapentity_, 0.0, 0.0, 2000.0 );
+	Sim.PlaceRelativeTo( shipInterceptor_1, mapentity_, 0.0, 0.0, -2000.0 );
+	Sim.PlaceRelativeTo( shipInterceptor_2, mapentity_, 0.0, 2000.0, 0.0 );
+	Sim.PlaceRelativeTo( shipInterceptor_3, mapentity_, 0.0, -2000.0, 0.0 );
+	Sim.PlaceRelativeTo( shipInterceptor_4, mapentity_, 2000.0, 0.0, 0.0 );
+	Global.CreateHandle( "g_security_force", 1, group );
+	debug Debug.PrintString( "security forces set up" );
+	return group;
+}
+
+local_function_7( hgroup group_ )
+{
+	hship playerShip;
+	
+	debug Debug.PrintString( "Get the Player my witless minions!" );
+	playerShip = iShip.FindPlayerShip();
+	iAI.GiveAttackOrder( group_, playerShip );
+}
+
+task local_function_2( hgroup group_, hstate state_, hmapentity mapentity_0_ )
+{
+	hmapentity mapentity_1 = mapentity_0_;
+	hship playerShip;
+	bool local_2 = false;
+	bool local_3 = false;
+	int local_4;
+	hship groupLeader = iShip.Cast( Group.Leader( group_ ) );
+	bool local_6 = false;
+	
+	local_4 = 0;
+	playerShip = iShip.FindPlayerShip();
+	debug Debug.PrintString( "security monitor started" );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( Sim.Cast( mapentity_1 ) && (local_2 == 0) )
+			{
+				if ( Sim.DistanceBetween( playerShip, mapentity_1 ) <= 300000.0 )
+				{
+					if ( local_6 == 0 )
+					{
+						iConversation.OneLiner( none, "a2_m10_clay", "a2_m10_dialogue_clay_careful_of_the_zone" );
+						local_6 = true;
+					}
+					
+					if ( Sim.DistanceBetween( playerShip, mapentity_1 ) <= 25000.0 )
+					{
+						if ( (Sim.DistanceBetween( playerShip, mapentity_1 ) < 5000.0) || (iShip.HasFired( playerShip ) || ((List.ItemCount( iWingmen.GetDetachedTFighters() ) != 0) || !Set.IsEmpty( iSim.SimsInRadiusOfFaction( iSim.Cast( mapentity_1 ), 5000.0, iFaction.Find( "Player" ) ) ))) )
+						{
+							debug Debug.PrintString( "sound the alarm!" );
+							local_function_7( group_ );
+							local_2 = true;
+						}
+						else
+						{
+							iHUD.PlayAudioCue( AC_SonarPing );
+							
+							if ( local_4 >= 1 )
+							{
+								if ( local_4 >= 10 )
+								{
+									if ( local_4 >= 25 )
+									{
+										debug Debug.PrintString( "right - get him boys" );
+										iConversation.Begin();
+										iConversation.Say( groupLeader, "", "a2_m10_dialogue_corp_security_c2_attack_warning" );
+										iConversation.End();
+										local_function_7( group_ );
+										local_2 = true;
+									}
+									else if ( local_4 == 15 )
+									{
+										debug Debug.PrintString( "Back off Bub!" );
+										iConversation.OneLiner( groupLeader, "", "a2_m10_dialogue_corp_security_c2_second_warning" );
+										iAI.GiveApproachOrder( group_, playerShip );
+									}
+									else
+									{
+										if ( local_4 > 15 )
+										{
+											if ( (Sim.DistanceBetween( groupLeader, playerShip ) <= 5000.0) && (local_3 == 0) )
+											{
+												iConversation.OneLiner( groupLeader, "", "a2_m10_dialogue_corp_security_back_off" );
+												local_3 = true;
+											}
+										}
+										
+										if ( Sim.DistanceBetween( groupLeader, mapentity_1 ) >= 35000.0 )
+										{
+											iAI.GiveApproachOrder( group_, mapentity_1 );
+										}
+									}
+									
+									local_4 = ( local_4 + 1 );
+								}
+								else
+								{
+									if ( local_4 == 1 )
+									{
+										debug Debug.PrintString( "This is a restricted area - back off" );
+										iConversation.OneLiner( groupLeader, "", "a2_m10_dialogue_corp_security_c2_first_warning" );
+									}
+									
+									local_4 = ( local_4 + 1 );
+								}
+							}
+							else
+							{
+								local_4 = ( local_4 + 1 );
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+task local_function_3( hsim param_0_, hmapentity mapentity_ )
+{
+	hgroup group_0 = Group.Create();
+	hgroup group_1 = Group.Create();
+	int ii;
+	int constant = 5;
+	hship shipTempCargopod;
+	hsim waypoint_0;
+	bool local_6 = false;
+	hship playerShip = iShip.FindPlayerShip();
+	hsubsim cargo_LongRangeCannon;
+	int local_9;
+	hsim waypoint_1;
+	
+	waypoint_0 = iUtilities.CreateWaypointRelativeTo( param_0_, 35000.0, 0.0, 0.0 );
+	Object.SetStringProperty( waypoint_0, "name", "a2_m10_pod_store" );
+	debug Debug.PrintString( "making pod field" );
+	iSim.SetSensorVisibility( iSim.Cast( waypoint_0 ), true );
+	
+	for ( ii = 0; ii < constant; ++ii )
+	{
+		Group.AddSim( group_0, Sim.Create( "ini:/sims/ships/utility/freightpod", "a2_m10_waste" ) );
+		iSim.SetSensorVisibility( iSim.Cast( Group.NthSim( group_0, ii ) ), false );
+		Group.AddSim( group_1, Sim.Create( "ini:/sims/ships/utility/temp_cargopod", "a2_m10_waste" ) );
+		iSim.SetSensorVisibility( iSim.Cast( Group.NthSim( group_1, ii ) ), false );
+	}
+	
+	Sim.PlaceNear( Group.Leader( group_0 ), waypoint_0, 200.0 );
+	Sim.PlaceNear( Group.Leader( group_1 ), waypoint_0, 200.0 );
+	iFormation.RandomSphere( group_0, 200.0, true );
+	iFormation.RandomSphere( group_1, 200.0, true );
+	Group.AddGroup( group_0, group_1 );
+	iFormation.ApplyRandomRotation( group_0 );
+	debug Debug.PrintString( "pod field made" );
+	shipTempCargopod = iShip.Create( "ini:/sims/ships/utility/temp_cargopod", "a2_m10_books" );
+	Global.CreateHandle( "g_ammo_pod", 1, shipTempCargopod );
+	Object.AddIntProperty( shipTempCargopod, "cargo", 572 );
+	Sim.PlaceNear( shipTempCargopod, waypoint_0, 200.0 );
+	Sim.SetCullable( shipTempCargopod, false );
+	debug Debug.PrintString( "ammo pod made" );
+	
+	schedule
+	{
+		every 2.0:
+		{
+			if ( local_6 == 0 )
+			{
+				if ( iSim.IsDockedTo( iSim.Cast( playerShip ), iSim.Cast( shipTempCargopod ) ) )
+				{
+					iSim.SetDockingLock( iSim.Cast( playerShip ), iSim.Cast( shipTempCargopod ), true );
+					iObjectives.SetState( "a2_m10_objectives_ammo", OS_Succeeded );
+					cargo_LongRangeCannon = Sim.FindSubsimByName( iSim.Cast( playerShip ), "Cargo_LongRangeCannon" );
+					
+					if ( cargo_LongRangeCannon == false )
+					{
+						debug Debug.PrintString( "Act2 Mission 10: No sniper cannon\n" );
+					}
+					else
+					{
+						Object.SetFloatProperty( cargo_LongRangeCannon, "ammo_count", 5.0 );
+						debug Debug.PrintString( "Act 2 Mission 10 Weapon loaded\n" );
+						GUI.PlaySound( S_MechConfirm );
+					}
+					
+					iSim.SetSensorVisibility( iShip.Cast( Global.Handle( "g_standin_window" ) ), true );
+					waypoint_1 = iUtilities.CreateWaypointRelativeTo( iSim.Cast( Global.Handle( "g_standin_window" ) ), 0.0, 0.0, 0.0 );
+					Object.SetStringProperty( waypoint_1, "name", "a2_m10_window" );
+					iSim.SetSensorVisibility( iSim.Cast( waypoint_1 ), true );
+					Sim.PlaceRelativeTo( param_0_, mapentity_, 0.0, 0.0, 0.0 );
+					local_6 = true;
+					iObjectives.Add( "a2_m10_objectives_shoot" );
+					iSim.SetDockingLock( iSim.Cast( playerShip ), iSim.Cast( shipTempCargopod ), false );
+					iSim.Undock( iSim.Cast( playerShip ), iSim.Cast( shipTempCargopod ) );
+					Sim.SetCullable( shipTempCargopod, true );
+				}
+			}
+		}
+	}
+}
+
+task local_function_4( hmapentity mapentity_, hsim param_1_, hstate state_ )
+{
+	hship shipWindow;
+	bool local_1 = false;
+	hship playerShip;
+	
+	atomic
+	{
+		shipWindow = iShip.Create( "ini:/sims/custom/act2_mission10/window", "a2_m10_window" );
+		Global.CreateHandle( "g_standin_window", 1, shipWindow );
+		Sim.AddChildRelativeTo( mapentity_, shipWindow, 20.0, 217.50, 60.0 );
+		Object.SetFloatProperty( shipWindow, "hit_points", 10.0 );
+	}
+	
+	schedule
+	{
+		every 2.0:
+		{
+			if ( local_1 == 0 )
+			{
+				if ( Sim.Cast( shipWindow ) == false )
+				{
+					debug Debug.PrintString( "you got him!" );
+					iObjectives.SetState( "a2_m10_objectives_shoot", OS_Succeeded );
+					local_1 = true;
+					debug Debug.PrintString( "Get the Player my witless minions!" );
+					playerShip = iShip.FindPlayerShip();
+					iAI.GiveAttackOrder( Group.Cast( Global.Handle( "g_security_force" ) ), playerShip );
+					State.SetProgress( state_, 4 );
+					iObjectives.Add( "a2_m10_objectives_collect" );
+					Sim.Destroy( param_1_ );
+					Sim.Destroy( Sim.FindByName( "a2_m10_window" ) );
+					Sim.Destroy( Sim.FindByName( "a2_m10_pod_store" ) );
+					start local_function_8( state_ );
+				}
+			}
+		}
+	}
+}
+
+task local_function_8( hstate state_ )
+{
+	hsim waypoint;
+	bool local_1 = false;
+	hship playerShip;
+	hmapentity hotRockIndependentWaystation = iMapEntity.FindByNameInSystem( "Hot Rock Independent Waystation", "map:/geog/badlands/santa_romera" );
+	
+	debug Debug.PrintString( "start the payoff" );
+	iStation.AddReactiveException( iHabitat.Cast( hotRockIndependentWaystation ) );
+	iRangeCheck.AddTrafficException( iMapEntity.Cast( hotRockIndependentWaystation ) );
+	Object.AddIntProperty( hotRockIndependentWaystation, "reactive_exception", 1 );
+	
+	schedule
+	{
+		every 5.0:
+		{
+			playerShip = iShip.FindPlayerShip();
+			
+			if ( iSim.ActiveWorld() == "map:/geog/badlands/santa_romera" )
+			{
+				if ( hotRockIndependentWaystation == false )
+				{
+					debug Debug.PrintString( "O bobbins its not here" );
+				}
+				
+				if ( waypoint == false )
+				{
+					waypoint = iUtilities.CreateWaypointRelativeTo( hotRockIndependentWaystation, Math.Random( 3000.0, 5000.0 ), Math.Random( 3000.0, 5000.0 ), Math.Random( 3000.0, 5000.0 ) );
+					Object.SetStringProperty( waypoint, "name", "a2_m10_meeting_place" );
+					iSim.SetSensorVisibility( iSim.Cast( waypoint ), true );
+				}
+				
+				if ( Sim.DistanceBetween( playerShip, waypoint ) <= 300000.0 )
+				{
+					if ( local_1 == 0 )
+					{
+						iBackToBase.Allow();
+						local_function_9( waypoint, state_ );
+						local_1 = true;
+					}
+				}
+			}
+		}
+	}
+}
+
+local_function_9( hsim param_0_, hstate state_ )
+{
+	hgroup group_0 = Group.Create();
+	hgroup group_1 = Group.Create();
+	hship shipTugArmedWeak_0;
+	hship shipTugArmedWeak_1;
+	hship shipTugArmedWeak_2;
+	hship shipTempCargopod_0;
+	hship shipTempCargopod_1;
+	hship shipTempCargopod_2;
+	hfaction independent = iFaction.Find( "Independent" );
+	
+	shipTugArmedWeak_0 = iShip.Create( "ini:/sims/ships/independent/tug_armed_weak", "a2_m10_larry" );
+	iPilotSetup.GenericMilitary( iShip.Cast( shipTugArmedWeak_0 ) );
+	Group.AddSim( group_0, shipTugArmedWeak_0 );
+	Sim.PlaceRelativeTo( shipTugArmedWeak_0, param_0_, 0.0, 500.0, 1000.0 );
+	Sim.PointAt( shipTugArmedWeak_0, param_0_ );
+	Global.CreateHandle( "g_larry", 1, shipTugArmedWeak_0 );
+	iSim.SetFaction( shipTugArmedWeak_0, independent );
+	Object.AddBoolProperty( shipTugArmedWeak_0, "no_shockwave", true );
+	shipTempCargopod_0 = iShip.Create( "ini:/sims/ships/utility/temp_cargopod", "a2_m10_Gold" );
+	Group.AddSim( group_1, shipTempCargopod_0 );
+	iShip.Dock( shipTempCargopod_0, shipTugArmedWeak_0 );
+	Object.SetIntProperty( shipTempCargopod_0, "cargo", 430 );
+	Object.AddBoolProperty( shipTempCargopod_0, "no_shockwave", true );
+	iSim.SetIndestructable( shipTempCargopod_0, true );
+	shipTugArmedWeak_1 = iShip.Create( "ini:/sims/ships/independent/tug_armed_weak", "a2_m10_curly" );
+	iPilotSetup.GenericMilitary( iShip.Cast( shipTugArmedWeak_1 ) );
+	Group.AddSim( group_0, shipTugArmedWeak_1 );
+	Sim.PlaceAt( shipTugArmedWeak_1, param_0_ );
+	Global.CreateHandle( "g_curly", 1, shipTugArmedWeak_1 );
+	iSim.SetFaction( shipTugArmedWeak_1, independent );
+	Object.AddBoolProperty( shipTugArmedWeak_1, "no_shockwave", true );
+	shipTempCargopod_1 = iShip.Create( "ini:/sims/ships/utility/temp_cargopod", "a2_m10_Gold" );
+	Group.AddSim( group_1, shipTempCargopod_1 );
+	iShip.Dock( shipTempCargopod_1, shipTugArmedWeak_1 );
+	Object.SetIntProperty( shipTempCargopod_1, "cargo", 430 );
+	Object.AddBoolProperty( shipTempCargopod_1, "no_shockwave", true );
+	iSim.SetIndestructable( shipTempCargopod_1, true );
+	shipTugArmedWeak_2 = iShip.Create( "ini:/sims/ships/independent/tug_armed_weak", "a2_m10_moe" );
+	iPilotSetup.GenericMilitary( iShip.Cast( shipTugArmedWeak_2 ) );
+	Group.AddSim( group_0, shipTugArmedWeak_2 );
+	Sim.PlaceAt( shipTugArmedWeak_2, param_0_ );
+	Global.CreateHandle( "g_moe", 1, shipTugArmedWeak_2 );
+	iSim.SetFaction( shipTugArmedWeak_2, independent );
+	Object.AddBoolProperty( shipTugArmedWeak_2, "no_shockwave", true );
+	shipTempCargopod_2 = iShip.Create( "ini:/sims/ships/utility/temp_cargopod", "a2_m10_Gold" );
+	Group.AddSim( group_1, shipTempCargopod_2 );
+	iShip.Dock( shipTempCargopod_2, shipTugArmedWeak_2 );
+	Object.SetIntProperty( shipTempCargopod_2, "cargo", 430 );
+	Object.AddBoolProperty( shipTempCargopod_2, "no_shockwave", true );
+	iSim.SetIndestructable( shipTempCargopod_2, true );
+	iFormation.Goose( group_0, 0.0, true );
+	debug Debug.PrintString( "reception commitee set up" );
+	State.SetProgress( state_, 5 );
+	start local_function_10( group_0, group_1, param_0_, state_ );
+}
+
+task local_function_10( hgroup group_0_, hgroup group_1_, hsim param_2_, hstate state_ )
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	htask local_2;
+	hship groupLeader = iShip.Cast( Group.Leader( group_0_ ) );
+	hship playerShip = iShip.FindPlayerShip();
+	int ii;
+	
+	debug Debug.PrintString( "doublecross_monitor going" );
+	playerShip = iShip.FindPlayerShip();
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( (Sim.DistanceBetween( playerShip, param_2_ ) < 2000.0) && (local_0 == 0) )
+			{
+				local_function_11( state_ );
+				iObjectives.SetState( "a2_m10_objectives_collect", OS_Succeeded );
+				local_2 = start local_function_12( groupLeader );
+				local_0 = true;
+			}
+			
+			if ( local_0 && Task.IsHalted( local_2 ) )
+			{
+				local_1 = true;
+			}
+			
+			if ( local_1 == 0 )
+			{
+				for ( ii = 0; ii < Group.SimCount( group_0_ ); ++ii )
+				{
+					if ( iSim.Attacked( iSim.Cast( Group.NthSim( group_0_, ii ) ) ) )
+					{
+						Task.Halt( local_2 );
+						local_1 = true;
+					}
+				}
+			}
+			else
+			{
+				iAI.PurgeOrders( group_0_ );
+				iAI.GiveAttackOrder( group_0_, playerShip );
+				State.SetProgress( state_, 6 );
+				Sim.Destroy( param_2_ );
+				return;
+			}
+		}
+	}
+}
+
+task local_function_12( hship ship_ )
+{
+	iConversation.Begin();
+	iConversation.Say( ship_, "", "a2_m10_dialogue_cargo_haulers_c2_ah_mr_johnson" );
+	iConversation.Say( ship_, "", "a2_m10_dialogue_cargo_haulers_c2_gold_delivery" );
+	iConversation.Say( ship_, "", "a2_m10_dialogue_cargo_haulers_c2_doublecross" );
+	iConversation.End();
+}
+
+local_function_16()
+{
+	hsim waypoint;
+	hmapentity hotRockIndependentWaystation = iMapEntity.FindByNameInSystem( "Hot Rock Independent Waystation", "map:/geog/badlands/santa_romera" );
+	bool local_2 = false;
+	hship playerShip;
+	hship shipTempCargopod;
+	
+	debug
+	{
+		if ( hotRockIndependentWaystation == false )
+		{
+			Debug.PrintString( "O bobbins its not here" );
+		}
+	}
+	
+	iStation.AddReactiveException( iHabitat.Cast( hotRockIndependentWaystation ) );
+	iRangeCheck.AddTrafficException( iMapEntity.Cast( hotRockIndependentWaystation ) );
+	Object.AddIntProperty( hotRockIndependentWaystation, "reactive_exception", 1 );
+	waypoint = iUtilities.CreateWaypointRelativeTo( hotRockIndependentWaystation, Math.Random( 3000.0, 5000.0 ), Math.Random( 3000.0, 5000.0 ), Math.Random( 3000.0, 5000.0 ) );
+	Object.SetStringProperty( waypoint, "name", "a2_m10_meeting_place" );
+	iSim.SetSensorVisibility( iSim.Cast( waypoint ), true );
+	debug Debug.PrintString( "Act2 Mission 10 - meeting waypoint setup" );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			playerShip = iShip.FindPlayerShip();
+			
+			if ( Sim.DistanceBetween( playerShip, waypoint ) <= 300000.0 )
+			{
+				if ( (local_2 == 0) || (iShip.Cast( shipTempCargopod ) == false) )
+				{
+					shipTempCargopod = iShip.Create( "ini:/sims/ships/utility/temp_cargopod", "Cargo_LongRangeCannon" );
+					Object.SetIntProperty( shipTempCargopod, "cargo", 566 );
+					Sim.PlaceAt( shipTempCargopod, waypoint );
+					local_2 = true;
+				}
+			}
+		}
+	}
+}
+
+task local_function_18( hstate state_ )
+{
+	schedule
+	{
+		every 1.0:
+		{
+			iHUD.SetPrompt( "State velue is currently:", String.FromInt( State.Progress( state_ ) ) );
+		}
+	}
+}
+
+task MissionHandler()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	hstate taskState = State.Find( Task.Current() );
+	hemail email;
+	
+	if ( (Global.Exists( "g_grassy_knoll_going" ) == 0) && (taskState == false) )
+	{
+		Global.CreateBool( "g_grassy_knoll_going", 1, true );
+		taskState = State.Create( Task.Current(), 0 );
+		local_function_13( taskState );
+	}
+	else if ( taskState == false )
+	{
+		return;
+	}
+	
+	local_function_11( taskState );
+	iMissionTracker.AddMission( Task.Current(), 2, 10 );
+	Text.Add( "csv:/text/act_2/act2_mission10" );
+	Text.Add( "csv:/text/act_2/act2_mission10_addendum" );
+	email = iEmail.Find( "html:/text/act_2/act2_mission10_email" );
+	
+	if ( !email )
+	{
+		iEmail.SendEmail( "a2_m10_email_sender", "a2_m10_email_subject", "html:/text/act_2/act2_mission10_email", true );
+		iMissionTracker.RemoveMission( Task.Current() );
+		debug Debug.PrintString( "Act 2 Mission 10 - Email sent\n" );
+		return;
+	}
+	else if ( !iEmail.Read( email ) )
+	{
+		iMissionTracker.RemoveMission( Task.Current() );
+		debug Debug.PrintString( "Act 2 Mission 10 - Go read your email" );
+		return;
+	}
+	
+	switch ( State.Progress( taskState ) )
+	{
+		case 0:
+			debug Debug.PrintString( "Act2 Mission 10: Progress == MS_Start\n" );
+			iObjectives.Add( "a2_m10_objectives_redezvous" );
+			local_function_14( taskState );
+			break;
+		
+		case 1:
+			debug Debug.PrintString( "Act2 Mission 10: Progress == MS_NotAccepted\n" );
+			State.SetProgress( taskState, 6 );
+			break;
+		
+		case 2:
+			debug Debug.PrintString( "Act2 Mission 10: Progress == MS_Accepted\n" );
+			
+			if ( (iInventory.NumberOfCargoType( CT_LongRangeCannon ) != 0) || (Sim.FindSubsimByName( playerShip, "Cargo_LongRangeCannon" ) != false) )
+			{
+				if ( Sim.FindSubsimByName( playerShip, "Cargo_LongRangeCannon" ) == false )
+				{
+					iConversation.OneLiner( none, "a2_m10_clay", "a2_m10_dialogue_clay_need_the_sniper" );
+				}
+				else
+				{
+					iObjectives.SetState( "a2_m10_objectives_equip", OS_Succeeded );
+					iObjectives.Add( "a2_m10_objectives_ammo" );
+					local_function_15( taskState );
+				}
+			}
+			else
+			{
+				local_function_16();
+			}
+			
+			break;
+		
+		case 4:
+			start local_function_8( taskState );
+			break;
+		
+		case 5:
+			break;
+		
+		case 6:
+			break;
+	}
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( (State.Progress( taskState ) == 6) || (State.Progress( taskState ) == 100) )
+			{
+				break;
+			}
+		}
+	}
+	
+	if ( State.Progress( taskState ) == 6 )
+	{
+		Global.SetBool( "g_act2_grassy_knoll_complete", true );
+	}
+	else
+	{
+		atomic
+		{
+			Global.SetBool( "g_skip_locked", false );
+		}
+		
+		Task.Detach( start local_function_0() );
+		local_function_17();
+	}
+	
+	Global.Destroy( "g_standin_window" );
+	Global.Destroy( "g_security_force" );
+	Global.Destroy( "g_ammo_pod" );
+	Global.Destroy( "g_standin_window" );
+	Global.Destroy( "g_larry" );
+	Global.Destroy( "g_curly" );
+	Global.Destroy( "g_moe" );
+	Global.Destroy( "g_grassy_knoll_going" );
+	iUtilities.RemoveMissionRestart();
+	State.Destroy( Task.Current() );
+	iMissionTracker.RemoveMission( Task.Current() );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "M.C.A." ), 572, 1, 20, 1, 0 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "M.C.A." ), 572, 1, 6, 1, 0 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "M.C.A." ), 566, 1, 11, 4, 2 ) );
+	return;
+}
+
+local_function_13( hstate state_ )
+{
+	if ( !state_ )
+	{
+		debug Debug.PrintString( "iAct2Mission10.add_state_properties: State is invalid - not adding properties. \n" );
+		return;
+	}
+	
+	if ( !Object.PropertyExists( state_, "gun_pod_handle" ) )
+	{
+		Object.AddHandleProperty( state_, "gun_pod_handle", none );
+	}
+	
+	debug Debug.PrintString( "iAct2Mission10.add_state_properties: Added State Properties\n" );
+}
+

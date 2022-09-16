@@ -1,0 +1,24 @@
+//
+// (c) 1998-9 Particle Systems Ltd. All Rights Reserved
+//
+// iAct1WingmenTraining.h
+//
+// Compiler-generated export header for package "iAct1WingmenTraining"
+//
+// Revision control information:
+//
+// $Header: /iwar2/resource/scripts/include/iAct1WingmenTraining.h 1     15/01/01 2:48p Martyn $
+//
+
+// Dependencies ////////////////////////////////////////////////////////////////
+
+// Enumerated types ////////////////////////////////////////////////////////////
+
+// Functions ///////////////////////////////////////////////////////////////////
+
+prototype iAct1WingmenTraining.Main();
+
+prototype task iAct1WingmenTraining.MainTask();
+
+// EOF /////////////////////////////////////////////////////////////////////////
+

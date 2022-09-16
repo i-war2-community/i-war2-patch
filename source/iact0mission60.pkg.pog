@@ -1,0 +1,438 @@
+package iAct0Mission60;
+
+uses String,
+     Set,
+     List,
+     Global,
+     Sim,
+     Group,
+     Object,
+     State,
+     Task,
+     Text,
+     iSim,
+     iShip,
+     Subsim,
+     iDockport,
+     iLagrangePoint,
+     iAI,
+     iBackToBase,
+     iComms,
+     iConversation,
+     iCutsceneUtilities,
+     iDirector,
+     MapEnumerations,
+     iFaction,
+     iFormation,
+     iGame,
+     iMapEntity,
+     iBody,
+     iHabitat,
+     CargoTypes,
+     GUI,
+     iInventory,
+     iMissionTracker,
+     iObjectives,
+     iPilotSetup,
+     INIFile,
+     iUtilities,
+     Debug,
+     iCargoScript,
+     iCargo,
+     Math,
+     iShipCreation,
+     iStation;
+
+provides Main,
+         MissionHandler,
+         Stub;
+
+prototype Main();
+prototype local_function_5( hstate state_ );
+prototype local_function_9();
+prototype Stub();
+prototype task local_function_0();
+prototype hgroup local_function_1( hmapentity mapentity_ );
+prototype task local_function_6( hship ship_, hmapentity mapentity_, hstate state_ );
+prototype hgroup local_function_4();
+prototype hgroup local_function_2();
+prototype local_function_8( hship ship_0_, hship ship_1_, hgroup group_0_, hstate state_ );
+prototype task local_function_7( hship ship_, hstate state_ );
+prototype task local_function_3( hsim param_0_, hgroup group_, hship ship_0_, hship ship_1_ );
+prototype task MissionHandler();
+
+Main()
+{
+	start local_function_0();
+}
+
+local_function_5( hstate state_ )
+{
+	hsim waypointHoffersGap;
+	hship playerShip = iShip.FindPlayerShip();
+	
+	waypointHoffersGap = iUtilities.CreateWaypointRelativeTo( iMapEntity.FindByName( "Hoffer's Gap" ), 0.0, 0.0, 900000.0 );
+	Object.AddHandleProperty( playerShip, "restart_waypoint", waypointHoffersGap );
+	Object.AddHandleProperty( playerShip, "current_mission_state", state_ );
+}
+
+local_function_9()
+{
+	iObjectives.Remove( "a0_m60_objectives_recover" );
+}
+
+Stub()
+{
+	Global.SetBool( "g_act0_nemesis_complete", true );
+	iInventory.RemoveStormPetrel();
+	iSim.SetSensorVisibility( iMapEntity.FindByName( "Lucrecia's Base" ), false );
+}
+
+task local_function_0()
+{
+	htask local_0;
+	int local_1;
+	
+	while ( iComms.IsInConversation() )
+	{
+		Task.Sleep( Task.Current(), 0.50 );
+	}
+	
+	if ( !iUtilities.SkipMission( "Nemesis?" ) )
+	{
+		Task.Detach( local_0 = start MissionHandler() );
+		return;
+	}
+	
+	Stub();
+	return;
+}
+
+hgroup local_function_1( hmapentity mapentity_ )
+{
+	hgroup group = Group.Create();
+	hsim simMegapod;
+	int constant = 12;
+	int ii;
+	
+	for ( ii = 0; ii < constant; ++ii )
+	{
+		simMegapod = Sim.Create( "ini:/sims/ships/utility/megapod", String.Join( "a0_m60_name_lockup + +", String.FromInt( ii + 1 ) ) );
+		Group.AddSim( group, simMegapod );
+		iSim.SetSensorVisibility( iSim.Cast( simMegapod ), false );
+	}
+	
+	Sim.PlaceRelativeTo( Group.Leader( group ), mapentity_, 9000.0, 0.0, 0.0 );
+	iFormation.Parade( group, 100.0, true );
+	Object.SetStringProperty( Group.NthSim( group, 4 ), "name", "a0_m60_name_felix" );
+	iSim.SetSensorVisibility( iSim.Cast( Group.NthSim( group, 4 ) ), true );
+	iSim.SetIndestructable( iSim.Cast( Group.NthSim( group, 4 ) ), true );
+	return group;
+}
+
+task local_function_6( hship ship_, hmapentity mapentity_, hstate state_ )
+{
+	bool local_0 = false;
+	hgroup group;
+	hsim groupIter;
+	
+	schedule
+	{
+		every 2.0:
+		{
+			if ( (Sim.DistanceBetween( mapentity_, ship_ ) <= 100000.0) && !local_0 )
+			{
+				local_0 = true;
+				group = local_function_1( mapentity_ );
+				groupIter = Group.NthSim( group, 4 );
+			}
+			else if ( local_0 )
+			{
+				if ( iSim.IsDockedTo( iSim.Cast( ship_ ), iSim.Cast( groupIter ) ) )
+				{
+					State.SetProgress( state_, 1 );
+					iConversation.OneLiner( none, "name_young_cal", "a0_m60_dialogue_young_cal_right_ill" );
+					Task.Sleep( Task.Current(), 9.0 );
+					iObjectives.SetState( "a0_m60_objectives_recover", OS_Succeeded );
+					Group.Destroy( group, false );
+					return;
+				}
+				
+				if ( !iUtilities.PlayerInRange( mapentity_ ) )
+				{
+					local_0 = false;
+					Group.Destroy( group, true );
+				}
+			}
+		}
+	}
+}
+
+hgroup local_function_4()
+{
+	hgroup group = Group.Create();
+	hship ship;
+	hfaction mAASCorporation = iFaction.Find( "MAAS Corporation" );
+	
+	ship = iShip.Create( "ini:/sims/ships/corporate/maas_cutter", "a0_m60_name_maas" );
+	iPilotSetup.GenericCargoPod( ship );
+	iSim.SetFaction( ship, mAASCorporation );
+	Object.SetBoolProperty( ship, "ignore_speed_limit", true );
+	iSim.SetIndestructable( ship, true );
+	Group.AddSim( group, ship );
+	ship = iShip.Create( "ini:/sims/ships/corporate/yacht_mk2", "a0_m60_name_eye" );
+	iPilotSetup.GenericCargoPod( ship );
+	iShip.SetPilotSkillLevel( ship, 0.70 );
+	iSim.SetFaction( ship, mAASCorporation );
+	Object.SetBoolProperty( ship, "ignore_speed_limit", true );
+	Group.AddSim( group, ship );
+	ship = iShip.Create( "ini:/sims/ships/corporate/yacht_mk2", "a0_m60_name_bruiser" );
+	iPilotSetup.GenericCargoPod( ship );
+	iShip.SetPilotSkillLevel( ship, 0.70 );
+	iSim.SetFaction( ship, mAASCorporation );
+	Object.SetBoolProperty( ship, "ignore_speed_limit", true );
+	Group.AddSim( group, ship );
+	return group;
+}
+
+hgroup local_function_2()
+{
+	hgroup group = Group.Create();
+	hship shipInterceptor;
+	hfaction police = iFaction.Find( "Police" );
+	
+	shipInterceptor = iShip.Create( "ini:/sims/ships/cops/interceptor", iShipCreation.ShipName( "Police", -1 ) );
+	iPilotSetup.GenericPolice( shipInterceptor );
+	iSim.SetFaction( shipInterceptor, police );
+	Object.SetIntProperty( shipInterceptor, "ignore_speed_limit", 1 );
+	Group.AddSim( group, shipInterceptor );
+	shipInterceptor = iShip.Create( "ini:/sims/ships/cops/interceptor", iShipCreation.ShipName( "Police", -1 ) );
+	iPilotSetup.GenericPolice( shipInterceptor );
+	iSim.SetFaction( shipInterceptor, police );
+	Object.SetIntProperty( shipInterceptor, "ignore_speed_limit", 1 );
+	Group.AddSim( group, shipInterceptor );
+	shipInterceptor = iShip.Create( "ini:/sims/ships/cops/interceptor", iShipCreation.ShipName( "Police", -1 ) );
+	iPilotSetup.GenericPolice( shipInterceptor );
+	iSim.SetFaction( shipInterceptor, police );
+	Object.SetIntProperty( shipInterceptor, "ignore_speed_limit", 1 );
+	Group.AddSim( group, shipInterceptor );
+	return group;
+}
+
+local_function_8( hship ship_0_, hship ship_1_, hgroup group_0_, hstate state_ )
+{
+	bool local_0 = false;
+	hsim local_1;
+	hgroup group_1 = local_function_2();
+	
+	iShip.DisruptLDSDrive( iShip.Cast( ship_0_ ), 30.0 );
+	
+	if ( iCutsceneUtilities.HandleAbort( start local_function_3( local_1, group_1, ship_0_, ship_1_ ) ) )
+	{
+		iGame.EnableBlackout( true );
+	}
+	
+	State.SetProgress( state_, 8 );
+	Group.Destroy( group_0_, false );
+	Group.Destroy( group_1, false );
+	return;
+}
+
+task local_function_7( hship ship_, hstate state_ )
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	int local_2 = 0;
+	hgroup group = local_function_4();
+	hship groupLeader = iShip.Cast( Group.Leader( group ) );
+	int convoResponse;
+	hmapentity hoffersGap = iMapEntity.FindByName( "Hoffer's Gap" );
+	
+	iStation.AddReactiveException( iHabitat.Cast( hoffersGap ) );
+	iDirector.Begin();
+	iShip.UndockSelf( ship_ );
+	Sim.PlaceRelativeTo( groupLeader, ship_, 0.0, 0.0, 7000.0 );
+	Sim.PointAt( groupLeader, ship_ );
+	iFormation.V( group, 80.0, true );
+	iAI.GiveApproachOrder( groupLeader, ship_ );
+	iDirector.SetFocus( groupLeader );
+	iDirector.SetSecondaryFocus( Group.NthSim( group, 1 ) );
+	iDirector.SetCamera( CAM_TwoShot );
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 1.0 );
+	}
+	while ( Sim.DistanceBetween( groupLeader, ship_ ) > 1000.0 );
+	
+	iDirector.SetSecondaryFocus( ship_ );
+	iDirector.SetCamera( CAM_Conversation );
+	iConversation.OneLiner( groupLeader, "", "a0_m60_dialogue_caleb_i_think" );
+	iConversation.OneLiner( none, "name_young_cal", "a0_m60_dialogue_young_cal_you_killed" );
+	iConversation.OneLiner( groupLeader, "", "a0_m60_dialogue_caleb_ah_the" );
+	iConversation.Begin();
+	
+	do
+	{
+		iConversation.AddResponse( "a0_m60_text_c1_option1_who", "a0_m60_dialogue_player_c1_option1_who" );
+		iConversation.AddResponse( "a0_m60_text_c1_option2_why", "a0_m60_dialogue_player_c1_option2_why" );
+		iConversation.AddResponse( "a0_m60_text_c1_option3_kill", "a0_m60_dialogue_player_c1_option3_kill" );
+		convoResponse = iConversation.Ask( groupLeader, "", "a0_m60_dialogue_caleb_c1_any" );
+		
+		switch ( convoResponse )
+		{
+			case 1:
+				iConversation.Say( groupLeader, "", "a0_m60_dialogue_caleb_c1_response1_im_caleb" );
+				local_2 = ( local_2 + 1 );
+				break;
+			
+			case 2:
+				iConversation.Say( groupLeader, "", "a0_m60_dialogue_caleb_c1_respose2_ah_yes" );
+				local_2 = ( local_2 + 1 );
+				break;
+			
+			default:
+				local_2 = 2;
+				break;
+		}
+	}
+	while ( local_2 < 2 );
+	
+	iConversation.End();
+	iConversation.OneLiner( groupLeader, "", "a0_m60_dialogue_caleb_this_conversation" );
+}
+
+task local_function_3( hsim param_0_, hgroup group_, hship ship_0_, hship ship_1_ )
+{
+	iDirector.Begin();
+	iCutsceneUtilities.EnablePlayerAutopilot();
+	Sim.SetAngularVelocityEuler( ship_0_, 0.0, 0.0, 0.0 );
+	iShip.Disrupt( ship_0_, 20.0, false );
+	iSim.SetIndestructable( ship_0_, true );
+	Sim.PlaceNear( Group.Leader( group_ ), ship_0_, 6000.0 );
+	Sim.PointAt( Group.Leader( group_ ), ship_0_ );
+	iFormation.Goose( group_, 40.0, true );
+	iAI.GiveApproachOrder( Group.Leader( group_ ), ship_0_ );
+	iShip.Disrupt( ship_0_, 60.0, false );
+	iSim.SetIndestructable( ship_0_, true );
+	iDirector.SetFocus( ship_0_ );
+	iDirector.SetCamera( CAM_External );
+	Task.Sleep( Task.Current(), 5.0 );
+	param_0_ = iDirector.CreateDolly();
+	Sim.PlaceRelativeTo( param_0_, Group.Leader( group_ ), 0.0, 700.0, -700.0 );
+	iDirector.SetFocus( Group.Leader( group_ ) );
+	iDirector.SetInterpolateFieldOfView( 10.0, 90.0, 3.0 );
+	iDirector.SetDollyCamera( param_0_ );
+	Task.Sleep( Task.Current(), 5.0 );
+	iDirector.SetCamera( CAM_Chase );
+	iDirector.SetFocus( Group.Leader( group_ ) );
+	iDirector.SetSecondaryFocus( ship_0_ );
+	iDirector.SetCamera( CAM_Conversation );
+	iConversation.OneLiner( Group.Leader( group_ ), "", "a0_m60_dialogue_police_ah_what" );
+	iConversation.OneLiner( ship_1_, "", "a0_m60_dialogue_caleb_yes_i" );
+	iConversation.OneLiner( Group.Leader( group_ ), "", "a0_m60_dialogue_police_i_see" );
+	iAI.PurgeOrders( group_ );
+	Sim.SetAngularVelocityEuler( ship_0_, 0.0, 0.0, 0.0 );
+	iShip.CancelDisrupt( iShip.Cast( ship_0_ ) );
+	Task.Sleep( Task.Current(), 1.0 );
+	iAI.GiveDockOrder( Group.Leader( group_ ), ship_0_ );
+	Task.Sleep( Task.Current(), 3.0 );
+	iDirector.FadeIn( 2.0, 0.0, 0.0, 0.0 );
+	iAI.PurgeOrders( Group.Leader( group_ ) );
+	iSim.Dock( ship_0_, iSim.Cast( Group.Leader( group_ ) ) );
+	iDirector.FadeIn( 2.0, 1.0, 1.0, 1.0 );
+	iSim.SetIndestructable( iSim.Cast( Group.Leader( group_ ) ), true );
+	iDirector.SetFocus( Group.Leader( group_ ) );
+	iDirector.SetSecondaryFocus( ship_0_ );
+	iDirector.SetCamera( CAM_TwoShot );
+	Sim.PlaceRelativeTo( param_0_, Group.Leader( group_ ), 0.0, 700.0, -700.0 );
+	iDirector.SetFocus( Group.Leader( group_ ) );
+	iDirector.SetInterpolateFieldOfView( 10.0, 90.0, 3.0 );
+	iDirector.SetDollyCamera( param_0_ );
+	iFormation.Goose( group_, 60.0, false );
+	Task.Sleep( Task.Current(), 2.0 );
+	iAI.GiveFleeOrder( Group.Leader( group_ ), ship_1_ );
+	Task.Sleep( Task.Current(), 5.0 );
+	iGame.EnableBlackout( true );
+	Task.Sleep( Task.Current(), 0.50 );
+	iDirector.End();
+}
+
+task MissionHandler()
+{
+	bool local_0 = false;
+	hmapentity hoffersGap = iMapEntity.FindByName( "Hoffer's Gap" );
+	hship playerShip = iShip.FindPlayerShip();
+	hstate taskState;
+	int local_4;
+	htask currentTask = Task.Current();
+	
+	Text.Add( "csv:/text/act_0/act0_mission60" );
+	Text.Add( "csv:/text/act_0/act0_mission60_addendum" );
+	taskState = State.Find( currentTask );
+	
+	if ( !taskState )
+	{
+		taskState = State.Create( currentTask, 0 );
+	}
+	
+	iBackToBase.Inhibit();
+	local_function_5( taskState );
+	iMissionTracker.AddMission( Task.Current(), 0, 60 );
+	iConversation.OneLiner( none, "name_clay", "a0_m60_dialogue_clay_ok_kid" );
+	iObjectives.Add( "a0_m60_objectives_recover" );
+	start local_function_6( playerShip, hoffersGap, taskState );
+	iSim.SetSensorVisibility( iSim.Cast( hoffersGap ), true );
+	
+	schedule
+	{
+		every 2.0:
+		{
+			if ( (State.Progress( taskState ) == 1) && !local_0 )
+			{
+				local_0 = true;
+				Task.Sleep( Task.Current(), 9.0 );
+				iCutsceneUtilities.HandleAbort( start local_function_7( playerShip, taskState ) );
+				iShip.UndockSelf( playerShip );
+				local_function_8( playerShip, iShip.Cast( Sim.FindByName( "a0_m60_name_maas" ) ), Sim.Group( Sim.FindByName( "a0_m60_name_maas" ) ), taskState );
+			}
+			
+			if ( (State.Progress( taskState ) == 8) || (State.Progress( taskState ) == 100) )
+			{
+				if ( State.Progress( taskState ) != 100 )
+				{
+					Global.SetBool( "g_act0_nemesis_complete", true );
+					iInventory.RemoveStormPetrel();
+					iSim.SetStandardSensorVisibility( iSim.Cast( hoffersGap ), true );
+				}
+				else
+				{
+					atomic
+					{
+						Global.SetBool( "g_skip_locked", false );
+					}
+					
+					Task.Detach( start local_function_0() );
+					local_function_9();
+					iSim.SetSensorVisibility( iSim.Cast( hoffersGap ), false );
+					iBackToBase.Allow();
+				}
+				
+				iUtilities.RemoveMissionRestart();
+				State.Destroy( Task.Current() );
+				iMissionTracker.RemoveMission( Task.Current() );
+				Text.Remove( "csv:/text/act_0/act0_mission60" );
+				Text.Remove( "csv:/text/act_0/act0_mission60_addendum" );
+				Global.Destroy( "g_running_already" );
+				
+				atomic
+				{
+					Global.SetBool( "g_skip_locked", false );
+				}
+				
+				return;
+			}
+		}
+	}
+}
+

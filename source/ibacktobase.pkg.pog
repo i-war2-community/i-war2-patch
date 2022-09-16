@@ -1,0 +1,570 @@
+package iBackToBase;
+
+uses Debug,
+     GUI,
+     String,
+     Set,
+     List,
+     Global,
+     Sim,
+     Group,
+     Object,
+     Subsim,
+     Task,
+     iFaction,
+     iSim,
+     iBody,
+     iHabitat,
+     iShip,
+     iDockport,
+     iLagrangePoint,
+     iAI,
+     iCutsceneUtilities,
+     iDirector,
+     iGame,
+     iJafsScript,
+     MapEnumerations,
+     iMapEntity,
+     iWingmen;
+
+provides Initialise,
+         Detector,
+         Inhibit,
+         Allow,
+         Terminate,
+         DockingCutscene;
+
+prototype task Detector();
+prototype Initialise();
+prototype Inhibit();
+prototype Allow();
+prototype task local_function_0( hship ship_, hisim param_1_ );
+prototype DockingCutscene( hship player_ship_, hisim player_base_ );
+prototype task local_function_1( hship ship_, hisim param_1_ );
+prototype Terminate();
+
+task Detector()
+{
+	hship playerShip;
+	hisim lucreciasBase;
+	string local_2;
+	hsim local_3;
+	hsim local_4;
+	hsim local_5;
+	string local_6;
+	bool local_7;
+	bool local_8;
+	hsubsim system_refuel_port;
+	int ii;
+	
+	debug Debug.PrintString( "iBackToBase.Detector started searching.\n" );
+	
+	do
+	{
+		schedule
+		{
+			every 2.10:
+			{
+				if ( Object.PropertyExists( playerShip, "player_dying" ) )
+				{
+					debug Debug.PrintString( "iBackToBase.Detector ( Schedule ) - Player is dying. Quitting.\n" );
+					return;
+				}
+				
+				lucreciasBase = iMapEntity.FindByNameInSystem( "Lucrecia's Base", Global.String( "g_player_base_system" ) );
+				playerShip = iShip.FindPlayerShip();
+				
+				if ( Sim.DistanceBetween( playerShip, lucreciasBase ) < 200000.0 )
+				{
+					system_refuel_port = Sim.FindSubsimByName( playerShip, "system_refuel_port" );
+					
+					if ( system_refuel_port == false )
+					{
+						debug Debug.PrintString( "iBackToBase.Detector: Adding bodge dockport\n" );
+						system_refuel_port = Subsim.Cast( Subsim.Create( "ini:/subsims/dockports/refuel_port" ) );
+						Sim.AddSubsim( playerShip, system_refuel_port );
+					}
+					
+					if ( (Sim.DistanceBetween( playerShip, lucreciasBase ) < 20000.0) && ((iAI.CurrentOrderType( playerShip ) == OT_Dock) && (iAI.CurrentOrderTarget( playerShip ) == lucreciasBase)) )
+					{
+						local_7 = false;
+						break;
+					}
+				}
+				else
+				{
+					system_refuel_port = Sim.FindSubsimByName( playerShip, "system_refuel_port" );
+					
+					if ( system_refuel_port != false )
+					{
+						debug Debug.PrintString( "iBackToBase.Detector: Destroying bodge dockport\n" );
+						Subsim.Destroy( system_refuel_port );
+					}
+					
+					if ( (Sim.DistanceBetween( playerShip, lucreciasBase ) > 200000.0) && ((iAI.CurrentOrderType( playerShip ) == OT_Dock) && (iAI.CurrentOrderTarget( playerShip ) == lucreciasBase)) )
+					{
+						if ( !iShip.IsLDSInhibited( playerShip ) )
+						{
+							if ( !iDirector.IsBusy() )
+							{
+								atomic
+								{
+									debug Debug.PrintString( "iBackToBase.detector: Attempting to return to base. Inhibit level = " );
+									debug Debug.PrintInt( Global.Int( "g_ibacktobase_level" ) );
+									debug Debug.PrintString( " \n" );
+								}
+								
+								if ( Global.Int( "g_ibacktobase_level" ) <= 0 )
+								{
+									local_7 = true;
+									break;
+								}
+								else debug Debug.PrintString( "iBackToBase.Detector: ( Schedule ) Cannot return to base: Inhibit level != 0 \n" );
+							}
+							else debug Debug.PrintString( "iBackToBase.Detector: ( Schedule ) Cannot return to base: Director is busy. \n" );
+						}
+						else debug Debug.PrintString( "iBackToBase.Detector: ( Schedule ) Cannot return to base: LDS inhibited. \n" );
+					}
+				}
+			}
+		}
+		
+		local_8 = true;
+		
+		for ( ii = 10; ii >= 1; --ii )
+		{
+			debug
+			{
+				Debug.PrintString( "iBackToBase.Detector - Time remaining until base return: " );
+				Debug.PrintInt( ii );
+				Debug.PrintString( "\n" );
+			}
+			
+			Task.Sleep( Task.Current(), 1.0 );
+			
+			if ( Object.PropertyExists( playerShip, "player_dying" ) )
+			{
+				debug Debug.PrintString( "iBackToBase.Detector ( Sanity Check ) - Player is dying. Detector quitting.\n" );
+				return;
+			}
+			
+			if ( local_7 )
+			{
+				if ( Global.Int( "g_ibacktobase_level" ) > 0 )
+				{
+					debug Debug.PrintString( "iBackToBase.Detector ( Sanity Check ) - Back to base is inhibited. Base return aborted.\n" );
+					local_8 = false;
+					break;
+				}
+			}
+			
+			if ( (iAI.CurrentOrderTarget( playerShip ) != lucreciasBase) || (iAI.CurrentOrderType( playerShip ) != OT_Dock) )
+			{
+				local_8 = false;
+				debug Debug.PrintString( "iBackToBase.Detector ( Sanity Check ) - Player is is not docking to base. Base return Aborted.\n" );
+				break;
+			}
+			
+			if ( iShip.IsLDSInhibited( playerShip ) )
+			{
+				local_8 = false;
+				debug Debug.PrintString( "iBackToBase.Detector: ( Sanity Check ) Confirm failed -  Ship is LDS inhibited. Base return Aborted.\n" );
+				break;
+			}
+			
+			if ( iDirector.IsBusy() )
+			{
+				local_8 = false;
+				debug Debug.PrintString( "iBackToBase.Detector: ( Sanity Check ) Confirm failed -  Director is busy. Aborting. \n" );
+				break;
+			}
+		}
+	}
+	while ( local_8 == 0 );
+	
+	if ( Object.PropertyExists( playerShip, "player_dying" ) )
+	{
+		debug Debug.PrintString( "iBackToBase.Detector ( Just before cut-scene ) - Player is dying. Quitting.\n" );
+		return;
+	}
+	
+	if ( local_7 )
+	{
+		iCutsceneUtilities.HandleAbort( start local_function_0( playerShip, lucreciasBase ) );
+	}
+	else
+	{
+		iCutsceneUtilities.HandleAbort( start local_function_1( playerShip, lucreciasBase ) );
+	}
+	
+	if ( !Object.PropertyExists( playerShip, "player_dying" ) )
+	{
+		iGame.EnableBlackout( true );
+		
+		atomic
+		{
+			Sim.SetCollision( playerShip, false );
+			Sim.SetVelocity( playerShip, 0.0, 0.0, 0.0 );
+			Sim.SetAngularVelocityEuler( playerShip, 0.0, 0.0, 0.0 );
+			Sim.PlaceRelativeToInside( playerShip, lucreciasBase, 0.0, 0.0, 1800.0 );
+			Sim.PointAt( playerShip, lucreciasBase );
+			Sim.Destroy( local_3 );
+			Sim.Destroy( local_4 );
+			Sim.Destroy( local_5 );
+			
+			if ( iJafsScript.JafsActive() )
+			{
+				iJafsScript.CollectPods( true );
+			}
+			
+			local_6 = "/movies/OldCalShutdown";
+			
+			if ( Global.Exists( "g_current_act" ) )
+			{
+				if ( Global.Int( "g_current_act" ) == 0 )
+				{
+					local_6 = "/movies/YoungCalShutdown";
+				}
+			}
+		}
+		
+		atomic
+		{
+			GUI.SetScreen( "icSPPlayerBaseScreen" );
+			iGame.PlayMovie( local_6 );
+		}
+	}
+}
+
+Initialise()
+{
+	htask local_0;
+	
+	if ( iGame.GameType() == 0 )
+	{
+		debug Debug.PrintString( "iBackToBase.Initialise: Game is in Single player mode. Checking act and mission status.\n" );
+		
+		switch ( Global.Int( "g_current_act" ) )
+		{
+			case 0:
+				if ( Global.Exists( "g_act0_found_base" ) )
+				{
+					if ( Global.Bool( "g_act0_found_base" ) == 0 )
+					{
+						debug Debug.PrintString( "iBackToBase.Initialise: Act-1 - Player base not yet found. BackToBase disabled.\n" );
+						return;
+					}
+				}
+				
+				break;
+			
+			case 1:
+				if ( Global.Exists( "g_act1_found_base" ) )
+				{
+					if ( Global.Bool( "g_act1_found_base" ) == 0 )
+					{
+						debug Debug.PrintString( "iBackToBase.Initialise: Act-2 - Player base not yet found. BackToBase disabled.\n" );
+						return;
+					}
+				}
+		}
+	}
+	else
+	{
+		debug Debug.PrintString( "iBackToBase.Initialise: Game is not in Single Player, iBackToBase disabled.\n" );
+		return;
+	}
+	
+	debug Debug.PrintString( "iBackToBase.Initialise: Making player base visible.\n" );
+	iSim.SetSensorVisibility( iSim.Cast( iMapEntity.FindByNameInSystem( "Lucrecia's Base", "map:/geog/badlands/hoffers_wake" ) ), false );
+	iSim.SetSensorVisibility( iSim.Cast( iMapEntity.FindByNameInSystem( "Lucrecia's Base", "map:/geog/badlands/santa_romera" ) ), false );
+	iSim.SetSensorVisibility( iSim.Cast( iMapEntity.FindByNameInSystem( "Lucrecia's Base", "map:/geog/gagarin/formhault" ) ), false );
+	iSim.SetSensorVisibility( iSim.Cast( iMapEntity.FindByNameInSystem( "Lucrecia's Base", Global.String( "g_player_base_system" ) ) ), true );
+	
+	if ( Global.Exists( "g_have_started_ibacktobase_detector" ) )
+	{
+		if ( Global.Handle( "g_have_started_ibacktobase_detector" ) == none )
+		{
+			debug Debug.PrintString( "iBackToBase.Initialise: g_have_started_ibacktobase_detector exists, but handle is null. Will re-initialise.\n" );
+			Global.Destroy( "g_have_started_ibacktobase_detector" );
+		}
+		else
+		{
+			debug Debug.PrintString( "iBackToBase.Initialise: iBackToBase is already initialised.\n" );
+			return;
+		}
+	}
+	
+	atomic
+	{
+		local_0 = start Detector();
+		Task.Detach( local_0 );
+		debug Debug.PrintString( "iBackToBase.Initialise: Initialising global handle g_have_started_ibacktobase_detector for detector task.\n" );
+		Global.CreateHandle( "g_have_started_ibacktobase_detector", 10, local_0 );
+		
+		if ( Global.Exists( "g_ibacktobase_level" ) )
+		{
+			debug Debug.PrintString( "iBackToBase.Initialise: Global g_ibacktobase_level already exists.\n" );
+		}
+		else
+		{
+			debug Debug.PrintString( "iBackToBase.Initialise: Initialising Global g_ibacktobase_level.\n" );
+			Global.CreateInt( "g_ibacktobase_level", 10, 0 );
+		}
+	}
+	
+	debug Debug.PrintString( "iBackToBase.Initialise completed\n" );
+}
+
+Inhibit()
+{
+	atomic
+	{
+		debug Debug.PrintString( "iBackToBase.Inhibit: Inhibiting iBackToBase.\n" );
+		
+		if ( !Global.Exists( "g_ibacktobase_level" ) )
+		{
+			debug Debug.PrintString( "iBackToBase.Inhibit: Global g_ibacktobase_level not initialised, so I'm initialising it now.\n" );
+			Global.CreateInt( "g_ibacktobase_level", 10, 0 );
+		}
+		
+		if ( !Global.Exists( "g_ibacktobase_level" ) )
+		{
+			debug Debug.PrintString( "iBackToBase.Inhibit: Global g_ibacktobase_level not initialised, so I'm initialising it now.\n" );
+			Global.CreateInt( "g_ibacktobase_level", 10, 0 );
+		}
+		
+		Global.SetInt( "g_ibacktobase_level", Global.Int( "g_ibacktobase_level" ) + 1 );
+		
+		atomic
+		{
+			debug Debug.PrintString( "iBackToBase.Inhibit: Inhibit level now = " );
+			debug Debug.PrintInt( Global.Int( "g_ibacktobase_level" ) );
+			debug Debug.PrintString( " \n" );
+		}
+	}
+}
+
+Allow()
+{
+	debug Debug.PrintString( "iBackToBase.Allow: Allowing iBackToBase.\n" );
+	
+	if ( !Global.Exists( "g_ibacktobase_level" ) )
+	{
+		debug Debug.PrintString( "iBackToBase.Allow: Global g_ibacktobase_level not initialised, so I'm initialising it now.\n" );
+		Global.CreateInt( "g_ibacktobase_level", 10, 0 );
+	}
+	
+	if ( Global.Int( "g_ibacktobase_level" ) > 0 )
+	{
+		Global.SetInt( "g_ibacktobase_level", Global.Int( "g_ibacktobase_level" ) - 1 );
+	}
+	else debug Debug.PrintString( "iBackToBase.Allow: WARNING: Ignoring attempt to set g_ibacktobase_level < 0 \n" );
+	
+	atomic
+	{
+		debug Debug.PrintString( "iBackToBase.Allow: Inhibit level now = " );
+		debug Debug.PrintInt( Global.Int( "g_ibacktobase_level" ) );
+		debug Debug.PrintString( " \n" );
+	}
+}
+
+task local_function_0( hship ship_, hisim param_1_ )
+{
+	iDirector.Begin();
+	iDirector.FadeOut( 0.0, 0.0, 0.0, 0.0 );
+	
+	atomic
+	{
+		iShip.DisruptLDSDrive( ship_, 120.0 );
+		iAI.ClearAutopilot();
+		iWingmen.Purge();
+		iWingmen.AddTFighters( ship_, iWingmen.GetDetachedTFighters() );
+		iShip.LockDownWeapons( iWingmen.GetAz() );
+		iShip.LockDownWeapons( iWingmen.GetLori() );
+		iShip.SetFreeWithoutPilot( ship_, true );
+	}
+	
+	iShip.DisruptLDSDrive( ship_, 120.0 );
+	iAI.ClearAutopilot();
+	Sim.PlaceNear( ship_, param_1_, 10000.0 );
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 0.10 );
+	}
+	while ( !( iSim.ActiveWorld() == Global.String( "g_player_base_system" ) ) );
+	
+	Task.Sleep( Task.Current(), 1.0 );
+	iShip.SetFreeWithoutPilot( ship_, true );
+	Sim.PlaceRelativeTo( ship_, param_1_, 3000.0, 2000.0, 15000.0 );
+	Sim.PointAt( ship_, param_1_ );
+	Sim.AvatarAddChannel( ship_, "lz", 1.0 );
+	Sim.SetVelocityLocalToSim( ship_, 0.0, 0.0, 400.0 );
+	iDirector.FadeIn( 1.0, 0.0, 0.0, 0.0 );
+	iDirector.SetFocus( ship_ );
+	iDirector.SetCamera( CAM_Flyby );
+	iDirector.FadeIn( 1.0, 0.0, 0.0, 0.0 );
+	Task.Sleep( Task.Current(), 5.0 );
+	iDirector.FadeOut( 1.0, 0.0, 0.0, 0.0 );
+	Task.Sleep( Task.Current(), 1.0 );
+	Sim.AvatarSetChannel( ship_, "lz", 0.0 );
+	iShip.SetFreeWithoutPilot( ship_, false );
+	DockingCutscene( ship_, iSim.Cast( param_1_ ) );
+	iGame.EnableBlackout( true );
+	iDirector.End();
+}
+
+DockingCutscene( hship player_ship_, hisim player_base_ )
+{
+	int local_0;
+	hsim local_1;
+	hisim simWaypoint_0;
+	hisim simWaypoint_1;
+	hgroup group;
+	hisim simWaypoint_2;
+	float radius;
+	float local_7;
+	float local_8;
+	float local_9;
+	float local_10;
+	
+	iDirector.FadeOut( 0.0, 0.0, 0.0, 0.0 );
+	
+	atomic
+	{
+		Sim.SetVelocity( player_ship_, 0.0, 0.0, 0.0 );
+		Sim.SetAngularVelocityEuler( player_ship_, 0.0, 0.0, 0.0 );
+		iShip.DisruptLDSDrive( player_ship_, 1.0 );
+		iAI.ClearAutopilot();
+		iWingmen.Purge();
+		iWingmen.AddTFighters( player_ship_, iWingmen.GetDetachedTFighters() );
+		iShip.LockDownWeapons( iWingmen.GetAz() );
+		iShip.LockDownWeapons( iWingmen.GetLori() );
+		iCutsceneUtilities.EnablePlayerAutopilot();
+		radius = Object.FloatProperty( player_ship_, "radius" );
+		
+		switch ( iSim.Type( player_ship_ ) )
+		{
+			case T_CommandSection:
+				local_7 = -1.10;
+				local_8 = 0.0;
+				local_9 = 14.0;
+				local_10 = ( local_8 + 8.0 );
+				break;
+			
+			case T_Interceptor:
+				local_7 = 0.0;
+				local_8 = 0.0;
+				local_9 = 8.0;
+				local_10 = ( local_8 + 7.0 );
+				break;
+			
+			case T_Tug:
+				local_7 = -1.10;
+				local_8 = -14.0;
+				local_9 = 35.0;
+				local_10 = ( local_8 + 8.0 );
+				break;
+			
+			case T_Patcom:
+				local_7 = -1.10;
+				local_8 = 0.0;
+				local_9 = 44.0;
+				local_10 = ( local_8 + 15.0 );
+				break;
+			
+			case T_Corvette:
+				local_7 = -1.10;
+				local_8 = 0.0;
+				local_9 = 60.0;
+				local_10 = ( local_8 + 15.0 );
+				break;
+		}
+	}
+	
+	local_1 = iDirector.CreateDolly();
+	Sim.SetCollision( local_1, false );
+	simWaypoint_0 = iSim.Cast( Sim.Create( "ini:/sims/nav/waypoint", "waypoint" ) );
+	simWaypoint_1 = iSim.Cast( Sim.Create( "ini:/sims/nav/waypoint", "waypoint" ) );
+	simWaypoint_2 = iSim.Cast( Sim.Create( "ini:/sims/nav/waypoint", "waypoint" ) );
+	group = iCutsceneUtilities.GetKillGroup();
+	Group.AddSim( group, local_1 );
+	Group.AddSim( group, simWaypoint_0 );
+	Group.AddSim( group, simWaypoint_1 );
+	Sim.PlaceRelativeToInside( simWaypoint_0, player_base_, 0.0, 0.0, 1800.0 );
+	Sim.PlaceRelativeTo( player_ship_, player_base_, 0.0, 0.0, 2900.0 );
+	Sim.PointAt( player_ship_, player_base_ );
+	Sim.SetCollision( player_ship_, false );
+	Sim.PlaceRelativeToInside( local_1, player_ship_, radius, -( radius / 2.0 ), -( radius * 2.50 ) );
+	Object.SetVectorProperty( player_ship_, "speed", 0.0, 0.0, 300.0 );
+	Object.SetVectorProperty( player_ship_, "acceleration", 0.0, 0.0, 50.0 );
+	iDirector.SetDollyCamera( local_1 );
+	iDirector.SetFocus( player_ship_ );
+	iDirector.FadeIn( 1.0, 0.0, 0.0, 0.0 );
+	Sim.AvatarAddChannel( player_base_, "door", 0.0 );
+	Sim.AvatarSetChannel( player_base_, "door", 1.0 );
+	Sim.AvatarAddChannel( player_base_, "base_doors_sound", 1.0 );
+	Task.Sleep( Task.Current(), 2.0 );
+	iAI.GiveApproachOrderAdvanced( player_ship_, simWaypoint_0, 10.0, 10.0, false );
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 0.10 );
+	}
+	while ( Sim.DistanceBetween( player_ship_, simWaypoint_0 ) > 50.0 );
+	
+	Sim.AvatarSetChannel( player_base_, "base_doors_sound", 0.0 );
+	Task.Sleep( Task.Current(), 1.0 );
+	iAI.PurgeOrders( player_ship_ );
+	
+	atomic
+	{
+		Sim.SetVelocity( player_ship_, 0.0, 0.0, 0.0 );
+		Sim.SetAngularVelocityEuler( player_ship_, 0.0, 0.0, 0.0 );
+		Sim.PlaceRelativeToInside( player_ship_, simWaypoint_0, 0.0, 0.0, 0.0 );
+		Sim.PointAt( player_ship_, player_base_ );
+		Sim.PlaceRelativeToInside( simWaypoint_0, player_ship_, 0.0, local_10, radius * 2.0 );
+		Sim.PlaceRelativeToInside( simWaypoint_1, player_ship_, local_7, local_8, local_9 );
+		Sim.PlaceRelativeToInside( simWaypoint_2, player_ship_, local_7, local_8, local_9 - 20.0 );
+		iDirector.SetFocus( simWaypoint_2 );
+	}
+	
+	iDirector.SetDirection( local_1, simWaypoint_0, simWaypoint_1, 10.0, 2.0 );
+	Sim.AvatarSetChannel( player_base_, "door", 0.0 );
+	Task.Sleep( Task.Current(), 1.0 );
+	Sim.AvatarSetChannel( player_base_, "base_doors_sound", 1.0 );
+	Task.Sleep( Task.Current(), 11.0 );
+	iCutsceneUtilities.DisablePlayerAutopilot();
+}
+
+task local_function_1( hship ship_, hisim param_1_ )
+{
+	iDirector.Begin();
+	DockingCutscene( ship_, param_1_ );
+	iGame.EnableBlackout( true );
+	iDirector.End();
+}
+
+Terminate()
+{
+	debug Debug.PrintString( "iBackToBase.Terminate: Terminating iBackToBase\n" );
+	
+	if ( Global.Exists( "g_ibacktobase_level" ) )
+	{
+		debug Debug.PrintString( "iBackToBase.Terminate: Destroying global g_ibacktobase_level \n" );
+		Global.Destroy( "g_ibacktobase_level" );
+	}
+	else debug Debug.PrintString( "iBackToBase.Terminate: ERROR: global g_ibacktobase_level does not exist. \n" );
+	
+	if ( Global.Exists( "g_have_started_ibacktobase_detector" ) )
+	{
+		debug Debug.PrintString( "iBackToBase.Terminate: Destroying global g_have_started_ibacktobase_detector. \n" );
+		Task.Halt( Task.Cast( Global.Handle( "g_have_started_ibacktobase_detector" ) ) );
+		Global.Destroy( "g_have_started_ibacktobase_detector" );
+		return;
+	}
+	
+	debug Debug.PrintString( "iBackToBase.Terminate: ERROR: global g_have_started_ibacktobase_detector does not exist. \n" );
+}
+

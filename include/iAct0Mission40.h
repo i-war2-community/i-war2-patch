@@ -1,0 +1,26 @@
+//
+// (c) 1998-9 Particle Systems Ltd. All Rights Reserved
+//
+// iAct0Mission40.h
+//
+// Compiler-generated export header for package "iAct0Mission40"
+//
+// Revision control information:
+//
+// $Header: /iwar2/resource/scripts/include/iAct0Mission40.h 2     1/17/01 3:03p Richard $
+//
+
+// Dependencies ////////////////////////////////////////////////////////////////
+
+// Enumerated types ////////////////////////////////////////////////////////////
+
+// Functions ///////////////////////////////////////////////////////////////////
+
+prototype iAct0Mission40.Main();
+
+prototype task iAct0Mission40.MissionHandler();
+
+prototype iAct0Mission40.Stub();
+
+// EOF /////////////////////////////////////////////////////////////////////////
+

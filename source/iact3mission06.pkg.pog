@@ -1,0 +1,763 @@
+package iAct3Mission06;
+
+uses Debug,
+     Set,
+     List,
+     String,
+     Global,
+     Sim,
+     Group,
+     Math,
+     Object,
+     State,
+     Task,
+     Text,
+     iSim,
+     MapEnumerations,
+     iMapEntity,
+     iLagrangePoint,
+     iShip,
+     Subsim,
+     iDockport,
+     iAI,
+     iBackToBase,
+     iComms,
+     iConversation,
+     iCutsceneUtilities,
+     iDirector,
+     GUI,
+     iEmail,
+     iEscort,
+     iFaction,
+     iFormation,
+     iGame,
+     iBody,
+     iHabitat,
+     iMissionTracker,
+     iObjectives,
+     INIFile,
+     iUtilities,
+     CargoTypes,
+     iCargoScript,
+     iPilotSetup,
+     iCargo,
+     iShipCreation,
+     iStation;
+
+provides Main,
+         MissionHandler;
+
+prototype Main();
+prototype local_function_7( hstate state_ );
+prototype local_function_12();
+prototype task local_function_0();
+prototype hgroup local_function_8( hmapentity mapentity_ );
+prototype local_function_1( hship ship_, hfaction faction_ );
+prototype local_function_5( hgroup group_, hship ship_, bool param_2_ );
+prototype local_function_13( hgroup group_ );
+prototype task local_function_9( hgroup group_, hship ship_, hstate state_ );
+prototype task local_function_14();
+prototype hgroup local_function_6( hmapentity mapentity_ );
+prototype local_function_4( hgroup group_, hlagrangepoint lagrangepoint_ );
+prototype task local_function_10( hship ship_, hgroup group_0_, hmapentity mapentity_, hstate state_ );
+prototype task local_function_11( hship ship_, hmapentity mapentity_, hstate state_ );
+prototype local_function_3( hgroup group_, bool param_1_, bool param_2_ );
+prototype task local_function_2( hship ship_, hmapentity mapentity_0_, hmapentity mapentity_1_, hmapentity mapentity_2_, hgroup group_0_, hgroup group_1_ );
+prototype task MissionHandler();
+
+Main()
+{
+	start local_function_0();
+}
+
+local_function_7( hstate state_ )
+{
+	hsim waypointLucreciasBase;
+	hship playerShip = iShip.FindPlayerShip();
+	
+	waypointLucreciasBase = iUtilities.CreateWaypointRelativeTo( iMapEntity.FindByNameInSystem( "Lucrecia's Base", "map:/geog/gagarin/formhault" ), 0.0, 0.0, 20000.0 );
+	Object.AddHandleProperty( playerShip, "restart_waypoint", waypointLucreciasBase );
+	Object.AddHandleProperty( playerShip, "current_mission_state", state_ );
+}
+
+local_function_12()
+{
+	iObjectives.Remove( "a3_m06_objectives_fly_to" );
+	iObjectives.Remove( "a3_m06_objectives_destroy" );
+	iObjectives.Remove( "a3_m06_objectives_return" );
+}
+
+task local_function_0()
+{
+	htask local_0;
+	int local_1;
+	
+	while ( iComms.IsInConversation() )
+	{
+		Task.Sleep( Task.Current(), 0.50 );
+	}
+	
+	if ( !iUtilities.SkipMission( "Smokescreen??" ) )
+	{
+		Task.Detach( local_0 = start MissionHandler() );
+		iMissionTracker.AddMission( local_0, 3, 6 );
+		return;
+	}
+	
+	Global.SetBool( "g_act3_smokescreen_mission_complete", true );
+	return;
+}
+
+hgroup local_function_8( hmapentity mapentity_ )
+{
+	hgroup group_0 = Group.Create();
+	hgroup group_1 = Group.Create();
+	hfaction m_C_A_ = iFaction.Find( "M.C.A." );
+	hship ship;
+	int constant = 3;
+	int ii;
+	
+	Group.AddGroup( group_0, Group.Cast( Global.Handle( "g_hoffers_vessels" ) ) );
+	ship = iShip.Create( "ini:/sims/ships/corporate/corp_cruiser_turrets", iShipCreation.ShipName( "Mca", -1 ) );
+	iSim.SetFaction( ship, m_C_A_ );
+	Sim.SetCullable( ship, false );
+	iShip.InstallAIPilot( ship, 0.20, 5.0, 0.20, "", "", "", "" );
+	Group.AddSim( group_1, ship );
+	ship = iShip.Create( "ini:/sims/ships/corporate/corp_cruiser_turrets", iShipCreation.ShipName( "Mca", -1 ) );
+	iSim.SetFaction( ship, m_C_A_ );
+	Sim.SetCullable( ship, false );
+	iShip.InstallAIPilot( ship, 0.20, 5.0, 0.20, "", "", "", "" );
+	Group.AddSim( group_1, ship );
+	Group.AddGroup( group_0, group_1 );
+	group_1 = Group.Create();
+	
+	for ( ii = 0; ii < constant; ++ii )
+	{
+		switch ( Math.RandomInt( 0, 2 ) )
+		{
+			case 0:
+				ship = iShip.Create( "ini:/sims/ships/corporate/interceptor", iShipCreation.ShipName( "Mca", -1 ) );
+				break;
+			
+			case 1:
+				ship = iShip.Create( "ini:/sims/ships/navy/old_corvette_hard", iShipCreation.ShipName( "Mca", -1 ) );
+				break;
+			
+			case 2:
+				ship = iShip.Create( "ini:/sims/ships/independent/cutter_mercenary", iShipCreation.ShipName( "Mca", -1 ) );
+				break;
+		}
+		
+		iSim.SetFaction( ship, m_C_A_ );
+		Sim.SetCullable( ship, false );
+		iShip.InstallAIPilot( ship, 0.20, 5.0, 0.20, "", "", "", "" );
+		Group.AddSim( group_1, ship );
+	}
+	
+	Group.AddGroup( group_0, group_1 );
+	iEscort.InFormationGoose( Group.NthGroup( group_0, 1 ), Group.Leader( Group.NthGroup( group_0, 0 ) ), 0, 0.0, 200.0, -80.0, 200.0, 2000.0, true );
+	iEscort.InFormationGoose( Group.NthGroup( group_0, 2 ), Group.Leader( Group.NthGroup( group_0, 0 ) ), 0, 0.0, 500.0, -300.0, 200.0, 2000.0, true );
+	return group_0;
+}
+
+local_function_1( hship ship_, hfaction faction_ )
+{
+	list localList = List.FromSet( Sim.Children( ship_ ) );
+	int itemCount = List.ItemCount( localList );
+	int ii;
+	
+	iSim.SetFaction( ship_, faction_ );
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		iSim.SetFaction( iSim.Cast( List.GetNth( localList, ii ) ), faction_ );
+	}
+}
+
+local_function_5( hgroup group_, hship ship_, bool param_2_ )
+{
+	hfaction mAASCorporation = iFaction.Find( "MAAS Corporation" );
+	hfaction m_C_A_ = iFaction.Find( "M.C.A." );
+	hfaction player = iFaction.Find( "Player" );
+	int ii;
+	int jj;
+	int simCount;
+	int groupCount;
+	
+	if ( param_2_ == 1 )
+	{
+		local_function_1( ship_, player );
+		groupCount = Group.GroupCount( group_ );
+		
+		for ( jj = 0; jj < groupCount; ++jj )
+		{
+			simCount = Group.SimCount( Group.NthGroup( group_, jj ) );
+			
+			for ( ii = 0; ii < simCount; ++ii )
+			{
+				iSim.SetFaction( iSim.Cast( Group.NthSim( Group.NthGroup( group_, jj ), ii ) ), m_C_A_ );
+			}
+		}
+		
+		return;
+	}
+	
+	local_function_1( ship_, mAASCorporation );
+	groupCount = Group.GroupCount( group_ );
+	
+	for ( jj = 0; jj < groupCount; ++jj )
+	{
+		simCount = Group.SimCount( Group.NthGroup( group_, jj ) );
+		
+		for ( ii = 0; ii < simCount; ++ii )
+		{
+			iSim.SetFaction( iSim.Cast( Group.NthSim( Group.NthGroup( group_, jj ), ii ) ), mAASCorporation );
+		}
+	}
+}
+
+local_function_13( hgroup group_ )
+{
+	int groupCount = Group.GroupCount( group_ );
+	int ii;
+	
+	for ( ii = 0; ii < groupCount; ++ii )
+	{
+		Debug.Error( Object.StringProperty( Group.Leader( Group.NthGroup( group_, ii ) ), "name" ) );
+	}
+}
+
+task local_function_9( hgroup group_, hship ship_, hstate state_ )
+{
+	bool local_0 = false;
+	hsim groupLeader = Group.Leader( Group.NthGroup( group_, 0 ) );
+	hmapentity lucreciasBase = iMapEntity.FindByNameInSystem( "Lucrecia's Base", "map:/geog/gagarin/formhault" );
+	hmapentity ozakiMAASClusterCentralHQ = iMapEntity.FindByNameInSystem( "Ozaki MAAS Cluster Central HQ", "map:/geog/gagarin/ishime" );
+	hmapentity haitsuchiLPoint = iMapEntity.FindByNameInSystem( "Haitsuchi L-Point", "map:/geog/gagarin/ishime" );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( (Sim.DistanceBetween( ship_, groupLeader ) < 800.0) && !local_0 )
+			{
+				local_0 = true;
+				iConversation.OneLiner( groupLeader, "name_hoffer", "a3_m06_dialogue_hoffer_good_to" );
+				Group.RemoveSim( Group.NthGroup( group_, 0 ), groupLeader );
+				State.SetProgress( state_, 1 );
+				iObjectives.Add( "a3_m06_objectives_fly_to" );
+				iGame.EnableBlackout( true );
+				iUtilities.GroupSetCullable( Group.NthGroup( group_, 0 ), false );
+				iUtilities.GroupSetCullable( Group.NthGroup( group_, 1 ), false );
+				iCutsceneUtilities.HandleAbort( start local_function_2( ship_, lucreciasBase, haitsuchiLPoint, ozakiMAASClusterCentralHQ, Group.NthGroup( group_, 0 ), Group.NthGroup( group_, 1 ) ) );
+				
+				atomic
+				{
+					iShip.SetFreeWithoutPilot( ship_, false );
+					Sim.PlaceNear( ship_, ozakiMAASClusterCentralHQ, 300000.0 );
+					Sim.PointAt( ship_, ozakiMAASClusterCentralHQ );
+					Sim.SetVelocityLocalToSim( ship_, 0.0, 0.0, 500.0 );
+					iEscort.InFormationGoose( Group.NthGroup( group_, 0 ), ship_, 0, 0.0, 200.0, -80.0, 200.0, 2000.0, true );
+					local_function_3( Group.NthGroup( group_, 0 ), false, false );
+					iUtilities.GroupSetLocalVelocity( Group.NthGroup( group_, 0 ), 0.0, 0.0, 500.0, true, true );
+					iEscort.InFormationGoose( Group.NthGroup( group_, 1 ), ship_, 0, 0.0, 500.0, -300.0, 200.0, 2000.0, true );
+					local_function_3( Group.NthGroup( group_, 1 ), false, false );
+					iUtilities.GroupSetLocalVelocity( Group.NthGroup( group_, 1 ), 0.0, 0.0, 500.0, true, true );
+				}
+				
+				iGame.EnableBlackout( false );
+				return;
+			}
+		}
+	}
+}
+
+task local_function_14()
+{
+	schedule
+	{
+		every 2.0:
+		{
+		}
+	}
+}
+
+hgroup local_function_6( hmapentity mapentity_ )
+{
+	hgroup group_0 = Group.Create();
+	hgroup group_1 = Group.Create();
+	hfaction mAASCorporation = iFaction.Find( "MAAS Corporation" );
+	hfaction ashantiInvestment = iFaction.Find( "Ashanti Investment" );
+	hfaction vonSchellingIndustries = iFaction.Find( "Von Schelling Industries" );
+	hfaction advancedSecurityCorp = iFaction.Find( "Advanced Security Corp" );
+	hship ship;
+	int constant = 8;
+	int ii;
+	int local_9 = 0;
+	
+	iFaction.SetFeeling( mAASCorporation, ashantiInvestment, -1.0 );
+	iFaction.SetFeeling( mAASCorporation, vonSchellingIndustries, -1.0 );
+	iFaction.SetFeeling( mAASCorporation, advancedSecurityCorp, -1.0 );
+	iFaction.SetFeeling( ashantiInvestment, mAASCorporation, -1.0 );
+	iFaction.SetFeeling( vonSchellingIndustries, mAASCorporation, -1.0 );
+	iFaction.SetFeeling( advancedSecurityCorp, mAASCorporation, -1.0 );
+	ship = iShip.Create( "ini:/sims/ships/navy/heavy_cruiser", iShipCreation.ShipName( "MaasCorporation", -1 ) );
+	iSim.SetFaction( ship, mAASCorporation );
+	iShip.InstallAIPilot( ship, 0.20, 5.0, 0.20, "", "", "", "" );
+	Group.AddSim( group_1, ship );
+	
+	for ( ii = 0; ii < constant; ++ii )
+	{
+		switch ( Math.RandomInt( 0, 2 ) )
+		{
+			case 0:
+				ship = iShip.Create( "ini:/sims/ships/corporate/cutter", iShipCreation.ShipName( "MaasCorporation", -1 ) );
+				break;
+			
+			case 1:
+				ship = iShip.Create( "ini:/sims/ships/corporate/interceptor", iShipCreation.ShipName( "MaasCorporation", -1 ) );
+				break;
+			
+			case 2:
+				ship = iShip.Create( "ini:/sims/ships/navy/old_corvette_hard", iShipCreation.ShipName( "MaasCorporation", -1 ) );
+				break;
+		}
+		
+		iSim.SetFaction( ship, mAASCorporation );
+		iShip.InstallAIPilot( ship, 0.20, 5.0, 0.20, "", "", "", "" );
+		Group.AddSim( group_1, ship );
+	}
+	
+	Group.AddGroup( group_0, group_1 );
+	group_1 = Group.Create();
+	ship = iShip.Create( "ini:/sims/ships/navy/heavy_cruiser", iShipCreation.ShipName( "General", -1 ) );
+	iSim.SetFaction( ship, vonSchellingIndustries );
+	iShip.InstallAIPilot( ship, 0.20, 5.0, 0.20, "", "", "", "" );
+	Group.AddSim( group_1, ship );
+	ship = iShip.Create( "ini:/sims/ships/navy/heavy_cruiser", iShipCreation.ShipName( "General", -1 ) );
+	iSim.SetFaction( ship, vonSchellingIndustries );
+	iShip.InstallAIPilot( ship, 0.20, 5.0, 0.20, "", "", "", "" );
+	Group.AddSim( group_1, ship );
+	
+	for ( ii = 0; ii < constant; ++ii )
+	{
+		switch ( Math.RandomInt( 0, 2 ) )
+		{
+			case 0:
+				ship = iShip.Create( "ini:/sims/ships/corporate/cutter", iShipCreation.ShipName( "General", -1 ) );
+				break;
+			
+			case 1:
+				ship = iShip.Create( "ini:/sims/ships/corporate/interceptor", iShipCreation.ShipName( "General", -1 ) );
+				break;
+			
+			case 2:
+				ship = iShip.Create( "ini:/sims/ships/navy/old_corvette_hard", iShipCreation.ShipName( "General", -1 ) );
+				break;
+		}
+		
+		switch ( local_9 )
+		{
+			case 0:
+				iSim.SetFaction( ship, ashantiInvestment );
+				break;
+			
+			case 1:
+				iSim.SetFaction( ship, vonSchellingIndustries );
+				break;
+			
+			case 2:
+				iSim.SetFaction( ship, advancedSecurityCorp );
+				break;
+		}
+		
+		iShip.InstallAIPilot( ship, 0.20, 5.0, 0.20, "", "", "", "" );
+		Group.AddSim( group_1, ship );
+		
+		if ( local_9 < 2 )
+		{
+			local_9 = ( local_9 + 1 );
+		}
+		else
+		{
+			local_9 = 0;
+		}
+	}
+	
+	Group.AddGroup( group_0, group_1 );
+	return group_0;
+}
+
+local_function_4( hgroup group_, hlagrangepoint lagrangepoint_ )
+{
+	int simCount_0 = Group.SimCount( group_ );
+	int simCount_1 = Group.SimCount( Group.NthGroup( group_, 0 ) );
+	int ii;
+	
+	for ( ii = 0; ii < simCount_0; ++ii )
+	{
+		iSim.CapsuleJumpStaggered( iSim.Cast( Group.NthSim( Group.NthGroup( group_, 1 ), ii ) ), lagrangepoint_ );
+	}
+	
+	for ( ii = 0; ii < simCount_1; ++ii )
+	{
+		iSim.CapsuleJumpStaggered( iSim.Cast( Group.NthSim( Group.NthGroup( group_, 0 ), ii ) ), lagrangepoint_ );
+	}
+}
+
+task local_function_10( hship ship_, hgroup group_0_, hmapentity mapentity_, hstate state_ )
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	bool local_2 = false;
+	bool local_3 = false;
+	hgroup group_1;
+	hlagrangepoint lagrangepoint;
+	hship groupLeader_0;
+	hship groupLeader_1;
+	int convoResponse;
+	
+	iSim.SetSensorVisibility( iSim.Cast( mapentity_ ), true );
+	
+	schedule
+	{
+		every 2.0:
+		{
+			if ( (iSim.ActiveWorld() == "map:/geog/gagarin/ishime") && !local_3 )
+			{
+				local_3 = true;
+				lagrangepoint = iLagrangePoint.Nearest( iMapEntity.SystemLagrangePoints(), ship_ );
+				Task.Sleep( Task.Current(), 5.0 );
+				local_function_4( group_0_, lagrangepoint );
+				iConversation.OneLiner( none, "name_cal", "a3_m06_dialogue_cal_all_ships" );
+				iStation.AddReactiveException( iHabitat.Cast( mapentity_ ) );
+				local_function_5( group_0_, ship_, false );
+				Global.CreateBool( "g_hoffer_disabled", 2, true );
+			}
+			else if ( !( iSim.ActiveWorld() == "map:/geog/gagarin/ishime" ) && local_3 )
+			{
+				local_3 = false;
+				lagrangepoint = iLagrangePoint.Nearest( iMapEntity.SystemLagrangePoints(), ship_ );
+				Task.Sleep( Task.Current(), 5.0 );
+				local_function_4( group_0_, lagrangepoint );
+				local_function_5( group_0_, ship_, true );
+			}
+			
+			if ( iUtilities.PlayerInRange( mapentity_ ) && !local_0 )
+			{
+				local_0 = true;
+				group_1 = local_function_6( mapentity_ );
+				groupLeader_0 = iShip.Cast( Group.Leader( Group.NthGroup( group_1, 0 ) ) );
+				groupLeader_1 = iShip.Cast( Group.Leader( Group.NthGroup( group_1, 1 ) ) );
+				Sim.PlaceNear( groupLeader_0, mapentity_, 500.0 );
+				iEscort.InFormationSkirmishLine( Group.NthGroup( group_1, 0 ), groupLeader_0, 0, 0.0, 500.0, -300.0, 200.0, 9000.0, true );
+				Sim.PlaceNear( groupLeader_1, mapentity_, 20000.0 );
+				iEscort.InFormationSkirmishLine( Group.NthGroup( group_1, 1 ), groupLeader_1, 0, 0.0, 500.0, -300.0, 200.0, 9000.0, true );
+				iAI.GiveEscortOrder( Group.NthSim( Group.NthGroup( group_1, 1 ), 1 ), groupLeader_1, 0.0, 600.0, -300.0, 2000.0 );
+				iAI.GiveGenericAttackOrder( groupLeader_1 );
+				iAI.GiveEscortOrder( groupLeader_0, mapentity_, 100.0, 100.0, 100.0, 10000.0 );
+				iAI.GiveApproachOrder( groupLeader_1, groupLeader_0 );
+				iConversation.OneLiner( none, "name_smith", "a3_m06_dialogue_smith_uh_oh" );
+				iConversation.OneLiner( none, "a3_m06_name_maashq", "a3_m06_dialogue_maashq_its_about" );
+				iConversation.OneLiner( none, "name_clay", "a3_m06_dialogue_clay_hey" );
+				iAI.GiveApproachOrder( groupLeader_1, ship_ );
+				iObjectives.SetState( "a3_m06_objectives_fly_to", OS_Succeeded );
+				iConversation.OneLiner( none, "name_smith", "a3_m06_dialogue_smith_cal" );
+				iObjectives.Add( "a3_m06_objectives_destroy" );
+			}
+			
+			if ( local_0 )
+			{
+				if ( (Group.TotalSimCount( Group.NthGroup( group_1, 1 ) ) == 0) && !local_1 )
+				{
+					iConversation.OneLiner( none, "name_smith", "a3_m06_dialogue_smith_wooa" );
+					iObjectives.SetState( "a3_m06_objectives_destroy", OS_Succeeded );
+					iConversation.OneLiner( none, "name_clay", "a3_m06_dialogue_clay_i_think" );
+					iConversation.OneLiner( none, "a3_m06_name_maashq", "a3_m06_dialogue_maashq_thanks" );
+					iConversation.OneLiner( none, "name_cal", "a3_m06_dialogue_player_what_was" );
+					iConversation.Begin();
+					iConversation.AddResponse( "a3_m06_text_c1_option_1_cabal", "a3_m06_dialogue_player_c1_option_1_cabal" );
+					iConversation.AddResponse( "a3_m06_text_c1_option_2_split", "a3_m06_dialogue_player_c1_option_2_split" );
+					convoResponse = iConversation.Ask( none, "a3_m06_name_maashq", "a3_m06_dialogue_maashq_c1_cabal" );
+					
+					if ( convoResponse == 1 )
+					{
+						iConversation.Say( none, "a3_m06_name_maashq", "a3_m06_dialogue_maashq_c1_response_1_cabal" );
+						iConversation.AddResponse( "a3_m06_text_c1_option_2_split", "a3_m06_dialogue_player_c1_option_2_split" );
+						iConversation.Ask( none, "", "" );
+						iConversation.Say( none, "a3_m06_name_maashq", "a3_m06_dialogue_maashq_c1_response_2_split" );
+						iConversation.AddResponse( "a3_m06_text_c1_option_3_remit", "a3_m06_dialogue_player_c1_option_3_remit" );
+						iConversation.Ask( none, "", "" );
+						iConversation.Say( none, "a3_m06_name_maashq", "a3_m06_dialogue_maashq_c1_response_3_remit" );
+					}
+					else
+					{
+						iConversation.Say( none, "a3_m06_name_maashq", "a3_m06_dialogue_maashq_c1_response_2_split" );
+						iConversation.AddResponse( "a3_m06_text_c1_option_1_cabal", "a3_m06_dialogue_player_c1_option_1_cabal" );
+						iConversation.AddResponse( "a3_m06_text_c1_option_3_remit", "a3_m06_dialogue_player_c1_option_3_remit" );
+						convoResponse = iConversation.Ask( none, "", "" );
+						
+						if ( convoResponse == 1 )
+						{
+							iConversation.Say( none, "a3_m06_name_maashq", "a3_m06_dialogue_maashq_c1_response_1_cabal" );
+							iConversation.AddResponse( "a3_m06_text_c1_option_3_remit", "a3_m06_dialogue_player_c1_option_3_remit" );
+							iConversation.Ask( none, "", "" );
+							iConversation.Say( none, "a3_m06_name_maashq", "a3_m06_dialogue_maashq_c1_response_3_remit" );
+						}
+						else
+						{
+							iConversation.Say( none, "a3_m06_name_maashq", "a3_m06_dialogue_maashq_c1_response_3_remit" );
+							iConversation.AddResponse( "a3_m06_text_c1_option_1_cabal", "a3_m06_dialogue_player_c1_option_1_cabal" );
+							iConversation.Ask( none, "", "" );
+							iConversation.Say( none, "a3_m06_name_maashq", "a3_m06_dialogue_maashq_c1_response_1_cabal" );
+						}
+					}
+					
+					iConversation.End();
+					iConversation.OneLiner( none, "name_cal", "a3_m06_dialogue_player_i_see" );
+					iConversation.OneLiner( none, "a3_m06_name_maashq", "a3_m06_dialogue_maashq_funny" );
+					iConversation.OneLiner( none, "name_cal", "a3_m06_dialogue_player_what" );
+					Group.Destroy( group_1, false );
+					iConversation.OneLiner( none, "name_clay", "a3_m06_dialogue_clay_that_dont" );
+					State.SetProgress( state_, 2 );
+					iConversation.OneLiner( none, "name_cal", "a3_m06_dialogue_cal_lets_get" );
+					iObjectives.Add( "a3_m06_objectives_return" );
+					local_function_5( group_0_, ship_, true );
+					return;
+				}
+			}
+		}
+	}
+}
+
+task local_function_11( hship ship_, hmapentity mapentity_, hstate state_ )
+{
+	bool local_0 = false;
+	hship shipArmouredTug = iShip.Create( "ini:/sims/ships/independent/armoured_tug", "a3_m06_name_escort" );
+	hfaction m_C_A_ = iFaction.Find( "M.C.A." );
+	
+	iSim.SetFaction( shipArmouredTug, m_C_A_ );
+	
+	schedule
+	{
+		every 2.0:
+		{
+			if ( iUtilities.PlayerInRange( mapentity_ ) && !local_0 )
+			{
+				local_0 = true;
+				Sim.PlaceNear( shipArmouredTug, mapentity_, 100.0 );
+				iConversation.OneLiner( none, "name_smith", "a3_m06_dialogue_smith_it" );
+			}
+			
+			if ( local_0 )
+			{
+				if ( Sim.DistanceBetween( ship_, shipArmouredTug ) < 2000.0 )
+				{
+					iObjectives.SetState( "a3_m06_objectives_return", OS_Succeeded );
+					iConversation.OneLiner( none, "name_cal", "a3_m06_dialogue_cal_what" );
+					iConversation.OneLiner( shipArmouredTug, "a3_m06_name_escort", "a3_m06_dialogue_escort_im_all" );
+					iConversation.OneLiner( none, "name_cal", "a3_m06_dialogue_cal_you_did" );
+					iConversation.OneLiner( none, "name_smith", "a3_m06_dialogue_smith_well" );
+					State.SetProgress( state_, 8 );
+					return;
+				}
+			}
+		}
+	}
+}
+
+local_function_3( hgroup group_, bool param_1_, bool param_2_ )
+{
+	int simCount;
+	int ii;
+	hship ship;
+	bool local_3 = false;
+	
+	if ( param_2_ )
+	{
+		local_3 = true;
+	}
+	
+	simCount = Group.SimCount( group_ );
+	
+	if ( simCount != 0 )
+	{
+		for ( ii = 0; ii < simCount; ++ii )
+		{
+			ship = iShip.Cast( Group.NthSim( group_, ii ) );
+			iShip.SetFreeWithoutPilot( ship, param_1_ );
+			Sim.AvatarSetChannel( ship, "lz", 0.0 );
+		}
+	}
+}
+
+task local_function_2( hship ship_, hmapentity mapentity_0_, hmapentity mapentity_1_, hmapentity mapentity_2_, hgroup group_0_, hgroup group_1_ )
+{
+	hsim local_0 = iDirector.CreateDolly();
+	
+	iDirector.Begin();
+	iDirector.FadeOut( 0.0, 0.0, 0.0, 0.0 );
+	iGame.EnableBlackout( false );
+	
+	atomic
+	{
+		Sim.PlaceRelativeTo( ship_, mapentity_0_, 5000.0, 1000.0, 20000.0 );
+		Sim.PointAway( ship_, mapentity_0_ );
+		Sim.PlaceRelativeTo( local_0, ship_, 200.0, 50.0, 1000.0 );
+		iShip.SetFreeWithoutPilot( ship_, true );
+		Sim.SetVelocityLocalToSim( ship_, 0.0, 0.0, 500.0 );
+		Sim.AvatarAddChannel( ship_, "lz", 1.0 );
+		Sim.PlaceRelativeTo( Group.Leader( group_0_ ), ship_, 500.0, -100.0, 500.0 );
+		iFormation.Goose( group_0_, 0.0, true );
+		local_function_3( group_0_, true, true );
+		iUtilities.GroupSetLocalVelocity( group_0_, 0.0, 0.0, 500.0, true, true );
+		iAI.PurgeOrders( group_0_ );
+		Sim.PlaceRelativeTo( Group.Leader( group_1_ ), ship_, -500.0, -100.0, 500.0 );
+		local_function_3( group_1_, true, true );
+		iUtilities.GroupSetLocalVelocity( group_1_, 0.0, 0.0, 500.0, true, true );
+		iAI.PurgeOrders( group_1_ );
+	}
+	
+	iDirector.FadeIn( 0.0, 0.0, 0.0, 0.0 );
+	iDirector.SetDollyCamera( local_0 );
+	iDirector.SetFocus( ship_ );
+	Task.Sleep( Task.Current(), 5.0 );
+	iDirector.FadeOut( 1.0, 0.0, 0.0, 0.0 );
+	Task.Sleep( Task.Current(), 1.0 );
+	
+	atomic
+	{
+		iUtilities.GroupSetLocalVelocity( group_0_, 0.0, 0.0, 0.0, true, true );
+		iUtilities.GroupSetLocalVelocity( group_1_, 0.0, 0.0, 0.0, true, true );
+		Sim.PlaceNear( ship_, mapentity_2_, 300000.0 );
+		
+		do
+		{
+			Task.Sleep( Task.Current(), 0.10 );
+		}
+		while ( !( iSim.ActiveWorld() == "map:/geog/gagarin/ishime" ) );
+		
+		Sim.PointAt( ship_, mapentity_2_ );
+		Sim.PlaceRelativeTo( local_0, ship_, -200.0, 50.0, 1000.0 );
+		Sim.SetVelocityLocalToSim( ship_, 0.0, 0.0, 500.0 );
+		Sim.AvatarSetChannel( ship_, "lz", 1.0 );
+		Sim.PlaceRelativeTo( Group.Leader( group_0_ ), ship_, 500.0, -100.0, 500.0 );
+		iFormation.Goose( group_0_, 0.0, true );
+		iUtilities.GroupSetLocalVelocity( group_0_, 0.0, 0.0, 500.0, true, true );
+		iAI.PurgeOrders( group_0_ );
+		Sim.PlaceRelativeTo( Group.Leader( group_1_ ), ship_, -500.0, -100.0, 500.0 );
+		iFormation.Goose( group_1_, 0.0, true );
+		iUtilities.GroupSetLocalVelocity( group_1_, 0.0, 0.0, 500.0, true, true );
+		iAI.PurgeOrders( group_1_ );
+	}
+	
+	iDirector.SetDollyCamera( local_0 );
+	iDirector.SetFocus( ship_ );
+	iDirector.FadeIn( 1.0, 0.0, 0.0, 0.0 );
+	Task.Sleep( Task.Current(), 1.0 );
+	iDirector.SetCaption( "Ishime System", 5.0 );
+	Task.Sleep( Task.Current(), 5.0 );
+	iDirector.End();
+}
+
+task MissionHandler()
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	hship playerShip = iShip.FindPlayerShip();
+	hmapentity ozakiMAASClusterCentralHQ = iMapEntity.FindByNameInSystem( "Ozaki MAAS Cluster Central HQ", "map:/geog/gagarin/ishime" );
+	hmapentity formhaultJumpAccelerator = iMapEntity.FindByNameInSystem( "Formhault Jump Accelerator", "map:/geog/gagarin/formhault" );
+	hgroup group;
+	hstate taskState;
+	hemail email;
+	htask currentTask = Task.Current();
+	
+	Text.Add( "csv:/text/act_3/act3_mission06" );
+	taskState = State.Find( currentTask );
+	
+	if ( !taskState )
+	{
+		taskState = State.Create( currentTask, 0 );
+	}
+	
+	local_function_7( taskState );
+	email = iEmail.Find( "html:/text/act_3/act3_mission06_email" );
+	
+	if ( !email )
+	{
+		iEmail.SendEmail( "a3_m05_email_sender", "a3_master_story3.140_mail_subject", "html:/text/act_3/act3_mission06_email", true );
+		return;
+	}
+	else if ( !iEmail.Read( email ) )
+	{
+		return;
+	}
+	
+	if ( !( iSim.ActiveWorld() == "map:/geog/gagarin/formhault" ) )
+	{
+		iConversation.OneLiner( none, "", "Testing mission in isolation..........." );
+		iSim.CapsuleJump( playerShip, iSim.Cast( formhaultJumpAccelerator ) );
+		
+		do
+		{
+			Task.Sleep( Task.Current(), 1.0 );
+		}
+		while ( !( iSim.ActiveWorld() == "map:/geog/gagarin/formhault" ) );
+		
+		Task.Sleep( Task.Current(), 5.0 );
+	}
+	
+	iBackToBase.Inhibit();
+	
+	if ( State.Progress( taskState ) == 0 )
+	{
+		Task.Sleep( Task.Current(), 5.0 );
+		group = local_function_8( formhaultJumpAccelerator );
+		start local_function_9( group, playerShip, taskState );
+	}
+	
+	schedule
+	{
+		every 5.0:
+		{
+			if ( (State.Progress( taskState ) == 1) && !local_0 )
+			{
+				local_0 = true;
+				start local_function_10( playerShip, group, ozakiMAASClusterCentralHQ, taskState );
+			}
+			
+			if ( (State.Progress( taskState ) == 2) && !local_1 )
+			{
+				local_1 = true;
+				start local_function_11( playerShip, formhaultJumpAccelerator, taskState );
+			}
+			
+			if ( (State.Progress( taskState ) == 8) || (State.Progress( taskState ) == 100) )
+			{
+				if ( State.Progress( taskState ) == 8 )
+				{
+					Global.SetBool( "g_act3_smokescreen_mission_complete", true );
+				}
+				else
+				{
+					atomic
+					{
+						Global.SetBool( "g_skip_locked", false );
+					}
+					
+					Task.Detach( start local_function_0() );
+					iSim.SetFaction( playerShip, iFaction.Find( "Player" ) );
+					Group.Destroy( group, true );
+				}
+				
+				iSim.SetSensorVisibility( iSim.Cast( ozakiMAASClusterCentralHQ ), false );
+				iUtilities.RemoveMissionRestart();
+				State.Destroy( Task.Current() );
+				iMissionTracker.RemoveMission( Task.Current() );
+				Group.Destroy( group, false );
+				return;
+			}
+		}
+	}
+}
+

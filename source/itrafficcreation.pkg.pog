@@ -1,0 +1,1922 @@
+package iTrafficCreation;
+
+uses Debug,
+     Set,
+     List,
+     String,
+     Global,
+     Sim,
+     Group,
+     Math,
+     Object,
+     Task,
+     iFormation,
+     iFaction,
+     iSim,
+     MapEnumerations,
+     iMapEntity,
+     iBody,
+     iHabitat,
+     iLagrangePoint,
+     iShip,
+     iScriptedOrders,
+     INIFile,
+     iUtilities,
+     iPilotSetup,
+     Subsim,
+     iDockport,
+     iAI,
+     iCargo,
+     CargoTypes,
+     iCargoScript,
+     iShipCreation,
+     iTrafficScenario;
+
+provides Start,
+         Terminate,
+         MonitorTraffic,
+         CustomManeuvre,
+         CustomPoliceRaid,
+         CustomFlitter,
+         CustomSpeedTrap,
+         CustomCabbie,
+         CustomPiracy,
+         CustomOfficialVisit,
+         DisableTrafficReport,
+         CustomFreelanceMine,
+         CustomLocalSecurityPatrol,
+         CustomGoToLagrangePoint;
+
+prototype DisableTrafficReport();
+prototype local_function_0( string param_0_ );
+prototype int local_function_1( hmapentity mapentity_ );
+prototype local_function_2( hmapentity mapentity_ );
+prototype local_function_3( hmapentity mapentity_ );
+prototype bool Start( hmapentity location_ );
+prototype bool Terminate( hmapentity location_ );
+prototype task MonitorTraffic();
+prototype hgroup CustomGoToLagrangePoint( hsim start_loc_, string lpoint_, eShipType traffic_type_, int number_to_create_, IeAllegiance faction_for_vessels_, bool act_as_group_ );
+prototype hgroup CustomLocalSecurityPatrol( hsim start_loc_, eShipType traffic_type_, int number_to_create_, IeAllegiance faction_for_vessels_, bool act_as_group_ );
+prototype hgroup CustomFreelanceMine( hsim start_loc_, eShipType traffic_type_, int number_to_create_, IeAllegiance faction_for_vessels_, bool act_as_group_ );
+prototype hgroup CustomOfficialVisit( hsim start_loc_, eShipType traffic_type_, int number_to_create_, IeAllegiance faction_for_vessels_, bool act_as_group_ );
+prototype hgroup CustomPiracy( hsim start_loc_, eShipType traffic_type_, int number_to_create_, IeAllegiance faction_for_vessels_, bool act_as_group_ );
+prototype hgroup CustomCabbie( hsim start_loc_, eShipType traffic_type_, int number_to_create_, IeAllegiance faction_for_vessels_, bool act_as_group_ );
+prototype hgroup CustomSpeedTrap( hsim start_loc_, eShipType traffic_type_, int number_to_create_, IeAllegiance faction_for_vessels_, bool act_as_group_ );
+prototype hgroup CustomFlitter( hsim start_loc_, eShipType traffic_type_, int number_to_create_, IeAllegiance faction_for_vessels_, bool act_as_group_ );
+prototype hgroup CustomPoliceRaid( hsim start_loc_, eShipType traffic_type_, int number_to_create_, IeAllegiance faction_for_vessels_, bool act_as_group_ );
+prototype hgroup CustomManeuvre( hsim start_loc_, eShipType traffic_type_, int number_to_create_, IeAllegiance faction_for_vessels_, bool act_as_group_ );
+
+DisableTrafficReport()
+{
+	Global.CreateBool( "gl_traffic_creation_no_report", 2, true );
+}
+
+local_function_0( string param_0_ )
+{
+	if ( Global.Exists( "gl_traffic_creation_no_report" ) )
+	{
+		if ( Global.Bool( "gl_traffic_creation_no_report" ) == 1 )
+		{
+			return;
+		}
+	}
+	
+	debug Debug.PrintString( param_0_ );
+}
+
+int local_function_1( hmapentity mapentity_ )
+{
+	hhabitat habitat = iHabitat.Cast( mapentity_ );
+	hlagrangepoint lagrangePoint = iLagrangePoint.Cast( mapentity_ );
+	float local_2;
+	float local_3;
+	float local_4;
+	float local_5;
+	float local_6;
+	float local_7;
+	float local_8;
+	float local_9;
+	float local_10;
+	float local_11;
+	float local_12;
+	float local_13;
+	float local_14;
+	float local_15;
+	float local_16;
+	float random;
+	float constant_0 = 1.0;
+	float constant_1 = 1.0;
+	float constant_2 = 1.0;
+	float constant_3 = 0.80;
+	float constant_4 = 0.70;
+	float constant_5 = 0.60;
+	float constant_6 = 0.50;
+	float constant_7 = 0.40;
+	float constant_8 = 0.30;
+	float constant_9 = 0.50;
+	float constant_10 = 0.20;
+	float constant_11 = 0.30;
+	float constant_12 = 0.30;
+	float constant_13 = 0.10;
+	
+	if ( habitat != false )
+	{
+		switch ( iHabitat.Type( habitat ) )
+		{
+			case HT_Invalid:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.0;
+				local_5 = 0.0;
+				local_6 = 0.0;
+				local_7 = 0.0;
+				local_8 = 0.0;
+				local_9 = 0.0;
+				local_10 = 0.0;
+				local_11 = 0.0;
+				local_12 = 0.0;
+				local_13 = 0.0;
+				local_14 = 0.0;
+				local_15 = 0.0;
+				break;
+			
+			case HT_Disused:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.0;
+				local_5 = 0.0;
+				local_6 = 0.0;
+				local_7 = 0.0;
+				local_8 = 0.0;
+				local_9 = 0.0;
+				local_10 = 0.0;
+				local_11 = 0.0;
+				local_12 = 0.0;
+				local_13 = 0.0;
+				local_14 = 0.0;
+				local_15 = 0.0;
+				break;
+			
+			case HT_WaterMine:
+			case HT_OrganicsMine:
+			case HT_InorganicsMine:
+			case HT_BiomassMine:
+			case HT_CommonMetalsMine:
+			case HT_RareMetalsMine:
+			case HT_ExoticMetalsMine:
+			case HT_RadioactivesMine:
+			case HT_FusionableGasesMine:
+				local_2 = 0.0;
+				local_3 = 0.90;
+				local_4 = 0.20;
+				local_5 = 0.20;
+				local_6 = 0.60;
+				local_7 = 0.30;
+				local_8 = 0.20;
+				local_9 = 0.20;
+				local_10 = 0.20;
+				local_11 = 0.90;
+				local_12 = 0.20;
+				local_13 = 0.20;
+				local_14 = 0.20;
+				local_15 = 0.20;
+				break;
+			
+			case HT_NeutroniumMine:
+				local_2 = 0.0;
+				local_3 = 0.90;
+				local_4 = 0.20;
+				local_5 = 0.20;
+				local_6 = 0.90;
+				local_7 = 0.30;
+				local_8 = 0.20;
+				local_9 = 0.20;
+				local_10 = 0.20;
+				local_11 = 0.90;
+				local_12 = 0.20;
+				local_13 = 0.20;
+				local_14 = 0.20;
+				local_15 = 0.20;
+				break;
+			
+			case HT_WaterProcessingPlant:
+			case HT_OrganicsProcessingPlant:
+			case HT_InorganicsProcessingPlant:
+			case HT_BiomassProcessingPlant:
+			case HT_CommonMetalsProcessingPlant:
+			case HT_RareMetalsProcessingPlant:
+			case HT_ExoticMetalsProcessingPlant:
+			case HT_RadioactivesProcessingPlant:
+			case HT_FusionableGasesProcessingPlant:
+				local_2 = 0.90;
+				local_2 = 0.90;
+				local_3 = 0.90;
+				local_4 = 0.20;
+				local_5 = 0.20;
+				local_6 = 0.60;
+				local_7 = 0.30;
+				local_8 = 0.20;
+				local_9 = 0.20;
+				local_10 = 0.20;
+				local_11 = 0.90;
+				local_12 = 0.20;
+				local_13 = 0.20;
+				local_14 = 0.20;
+				local_15 = 0.20;
+				break;
+			
+			case HT_NeutroniumProcessingPlant:
+				local_2 = 0.90;
+				local_3 = 0.90;
+				local_4 = 0.20;
+				local_5 = 0.20;
+				local_6 = 0.90;
+				local_7 = 0.30;
+				local_8 = 0.20;
+				local_9 = 0.20;
+				local_10 = 0.20;
+				local_11 = 0.90;
+				local_12 = 0.20;
+				local_13 = 0.20;
+				local_14 = 0.20;
+				local_15 = 0.20;
+				break;
+			
+			case HT_HeavyManufacturingPlant:
+			case HT_BiologicalManufacturingPlant:
+			case HT_WetwareManufacturingPlant:
+			case HT_HiTechManufacturingPlant:
+			case HT_ElectronicsManufacturingPlant:
+			case HT_WeaponsManufacturingPlant:
+			case HT_PharmaceuticalsManufacturingPlant:
+			case HT_PlasticsManufacturingPlant:
+			case HT_FusionReactorsManufacturingPlant:
+			case HT_EnergyCellsManufacturingPlant:
+			case HT_StationFabricationManufacturingPlant:
+			case HT_LuxuriesManufacturingPlant:
+				local_2 = 0.90;
+				local_3 = 0.50;
+				local_4 = 0.20;
+				local_5 = 0.70;
+				local_6 = 0.60;
+				local_7 = 0.30;
+				local_8 = 0.20;
+				local_9 = 0.20;
+				local_10 = 0.20;
+				local_11 = 0.90;
+				local_12 = 0.20;
+				local_13 = 0.20;
+				local_14 = 0.20;
+				local_15 = 0.20;
+				break;
+			
+			case HT_ResearchAndDevelopmentLab:
+			case HT_ResearchStation:
+			case HT_University:
+			case HT_MadScientistLab:
+				local_2 = 0.10;
+				local_3 = 0.10;
+				local_4 = 0.20;
+				local_5 = 0.20;
+				local_6 = 0.40;
+				local_7 = 0.30;
+				local_8 = 0.20;
+				local_9 = 0.20;
+				local_10 = 0.20;
+				local_11 = 0.10;
+				local_12 = 0.20;
+				local_13 = 0.20;
+				local_14 = 0.20;
+				local_15 = 0.20;
+				break;
+			
+			case HT_BlackBudgetResearchStation:
+			case HT_SensitiveResearchStation:
+			case HT_NavalTestingSite:
+			case HT_NavalResearchFacility:
+				local_2 = 0.30;
+				local_3 = 0.30;
+				local_4 = 0.20;
+				local_5 = 0.20;
+				local_6 = 0.90;
+				local_7 = 0.30;
+				local_8 = 0.20;
+				local_9 = 0.20;
+				local_10 = 0.20;
+				local_11 = 0.10;
+				local_12 = 0.20;
+				local_13 = 0.20;
+				local_14 = 0.20;
+				local_15 = 0.20;
+				break;
+			
+			case HT_TerraformingStation:
+			case HT_BioBomber:
+				local_2 = 0.50;
+				local_3 = 0.10;
+				local_4 = 0.50;
+				local_5 = 0.20;
+				local_6 = 0.40;
+				local_7 = 0.40;
+				local_8 = 0.40;
+				local_9 = 0.20;
+				local_10 = 0.50;
+				local_11 = 0.10;
+				local_12 = 0.20;
+				local_13 = 0.20;
+				local_14 = 0.20;
+				local_15 = 0.20;
+				break;
+			
+			case HT_FinancialCentre:
+			case HT_RegionalHQ:
+			case HT_CentralHQ:
+			case HT_PlanetaryAdministration:
+			case HT_SystemAdministration:
+			case HT_ClusterAdministration:
+			case HT_RegionalDepartment:
+				local_2 = 0.10;
+				local_3 = 0.0;
+				local_4 = 0.50;
+				local_5 = 0.40;
+				local_6 = 0.70;
+				local_7 = 0.30;
+				local_8 = 0.80;
+				local_9 = 0.0;
+				local_10 = 0.30;
+				local_11 = 0.0;
+				local_12 = 0.10;
+				local_13 = 0.40;
+				local_14 = 0.0;
+				local_15 = 0.0;
+				break;
+			
+			case HT_Resort:
+			case HT_LuxuryResort:
+			case HT_EntertainmentStation:
+			case HT_LeisureComplex:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.30;
+				local_5 = 0.10;
+				local_6 = 0.30;
+				local_7 = 0.30;
+				local_8 = 0.20;
+				local_9 = 0.20;
+				local_10 = 0.0;
+				local_11 = 0.0;
+				local_12 = 0.20;
+				local_13 = 0.90;
+				local_14 = 0.0;
+				local_15 = 0.10;
+				break;
+			
+			case HT_ViceDen:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.20;
+				local_5 = 0.20;
+				local_6 = 0.0;
+				local_7 = 0.30;
+				local_8 = 0.10;
+				local_9 = 0.70;
+				local_10 = 0.10;
+				local_11 = 0.0;
+				local_12 = 0.20;
+				local_13 = 0.70;
+				local_14 = 0.30;
+				local_15 = 0.40;
+				break;
+			
+			case HT_Casino:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.30;
+				local_5 = 0.60;
+				local_6 = 0.60;
+				local_7 = 0.30;
+				local_8 = 0.20;
+				local_9 = 0.50;
+				local_10 = 0.10;
+				local_11 = 0.0;
+				local_12 = 0.20;
+				local_13 = 0.90;
+				local_14 = 0.30;
+				local_15 = 0.30;
+				break;
+			
+			case HT_MedicalResearchCentre:
+			case HT_MedicalFacility:
+			case HT_Asylum:
+			case HT_Hospice:
+				local_2 = 0.0;
+				local_3 = 0.10;
+				local_4 = 0.50;
+				local_5 = 0.0;
+				local_6 = 0.40;
+				local_7 = 0.30;
+				local_8 = 0.20;
+				local_9 = 0.10;
+				local_10 = 0.20;
+				local_11 = 0.0;
+				local_12 = 0.20;
+				local_13 = 0.50;
+				local_14 = 0.0;
+				local_15 = 0.10;
+				break;
+			
+			case HT_TradingPost:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.40;
+				local_5 = 0.90;
+				local_6 = 0.20;
+				local_7 = 0.20;
+				local_8 = 0.20;
+				local_9 = 0.30;
+				local_10 = 0.30;
+				local_11 = 0.0;
+				local_12 = 0.40;
+				local_13 = 0.70;
+				local_14 = 0.10;
+				local_15 = 0.20;
+				break;
+			
+			case HT_BlackMarket:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.40;
+				local_5 = 0.80;
+				local_6 = 0.0;
+				local_7 = 0.30;
+				local_8 = 0.0;
+				local_9 = 0.60;
+				local_10 = 0.10;
+				local_11 = 0.0;
+				local_12 = 0.30;
+				local_13 = 0.40;
+				local_14 = 0.20;
+				local_15 = 0.40;
+				break;
+			
+			case HT_NavalAcademy:
+			case HT_NavalTrainingBase:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.20;
+				local_5 = 0.0;
+				local_6 = 0.50;
+				local_7 = 0.30;
+				local_8 = 0.30;
+				local_9 = 0.0;
+				local_10 = 0.10;
+				local_11 = 0.0;
+				local_12 = 0.0;
+				local_13 = 0.30;
+				local_14 = 0.0;
+				local_15 = 0.0;
+				break;
+			
+			case HT_SecurityStation:
+			case HT_Fortress:
+			case HT_SystemDefenceStation:
+			case HT_SystemDefenceDock:
+			case HT_JumpFortress:
+			case HT_DefenceStation:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.30;
+				local_5 = 0.0;
+				local_6 = 0.90;
+				local_7 = 0.30;
+				local_8 = 0.30;
+				local_9 = 0.0;
+				local_10 = 0.20;
+				local_11 = 0.0;
+				local_12 = 0.0;
+				local_13 = 0.20;
+				local_14 = 0.0;
+				local_15 = 0.0;
+				break;
+			
+			case HT_PoliceBase:
+			case HT_PoliceOutpost:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.30;
+				local_5 = 0.0;
+				local_6 = 0.80;
+				local_7 = 0.30;
+				local_8 = 0.80;
+				local_9 = 0.0;
+				local_10 = 0.20;
+				local_11 = 0.0;
+				local_12 = 0.10;
+				local_13 = 0.20;
+				local_14 = 0.0;
+				local_15 = 0.0;
+				break;
+			
+			case HT_HighSecurityPrison:
+			case HT_HardLabourPrison:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.80;
+				local_5 = 0.0;
+				local_6 = 0.90;
+				local_7 = 0.30;
+				local_8 = 0.80;
+				local_9 = 0.0;
+				local_10 = 0.40;
+				local_11 = 0.0;
+				local_12 = 0.10;
+				local_13 = 0.0;
+				local_14 = 0.0;
+				local_15 = 0.0;
+				break;
+			
+			case HT_LowSecurityPrison:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.80;
+				local_5 = 0.0;
+				local_6 = 0.60;
+				local_7 = 0.30;
+				local_8 = 0.70;
+				local_9 = 0.0;
+				local_10 = 0.40;
+				local_11 = 0.0;
+				local_12 = 0.10;
+				local_13 = 0.0;
+				local_14 = 0.0;
+				local_15 = 0.0;
+				break;
+			
+			case HT_SupplyDepot:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.80;
+				local_5 = 0.20;
+				local_6 = 0.70;
+				local_7 = 0.30;
+				local_8 = 0.20;
+				local_9 = 0.0;
+				local_10 = 0.70;
+				local_11 = 0.0;
+				local_12 = 0.10;
+				local_13 = 0.10;
+				local_14 = 0.0;
+				local_15 = 0.0;
+				break;
+			
+			case HT_Shipyard:
+				local_2 = 0.60;
+				local_3 = 0.50;
+				local_4 = 0.40;
+				local_5 = 0.20;
+				local_6 = 0.70;
+				local_7 = 0.30;
+				local_8 = 0.20;
+				local_9 = 0.0;
+				local_10 = 0.70;
+				local_11 = 0.0;
+				local_12 = 0.10;
+				local_13 = 0.10;
+				local_14 = 0.0;
+				local_15 = 0.0;
+				break;
+			
+			case HT_RepairStation:
+			case HT_DryDock:
+			case HT_RepairDock:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.40;
+				local_5 = 0.20;
+				local_6 = 0.70;
+				local_7 = 0.30;
+				local_8 = 0.20;
+				local_9 = 0.0;
+				local_10 = 0.70;
+				local_11 = 0.0;
+				local_12 = 0.10;
+				local_13 = 0.10;
+				local_14 = 0.0;
+				local_15 = 0.0;
+				break;
+			
+			case HT_STCPost:
+			case HT_Outpost:
+			case HT_Base:
+			case HT_Waystation:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.20;
+				local_5 = 0.20;
+				local_6 = 0.60;
+				local_7 = 0.30;
+				local_8 = 0.50;
+				local_9 = 0.10;
+				local_10 = 0.20;
+				local_11 = 0.0;
+				local_12 = 0.10;
+				local_13 = 0.50;
+				local_14 = 0.0;
+				local_15 = 0.0;
+				break;
+			
+			case HT_MercenaryBase:
+			case HT_MarineBarracks:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.30;
+				local_5 = 0.0;
+				local_6 = 0.70;
+				local_7 = 0.30;
+				local_8 = 0.20;
+				local_9 = 0.0;
+				local_10 = 0.10;
+				local_11 = 0.0;
+				local_12 = 0.0;
+				local_13 = 0.0;
+				local_14 = 0.0;
+				local_15 = 0.0;
+				break;
+			
+			case HT_STCHQ:
+			case HT_FTLArray:
+			case HT_FTLInterchange:
+			case HT_STLTranceiver:
+			case HT_STLInterchange:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.20;
+				local_5 = 0.0;
+				local_6 = 0.20;
+				local_7 = 0.0;
+				local_8 = 0.20;
+				local_9 = 0.0;
+				local_10 = 0.40;
+				local_11 = 0.0;
+				local_12 = 0.0;
+				local_13 = 0.0;
+				local_14 = 0.0;
+				local_15 = 0.10;
+				break;
+			
+			case HT_Ark:
+			case HT_Garden:
+			case HT_Hermitage:
+			case HT_AgriculturalSettlement:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.20;
+				local_5 = 0.20;
+				local_6 = 0.10;
+				local_7 = 0.30;
+				local_8 = 0.20;
+				local_9 = 0.0;
+				local_10 = 0.0;
+				local_11 = 0.0;
+				local_12 = 0.50;
+				local_13 = 0.80;
+				local_14 = 0.0;
+				local_15 = 0.20;
+				break;
+			
+			case HT_Villa:
+			case HT_Homestead:
+			case HT_Settlement:
+			case HT_CollectiveSettlement:
+			case HT_Habitat:
+			case HT_BoxTown:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.20;
+				local_5 = 0.20;
+				local_6 = 0.10;
+				local_7 = 0.30;
+				local_8 = 0.10;
+				local_9 = 0.20;
+				local_10 = 0.0;
+				local_11 = 0.30;
+				local_12 = 0.20;
+				local_13 = 0.80;
+				local_14 = 0.10;
+				local_15 = 0.30;
+				break;
+			
+			case HT_OreTransferStation:
+				local_2 = 0.90;
+				local_3 = 0.90;
+				local_4 = 0.20;
+				local_5 = 0.20;
+				local_6 = 0.70;
+				local_7 = 0.20;
+				local_8 = 0.20;
+				local_9 = 0.0;
+				local_10 = 0.20;
+				local_11 = 0.90;
+				local_12 = 0.0;
+				local_13 = 0.10;
+				local_14 = 0.0;
+				local_15 = 0.0;
+				break;
+			
+			case HT_Warehousing:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.50;
+				local_5 = 0.0;
+				local_6 = 0.80;
+				local_7 = 0.30;
+				local_8 = 0.0;
+				local_9 = 0.0;
+				local_10 = 0.0;
+				local_11 = 0.0;
+				local_12 = 0.0;
+				local_13 = 0.20;
+				local_14 = 0.0;
+				local_15 = 0.20;
+				break;
+			
+			case HT_ReligiousCentre:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.20;
+				local_5 = 0.20;
+				local_6 = 0.0;
+				local_7 = 0.30;
+				local_8 = 0.20;
+				local_9 = 0.10;
+				local_10 = 0.0;
+				local_11 = 0.0;
+				local_12 = 0.30;
+				local_13 = 0.80;
+				local_14 = 0.0;
+				local_15 = 0.20;
+				break;
+			
+			case HT_DockingStation:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.30;
+				local_5 = 0.10;
+				local_6 = 0.70;
+				local_7 = 0.30;
+				local_8 = 0.20;
+				local_9 = 0.0;
+				local_10 = 0.50;
+				local_11 = 0.0;
+				local_12 = 0.20;
+				local_13 = 0.20;
+				local_14 = 0.0;
+				local_15 = 0.0;
+				break;
+			
+			case HT_PirateBase:
+			case HT_PirateCove:
+			case HT_PirateOutpost:
+			case HT_Hideout:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.40;
+				local_5 = 0.0;
+				local_6 = 0.0;
+				local_7 = 0.30;
+				local_8 = 0.0;
+				local_9 = 0.20;
+				local_10 = 0.0;
+				local_11 = 0.0;
+				local_12 = 0.50;
+				local_13 = 0.20;
+				local_14 = 0.50;
+				local_15 = 0.60;
+				break;
+			
+			case HT_GangsterHideout:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.30;
+				local_5 = 0.0;
+				local_6 = 0.50;
+				local_7 = 0.30;
+				local_8 = 0.0;
+				local_9 = 0.70;
+				local_10 = 0.10;
+				local_11 = 0.0;
+				local_12 = 0.20;
+				local_13 = 0.10;
+				local_14 = 0.60;
+				local_15 = 0.40;
+				break;
+			
+			case HT_Junkyard:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.20;
+				local_5 = 0.70;
+				local_6 = 0.60;
+				local_7 = 0.30;
+				local_8 = 0.0;
+				local_9 = 0.50;
+				local_10 = 0.0;
+				local_11 = 0.30;
+				local_12 = 0.20;
+				local_13 = 0.40;
+				local_14 = 0.0;
+				local_15 = 0.10;
+				break;
+			
+			case HT_PerimeterDefences:
+			case HT_AsteroidSculptures:
+			case HT_PlayerBase:
+			case HT_GunstarArray:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.0;
+				local_5 = 0.0;
+				local_6 = 0.0;
+				local_7 = 0.0;
+				local_8 = 0.0;
+				local_9 = 0.0;
+				local_10 = 0.0;
+				local_11 = 0.0;
+				local_12 = 0.0;
+				local_13 = 0.0;
+				local_14 = 0.0;
+				local_15 = 0.0;
+				break;
+			
+			case HT_JumpAccelerator:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.20;
+				local_5 = 0.20;
+				local_6 = 0.60;
+				local_7 = 0.0;
+				local_8 = 0.20;
+				local_9 = 0.20;
+				local_10 = 0.20;
+				local_11 = 0.0;
+				local_12 = 0.20;
+				local_13 = 0.20;
+				local_14 = 0.0;
+				local_15 = 0.0;
+				break;
+			
+			case HT_HoffersGap:
+			case HT_HoffersHeel:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.60;
+				local_5 = 0.70;
+				local_6 = 0.20;
+				local_7 = 0.20;
+				local_8 = 0.10;
+				local_9 = 0.30;
+				local_10 = 0.20;
+				local_11 = 0.90;
+				local_12 = 0.20;
+				local_13 = 0.90;
+				local_14 = 0.10;
+				local_15 = 0.20;
+				break;
+			
+			case HT_Beanstalk:
+			case HT_TransferStation:
+				local_2 = 0.0;
+				local_3 = 0.0;
+				local_4 = 0.60;
+				local_5 = 0.70;
+				local_6 = 0.20;
+				local_7 = 0.20;
+				local_8 = 0.10;
+				local_9 = 0.30;
+				local_10 = 0.20;
+				local_11 = 0.90;
+				local_12 = 0.20;
+				local_13 = 0.90;
+				local_14 = 0.10;
+				local_15 = 0.20;
+				break;
+		}
+	}
+	else if ( iLagrangePoint.Interstellar( lagrangePoint ) )
+	{
+		local_2 = 0.70;
+		local_3 = 0.70;
+		local_4 = 0.50;
+		local_5 = 0.50;
+		local_6 = 0.30;
+		local_7 = 0.10;
+		local_8 = 0.50;
+		local_9 = 0.10;
+		local_10 = 0.0;
+		local_11 = 0.10;
+		local_12 = 0.10;
+		local_13 = 0.20;
+		local_14 = 0.20;
+		local_15 = 0.20;
+	}
+	else
+	{
+		local_2 = 0.70;
+		local_3 = 0.70;
+		local_4 = 0.50;
+		local_5 = 0.20;
+		local_6 = 0.10;
+		local_7 = 0.10;
+		local_8 = 0.20;
+		local_9 = 0.30;
+		local_10 = 0.0;
+		local_11 = 0.20;
+		local_12 = 0.10;
+		local_13 = 0.20;
+		local_14 = 0.10;
+		local_15 = 0.10;
+	}
+	
+	local_2 = ( local_2 * constant_0 );
+	local_3 = ( local_3 * local_3 );
+	local_4 = ( local_4 * constant_2 );
+	local_5 = ( local_5 * constant_3 );
+	local_6 = ( local_6 * constant_4 );
+	local_7 = ( local_7 * constant_5 );
+	local_8 = ( local_8 * constant_6 );
+	local_9 = ( local_9 * constant_7 );
+	local_10 = ( local_10 * constant_8 );
+	local_11 = ( local_11 * constant_9 );
+	local_12 = ( local_12 * constant_10 );
+	local_13 = ( local_13 * constant_11 );
+	local_14 = ( local_14 * constant_12 );
+	local_15 = ( local_15 * constant_13 );
+	local_16 = ( local_2 + (local_3 + (local_4 + (local_5 + (local_6 + (local_7 + (local_8 + (local_9 + (local_10 + (local_11 + (local_12 + (local_13 + (local_14 + local_15)))))))))))) );
+	
+	if ( local_16 == 0.0 )
+	{
+		debug local_function_0( "iT%rafficCreation.FindScenario : location has no weightings, returning no Scenario\n" );
+		return 0;
+	}
+	
+	random = Math.Random( 0.0, local_16 );
+	
+	if ( random <= local_2 )
+	{
+		debug atomic
+		{
+			local_function_0( "iTrafficCreation.FindScenario : Returning a HaulageIn Scenario for " );
+			local_function_0( iMapEntity.Name( mapentity_ ) );
+			local_function_0( " \n" );
+		}
+		
+		return 1;
+	}
+	
+	random = ( random - local_2 );
+	
+	if ( random <= local_3 )
+	{
+		debug atomic
+		{
+			local_function_0( "iTrafficCreation.FindScenario : Returning a HaulageOut Scenario for " );
+			local_function_0( iMapEntity.Name( mapentity_ ) );
+			local_function_0( " \n" );
+		}
+		
+		return 2;
+	}
+	
+	random = ( random - local_3 );
+	
+	if ( random <= local_4 )
+	{
+		debug atomic
+		{
+			local_function_0( "iTrafficCreation.FindScenario : Returning a Supply Scenario for " );
+			local_function_0( iMapEntity.Name( mapentity_ ) );
+			local_function_0( " \n" );
+		}
+		
+		return 3;
+	}
+	
+	random = ( random - local_4 );
+	
+	if ( random <= local_5 )
+	{
+		debug atomic
+		{
+			local_function_0( "iTrafficCreation.FindScenario : Returning a Trade Scenario for " );
+			local_function_0( iMapEntity.Name( mapentity_ ) );
+			local_function_0( " \n" );
+		}
+		
+		return 4;
+	}
+	
+	random = ( random - local_5 );
+	
+	if ( random <= local_6 )
+	{
+		debug atomic
+		{
+			local_function_0( "iTrafficCreation.FindScenario : Returning a Security Scenario for " );
+			local_function_0( iMapEntity.Name( mapentity_ ) );
+			local_function_0( " \n" );
+		}
+		
+		return 5;
+	}
+	
+	random = ( random - local_6 );
+	
+	if ( random <= local_7 )
+	{
+		debug atomic
+		{
+			local_function_0( "iTrafficCreation.FindScenario : Returning a Tanker Scenario for " );
+			local_function_0( iMapEntity.Name( mapentity_ ) );
+			local_function_0( " \n" );
+		}
+		
+		return 6;
+	}
+	
+	random = ( random - local_7 );
+	
+	if ( random <= local_8 )
+	{
+		debug atomic
+		{
+			local_function_0( "iTrafficCreation.FindScenario : Returning a Official Scenario for " );
+			local_function_0( iMapEntity.Name( mapentity_ ) );
+			local_function_0( " \n" );
+		}
+		
+		return 7;
+	}
+	
+	random = ( random - local_8 );
+	
+	if ( random <= local_9 )
+	{
+		debug atomic
+		{
+			local_function_0( "iTrafficCreation.FindScenario : Returning an Underworld Scenario for " );
+			local_function_0( iMapEntity.Name( mapentity_ ) );
+			local_function_0( " \n" );
+		}
+		
+		return 8;
+	}
+	
+	random = ( random - local_9 );
+	
+	if ( random <= local_10 )
+	{
+		debug atomic
+		{
+			local_function_0( "iTrafficCreation.FindScenario : Returning a Maintenance Scenario for " );
+			local_function_0( iMapEntity.Name( mapentity_ ) );
+			local_function_0( " \n" );
+		}
+		
+		return 9;
+	}
+	
+	random = ( random - local_10 );
+	
+	if ( random <= local_11 )
+	{
+		debug atomic
+		{
+			local_function_0( "iTrafficCreation.FindScenario : Returning a Mining Scenario for " );
+			local_function_0( iMapEntity.Name( mapentity_ ) );
+			local_function_0( " \n" );
+		}
+		
+		return 10;
+	}
+	
+	random = ( random - local_11 );
+	
+	if ( random <= local_12 )
+	{
+		debug atomic
+		{
+			local_function_0( "iTrafficCreation.FindScenario : Returning an Oddball Scenario for " );
+			local_function_0( iMapEntity.Name( mapentity_ ) );
+			local_function_0( " \n" );
+		}
+		
+		return 11;
+	}
+	
+	random = ( random - local_12 );
+	
+	if ( random <= local_13 )
+	{
+		debug atomic
+		{
+			local_function_0( "iTrafficCreation.FindScenario : Returning a Civilian Scenario for " );
+			local_function_0( iMapEntity.Name( mapentity_ ) );
+			local_function_0( " \n" );
+		}
+		
+		return 12;
+	}
+	
+	random = ( random - local_13 );
+	
+	if ( random <= local_14 )
+	{
+		debug atomic
+		{
+			local_function_0( "iTrafficCreation.FindScenario : Returning a Hostile Scenario for " );
+			local_function_0( iMapEntity.Name( mapentity_ ) );
+			local_function_0( " \n" );
+		}
+		
+		return 13;
+	}
+	
+	random = ( random - local_14 );
+	
+	if ( random <= local_15 )
+	{
+		debug atomic
+		{
+			local_function_0( "iTrafficCreation.FindScenario : Returning a Scum Scenario for " );
+			local_function_0( iMapEntity.Name( mapentity_ ) );
+			local_function_0( " \n" );
+		}
+		
+		return 14;
+	}
+	
+	random = ( random - local_15 );
+	debug local_function_0( "iTrafficCreation.FinScenario : Oops, unable to find scenario, returning blank scenario\n" );
+	return 0;
+}
+
+local_function_2( hmapentity mapentity_ )
+{
+	int local_0;
+	int local_1;
+	hhabitat habitat = iHabitat.Cast( mapentity_ );
+	
+	local_1 = iHabitat.Type( habitat );
+	debug local_function_0( "iTrafficCreation.Generate_some_traffic : monitor noted traffic missing.... Generating Scenario \n" );
+	local_0 = local_function_1( mapentity_ );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iTrafficCreation - location " );
+		Debug.PrintString( iMapEntity.Name( mapentity_ ) );
+		Debug.PrintString( " - type " );
+		Debug.PrintInt( local_1 );
+		Debug.PrintString( " - scenario " );
+		Debug.PrintInt( local_0 );
+		Debug.PrintString( " \n" );
+	}
+	
+	switch ( local_0 )
+	{
+		case 0:
+			debug atomic
+			{
+				local_function_0( "iTrafficCreation.Generate_some_traffic : NO SCENARIO RETURNED FOR " );
+				local_function_0( iMapEntity.Name( mapentity_ ) );
+				local_function_0( "\n" );
+			}
+		
+		case 1:
+			debug local_function_0( "iTrafficCreation.Generate_Some_Traffic : Commencing HaulageIn Scenario.\n" );
+			iTrafficScenario.HaulageIn( mapentity_ );
+			return;
+		
+		case 2:
+			debug local_function_0( "iTrafficCreation.Generate_Some_Traffic : Commencing HaulageOut Scenario\n" );
+			iTrafficScenario.HaulageOut( mapentity_ );
+			return;
+		
+		case 3:
+			debug local_function_0( "iTrafficCreation.Generate_Some_Traffic : Commencing Supply Scenario\n" );
+			iTrafficScenario.Supply( mapentity_ );
+			return;
+		
+		case 4:
+			debug local_function_0( "iTrafficCreation.Generate_Some_Traffic : Commencing Trade Scenario \n" );
+			iTrafficScenario.Trade( mapentity_ );
+			return;
+		
+		case 5:
+			debug local_function_0( "iTrafficCreation.Generate_Some_Traffic : Commencing Security Scenario\n" );
+			iTrafficScenario.Security( mapentity_ );
+			return;
+		
+		case 6:
+			debug local_function_0( "iTrafficCreation.Generate_Some_Traffic : Commencing Tanker Scenario\n" );
+			iTrafficScenario.Tanker( mapentity_ );
+			return;
+		
+		case 7:
+			debug local_function_0( "iTrafficCreation.Generate_Some_Traffic : Commencing Official scenario\n" );
+			iTrafficScenario.Official( mapentity_ );
+			return;
+		
+		case 8:
+			debug local_function_0( "iTrafficCreation.Generate_Some_Traffic : Commencing Underworld Scenario\n" );
+			iTrafficScenario.Underworld( mapentity_ );
+			return;
+		
+		case 9:
+			debug local_function_0( "iTrafficCreation.Generate_Some_Traffic : Commencing Maintenance Scenario\n" );
+			iTrafficScenario.Maintenance( mapentity_ );
+			return;
+		
+		case 10:
+			debug local_function_0( "iTrafficCreation.Generate_Some_Traffic : Commencing Mining sceanareo\n" );
+			iTrafficScenario.Mining( mapentity_ );
+			return;
+		
+		case 11:
+			debug local_function_0( "iTrafficCreation.Generate_Some_Traffic : Commencing Oddball Scenario\n" );
+			iTrafficScenario.Oddball( mapentity_ );
+			return;
+		
+		case 12:
+			debug local_function_0( "iTrafficCreation.Generate_Some_Traffic : Commencing Civilian scenario\n" );
+			iTrafficScenario.Civilian( mapentity_ );
+			return;
+		
+		case 13:
+			debug local_function_0( "iTrafficCreation.Generate_Some_Traffic : Commencing Hostile Scenario\n" );
+			iTrafficScenario.Hostile( mapentity_ );
+			return;
+		
+		case 14:
+			debug local_function_0( "iTrafficCreation.Generate_Some_Traffic : Commencing Scum Scenario\n" );
+			iTrafficScenario.Scum( mapentity_ );
+			return;
+	}
+}
+
+local_function_3( hmapentity mapentity_ )
+{
+	hhabitat habitat = iHabitat.Cast( mapentity_ );
+	hlagrangepoint lagrangePoint = iLagrangePoint.Cast( mapentity_ );
+	int local_2;
+	int local_3;
+	int local_4;
+	int local_5;
+	int local_6;
+	int local_7 = 0;
+	int local_8 = 4;
+	int local_9;
+	
+	if ( habitat != false )
+	{
+		local_8 = ( local_8 + (iHabitat.Population( habitat ) / 1000) );
+	}
+	
+	if ( local_8 > 8 )
+	{
+		local_8 = 8;
+	}
+	
+	Object.SetIntProperty( mapentity_, "active_slots", local_8 );
+	
+	if ( local_8 > 1 )
+	{
+		local_9 = 2;
+	}
+	else
+	{
+		local_9 = 1;
+	}
+	
+	debug atomic
+	{
+		local_function_0( "iTrafficCreation: Initializing traffic for " );
+		
+		if ( iHabitat.Cast( habitat ) )
+		{
+			local_function_0( iUtilities.FromLocationEnum( iHabitat.Type( habitat ) ) );
+		}
+		else
+		{
+			local_function_0( "Lagrange Point ( non-habitat )" );
+		}
+		
+		local_function_0( "\n" );
+		local_function_0( "iTrafficCreation: location name is " );
+		local_function_0( iMapEntity.Name( mapentity_ ) );
+		local_function_0( "\n" );
+		local_function_0( "iTrafficCreation: The number of slots created is " );
+		local_function_0( String.FromInt( local_8 ) );
+		local_function_0( "\n" );
+	}
+	
+	do
+	{
+		debug atomic
+		{
+			local_function_0( "iTrafficCreation: Generating a traffic scenario for slot " );
+			local_function_0( String.FromInt( local_7 + 1 ) );
+			local_function_0( " of " );
+			local_function_0( String.FromInt( local_9 ) );
+			local_function_0( " \n" );
+		}
+		
+		local_function_2( mapentity_ );
+		local_7 = ( local_7 + 1 );
+	}
+	while ( local_7 < local_9 );
+}
+
+bool Start( hmapentity location_ )
+{
+	hhabitat habitat = iHabitat.Cast( location_ );
+	hlagrangepoint lagrangePoint = iLagrangePoint.Cast( location_ );
+	hgroup group_0 = Group.Create();
+	hgroup group_1 = Group.Create();
+	hsim groupIter;
+	int gParkingSlots;
+	int ii;
+	int local_7;
+	bool local_8 = false;
+	
+	Global.CreateInt( "g_parking_slots", 1, 9 );
+	gParkingSlots = Global.Int( "g_parking_slots" );
+	
+	if ( lagrangePoint == false )
+	{
+		Global.Destroy( "g_spewer_in_use" );
+		
+		for ( ii = 0; ii < gParkingSlots; ++ii )
+		{
+			Group.AddSim( group_0, Sim.Create( "ini:/sims/nav/waypoint", String.Join( iMapEntity.Name( location_ ), String.Join( " Unload Slot ", String.FromInt( ii ) ) ) ) );
+			Object.AddIntProperty( Group.NthSim( group_0, ii ), "occupied", 0 );
+		}
+		
+		groupIter = Group.NthSim( group_0, 0 );
+		Sim.PlaceRelativeTo( groupIter, location_, 0.0, -1000.0, Object.FloatProperty( location_, "radius" ) * 2.50 );
+		Sim.PointAt( groupIter, location_ );
+		
+		for ( ii = 1; ii < gParkingSlots; ++ii )
+		{
+			Sim.CopyOrientation( Group.NthSim( group_0, ii ), groupIter );
+		}
+		
+		iFormation.Wall( group_0, 2000.0, true );
+		group_0 = group_1;
+		
+		for ( ii = 0; ii < gParkingSlots; ++ii )
+		{
+			Group.AddSim( group_0, Sim.Create( "ini:/sims/nav/waypoint", String.Join( iMapEntity.Name( location_ ), String.Join( " Load Slot ", String.FromInt( ii ) ) ) ) );
+			Object.AddIntProperty( Group.NthSim( group_0, ii ), "occupied", 0 );
+		}
+		
+		groupIter = Group.NthSim( group_0, 0 );
+		Sim.PlaceRelativeTo( groupIter, location_, 0.0, -1000.0, -( Object.FloatProperty( location_, "radius" ) * 2.50 ) );
+		Sim.PointAt( groupIter, location_ );
+		
+		for ( ii = 1; ii < gParkingSlots; ++ii )
+		{
+			Sim.CopyOrientation( Group.NthSim( group_0, ii ), groupIter );
+		}
+		
+		iFormation.Wall( group_0, 2000.0, true );
+	}
+	else
+	{
+		local_8 = true;
+	}
+	
+	local_function_3( location_ );
+	return local_8;
+}
+
+bool Terminate( hmapentity location_ )
+{
+	int ii;
+	string local_1;
+	
+	for ( ii = 0; ii < Global.Int( "g_parking_slots" ); ++ii )
+	{
+		local_1 = String.Join( iMapEntity.Name( location_ ), String.Join( " Unload Slot ", String.FromInt( ii ) ) );
+		
+		if ( Sim.FindByName( local_1 ) != false )
+		{
+			Sim.Destroy( Sim.FindByName( local_1 ) );
+		}
+		else debug local_function_0( "iTrafficCreation.Terminate - Unable to find unload waypoint to destroy\n" );
+		
+		local_1 = String.Join( iMapEntity.Name( location_ ), String.Join( " Load Slot ", String.FromInt( ii ) ) );
+		
+		if ( Sim.FindByName( local_1 ) != false )
+		{
+			Sim.Destroy( Sim.FindByName( local_1 ) );
+		}
+		else debug local_function_0( "iTrafficCreation.Terminate - Unable to find load waypoint to destroy\n" );
+	}
+	
+	debug local_function_0( "iTrafficCreation: Terminated location task successfully!\n" );
+	return true;
+}
+
+task MonitorTraffic()
+{
+	bool local_0 = true;
+	list localList_0;
+	hmapentity mapEntity;
+	int ii;
+	int local_4;
+	int itemCount_0;
+	int itemCount_1;
+	hlagrangepoint lagrangePoint;
+	float local_8;
+	set localSet;
+	string local_10;
+	list localList_1;
+	hship playerShip = iShip.FindPlayerShip();
+	
+	Global.SetList( "g_active_location_list", localList_1 );
+	
+	do
+	{
+		localList_0 = Global.List( "g_active_location_list" );
+		
+		if ( !List.IsEmpty( localList_0 ) )
+		{
+			itemCount_0 = List.ItemCount( localList_0 );
+			
+			for ( ii = 0; ii < itemCount_0; ++ii )
+			{
+				mapEntity = iMapEntity.Cast( List.GetNth( localList_0, ii ) );
+				lagrangePoint = iLagrangePoint.Cast( mapEntity );
+				
+				if ( iUtilities.PlayerInRange( mapEntity ) )
+				{
+					if ( !Object.PropertyExists( mapEntity, "active_slots" ) )
+					{
+						debug atomic
+						{
+							local_function_0( " task iTrafficCreation.Monitortraffic - initialising traffic for - " );
+							local_function_0( iMapEntity.Name( mapEntity ) );
+							local_function_0( " \n" );
+						}
+						
+						Object.AddIntProperty( mapEntity, "active_slots", 0 );
+						Start( mapEntity );
+					}
+					
+					if ( lagrangePoint == false )
+					{
+						local_8 = ( 100000.0 + Global.Float( "g_player_sensor_range" ) );
+					}
+					else
+					{
+						local_8 = ( 100000.0 + Global.Float( "g_player_sensor_range" ) );
+					}
+					
+					localSet = iSim.SimsInRadius( mapEntity, local_8, 536838144 );
+					itemCount_1 = Set.ItemCount( localSet );
+					
+					if ( Sim.DistanceBetween( mapEntity, playerShip ) < local_8 )
+					{
+						itemCount_1 = ( itemCount_1 - 1 );
+					}
+					
+					local_4 = ( Object.IntProperty( mapEntity, "active_slots" ) * 2 );
+					
+					debug atomic
+					{
+						local_function_0( "iTrafficCreation.MonitorTraffic: Ping! Habitat Type: " );
+						
+						if ( iHabitat.Cast( mapEntity ) )
+						{
+							local_function_0( iUtilities.FromLocationEnum( iHabitat.Type( iHabitat.Cast( mapEntity ) ) ) );
+						}
+						else
+						{
+							local_function_0( "<Unknown>" );
+						}
+						
+						local_function_0( " Found " );
+						local_function_0( String.FromInt( itemCount_1 ) );
+						local_function_0( " active ships for " );
+						local_function_0( String.FromInt( local_4 ) );
+						local_function_0( " adjusted slots; traffic if ships < slots. " );
+						local_function_0( "Radius: " );
+						local_function_0( String.FromFloat( local_8 ) );
+						local_function_0( "\n" );
+					}
+					
+					if ( itemCount_1 < local_4 )
+					{
+						local_function_2( mapEntity );
+					}
+				}
+			}
+		}
+		
+		Task.Sleep( Task.Current(), 0.50 );
+	}
+	while ( local_0 );
+}
+
+hgroup CustomGoToLagrangePoint( hsim start_loc_, string lpoint_, eShipType traffic_type_, int number_to_create_, IeAllegiance faction_for_vessels_, bool act_as_group_ )
+{
+	hgroup group_0 = Group.Create();
+	hgroup group_1;
+	hsim groupLeader;
+	htask local_3;
+	int local_4;
+	
+	group_0 = iShipCreation.GetTraffic( traffic_type_, faction_for_vessels_, number_to_create_ );
+	
+	if ( act_as_group_ )
+	{
+		groupLeader = Group.Leader( group_0 );
+		Sim.PlaceNear( groupLeader, start_loc_, Math.Random( 500.0, 3000.0 ) );
+		iFormation.Goose( group_0, 40.0, true );
+		Task.Detach( local_3 = start iScriptedOrders.LagrangeHandler( group_0, lpoint_ ) );
+		Object.AddHandleProperty( groupLeader, "behaviour_script_handle", local_3 );
+	}
+	else do
+	{
+		group_1 = Group.Create();
+		groupLeader = Group.NthSim( group_0, local_4 );
+		
+		if ( groupLeader == false )
+		{
+			debug local_function_0( "iTrafficCreation.CustomGoToLagrangePoint: Invalid Sim passed for orders" );
+		}
+		
+		Group.AddSim( group_1, groupLeader );
+		Group.AddGroup( group_0, group_1 );
+		Sim.PlaceNear( groupLeader, start_loc_, Math.Random( 500.0, 3000.0 ) );
+		Task.Detach( local_3 = start iScriptedOrders.LagrangeHandler( group_1, lpoint_ ) );
+		Object.AddHandleProperty( groupLeader, "behaviour_script_handle", local_3 );
+	}
+	while ( Group.SimCount( group_0 ) != 0 );
+	
+	return group_0;
+}
+
+hgroup CustomLocalSecurityPatrol( hsim start_loc_, eShipType traffic_type_, int number_to_create_, IeAllegiance faction_for_vessels_, bool act_as_group_ )
+{
+	hgroup group_0 = Group.Create();
+	hgroup group_1;
+	hsim groupLeader;
+	htask local_3;
+	int local_4;
+	
+	group_0 = iShipCreation.GetTraffic( traffic_type_, faction_for_vessels_, number_to_create_ );
+	
+	if ( act_as_group_ )
+	{
+		groupLeader = Group.Leader( group_0 );
+		Sim.PlaceNear( groupLeader, start_loc_, Math.Random( 500.0, 3000.0 ) );
+		iFormation.Goose( group_0, 40.0, true );
+		Object.AddBoolProperty( Group.Leader( group_0 ), "no_run_off", true );
+		Task.Detach( local_3 = start iScriptedOrders.LocalPatrol( group_0 ) );
+		Object.AddHandleProperty( groupLeader, "behaviour_script_handle", local_3 );
+	}
+	else do
+	{
+		group_1 = Group.Create();
+		groupLeader = Group.NthSim( group_0, local_4 );
+		
+		if ( groupLeader == false )
+		{
+			debug local_function_0( "iTrafficCreation.CustomLocalPatrol: Invalid Sim passed for orders" );
+		}
+		
+		Group.AddSim( group_1, groupLeader );
+		Group.AddGroup( group_0, group_1 );
+		Sim.PlaceNear( groupLeader, start_loc_, Math.Random( 500.0, 3000.0 ) );
+		Object.AddBoolProperty( Group.Leader( group_1 ), "no_run_off", true );
+		Task.Detach( local_3 = start iScriptedOrders.LocalPatrol( group_1 ) );
+		Object.AddHandleProperty( groupLeader, "behaviour_script_handle", local_3 );
+	}
+	while ( Group.SimCount( group_0 ) != 0 );
+	
+	return group_0;
+}
+
+hgroup CustomFreelanceMine( hsim start_loc_, eShipType traffic_type_, int number_to_create_, IeAllegiance faction_for_vessels_, bool act_as_group_ )
+{
+	hgroup group_0 = Group.Create();
+	hgroup group_1;
+	hsim groupLeader;
+	htask local_3;
+	int local_4;
+	
+	group_0 = iShipCreation.GetTraffic( traffic_type_, faction_for_vessels_, number_to_create_ );
+	
+	if ( act_as_group_ )
+	{
+		groupLeader = Group.Leader( group_0 );
+		Sim.PlaceNear( groupLeader, start_loc_, Math.Random( 500.0, 3000.0 ) );
+		iFormation.Goose( group_0, 40.0, true );
+		Task.Detach( local_3 = start iScriptedOrders.FreelanceMine( group_0 ) );
+		Object.AddHandleProperty( groupLeader, "behaviour_script_handle", local_3 );
+	}
+	else do
+	{
+		group_1 = Group.Create();
+		groupLeader = Group.NthSim( group_0, local_4 );
+		
+		if ( groupLeader == false )
+		{
+			debug local_function_0( "iTrafficCreation.CustomFreelanceMine: Invalid Sim passed for orders" );
+		}
+		
+		Group.AddSim( group_1, groupLeader );
+		Group.AddGroup( group_0, group_1 );
+		Sim.PlaceNear( groupLeader, start_loc_, Math.Random( 500.0, 3000.0 ) );
+		Task.Detach( local_3 = start iScriptedOrders.FreelanceMine( group_1 ) );
+		Object.AddHandleProperty( groupLeader, "behaviour_script_handle", local_3 );
+	}
+	while ( Group.SimCount( group_0 ) != 0 );
+	
+	return group_0;
+}
+
+hgroup CustomOfficialVisit( hsim start_loc_, eShipType traffic_type_, int number_to_create_, IeAllegiance faction_for_vessels_, bool act_as_group_ )
+{
+	hgroup group_0 = Group.Create();
+	hgroup group_1;
+	hsim groupLeader;
+	htask local_3;
+	int local_4;
+	
+	group_0 = iShipCreation.GetTraffic( traffic_type_, faction_for_vessels_, number_to_create_ );
+	
+	if ( act_as_group_ )
+	{
+		groupLeader = Group.Leader( group_0 );
+		Sim.PlaceNear( groupLeader, start_loc_, Math.Random( 500.0, 3000.0 ) );
+		iFormation.Goose( group_0, 40.0, true );
+		Task.Detach( local_3 = start iScriptedOrders.OfficialVisitor( group_0 ) );
+		Object.AddHandleProperty( groupLeader, "behaviour_script_handle", local_3 );
+	}
+	else do
+	{
+		group_1 = Group.Create();
+		groupLeader = Group.NthSim( group_0, local_4 );
+		
+		if ( groupLeader == false )
+		{
+			debug local_function_0( "iTrafficCreation.CustomOfficialVisitor: Invalid Sim passed for orders" );
+		}
+		
+		Group.AddSim( group_1, groupLeader );
+		Group.AddGroup( group_0, group_1 );
+		Sim.PlaceNear( groupLeader, start_loc_, Math.Random( 500.0, 3000.0 ) );
+		Task.Detach( local_3 = start iScriptedOrders.OfficialVisitor( group_1 ) );
+		Object.AddHandleProperty( groupLeader, "behaviour_script_handle", local_3 );
+	}
+	while ( Group.SimCount( group_0 ) != 0 );
+	
+	return group_0;
+}
+
+hgroup CustomPiracy( hsim start_loc_, eShipType traffic_type_, int number_to_create_, IeAllegiance faction_for_vessels_, bool act_as_group_ )
+{
+	hgroup group_0 = Group.Create();
+	hgroup group_1;
+	hsim groupLeader;
+	htask local_3;
+	int local_4;
+	
+	group_0 = iShipCreation.GetTraffic( traffic_type_, faction_for_vessels_, number_to_create_ );
+	
+	if ( act_as_group_ )
+	{
+		groupLeader = Group.Leader( group_0 );
+		Sim.PlaceNear( groupLeader, start_loc_, Math.Random( 500.0, 3000.0 ) );
+		iFormation.Goose( group_0, 40.0, true );
+		Task.Detach( local_3 = start iScriptedOrders.Piracy( group_0 ) );
+		Object.AddHandleProperty( groupLeader, "behaviour_script_handle", local_3 );
+	}
+	else do
+	{
+		group_1 = Group.Create();
+		groupLeader = Group.NthSim( group_0, local_4 );
+		
+		if ( groupLeader == false )
+		{
+			debug local_function_0( "iTrafficCreation.CustomPiracy: Invalid Sim passed for orders" );
+		}
+		
+		Group.AddSim( group_1, groupLeader );
+		Group.AddGroup( group_0, group_1 );
+		Sim.PlaceNear( groupLeader, start_loc_, Math.Random( 500.0, 3000.0 ) );
+		Task.Detach( local_3 = start iScriptedOrders.Piracy( group_1 ) );
+		Object.AddHandleProperty( groupLeader, "behaviour_script_handle", local_3 );
+	}
+	while ( Group.SimCount( group_0 ) != 0 );
+	
+	return group_0;
+}
+
+hgroup CustomCabbie( hsim start_loc_, eShipType traffic_type_, int number_to_create_, IeAllegiance faction_for_vessels_, bool act_as_group_ )
+{
+	hgroup group_0 = Group.Create();
+	hgroup group_1;
+	hsim groupLeader;
+	htask local_3;
+	int local_4;
+	
+	group_0 = iShipCreation.GetTraffic( traffic_type_, faction_for_vessels_, number_to_create_ );
+	
+	if ( act_as_group_ )
+	{
+		groupLeader = Group.Leader( group_0 );
+		Sim.PlaceNear( groupLeader, start_loc_, Math.Random( 500.0, 3000.0 ) );
+		iFormation.Goose( group_0, 40.0, true );
+		Task.Detach( local_3 = start iScriptedOrders.Cabbie( group_0 ) );
+		Object.AddHandleProperty( groupLeader, "behaviour_script_handle", local_3 );
+	}
+	else do
+	{
+		group_1 = Group.Create();
+		groupLeader = Group.NthSim( group_0, local_4 );
+		
+		if ( groupLeader == false )
+		{
+			debug local_function_0( "iTrafficCreation.CustomCabbie: Invalid Sim passed for orders" );
+		}
+		
+		Group.AddSim( group_1, groupLeader );
+		Group.AddGroup( group_0, group_1 );
+		Sim.PlaceNear( groupLeader, start_loc_, Math.Random( 500.0, 3000.0 ) );
+		Task.Detach( local_3 = start iScriptedOrders.Cabbie( group_1 ) );
+		Object.AddHandleProperty( groupLeader, "behaviour_script_handle", local_3 );
+	}
+	while ( Group.SimCount( group_0 ) != 0 );
+	
+	return group_0;
+}
+
+hgroup CustomSpeedTrap( hsim start_loc_, eShipType traffic_type_, int number_to_create_, IeAllegiance faction_for_vessels_, bool act_as_group_ )
+{
+	hgroup group_0 = Group.Create();
+	hgroup group_1;
+	hsim groupLeader;
+	htask local_3;
+	int local_4;
+	
+	group_0 = iShipCreation.GetTraffic( traffic_type_, faction_for_vessels_, number_to_create_ );
+	
+	if ( act_as_group_ )
+	{
+		groupLeader = Group.Leader( group_0 );
+		Sim.PlaceNear( groupLeader, start_loc_, Math.Random( 500.0, 3000.0 ) );
+		iFormation.Goose( group_0, 40.0, true );
+		Task.Detach( local_3 = start iScriptedOrders.SpeedTrap( group_0 ) );
+		Object.AddHandleProperty( groupLeader, "behaviour_script_handle", local_3 );
+	}
+	else do
+	{
+		group_1 = Group.Create();
+		groupLeader = Group.NthSim( group_0, local_4 );
+		
+		if ( groupLeader == false )
+		{
+			debug local_function_0( "iTrafficCreation.CustomSpeedTrap: Invalid Sim passed for orders" );
+		}
+		
+		Group.AddSim( group_1, groupLeader );
+		Group.AddGroup( group_0, group_1 );
+		Sim.PlaceNear( groupLeader, start_loc_, Math.Random( 500.0, 3000.0 ) );
+		Task.Detach( local_3 = start iScriptedOrders.SpeedTrap( group_1 ) );
+		Object.AddHandleProperty( groupLeader, "behaviour_script_handle", local_3 );
+	}
+	while ( Group.SimCount( group_0 ) != 0 );
+	
+	return group_0;
+}
+
+hgroup CustomFlitter( hsim start_loc_, eShipType traffic_type_, int number_to_create_, IeAllegiance faction_for_vessels_, bool act_as_group_ )
+{
+	hgroup group_0 = Group.Create();
+	hgroup group_1;
+	hsim groupLeader;
+	htask local_3;
+	int local_4;
+	
+	group_0 = iShipCreation.GetTraffic( traffic_type_, faction_for_vessels_, number_to_create_ );
+	
+	if ( act_as_group_ )
+	{
+		groupLeader = Group.Leader( group_0 );
+		Sim.PlaceNear( groupLeader, start_loc_, Math.Random( 500.0, 3000.0 ) );
+		iFormation.Goose( group_0, 40.0, true );
+		Task.Detach( local_3 = start iScriptedOrders.Flitter( group_0 ) );
+		Object.AddHandleProperty( groupLeader, "behaviour_script_handle", local_3 );
+	}
+	else do
+	{
+		group_1 = Group.Create();
+		groupLeader = Group.NthSim( group_0, local_4 );
+		
+		if ( groupLeader == false )
+		{
+			debug local_function_0( "iTrafficCreation.CustomFlitter: Invalid Sim passed for orders" );
+		}
+		
+		Group.AddSim( group_1, groupLeader );
+		Group.AddGroup( group_0, group_1 );
+		Sim.PlaceNear( groupLeader, start_loc_, Math.Random( 500.0, 3000.0 ) );
+		Task.Detach( local_3 = start iScriptedOrders.Flitter( group_1 ) );
+		Object.AddHandleProperty( groupLeader, "behaviour_script_handle", local_3 );
+	}
+	while ( Group.SimCount( group_0 ) != 0 );
+	
+	return group_0;
+}
+
+hgroup CustomPoliceRaid( hsim start_loc_, eShipType traffic_type_, int number_to_create_, IeAllegiance faction_for_vessels_, bool act_as_group_ )
+{
+	hgroup group_0 = Group.Create();
+	hgroup group_1;
+	hsim groupLeader;
+	htask local_3;
+	int local_4;
+	
+	group_0 = iShipCreation.GetTraffic( traffic_type_, faction_for_vessels_, number_to_create_ );
+	
+	if ( act_as_group_ )
+	{
+		groupLeader = Group.Leader( group_0 );
+		Sim.PlaceNear( groupLeader, start_loc_, Math.Random( 500.0, 3000.0 ) );
+		iFormation.Goose( group_0, 40.0, true );
+		Task.Detach( local_3 = start iScriptedOrders.PoliceRaid( group_0 ) );
+		Object.AddHandleProperty( groupLeader, "behaviour_script_handle", local_3 );
+	}
+	else do
+	{
+		group_1 = Group.Create();
+		groupLeader = Group.NthSim( group_0, local_4 );
+		
+		if ( groupLeader == false )
+		{
+			debug local_function_0( "iTrafficCreation.CustomPoliceRaid: Invalid Sim passed for orders" );
+		}
+		
+		Group.AddSim( group_1, groupLeader );
+		Group.AddGroup( group_0, group_1 );
+		Sim.PlaceNear( groupLeader, start_loc_, Math.Random( 500.0, 3000.0 ) );
+		Task.Detach( local_3 = start iScriptedOrders.PoliceRaid( group_1 ) );
+		Object.AddHandleProperty( groupLeader, "behaviour_script_handle", local_3 );
+	}
+	while ( Group.SimCount( group_0 ) != 0 );
+	
+	return group_0;
+}
+
+hgroup CustomManeuvre( hsim start_loc_, eShipType traffic_type_, int number_to_create_, IeAllegiance faction_for_vessels_, bool act_as_group_ )
+{
+	hgroup group_0 = Group.Create();
+	hgroup group_1;
+	hsim groupLeader;
+	htask local_3;
+	int local_4;
+	
+	group_0 = iShipCreation.GetTraffic( traffic_type_, faction_for_vessels_, number_to_create_ );
+	
+	if ( act_as_group_ )
+	{
+		groupLeader = Group.Leader( group_0 );
+		Sim.PlaceNear( groupLeader, start_loc_, Math.Random( 500.0, 3000.0 ) );
+		iFormation.Goose( group_0, 40.0, true );
+		Task.Detach( local_3 = start iScriptedOrders.Maneuvre( group_0 ) );
+		Object.AddHandleProperty( groupLeader, "behaviour_script_handle", local_3 );
+	}
+	else do
+	{
+		group_1 = Group.Create();
+		groupLeader = Group.NthSim( group_0, local_4 );
+		
+		if ( groupLeader == false )
+		{
+			debug local_function_0( "iTrafficCreation.CustomManeuvre: Invalid Sim passed for orders" );
+		}
+		
+		Group.AddSim( group_1, groupLeader );
+		Group.AddGroup( group_0, group_1 );
+		Sim.PlaceNear( groupLeader, start_loc_, Math.Random( 500.0, 3000.0 ) );
+		Task.Detach( local_3 = start iScriptedOrders.Maneuvre( group_1 ) );
+		Object.AddHandleProperty( groupLeader, "behaviour_script_handle", local_3 );
+	}
+	while ( Group.SimCount( group_0 ) != 0 );
+	
+	return group_0;
+}
+

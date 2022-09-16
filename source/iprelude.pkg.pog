@@ -1,0 +1,560 @@
+package iPrelude;
+
+uses Debug,
+     String,
+     Set,
+     List,
+     Global,
+     Object,
+     Group,
+     Sim,
+     State,
+     Task,
+     Text,
+     iAct0GeneralTraining,
+     iAct0Mission10,
+     iAct0Mission20,
+     iAct0Mission40,
+     iAct0Mission50,
+     iAct0Mission60,
+     iAct0MissionTour,
+     GUI,
+     iBaseGUI,
+     iConversation,
+     iEmail,
+     iGame,
+     CargoTypes,
+     iInventory,
+     iFaction,
+     iSim,
+     MapEnumerations,
+     iMapEntity,
+     iBody,
+     iHabitat,
+     iShip,
+     iStartSystem,
+     INIFile,
+     iUtilities;
+
+provides MasterScript,
+         Main,
+         BaseMain,
+         JunkyardHandler;
+
+prototype local_function_6();
+prototype local_function_0();
+prototype task JunkyardHandler();
+prototype task local_function_1();
+prototype task local_function_3();
+prototype task local_function_2();
+prototype task local_function_4();
+prototype task local_function_5();
+prototype task MasterScript();
+prototype task local_function_7();
+prototype Main();
+prototype BaseMain();
+
+local_function_6()
+{
+	Text.Add( "csv:/text/act_0/act0_master" );
+	Text.Add( "csv:/text/act_0/act0_master_addendum" );
+	Text.Add( "csv:/text/act_0/act0_master_addendum2" );
+	Text.Add( "csv:/text/act_0/act0_master_addendum3" );
+	Global.CreateBool( "g_act0_found_base", 2, false );
+	Global.CreateBool( "g_act0_lucrecias_mail_conversation", 2, false );
+	Global.CreateBool( "g_act0_proving_grounds_complete", 2, false );
+	Global.CreateBool( "g_act0_started_proving_grounds", 2, false );
+	Global.CreateBool( "g_act0_started_tour", 2, false );
+	Global.CreateBool( "g_act0_tour_complete", 2, false );
+	Global.CreateBool( "g_act0_errand_boy_complete", 2, false );
+	Global.CreateBool( "g_act0_recovered_reactor", 2, false );
+	Global.CreateInt( "g_act0_base_online", 2, 0 );
+	Global.CreateBool( "g_act0_online_base_complete", 2, false );
+	Global.CreateBool( "g_act0_nemesis_complete", 2, false );
+	Global.CreateInt( "g_story_0.10", 2, 0 );
+	Global.CreateInt( "g_story_0.20", 2, 0 );
+	Global.CreateInt( "g_story_0.30", 2, 0 );
+	Global.CreateInt( "g_story_0.40", 2, 0 );
+	Global.CreateInt( "g_story_0.50", 2, 0 );
+}
+
+local_function_0()
+{
+	Global.Destroy( "g_story_0.10" );
+	Global.Destroy( "g_story_0.20" );
+	Global.Destroy( "g_story_0.30" );
+	Global.Destroy( "g_story_0.40" );
+	Global.Destroy( "g_story_0.50" );
+	Global.Destroy( "g_act0_found_base" );
+	Global.Destroy( "g_act0_lucrecias_mail_conversation" );
+	Global.Destroy( "g_act0_started_proving_grounds" );
+	Global.Destroy( "g_act0_proving_grounds_complete" );
+	Global.Destroy( "g_act0_started_tour" );
+	Global.Destroy( "g_act0_tour_complete" );
+	Global.Destroy( "g_act0_errand_boy_complete" );
+	Global.Destroy( "g_act0_recovered_reactor" );
+	Global.Destroy( "g_act0_base_online" );
+	Global.Destroy( "g_act0_nemesis_complete" );
+	Text.Remove( "csv:/text/act_0/act0_master" );
+	Text.Remove( "csv:/text/act_0/act0_master_addendum2" );
+	Text.Remove( "csv:/text/act_0/act0_master_addendum3" );
+}
+
+task JunkyardHandler()
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	hmapentity lucreciasBase = iMapEntity.FindByNameInSystem( "Lucrecia's Base", "map:/geog/badlands/hoffers_wake" );
+	hmapentity junkyard = iMapEntity.FindByNameInSystem( "Junkyard", "map:/geog/badlands/hoffers_wake" );
+	hsim simReactor;
+	int local_5;
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( Global.Int( "g_current_act" ) > 0 )
+			{
+				Sim.Destroy( simReactor );
+				Global.Destroy( "g_reactor_handle" );
+				return;
+			}
+			
+			if ( iSim.ActiveWorld() == "map:/geog/badlands/hoffers_wake" )
+			{
+				if ( iUtilities.PlayerInRange( junkyard ) && !local_0 )
+				{
+					local_0 = true;
+					
+					if ( Global.Bool( "g_act0_recovered_reactor" ) == 0 )
+					{
+						simReactor = Sim.Create( "ini:/sims/stations/reactor", "a0_master_name_reactor" );
+						Sim.PlaceRelativeTo( simReactor, junkyard, 500.0, 0.0, 1000.0 );
+						iSim.SetIndestructable( iSim.Cast( simReactor ), true );
+						Sim.SetCullable( simReactor, false );
+						iSim.SetStandardSensorVisibility( iSim.Cast( simReactor ), true );
+						
+						if ( !Global.Exists( "g_reactor_handle" ) )
+						{
+							Global.CreateHandle( "g_reactor_handle", 2, simReactor );
+						}
+						else
+						{
+							Global.SetHandle( "g_reactor_handle", simReactor );
+						}
+					}
+					else if ( !Global.Exists( "g_reactor_handle" ) )
+					{
+						Global.Destroy( "g_reactor_handle" );
+					}
+				}
+				else if ( (local_0 && !iUtilities.PlayerInRange( junkyard )) || (Sim.Cast( simReactor ) == false) )
+				{
+					local_0 = false;
+					Sim.Destroy( simReactor );
+					Global.Destroy( "g_reactor_handle" );
+				}
+			}
+		}
+	}
+}
+
+task local_function_1()
+{
+	debug Debug.PrintString( "iPrelude.StoryElement0_20 : Story element has begun\n" );
+	iConversation.Begin();
+	iConversation.Say( none, "name_young_cal", "a0_master_dialogue_young_cal_its_very_dark_in_here_clay" );
+	iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_yeah_i_think_theres_a_power_fault_somewhere" );
+	iConversation.Say( none, "name_young_cal", "a0_master_dialogue_young_cal_it_says_fuel_rod_malfunction" );
+	iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_sure_is_it_means_we_need_to_find_some_new_rods_from_somewhere_before" );
+	iConversation.End();
+}
+
+task local_function_3()
+{
+	debug Debug.PrintString( "iPelude.StoryElement0_30 : Story Element has begin\n" );
+	iEmail.SendEmail( "a0_master_lucrecia_mail_sender", "a0_master_story0.30_mail_subject", "html:/text/act_0/act0_master_lucreciamail_1", true );
+}
+
+task local_function_2()
+{
+	debug Debug.PrintString( "iPrelude.LucreciaMailConversationHandler : Story element has begin\n" );
+	iConversation.Begin();
+	iConversation.Say( none, "name_young_cal", "a0_master_dialogue_young_cal_so_grandma_was_a_space_pirate" );
+	iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_you_gotta_understand_cal_that_your_dad_and_your_grandma" );
+	iConversation.Say( none, "name_young_cal", "a0_master_dialogue_young_cal_and_look_where_that_get_him" );
+	iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_listen_kid_your_father" );
+	iConversation.End();
+}
+
+task local_function_4()
+{
+	iConversation.Begin();
+	iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_well_your_piloting_skills_arnt_bad_for_a_kid" );
+	iConversation.Say( none, "name_young_cal", "a0_master_dialogue_young_cal_does_that_mean_we_can_do_something_other_than_fly_through_rings" );
+	iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_dont_get_cocky_kid" );
+	iConversation.Say( none, "name_young_cal", "a0_master_dialogue_young_cal_well_ive_never_really_left_the_asteroid_belot_before_i_came_here" );
+	iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_well_reacon_its_time_to_introduce_you_to_a_few_of_the_ladmarks" );
+	iConversation.End();
+	Global.SetBool( "g_act0_started_tour", true );
+}
+
+task local_function_5()
+{
+	iConversation.Begin();
+	iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_ive_looked_into_the_meteor_shielding_problem" );
+	iConversation.Say( none, "name_young_cal", "a0_master_dialogue_young_cal_sure_what_do_you_want_me_to_do" );
+	iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_we_need_a_flitter_to_reapir_the_shielding" );
+	iConversation.Say( none, "name_young_cal", "a0_master_dialogue_young_cal_of_course_i_can_fly_a_ship_you_know" );
+	iConversation.Say( none, "name_clay", "a0_master_dialogue_clay_just_you_be_careful" );
+	iConversation.End();
+}
+
+task MasterScript()
+{
+	htask currentTask = Task.Current();
+	hstate taskState = State.Find( currentTask );
+	
+	if ( !taskState )
+	{
+		taskState = State.Create( currentTask, 0 );
+	}
+	
+	iUtilities.SuperSkip();
+	iBaseGUI.SetTriangulationScreenEnabled( false );
+	
+	if ( iUtilities.SkipAct( "Act Zero: The Prelude", 0 ) )
+	{
+		iAct0Mission10.Stub();
+		iAct0Mission20.Stub();
+		iAct0Mission40.Stub();
+		iAct0Mission50.Stub();
+		iAct0Mission60.Stub();
+		iAct0MissionTour.Stub();
+		
+		if ( !iInventory.GotCommandSection() )
+		{
+			iInventory.AddCommandSection();
+		}
+		
+		Global.CreateBool( "g_jafs_menu_option_enabled", 2, true );
+		Global.SetBool( "g_base_lights_on", true );
+		local_function_0();
+		State.Destroy( Task.Current() );
+		iGame.PlayMovie( "/movies/midtro" );
+		iGame.NextAct( "iActOne" );
+		return;
+	}
+	
+	if ( Global.Bool( "g_act0_recovered_reactor" ) == 0 )
+	{
+		iBaseGUI.SetTradeScreenEnabled( false );
+		iBaseGUI.SetRecyclingScreenEnabled( false );
+		iBaseGUI.SetManufacturingScreenEnabled( false );
+	}
+	
+	Global.Destroy( "g_weapons_training_active" );
+	debug Debug.PrintString( "iPrelude.MasterScript - Commencing Act 0 script.\n" );
+	
+	if ( (Global.Exists( "g_hud_handler" ) == 1) && (!Object.PropertyExists( Global.Handle( "g_hud_handler" ), "number_completed_hud_nodes" ) && (Object.IntProperty( Global.Handle( "g_hud_handler" ), "number_completed_hud_nodes" ) < 10)) )
+	{
+		State.Restore( State.Cast( Global.Handle( "g_hud_handler" ) ) );
+	}
+	
+	Task.Detach( start JunkyardHandler() );
+	
+	switch ( State.Progress( taskState ) )
+	{
+		case 0:
+			iAct0Mission10.Main();
+			State.SetProgress( taskState, 1 );
+		
+		case 1:
+			schedule
+			{
+				every 1.0:
+				{
+					if ( Global.Bool( "g_act0_found_base" ) == 1 )
+					{
+						debug Debug.PrintString( "iPrelude.MasterScript - player has found Lucrecia's Base.\n" );
+						break;
+					}
+					else debug Debug.PrintString( "iPrelude.MasterScript - Still waiting for player to find Lucrecia's base.\n" );
+				}
+			}
+			
+			iUtilities.SendStoryElement( "g_story_0.20", 0, 0 );
+			iUtilities.SendStoryElement( "g_story_0.30", 0, 0 );
+			State.SetProgress( taskState, 2 );
+		
+		case 2:
+			if ( Global.Bool( "g_skip_to_specific" ) != 1 )
+			{
+				schedule
+				{
+					every 1.0:
+					{
+						if ( Global.Bool( "g_act0_started_proving_grounds" ) == 1 )
+						{
+							debug Debug.PrintString( "iPrelude.MasterScript - player has been given proving ground mission\n" );
+							break;
+						}
+						else debug Debug.PrintString( "iPrelude.MasterScript - Still waiting for player to be given proving grounds mission.\n" );
+					}
+				}
+			}
+			
+			iAct0Mission20.Main();
+			State.SetProgress( taskState, 3 );
+		
+		case 3:
+			if ( Global.Bool( "g_skip_to_specific" ) != 1 )
+			{
+				schedule
+				{
+					every 2.0:
+					{
+						if ( Global.Bool( "g_act0_proving_grounds_complete" ) == 1 )
+						{
+							debug Debug.PrintString( "iPrelude.MasterScript - player has completed proving grounds mission.\n" );
+							break;
+						}
+						else debug Debug.PrintString( "iPrelude.MasterScript - Still waiting for player to complete the proving grounds mission.\n" );
+					}
+				}
+			}
+			
+			iUtilities.SendStoryElement( "g_story_0.40", 0, 0 );
+			State.SetProgress( taskState, 4 );
+		
+		case 4:
+			if ( Global.Bool( "g_skip_to_specific" ) != 1 )
+			{
+				schedule
+				{
+					every 2.0:
+					{
+						if ( Global.Bool( "g_act0_started_tour" ) == 1 )
+						{
+							debug Debug.PrintString( "iPrelude.MasterScript - player has been given tour mission\n" );
+							break;
+						}
+						else debug Debug.PrintString( "iPrelude.MasterScript - Still waiting for player to be given tour mission.\n" );
+					}
+				}
+			}
+			
+			iAct0MissionTour.Main();
+			State.SetProgress( taskState, 5 );
+		
+		case 5:
+			if ( Global.Bool( "g_skip_to_specific" ) != 1 )
+			{
+				schedule
+				{
+					every 2.0:
+					{
+						if ( Global.Bool( "g_act0_tour_complete" ) == 1 )
+						{
+							debug Debug.PrintString( "iPrelude.MasterScript - player has completed tour.\n" );
+							break;
+						}
+						else debug Debug.PrintString( "iPrelude.MasterScript - Still waiting for player to complete Hoffers Wake Tour.\n" );
+					}
+				}
+			}
+			
+			iConversation.Say( none, "name_clay", "a0_m35_dialogue_clay_hm_i" );
+			iAct0Mission40.Main();
+			State.SetProgress( taskState, 6 );
+		
+		case 6:
+			if ( Global.Bool( "g_skip_to_specific" ) != 1 )
+			{
+				schedule
+				{
+					every 2.0:
+					{
+						if ( Global.Bool( "g_act0_errand_boy_complete" ) == 1 )
+						{
+							debug Debug.PrintString( "iPrelude.MasterScript - player has completed Errand Boy.\n" );
+							break;
+						}
+						else debug Debug.PrintString( "iPrelude.MasterScript - Still waiting for player to complete Errand Boy.\n" );
+					}
+				}
+			}
+			
+			Task.Sleep( Task.Current(), 10.0 );
+			iConversation.OneLiner( none, "name_clay", "a0_master_dialogue_clay_hey_maybe" );
+			iAct0Mission50.Main();
+			State.SetProgress( taskState, 7 );
+		
+		case 7:
+			schedule
+			{
+				every 2.0:
+				{
+					if ( Global.Bool( "g_act0_recovered_reactor" ) == 1 )
+					{
+						debug Debug.PrintString( "iPrelude.MasterScript - player has recovered the base reactor.\n" );
+						break;
+					}
+					else debug Debug.PrintString( "iPrelude.MasterScript - Still waiting for player to recover base reactor.\n" );
+				}
+			}
+			
+			Global.SetInt( "g_act0_base_online", 1 );
+			iInventory.RemoveCommandSection();
+			State.SetProgress( taskState, 8 );
+		
+		case 8:
+			if ( Global.Bool( "g_skip_to_specific" ) != 1 )
+			{
+				schedule
+				{
+					every 2.0:
+					{
+						if ( Global.Bool( "g_act0_online_base_complete" ) == 1 )
+						{
+							debug Debug.PrintString( "iPrelude.MasterScript - player has completed the online base tour.\n" );
+							break;
+						}
+						else debug Debug.PrintString( "iPrelude.MasterScript - Still waiting for player to finish online base.\n" );
+					}
+				}
+			}
+			
+			iAct0Mission60.Main();
+			State.SetProgress( taskState, 9 );
+		
+		case 9:
+			schedule
+			{
+				every 2.0:
+				{
+					if ( Global.Bool( "g_act0_nemesis_complete" ) == 1 )
+					{
+						debug Debug.PrintString( "iPrelude.MasterScript - player has completed Nemesis.\n" );
+						break;
+					}
+					else debug Debug.PrintString( "iPrelude.MasterScript - Still waiting for player to finish Nemesis.\n" );
+				}
+			}
+			
+			local_function_0();
+			iInventory.AddCommandSection();
+			State.Destroy( Task.Current() );
+			iGame.PlayMovie( "/movies/midtro" );
+			iGame.NextAct( "iActOne" );
+	}
+}
+
+task local_function_7()
+{
+	htask local_0;
+	htask local_1;
+	hstate state;
+	int local_3;
+	hemail email;
+	
+	if ( Global.Int( "g_story_0.20" ) == 2 )
+	{
+		State.Restore( State.Cast( Global.Handle( "g_base_exploration_handler" ) ) );
+	}
+	
+	if ( Global.Int( "g_act0_base_online" ) == 2 )
+	{
+		State.Restore( State.Cast( Global.Handle( "g_base_online_exploration_handler" ) ) );
+	}
+	
+	schedule
+	{
+		every 1.0:
+		{
+			email = iEmail.Find( "html:/text/act_0/act0_master_lucreciamail_1" );
+			debug Debug.PrintString( " iPrelude.BaseMessageChecker - Checking to see if any new story sequences are needed....\n" );
+			
+			if ( !Task.IsHalted( local_0 ) )
+			{
+				debug Debug.PrintString( "iPrelude.BaseMessageChecker - A story sequence is currently running.\n" );
+			}
+			else
+			{
+				debug Debug.PrintString( "iPrelude.BaseMessageChecker - No story sequences are currnetly runing, checking to see if any are waiting to run\n" );
+				
+				if ( Global.Int( "g_story_0.20" ) == 1 )
+				{
+					Global.SetInt( "g_story_0.20", 2 );
+					local_0 = start local_function_1();
+					local_1 = start iAct0GeneralTraining.BaseExplorationHandler();
+					state = State.Create( local_1, 0 );
+					Global.CreateHandle( "g_base_exploration_handler", 1, state );
+				}
+				else if ( iEmail.Read( email ) && (Global.Bool( "g_act0_lucrecias_mail_conversation" ) == 0) )
+				{
+					Global.SetBool( "g_act0_lucrecias_mail_conversation", true );
+					start local_function_2();
+				}
+				else if ( Global.Int( "g_story_0.30" ) == 1 )
+				{
+					Global.SetInt( "g_story_0.30", 2 );
+					local_0 = start local_function_3();
+				}
+				else if ( Global.Int( "g_story_0.40" ) == 1 )
+				{
+					Global.SetInt( "g_story_0.40", 2 );
+					local_0 = start local_function_4();
+				}
+				else if ( (Global.Int( "g_act0_base_online" ) == 1) || ((Global.Bool( "g_act0_online_base_complete" ) == 0) && ((Global.Int( "g_act0_base_online" ) == 2) && (local_1 == false))) )
+				{
+					Global.SetInt( "g_act0_base_online", 2 );
+					debug Debug.PrintString( "iPrelude.BaseMessageChecker : Enabling base buttons.\n" );
+					iBaseGUI.SetTradeScreenEnabled( true );
+					iBaseGUI.SetRecyclingScreenEnabled( true );
+					iBaseGUI.SetManufacturingScreenEnabled( true );
+					local_1 = start iAct0GeneralTraining.BaseOnlineHandler();
+					state = State.Create( local_1, 0 );
+					Global.CreateHandle( "g_base_online_exploration_handler", 1, state );
+				}
+				else if ( Global.Int( "g_story_0.50" ) == 1 )
+				{
+					Global.SetInt( "g_story_0.50", 2 );
+					local_0 = start local_function_5();
+				}
+				else debug Debug.PrintString( " iPrelude.MasterBaseScript - No story sequences are wating to be executed, sleeping for a bit...\n" );
+			}
+		}
+	}
+}
+
+Main()
+{
+	bool local_0 = false;
+	hship playerShip = iShip.FindPlayerShip();
+	
+	if ( Global.Int( "g_current_act" ) < 0 )
+	{
+		debug Debug.PrintString( "iPrelude.Main: Initialising prelude (Act 0)\n" );
+		Global.SetInt( "g_current_act", 0 );
+		local_function_6();
+		start MasterScript();
+		local_0 = true;
+	}
+	
+	if ( local_0 )
+	{
+		iUtilities.CreatePlayer( "ini:/sims/ships/player/comsec_prefitted", iMapEntity.FindByName( "Hoffer's Gap" ) );
+		iStartSystem.HideMapLocations();
+		return;
+	}
+	
+	iUtilities.CreatePlayer( "", iMapEntity.FindByName( "Lucrecia's Base" ) );
+}
+
+BaseMain()
+{
+	debug Debug.PrintString( "iPrelude.BaseMain: Base master script executed - launching the base message checker task\n" );
+	start local_function_7();
+}
+

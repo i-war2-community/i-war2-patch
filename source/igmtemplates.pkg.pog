@@ -1,0 +1,1340 @@
+package iGMTemplates;
+
+uses Debug,
+     String,
+     Set,
+     List,
+     Global,
+     Task,
+     GUI,
+     iEmail,
+     MapEnumerations,
+     iFaction,
+     iMissionGenerator;
+
+provides InstantiateMission,
+         TestMissionGenerator;
+
+enum eGMSet
+{
+	GM_11_FistfulOfNanites = 0x00000001,
+	GM_01_NeedOre = 0x00000002,
+	GM_03_Gardener = 0x00000003,
+	GM_02_CounterfeitGoods = 0x00000004,
+	GM_14_Gunrobber = 0x00000005,
+	GM_13_MedicalSupplies = 0x00000006,
+	GM_10_RareAnimalChef = 0x00000007,
+	GM_16_TheFreak = 0x00000008,
+	GM_12_LibraryFine = 0x00000009,
+	GM_08_SimplePiracy = 0x0000000A,
+	GM_20_StationParts = 0x0000000B,
+	GM_18_Goldminers = 0x0000000C,
+	GM_06_AcidBurn = 0x0000000D,
+	GM_07_ThePayoff = 0x0000000E,
+	GM_04_OmanExoticMetals = 0x0000000F,
+	GM_05_OmanPowerPlant = 0x00000010,
+	GM_23_OmanRaider = 0x00000011,
+	GM_24_OmanPayback = 0x00000012,
+	GM_25_OmanDisease = 0x00000013,
+	GM_26_OmanWeaponParts = 0x00000014,
+	GM_27_OmanAntiPropaganda = 0x00000015,
+	GM_28_OmanMalfunction = 0x00000016,
+	GM_29_Omantechnology = 0x00000017,
+	GM_19_BigJacksJewels = 0x00000018,
+	GM_09_PrisonData = 0x00000019,
+	GM_15_TheSurvey = 0x0000001A,
+	GM_21_CrookedCops = 0x0000001B,
+	GM_22_MaraudersDealing = 0x0000001C,
+	GM_17_GeriatricCyborgs = 0x0000001D,
+	GM_30_OmanCelebration = 0x0000001E,
+	GM_31_MCAExcavations = 0x0000001F,
+	GM_32_MCATerraforming = 0x00000020,
+	GM_33_MCAPlague = 0x00000021,
+	GM_34_MCAArmy = 0x00000022,
+	GM_35_MCASafetyDrive = 0x00000023
+};
+
+prototype bool local_function_0();
+prototype local_function_1();
+prototype bool InstantiateMission( int mission_enum_ );
+prototype task local_function_2();
+prototype local_function_3();
+prototype TestMissionGenerator();
+
+bool local_function_0()
+{
+	debug
+	{
+		if ( Global.Exists( "g_debug_all_generated_missions_ok" ) )
+		{
+			return true;
+		}
+	}
+	
+	return Global.Bool( "g_accept_generated_mission" );
+}
+
+local_function_1()
+{
+	Global.SetInt( "gl_missgen_index", Global.Int( "gl_missgen_index" ) + 1 );
+}
+
+bool InstantiateMission( int mission_enum_ )
+{
+	htask local_0;
+	
+	debug atomic
+	{
+		Debug.PrintString( "Attempting to instantiate GM Mission " );
+		Debug.PrintInt( mission_enum_ );
+		Debug.PrintString( " \n" );
+	}
+	
+	Global.CreateBool( "g_accept_generated_mission", 2, true );
+	
+	switch ( mission_enum_ )
+	{
+		case 2:
+			iMissionGenerator.testPiracyRating( 50.0 );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "01_NeedOre" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m01" );
+				iMissionGenerator.CargoToGet( local_0, 403, 4 );
+				iMissionGenerator.CargoReward( local_0, 498, 1 );
+				iMissionGenerator.PersonalDelivery( local_0, false );
+				iMissionGenerator.NumberOfRepeats( local_0, 1 );
+				iMissionGenerator.OwnerDetails( local_0, 18, "Medium", "generated_missions_01_name_ship_01", "", "TradeCoward", "MAAS Corporation" );
+				iMissionGenerator.OwnerEscortDetails( local_0, 6, "Light", "generated_missions_06_name_ship_06", "GenericAggressive", 1 );
+				iMissionGenerator.OwnerLocation( local_0, 6, "map:/geog/badlands/hoffers_wake", "Aldo" );
+				iMissionGenerator.PatronName( local_0, "generated_missions_01_email_sender_01" );
+				iMissionGenerator.SetBriefing( local_0, "generated_missions_01_dialogue_jafs_talked_to_miners_01", "", 1 );
+				iMissionGenerator.SetPrompt( local_0, "generated_missions_01_dialogue_jafs_shall_I_02", "", 1 );
+				iMissionGenerator.SetVerification( local_0, "generated_missions_01_dialogue_jafs_Nice_One_03", "", 1 );
+				iMissionGenerator.SetConclusion( local_0, "html:/html/email/generatedmissions/GM_01_NeedOre_01", "generated_missions_01_email_subject_01", 4 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_01_NeedOre", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "MaasCorporation" ), -0.10 );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Independent" ), 0.20 );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Stepson" ), 0.10 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 4:
+			iMissionGenerator.testPiracyRating( 100.0 );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "Counterfeit Goods" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m02" );
+				iMissionGenerator.CargoToGet( local_0, 152, 1 );
+				iMissionGenerator.CargoReward( local_0, 253, 1 );
+				iMissionGenerator.PersonalDelivery( local_0, true );
+				iMissionGenerator.NumberOfRepeats( local_0, 1 );
+				iMissionGenerator.PatronDetails( local_0, "Underworld", "Thug", "generated_missions_02_name_ship_01", "generated_missions_02_name_ship_02", "GenericScum", "Underworld" );
+				iMissionGenerator.PatronLocation( local_0, 112, "map:/geog/badlands/hoffers_wake", "Hoffer's Heel Ship Park" );
+				iMissionGenerator.OwnerDetails( local_0, 0, "Thug", "generated_missions_02_name_ship_03", "generated_missions_02_name_ship_04", "GangsterAggressive", "Underworld" );
+				iMissionGenerator.OwnerLocation( local_0, 63, "map:/geog/badlands/hoffers_wake", "Buddokan" );
+				iMissionGenerator.OwnerEscortDetails( local_0, 6, "Thug", "generated_missions_02_name_ship_06 ", "GangsterAggressive", 2 );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_02_CounterfeitGoods_01", "generated_missions_02_email_subject_01", 4 );
+				iMissionGenerator.SetConclusion( local_0, "generated_missions_02_dialogue_dave_schwa_saved_my_neck_01", "generated_missions_30_email_subject_02", 5 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Underworld" ), 0.150 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 3:
+			iMissionGenerator.testPiracyRating( 80.0 );
+			iMissionGenerator.testFactionRating( "Stepson", 0.50 );
+			iMissionGenerator.testGlobalBool( "g_act1_stepsons_member", true );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "The Gardener" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m03" );
+				iMissionGenerator.CargoToGet( local_0, 7, 1 );
+				iMissionGenerator.CargoReward( local_0, 16, 1 );
+				iMissionGenerator.PersonalDelivery( local_0, true );
+				iMissionGenerator.ExclusiveTrades( local_0, true );
+				iMissionGenerator.NumberOfRepeats( local_0, 4 );
+				iMissionGenerator.PatronDetails( local_0, "Freight", "Light", "generated_missions_03_name_ship_01", "generated_missions_03_name_ship_02", "Generic", "Stepson" );
+				iMissionGenerator.PatronLocation( local_0, 48, "map:/geog/badlands/hoffers_wake", "Greenback Agri-Orbital 2" );
+				iMissionGenerator.PatronEscortDetails( local_0, "Security", "Light", "generated_missions_03_name_ship_03", "GenericAggressive", 1 );
+				iMissionGenerator.OwnerDetails( local_0, 0, "heavy", "generated_missions_03_name_ship_04", "generated_missions_03_name_ship_05", "TradeCoward", "Independent" );
+				iMissionGenerator.OwnerEscortDetails( local_0, 7, "Light", "generated_missions_06_name_ship_06", "PoliceHeroic", 1 );
+				iMissionGenerator.OwnerLocation( local_0, 67, "map:/geog/badlands/hoffers_wake", "Hoffer's Gap Entertainment Complex" );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_03_Gardener_01", "generated_missions_03_email_sender_01", 4 );
+				iMissionGenerator.SetRepeatMsg( local_0, "generated_missions_03_dialogue_gardener_thats_ideal_01", "", 5 );
+				iMissionGenerator.SetConclusion( local_0, "generated_missions_03_dialogue_gardener_thanks_02", "generated_missions_30_email_subject_02", 5 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_gardener_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Stepson" ), 0.10 );
+				iMissionGenerator.Activate( local_0 );
+				Global.SetInt( "gl_number_of_stepson_missions", 1 + Global.Int( "gl_number_of_stepson_missions" ) );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 15:
+			local_function_1();
+			return false;
+			iMissionGenerator.testPiracyRating( 1000.0 );
+			iMissionGenerator.testFactionRating( "Oman", 0.50 );
+			iMissionGenerator.testGlobalBool( "g_act2_oman_initiation_complete", true );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "Exotic Metals " );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m04" );
+				iMissionGenerator.CargoToGet( local_0, 443, 2 );
+				iMissionGenerator.CargoReward( local_0, 532, 2 );
+				iMissionGenerator.PersonalDelivery( local_0, true );
+				iMissionGenerator.NumberOfRepeats( local_0, 1 );
+				iMissionGenerator.PatronDetails( local_0, "Mining", "Heavy", "generated_missions_04_name_ship_01", "generated_missions_04_name_ship_02", "GenericUnderworld", "The Oman" );
+				iMissionGenerator.PatronLocation( local_0, 15, "map:/geog/badlands/kompira", "The Oman Processing Plant" );
+				iMissionGenerator.OwnerDetails( local_0, 0, "heavy", "generated_missions_04_name_ship_03", "generated_missions_04_name_ship_04", "GenericFreight", "NOMEXCorporation" );
+				iMissionGenerator.OwnerLocation( local_0, 17, "map:/geog/badlands/kompira", "Dagon NOMEX Exotic Metals Processing Plant" );
+				iMissionGenerator.OwnerEscortDetails( local_0, 6, "heavy", "generated_missions_04_name_ship_05", "GenericAggressive", 1 );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_04_OmanExoticMetals_01", "generated_missions_04_dialogue_Oman_having_trouble_01", 4 );
+				iMissionGenerator.SetBriefing( local_0, "generated_missions_04_dialogue_Oman_having_trouble_01", "", 5 );
+				iMissionGenerator.SetConclusion( local_0, "html:/html/email/generatedmissions/GM_04_OmanExoticMetals_02", "generated_missions_04_email_subject_02", 5 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_OmanExoticMetals_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Oman" ), 0.30 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 16:
+			iMissionGenerator.testPiracyRating( 2000.0 );
+			iMissionGenerator.testFactionRating( "Oman", 0.750 );
+			iMissionGenerator.testGlobalBool( "g_act2_oman_initiation_complete", true );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "Oman_PowerPlant" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m05" );
+				iMissionGenerator.CargoToGet( local_0, 345, 1 );
+				iMissionGenerator.CargoToGet( local_0, 346, 1 );
+				iMissionGenerator.CargoReward( local_0, 384, 1 );
+				iMissionGenerator.CargoReward( local_0, 462, 1 );
+				iMissionGenerator.PersonalDelivery( local_0, false );
+				iMissionGenerator.NumberOfRepeats( local_0, 1 );
+				iMissionGenerator.PatronDetails( local_0, "Security", "Heavy", "generated_missions_05_name_ship_01", "generated_missions_05_name_ship_02", "PoliceHeroic", "The Oman" );
+				iMissionGenerator.PatronLocation( local_0, 67, "map:/geog/badlands/kompira", "Jahim Exile Hermitage" );
+				iMissionGenerator.OwnerDetails( local_0, 2, "heavy", "generated_missions_05_name_ship_03", "generated_missions_05_name_ship_04", "TradeCoward", "MAAS Corporation" );
+				iMissionGenerator.OwnerEscortDetails( local_0, 5, "Light", "generated_missions_06_name_ship_06", "PoliceHeroic", 2 );
+				iMissionGenerator.OwnerLocation( local_0, 2, "map:/geog/badlands/santa_romera", "Hope Independent Fusionable Gases Mine" );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_05_OmanPowerPlant_01", "generated_missions_05_email_subject_01", 4 );
+				iMissionGenerator.SetConclusion( local_0, "generated_missions_05_dialogue_oman_reactor_parts_01", "generated_missions_30_email_subject_02", 5 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_OmanPowerPlant_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Oman" ), 0.50 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 13:
+			iMissionGenerator.testPiracyRating( 1200.0 );
+			iMissionGenerator.testFactionRating( "Stepson", 0.50 );
+			iMissionGenerator.testGlobalBool( "g_act1_stepsons_member", true );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "Acid Burn" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m06" );
+				iMissionGenerator.CargoToGet( local_0, 76, 1 );
+				iMissionGenerator.CargoReward( local_0, 439, 2 );
+				iMissionGenerator.PersonalDelivery( local_0, true );
+				iMissionGenerator.NumberOfRepeats( local_0, 1 );
+				iMissionGenerator.PatronDetails( local_0, "Mining", "Light", "generated_missions_06_name_ship_01", "generated_missions_06_name_ship_02", "GenericUnderworld", "Stepson" );
+				iMissionGenerator.PatronLocation( local_0, 51, "map:/geog/badlands/hoffers_wake", "Freelancers co-op aid centre" );
+				iMissionGenerator.PatronEscortDetails( local_0, "Freight", "Light", "gm_06_shipname03", "Generic", 1 );
+				iMissionGenerator.OwnerDetails( local_0, 14, "Medium", "generated_missions_06_name_ship_03", "generated_missions_06_name_ship_04", "TradeCoward", "Police" );
+				iMissionGenerator.OwnerLocation( local_0, 2, "map:/geog/badlands/hoffers_wake", "Weimar" );
+				iMissionGenerator.OwnerEscortDetails( local_0, 6, "Light", "generated_missions_06_name_ship_06", "PoliceHeroic", 3 );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_06_AcidBurn_01", "generated_missions_06_email_subject_01", 4 );
+				iMissionGenerator.SetPrompt( local_0, "html:/html/email/generatedmissions/GM_06_AcidBurn_02", "generated_missions_06_email_subject_02", 4 );
+				iMissionGenerator.SetConclusion( local_0, "generated_missions_06_dialogue_catherine_stepson_saved_lives_01", "generated_missions_06_email_subject_03", 5 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_AcidBurn", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Stepson" ), 0.350 );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Independent" ), 0.10 );
+				iMissionGenerator.SuccessBool( local_0, "gl_ThePayoff_available", true );
+				iMissionGenerator.SuccessAddMission( local_0, 14 );
+				iMissionGenerator.Activate( local_0 );
+				Global.SetInt( "gl_number_of_stepson_missions", 1 + Global.Int( "gl_number_of_stepson_missions" ) );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 14:
+			iMissionGenerator.testGlobalBool( "gl_ThePayoff_available", true );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "The Payoff" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m07" );
+				iMissionGenerator.CargoToGet( local_0, 333, 1 );
+				iMissionGenerator.CargoReward( local_0, 507, 2 );
+				iMissionGenerator.PersonalDelivery( local_0, true );
+				iMissionGenerator.NumberOfRepeats( local_0, 1 );
+				iMissionGenerator.PatronDetails( local_0, "Mining", "Light", "generated_missions_07_name_ship_01", "generated_missions_07_name_ship_02", "GenericUnderworld", "Stepson" );
+				iMissionGenerator.PatronLocation( local_0, 67, "map:/geog/badlands/hoffers_wake", "Greenback Agri-Orbital 3" );
+				iMissionGenerator.OwnerDetails( local_0, 0, "heavy", "generated_missions_07_name_ship_03", "generated_missions_07_name_ship_04", "TradeCoward", "Independent" );
+				iMissionGenerator.OwnerLocation( local_0, 21, "map:/geog/badlands/hoffers_wake", "Hoffer's Heel Ship Park" );
+				iMissionGenerator.OwnerEscortDetails( local_0, 5, "Light", "generated_missions_07_name_ship_05", "PoliceHeroic", 3 );
+				iMissionGenerator.OwnerSetEscortFaction( local_0, "Police" );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_07_ThePayOff_01", "generated_missions_07_email_subject_01", 4 );
+				iMissionGenerator.SetConclusion( local_0, "generated_missions_07_dialogue_catherine_stepson_small_fortune_01", "generated_missions_30_email_subject_02", 5 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_payoff_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Stepson" ), 0.50 );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Police" ), -0.50 );
+				iMissionGenerator.Activate( local_0 );
+				Global.SetInt( "gl_number_of_stepson_missions", 1 + Global.Int( "gl_number_of_stepson_missions" ) );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 10:
+			iMissionGenerator.testPiracyRating( 500.0 );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "Simple Piracy" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m08" );
+				iMissionGenerator.CargoToGet( local_0, 457, 6 );
+				iMissionGenerator.CargoReward( local_0, 488, 6 );
+				iMissionGenerator.PersonalDelivery( local_0, false );
+				iMissionGenerator.NumberOfRepeats( local_0, 1 );
+				iMissionGenerator.ExclusiveTrades( local_0, true );
+				iMissionGenerator.OwnerDetails( local_0, 1, "Heavy", "generated_missions_08_name_ship_01", "generated_missions_08_name_ship_02", "TradeCoward", "MAAS Corporation" );
+				iMissionGenerator.OwnerEscortDetails( local_0, 7, "Light", "generated_missions_06_name_ship_06", "GenericAggressive", 3 );
+				iMissionGenerator.OwnerLocation( local_0, 15, "map:/geog/badlands/hoffers_wake", "Cleitus Common Metals Processing Plant" );
+				iMissionGenerator.PatronName( local_0, "generated_missions_08_email_sender_01" );
+				iMissionGenerator.SetBriefing( local_0, "generated_missions_08_dialogue_jafs_fuel_pellets_01", "", 1 );
+				iMissionGenerator.SetConclusion( local_0, "generated_missions_08_dialogue_jafs_loaded_up_02", "generated_missions_30_email_subject_02", 1 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_SimplePiracy_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "MAAS Corporation" ), -0.50 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 25:
+			iMissionGenerator.testPiracyRating( 1500.0 );
+			iMissionGenerator.testFactionRating( "Stepson", 0.80 );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "Prison data" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m09" );
+				iMissionGenerator.CargoToGet( local_0, 161, 1 );
+				iMissionGenerator.CargoReward( local_0, 471, 3 );
+				iMissionGenerator.PersonalDelivery( local_0, true );
+				iMissionGenerator.NumberOfRepeats( local_0, 1 );
+				iMissionGenerator.PatronDetails( local_0, "Security", "Heavy", "generated_missions_09_name_ship_01", "generated_missions_09_name_ship_02", "GenericUnderworld", "Underworld" );
+				iMissionGenerator.PatronLocation( local_0, 105, "map:/geog/badlands/hoffers_wake", "Spring Heeled Jack's" );
+				iMissionGenerator.PatronEscortDetails( local_0, "Security", "Heavy", "generated_missions_09_name_ship_03", "MilitaryAggessive", 4 );
+				iMissionGenerator.OwnerDetails( local_0, 7, "Courier", "generated_missions_09_name_ship_04", "generated_missions_09_name_ship_05", "CourierSecure", "Police" );
+				iMissionGenerator.OwnerLocation( local_0, 122, "map:/geog/badlands/hoffers_wake", "Darius Orbital Transfer Station" );
+				iMissionGenerator.OwnerEscortDetails( local_0, 6, "heavy", "generated_missions_09_name_ship_06", "PoliceHeroic", 2 );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_09_PrisonData_01", "generated_missions_09_email_subject_03", 4 );
+				iMissionGenerator.SetPrompt( local_0, "html:/html/email/generatedmissions/GM_09_PrisonData_02", "generated_missions_09_email_subject_03", 4 );
+				iMissionGenerator.SetConclusion( local_0, "html:/html/email/generatedmissions/GM_01_PrisonData_03", "generated_missions_09_email_subject_03", 4 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_prisondata_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Underworld" ), 0.50 );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Police" ), -0.20 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 7:
+			iMissionGenerator.testPiracyRating( 300.0 );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "Rare Animal Chef" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m10" );
+				iMissionGenerator.CargoToGetCategory( local_0, 35, 1 );
+				iMissionGenerator.CargoReward( local_0, 134, 1 );
+				iMissionGenerator.PersonalDelivery( local_0, true );
+				iMissionGenerator.NumberOfRepeats( local_0, 1 );
+				iMissionGenerator.PatronDetails( local_0, "Freight", "Medium", "generated_missions_10_name_ship_01", "generated_missions_10_name_ship_02", "TradeCoward", "CarvaCartel" );
+				iMissionGenerator.PatronLocation( local_0, 36, "map:/geog/badlands/hoffers_wake", "Charlesworth Freight Service Depot" );
+				iMissionGenerator.OwnerDetails( local_0, 2, "Medium", "generated_missions_10_name_ship_03", "generated_missions_10_name_ship_04", "TradeCoward", "Kong" );
+				iMissionGenerator.OwnerEscortDetails( local_0, 5, "Light", "generated_missions_06_name_ship_06", "PoliceHeroic", 2 );
+				iMissionGenerator.OwnerLocation( local_0, 40, "map:/geog/badlands/hoffers_wake", "Buddokan" );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_10_RareAnimalChef_01", "generated_missions_10_email_subject_01", 4 );
+				iMissionGenerator.SetPrompt( local_0, "html:/html/email/generatedmissions/GM_10_RareAnimalChef_02", "generated_missions_10_email_subject_02", 5 );
+				iMissionGenerator.SetConclusion( local_0, "generated_missions_10_dialogue_Maitre_De_thanks_for_the_animals_01", "generated_missions_10_email_subject_03", 5 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_RareAnimalChef", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "CarvaCartel" ), 0.50 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 1:
+			iMissionGenerator.testPiracyRating( 300.0 );
+			iMissionGenerator.testGlobalBool( "g_act1_stepsons_member", true );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "Fistful of Nanites" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m11" );
+				iMissionGenerator.CargoToGet( local_0, 266, 3 );
+				iMissionGenerator.CargoToGet( local_0, 252, 1 );
+				iMissionGenerator.CargoToGet( local_0, 253, 2 );
+				iMissionGenerator.CargoReward( local_0, 488, 1 );
+				iMissionGenerator.CargoReward( local_0, 488, 1 );
+				iMissionGenerator.CargoReward( local_0, 488, 1 );
+				iMissionGenerator.ExclusiveTrades( local_0, true );
+				iMissionGenerator.NumberOfRepeats( local_0, 1 );
+				iMissionGenerator.PatronDetails( local_0, "Freight", "Heavy", "generated_missions_11_name_ship_01", "generated_missions_11_name_ship_02", "GenericUnderworld", "Stepson" );
+				iMissionGenerator.PatronLocation( local_0, 67, "map:/geog/badlands/hoffers_wake", "Greenback Agri-Orbital 3" );
+				iMissionGenerator.OwnerDetails( local_0, 0, "Medium", "generated_missions_11_name_ship_03", "generated_missions_11_name_ship_04", "TradeCoward", "MAAS Corporation" );
+				iMissionGenerator.OwnerLocation( local_0, 21, "map:/geog/badlands/hoffers_wake", "Bessus Orbital Transfer Station" );
+				iMissionGenerator.OwnerEscortDetails( local_0, 5, "Light", "generated_missions_11_name_ship_05", "PoliceHeroic", 2 );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_11_FistfulOfNanites_02", "generated_missions_11_email_subject_01", 4 );
+				iMissionGenerator.SetConclusion( local_0, "html:/html/email/generatedmissions/GM_11_FistfulOfNanites_03", "gm_10_subject03", 4 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_fistfulofnanites_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Stepson" ), 0.50 );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Maas" ), -0.50 );
+				iMissionGenerator.Activate( local_0 );
+				Global.SetInt( "gl_number_of_stepson_missions", 1 + Global.Int( "gl_number_of_stepson_missions" ) );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 9:
+			local_function_1();
+			return false;
+			iMissionGenerator.testPiracyRating( 450.0 );
+			iMissionGenerator.testGlobalBool( "g_act1_stepsons_member", true );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "Library Fine" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m12" );
+				iMissionGenerator.CargoToGet( local_0, 146, 1 );
+				iMissionGenerator.CargoReward( local_0, 345, 2 );
+				iMissionGenerator.PersonalDelivery( local_0, true );
+				iMissionGenerator.ExclusiveTrades( local_0, false );
+				iMissionGenerator.NumberOfRepeats( local_0, 1 );
+				iMissionGenerator.PatronDetails( local_0, "Mining", "Light", "generated_missions_12_name_ship_02", "generated_missions_12_name_ship_02", "GenericUnderworld", "Stepson" );
+				iMissionGenerator.PatronLocation( local_0, 67, "map:/geog/badlands/hoffers_wake", "Greenback Agri-Orbital 3" );
+				iMissionGenerator.OwnerDetails( local_0, 2, "Medium", "generated_missions_12_name_ship_03", "generated_missions_12_name_ship_04", "TradeGeneric", "MAAS Corporation" );
+				iMissionGenerator.OwnerLocation( local_0, 122, "map:/geog/badlands/hoffers_wake", "Yellowrock Orbital Transfer Station" );
+				iMissionGenerator.OwnerEscortDetails( local_0, 6, "Light", "Maas Security Escort", "PoliceHeroic", 3 );
+				iEmail.SendEmail( "generated_missions_12_name_ship_02", "generated_missions_12_email_subject_01", "html:/html/email/generatedmissions/GM_12_LibraryFine_01", false );
+				iMissionGenerator.SetBriefing( local_0, "generated_missions_12_dialogue_Gabriella_stepson_steal_books_01", "generated_missions_12_dialogue_Gabriella_stepson_steal_books_01", 5 );
+				iMissionGenerator.SetConclusion( local_0, "generated_missions_12_dialogue_Gabriella_stepson_nice_books_02", "generated_missions_12_dialogue_Gabriella_stepson_nice_books_02", 5 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_libraryfine_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Stepson" ), 0.30 );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Maas" ), -0.30 );
+				iMissionGenerator.Activate( local_0 );
+				Global.SetInt( "gl_number_of_stepson_missions", 1 + Global.Int( "gl_number_of_stepson_missions" ) );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 6:
+			local_function_1();
+			return false;
+			iMissionGenerator.testPiracyRating( 250.0 );
+			iMissionGenerator.testGlobalBool( "g_act1_stepsons_member", true );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "Medical Supplies" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m13" );
+				iMissionGenerator.CargoToGetCategory( local_0, 325, 1 );
+				iMissionGenerator.CargoReward( local_0, 558, 1 );
+				iMissionGenerator.PersonalDelivery( local_0, true );
+				iMissionGenerator.ExclusiveTrades( local_0, true );
+				iMissionGenerator.NumberOfRepeats( local_0, 4 );
+				iMissionGenerator.PatronDetails( local_0, "Freight", "Heavy", "generated_missions_13_name_ship_01", "generated_missions_13_name_ship_02", "GenericUnderworld", "League" );
+				iMissionGenerator.PatronLocation( local_0, 67, "map:/geog/badlands/hoffers_wake", "Yellowrock Orbital Transfer Station" );
+				iMissionGenerator.OwnerDetails( local_0, 7, "Medium", "generated_missions_13_name_ship_03", "generated_missions_13_name_ship_04", "TradeCoward", "Independent" );
+				iMissionGenerator.OwnerLocation( local_0, 51, "map:/geog/badlands/hoffers_wake", "Charitable Sisters of Pity Hospital" );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_13_MedicalSupplies_01", "generated_missions_13_email_subject_01", 4 );
+				iMissionGenerator.SetConclusion( local_0, "generated_missions_13_dialogue_dr_jones_saved_lives_01", "", 5 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "League" ), 1.0 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 5:
+			iMissionGenerator.testPiracyRating( 100.0 );
+			iMissionGenerator.testGlobalBool( "g_act1_stepsons_member", true );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "Gun robber" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m14" );
+				iMissionGenerator.CargoToGetCategory( local_0, 58, 1 );
+				iMissionGenerator.CargoReward( local_0, 406, 2 );
+				iMissionGenerator.ExclusiveTrades( local_0, true );
+				iMissionGenerator.NumberOfRepeats( local_0, 6 );
+				iMissionGenerator.PatronDetails( local_0, "Mining", "Heavy", "generated_missions_14_name_ship_01", "generated_missions_14_name_ship_02", "GenericUnderworld", "Stepson" );
+				iMissionGenerator.PatronLocation( local_0, 67, "map:/geog/badlands/hoffers_wake", "Greenback Agri-Orbital 1" );
+				iMissionGenerator.OwnerDetails( local_0, 1, "Medium", "generated_missions_14_name_ship_03", "generated_missions_14_name_ship_04", "TradeCoward", "Navy" );
+				iMissionGenerator.OwnerLocation( local_0, 70, "map:/geog/badlands/hoffers_wake", "Gabriel Defense Station" );
+				iMissionGenerator.OwnerEscortDetails( local_0, 7, "Heavy", "Escort", "MilitaryAggessive", 3 );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_14_Gunrobber_01", "generated_missions_14_email_subject_01", 4 );
+				iMissionGenerator.SetConclusion( local_0, "html:/html/email/generatedmissions/GM_14_Gunrobber_02", "generated_missions_14_email_subject_01", 4 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_gunrobber_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Stepson" ), 0.50 );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Navy" ), -0.50 );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Government" ), -0.50 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 26:
+			iMissionGenerator.testPiracyRating( 800.0 );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "The Survey" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m15" );
+				iMissionGenerator.CargoToGet( local_0, 156, 1 );
+				iMissionGenerator.CargoReward( local_0, 349, 3 );
+				iMissionGenerator.PersonalDelivery( local_0, false );
+				iMissionGenerator.NumberOfRepeats( local_0, 1 );
+				iMissionGenerator.OwnerDetails( local_0, 6, "Medium", "generated_missions_15_name_ship_01", "generated_missions_15_name_ship_02", "CourierSecure", "DatagonTechnologies " );
+				iMissionGenerator.OwnerLocation( local_0, 40, "map:/geog/badlands/hoffers_wake", "Deep Sytems Research Facility" );
+				iMissionGenerator.PatronName( local_0, "generated_missions_15_email_sender_01" );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_15_TheSurvey_01", "generated_missions_15_email_subject_01", 4 );
+				iMissionGenerator.SetConclusion( local_0, "html:/html/email/generatedmissions/GM_15_TheSurvey_02", "generated_missions_30_email_subject_02", 4 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_survey_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Datagontechnologies" ), -0.50 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 8:
+			local_function_1();
+			return false;
+			iMissionGenerator.testPiracyRating( 400.0 );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "The Freak" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m16" );
+				iMissionGenerator.CargoToGetCategory( local_0, 2, 1 );
+				iMissionGenerator.CargoToGetCategory( local_0, 3, 1 );
+				iMissionGenerator.CargoToGetCategory( local_0, 4, 1 );
+				iMissionGenerator.CargoReward( local_0, 488, 1 );
+				iMissionGenerator.CargoReward( local_0, 488, 1 );
+				iMissionGenerator.CargoReward( local_0, 488, 1 );
+				iMissionGenerator.PersonalDelivery( local_0, false );
+				iMissionGenerator.ExclusiveTrades( local_0, true );
+				iMissionGenerator.NumberOfRepeats( local_0, 5 );
+				iMissionGenerator.PatronDetails( local_0, "Mining", "Light", "generated_missions_16_name_ship_01", "generated_missions_16_name_ship_02", "GenericUnderworld", "Stepson" );
+				iMissionGenerator.PatronLocation( local_0, 67, "map:/geog/badlands/hoffers_wake", "Rosie's Piggery" );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_16_TheFreak_01", "generated_missions_16_email_subject_01", 4 );
+				iMissionGenerator.SetConclusion( local_0, "html:/html/email/generatedmissions/GM_16_TheFreak_02", "generated_missions_30_email_subject_02", 4 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_the_freak_mission", true );
+				iMissionGenerator.SuccessAddMission( local_0, 29 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 29:
+			iMissionGenerator.testPiracyRating( 600.0 );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "Geriatric Cyborgs" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m17" );
+				iMissionGenerator.CargoToGetCategory( local_0, 8, 4 );
+				iMissionGenerator.CargoReward( local_0, 291, 3 );
+				iMissionGenerator.PersonalDelivery( local_0, false );
+				iMissionGenerator.ExclusiveTrades( local_0, false );
+				iMissionGenerator.NumberOfRepeats( local_0, 1 );
+				iMissionGenerator.PatronDetails( local_0, "Freight", "Light", "generated_missions_17_name_ship_01", "generated_missions_17_name_ship_02", "GenericUnderworld", "Stepson" );
+				iMissionGenerator.PatronLocation( local_0, 67, "map:/geog/badlands/hoffers_wake", "Charlesworth Freight Service Depot" );
+				iMissionGenerator.OwnerDetails( local_0, 10, "Medium", "generated_missions_17_name_ship_03", "generated_missions_17_name_ship_04", "CourierSecure", "MAAS Corporation" );
+				iMissionGenerator.OwnerLocation( local_0, 40, "map:/geog/badlands/hoffers_wake", "MAAS Systems Security Station" );
+				iMissionGenerator.OwnerEscortDetails( local_0, 5, "Light", "generated_missions_17_name_ship_05", "GenericAggressive", 3 );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_17_GeriatricCyborgs_01", "generated_missions_17_email_subject_01", 4 );
+				iMissionGenerator.SetConclusion( local_0, "generated_missions_17_dialogue_clive_wire_such_a_nice_boy_01", "generated_missions_30_email_subject_02", 5 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_Geriatric_Cyborgs_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "MaasCorporation" ), -0.50 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 12:
+			iMissionGenerator.testPiracyRating( 500.0 );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "GoldMiners" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m18" );
+				iMissionGenerator.CargoToGetCategory( local_0, 17, 1 );
+				iMissionGenerator.CargoReward( local_0, 430, 2 );
+				iMissionGenerator.PersonalDelivery( local_0, true );
+				iMissionGenerator.ExclusiveTrades( local_0, false );
+				iMissionGenerator.NumberOfRepeats( local_0, 1 );
+				iMissionGenerator.PatronDetails( local_0, "Mining", "Light", "generated_missions_18_name_ship_01", "generated_missions_18_name_ship_02", "GenericUnderworld", "Independent" );
+				iMissionGenerator.PatronLocation( local_0, 67, "map:/geog/badlands/hoffers_wake", "Crosspoint Minerals Processing Plant" );
+				iMissionGenerator.PatronEscortDetails( local_0, "Mining", "Light", "generated_missions_18_name_ship_03", "Generic", 2 );
+				iMissionGenerator.OwnerDetails( local_0, 16, "Medium", "generated_missions_18_name_ship_04", "generated_missions_18_name_ship_05", "CourierSecure", "Independent" );
+				iMissionGenerator.OwnerLocation( local_0, 6, "map:/geog/badlands/hoffers_wake", "Ursus" );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_18_GoldMiners_01", "generated_missions_18_email_subject_01", 4 );
+				iMissionGenerator.SetConclusion( local_0, "html:/html/email/generatedmissions/GM_18_GoldMiners_02", "generated_missions_30_email_subject_02", 4 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_gold_miners_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "MaasCorporation" ), -0.50 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 24:
+			iMissionGenerator.testGlobalBool( "gl_Big_Jacks_Jewels_available", true );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "Big Jacks Jewels" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m19" );
+				iMissionGenerator.CargoToGet( local_0, 469, 1 );
+				iMissionGenerator.CargoToGet( local_0, 469, 1 );
+				iMissionGenerator.CargoToGet( local_0, 469, 1 );
+				iMissionGenerator.CargoReward( local_0, 127, 1 );
+				iMissionGenerator.CargoReward( local_0, 126, 1 );
+				iMissionGenerator.CargoReward( local_0, 131, 1 );
+				iMissionGenerator.PersonalDelivery( local_0, false );
+				iMissionGenerator.ExclusiveTrades( local_0, true );
+				iMissionGenerator.NumberOfRepeats( local_0, 1 );
+				iMissionGenerator.OwnerDetails( local_0, 16, "Medium", "generated_missions_19_name_ship_01", "generated_missions_19_name_ship_02", "GenericUnderworld", "Independent" );
+				iMissionGenerator.OwnerLocation( local_0, 6, "map:/geog/badlands/hoffers_wake", "Ursus" );
+				iMissionGenerator.PatronName( local_0, "generated_missions_19_email_sender_01" );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_19_Big_Jacks_Jewels_01", "generated_missions_19_email_subject_02", 4 );
+				iMissionGenerator.SetConclusion( local_0, "html:/html/email/generatedmissions/GM_19_Big_Jacks_Jewels_02", "generated_missions_30_email_subject_02", 4 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_big_jacks_jewels_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Independant" ), -0.20 );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Underworld" ), 0.50 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 11:
+			iMissionGenerator.testPiracyRating( 800.0 );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "Station Parts" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m20" );
+				iMissionGenerator.CargoToGet( local_0, 377, 1 );
+				iMissionGenerator.CargoReward( local_0, 446, 3 );
+				iMissionGenerator.PersonalDelivery( local_0, true );
+				iMissionGenerator.ExclusiveTrades( local_0, true );
+				iMissionGenerator.NumberOfRepeats( local_0, 1 );
+				iMissionGenerator.PatronDetails( local_0, "Mining", "Heavy", "generated_missions_20_name_ship_01", "generated_missions_20_name_ship_02", "GenericFreight", "League" );
+				iMissionGenerator.PatronLocation( local_0, 67, "map:/geog/badlands/hoffers_wake", "Hoffer's Gap Independent Trading Post" );
+				iMissionGenerator.OwnerDetails( local_0, 2, "Medium", "generated_missions_20_name_ship_03", "generated_missions_20_name_ship_04", "GenericFreight", "MAAS Corporation" );
+				iMissionGenerator.OwnerLocation( local_0, 40, "map:/geog/badlands/hoffers_wake", "MAAS Orbital Processing Plant" );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_20_StationParts_01", "generated_missions_20_email_subject_01", 4 );
+				iMissionGenerator.SetConclusion( local_0, "generated_missions_20_dialogue_foreman_thanks_cal_01", "generated_missions_30_email_subject_02", 5 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_stationparts_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "MAASCorporation" ), -0.50 );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "League" ), -0.50 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 27:
+			iMissionGenerator.testPiracyRating( 1800.0 );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "Crooked Cops" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m21" );
+				iMissionGenerator.CargoToGetCategory( local_0, 59, 1 );
+				iMissionGenerator.CargoToGetCategory( local_0, 58, 1 );
+				iMissionGenerator.CargoToGetCategory( local_0, 27, 1 );
+				iMissionGenerator.CargoToGetCategory( local_0, 27, 1 );
+				iMissionGenerator.CargoReward( local_0, 544, 1 );
+				iMissionGenerator.CargoReward( local_0, 546, 1 );
+				iMissionGenerator.CargoReward( local_0, 553, 1 );
+				iMissionGenerator.CargoReward( local_0, 468, 1 );
+				iMissionGenerator.PersonalDelivery( local_0, false );
+				iMissionGenerator.ExclusiveTrades( local_0, true );
+				iMissionGenerator.NumberOfRepeats( local_0, 1 );
+				iMissionGenerator.PatronDetails( local_0, "Security", "Heavy", "generated_missions_21_name_ship_01", "generated_missions_21_name_ship_02", "GenericUnderworld", "Stepson" );
+				iMissionGenerator.PatronLocation( local_0, 67, "map:/geog/badlands/hoffers_wake", "Greenback Agri-Orbital 3" );
+				iMissionGenerator.OwnerDetails( local_0, 2, "Medium", "generated_missions_21_name_ship_03", "generated_missions_21_name_ship_04", "GenericSupply", "Police" );
+				iMissionGenerator.OwnerLocation( local_0, 40, "map:/geog/badlands/hoffers_wake", "Buddokan" );
+				iMissionGenerator.OwnerEscortDetails( local_0, 0, "Light", "generated_missions_21_name_ship_05", "PoliceHeroic", 2 );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_21_CrookedCops_01", "generated_missions_21_email_subject_02", 4 );
+				iMissionGenerator.SetConclusion( local_0, "html:/html/email/generatedmissions/GM_21_CrookedCops_02", "generated_missions_30_email_subject_02", 4 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_crooked_cops_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Police" ), -0.50 );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Stepson" ), 0.50 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 28:
+			iMissionGenerator.testPiracyRating( 800.0 );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "Marauders dealing" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m22" );
+				iMissionGenerator.CargoToGetCategory( local_0, 39, 2 );
+				iMissionGenerator.CargoToGetCategory( local_0, 30, 2 );
+				iMissionGenerator.CargoToGetCategory( local_0, 5, 2 );
+				iMissionGenerator.CargoReward( local_0, 465, 1 );
+				iMissionGenerator.CargoReward( local_0, 481, 1 );
+				iMissionGenerator.CargoReward( local_0, 519, 1 );
+				iMissionGenerator.PersonalDelivery( local_0, false );
+				iMissionGenerator.ExclusiveTrades( local_0, true );
+				iMissionGenerator.NumberOfRepeats( local_0, 1 );
+				iMissionGenerator.OwnerDetails( local_0, 3, "Heavy", "generated_missions_22_name_ship_01", "generated_missions_22_name_ship_02", "GenericTrade", "Marauders" );
+				iMissionGenerator.OwnerLocation( local_0, 40, "map:/geog/badlands/hoffers_wake", "Spring Heeled Jack's" );
+				iMissionGenerator.OwnerEscortDetails( local_0, 7, "Gangster", "generated_missions_22_name_ship_03", "generated_missions_22_name_ship_04", 3 );
+				iMissionGenerator.OwnerSetEscortFaction( local_0, "Underworld" );
+				iMissionGenerator.PatronName( local_0, "generated_missions_22_email_sender_01" );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_22_MaraudersDealing_01", "generated_missions_22_email_subject_01", 4 );
+				iMissionGenerator.SetConclusion( local_0, "html:/html/email/generatedmissions/GM_22_MaraudersDealing_02", "generated_missions_22_email_subject_02", 4 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_survey_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Marauder" ), -0.50 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 17:
+			iMissionGenerator.testPiracyRating( 4800.0 );
+			iMissionGenerator.testGlobalBool( "g_act2_oman_initiation_complete", true );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "Oman Raider" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m23" );
+				iMissionGenerator.CargoToGet( local_0, 579, 6 );
+				iMissionGenerator.CargoReward( local_0, 64, 6 );
+				iMissionGenerator.PersonalDelivery( local_0, false );
+				iMissionGenerator.ExclusiveTrades( local_0, true );
+				iMissionGenerator.NumberOfRepeats( local_0, 1 );
+				iMissionGenerator.OwnerDetails( local_0, 1, "Heavy", "generated_missions_23_name_ship_01", "generated_missions_23_name_ship_02", "GenericSupply", "Independent" );
+				iMissionGenerator.OwnerLocation( local_0, 40, "map:/geog/badlands/eureka", "Belial Energy Cells Manufacturing" );
+				iMissionGenerator.PatronName( local_0, "generated_missions_23_email_sender_01" );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_23_OmanRaider_01", "generated_missions_23_email_subject_01", 4 );
+				iMissionGenerator.SetConclusion( local_0, "html:/html/email/generatedmissions/GM_23_OmanRaider_02", "generated_missions_23_email_subject_02", 4 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_omanraider_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Oman" ), 0.50 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 18:
+			iMissionGenerator.testPiracyRating( 4800.0 );
+			iMissionGenerator.testGlobalBool( "g_act2_oman_initiation_complete", true );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "Oman Payback" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m24" );
+				iMissionGenerator.CargoToGet( local_0, 347, 1 );
+				iMissionGenerator.CargoReward( local_0, 64, 6 );
+				iMissionGenerator.PersonalDelivery( local_0, true );
+				iMissionGenerator.ExclusiveTrades( local_0, true );
+				iMissionGenerator.NumberOfRepeats( local_0, 1 );
+				iMissionGenerator.PatronDetails( local_0, "Mining", "Light", "generated_missions_24_name_ship_01", "generated_missions_24_name_ship_02", "GenericUnderworld", "The Oman" );
+				iMissionGenerator.PatronLocation( local_0, 67, "map:/geog/badlands/kompira", "Baal Oman Outpost" );
+				iMissionGenerator.OwnerDetails( local_0, 7, "heavy", "generated_missions_24_name_ship_03", "generated_missions_24_name_ship_04", "GenericMilitary", "NOMEXCorporation" );
+				iMissionGenerator.OwnerLocation( local_0, 40, "map:/geog/badlands/kompira", "Hutamah NOMEX Regional HQ" );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_24_OmanPayback_01", "generated_missions_24_email_subject_01", 4 );
+				iMissionGenerator.SetConclusion( local_0, "generated_missions_24_dialogue_wafeeq_paid_back_01", "generated_missions_30_email_subject_02", 5 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_omanpayback_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Oman" ), 0.50 );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "NOMEXCorporation" ), -0.50 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 19:
+			iMissionGenerator.testPiracyRating( 4800.0 );
+			iMissionGenerator.testGlobalBool( "g_act2_oman_initiation_complete", true );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "Oman Disease" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m25" );
+				iMissionGenerator.CargoToGet( local_0, 332, 1 );
+				iMissionGenerator.CargoReward( local_0, 518, 4 );
+				iMissionGenerator.PersonalDelivery( local_0, true );
+				iMissionGenerator.ExclusiveTrades( local_0, true );
+				iMissionGenerator.NumberOfRepeats( local_0, 1 );
+				iMissionGenerator.PatronDetails( local_0, "Mining", "Light", "generated_missions_25_name_ship_01", "generated_missions_25_name_ship_02", "GenericUnderworld", "The Oman" );
+				iMissionGenerator.PatronLocation( local_0, 111, "map:/geog/badlands/kompira", "Baal Oman Outpost" );
+				iMissionGenerator.OwnerDetails( local_0, 7, "heavy", "generated_missions_25_name_ship_03", "generated_missions_25_name_ship_04", "GenericMilitary", "MAAS Corporation" );
+				iMissionGenerator.OwnerLocation( local_0, 62, "map:/geog/badlands/santa_romera", "Liberty MAAS Docking Station" );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_25_OmanDisease_01", "generated_missions_25_email_subject_01", 4 );
+				iMissionGenerator.SetConclusion( local_0, "GM_25_OmanDisease_01_marid", "generated_missions_30_email_subject_02", 5 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_omandisease_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Oman" ), 0.50 );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "MAASCorporation" ), -0.50 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 20:
+			iMissionGenerator.testPiracyRating( 4800.0 );
+			iMissionGenerator.testGlobalBool( "g_act2_oman_initiation_complete", true );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "Oman Weapon Parts" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m26" );
+				iMissionGenerator.CargoToGetCategory( local_0, 57, 1 );
+				iMissionGenerator.CargoReward( local_0, 519, 1 );
+				iMissionGenerator.PersonalDelivery( local_0, false );
+				iMissionGenerator.ExclusiveTrades( local_0, false );
+				iMissionGenerator.NumberOfRepeats( local_0, 5 );
+				iMissionGenerator.OwnerDetails( local_0, 3, "heavy", "generated_missions_26_name_ship_01", "generated_missions_26_name_ship_02", "GenericSupply", "The Oman" );
+				iMissionGenerator.OwnerLocation( local_0, 67, "map:/geog/badlands/kompira", "Dagon NOMEX Exotic Metals Processing Plant" );
+				iMissionGenerator.PatronName( local_0, "generated_missions_26_email_sender_01" );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_26_OmanWeaponParts_01", "generated_missions_26_email_subject_01", 4 );
+				iMissionGenerator.SetConclusion( local_0, "html:/html/email/generatedmissions/GM_26_OmanWeaponParts_02", "generated_missions_26_email_subject_02", 4 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_omanweaponparts_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Oman" ), 0.50 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 21:
+			iMissionGenerator.testPiracyRating( 4800.0 );
+			iMissionGenerator.testGlobalBool( "g_act2_oman_initiation_complete", true );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "Oman Anti-Propaganda" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m27" );
+				iMissionGenerator.CargoToGet( local_0, 206, 1 );
+				iMissionGenerator.CargoReward( local_0, 540, 1 );
+				iMissionGenerator.PersonalDelivery( local_0, true );
+				iMissionGenerator.ExclusiveTrades( local_0, false );
+				iMissionGenerator.NumberOfRepeats( local_0, 4 );
+				iMissionGenerator.PatronDetails( local_0, "Security", "Heavy", "generated_missions_27_name_ship_01", "generated_missions_27_name_ship_02", "GenericUnderworld", "The Oman" );
+				iMissionGenerator.PatronLocation( local_0, 111, "map:/geog/badlands/kompira", "Jizan Oman Outpost" );
+				iMissionGenerator.OwnerDetails( local_0, 0, "Light", "generated_missions_27_name_ship_03", "generated_missions_27_name_ship_04", "GenericSupply", "Independent" );
+				iMissionGenerator.OwnerLocation( local_0, 65, "map:/geog/badlands/kompira", "Saqar MAAS Docking Station" );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_27_OmanAntiPropaganda_01", "generated_missions_27_email_subject_01", 4 );
+				iMissionGenerator.SetConclusion( local_0, "html:/html/email/generatedmissions/GM_27_OmanAntiPropaganda_02", "generated_missions_27_email_subject_02", 4 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_omanantipropaganda_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Oman" ), 0.50 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 22:
+			iMissionGenerator.testPiracyRating( 4800.0 );
+			iMissionGenerator.testGlobalBool( "g_act2_oman_initiation_complete", true );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "Oman malfunction" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m28" );
+				iMissionGenerator.CargoToGetCategory( local_0, 15, 1 );
+				iMissionGenerator.CargoReward( local_0, 542, 1 );
+				iMissionGenerator.PersonalDelivery( local_0, true );
+				iMissionGenerator.ExclusiveTrades( local_0, false );
+				iMissionGenerator.NumberOfRepeats( local_0, 4 );
+				iMissionGenerator.PatronDetails( local_0, "Security", "Heavy", "generated_missions_28_name_ship_01", "sn_oman_3", "GenericUnderworld", "The Oman" );
+				iMissionGenerator.PatronLocation( local_0, 111, "map:/geog/badlands/kompira", "Jizan Oman Outpost" );
+				iMissionGenerator.OwnerDetails( local_0, 0, "Light", "sn_general_18", "sn_general_18", "GenericSupply", "Independent" );
+				iMissionGenerator.OwnerLocation( local_0, 65, "map:/geog/badlands/kompira", "Saqar MAAS Docking Station" );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_28_OmanMalfunction_01", "generated_missions_28_email_subject_01", 4 );
+				iMissionGenerator.SetConclusion( local_0, "generated_missions_28_dialogue_speaker_rep_thats_ideal_01", "generated_missions_30_email_subject_02", 5 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_omanmalfunction_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Oman" ), 0.50 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 23:
+			iMissionGenerator.testPiracyRating( 4800.0 );
+			iMissionGenerator.testGlobalBool( "g_act2_oman_technology_complete", true );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "Oman Technology" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m29" );
+				iMissionGenerator.CargoToGetCategory( local_0, 6, 1 );
+				iMissionGenerator.CargoToGetCategory( local_0, 7, 1 );
+				iMissionGenerator.CargoReward( local_0, 423, 1 );
+				iMissionGenerator.CargoReward( local_0, 423, 2 );
+				iMissionGenerator.PersonalDelivery( local_0, false );
+				iMissionGenerator.ExclusiveTrades( local_0, false );
+				iMissionGenerator.NumberOfRepeats( local_0, 2 );
+				iMissionGenerator.PatronDetails( local_0, "Security", "Heavy", "generated_missions_29_name_ship_01", "generated_missions_29_name_ship_02", "GenericUnderworld", "The Oman" );
+				iMissionGenerator.PatronLocation( local_0, 74, "map:/geog/badlands/kompira", "Baal Oman Outpost" );
+				iMissionGenerator.OwnerDetails( local_0, 1, "heavy", "sn_maas_35", "sn_maas_36", "GenericSupply", "Independent" );
+				iMissionGenerator.OwnerLocation( local_0, 11, "map:/geog/badlands/kompira", "Sharqi MAAS Water Processing Plant" );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_29_Omantechnology_01", "generated_missions_29_email_subject_01", 4 );
+				iMissionGenerator.SetConclusion( local_0, "GM_29_OmanTechnology_01_humam", "generated_missions_30_email_subject_02", 5 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_omanmalfunction_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Oman" ), 0.50 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 30:
+			iMissionGenerator.testPiracyRating( 4800.0 );
+			iMissionGenerator.testGlobalBool( "g_act2_oman_celebration_complete", true );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "Oman Technology" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m30" );
+				iMissionGenerator.CargoToGetCategory( local_0, 26, 1 );
+				iMissionGenerator.CargoToGetCategory( local_0, 39, 1 );
+				iMissionGenerator.CargoToGetCategory( local_0, 40, 1 );
+				iMissionGenerator.CargoReward( local_0, 443, 1 );
+				iMissionGenerator.CargoReward( local_0, 442, 1 );
+				iMissionGenerator.CargoReward( local_0, 444, 1 );
+				iMissionGenerator.PersonalDelivery( local_0, false );
+				iMissionGenerator.NumberOfRepeats( local_0, 5 );
+				iMissionGenerator.OwnerDetails( local_0, 0, "Light", "generated_missions_30_name_ship_01", "generated_missions_30_name_ship_02", "GenericSupply", "The Oman" );
+				iMissionGenerator.OwnerLocation( local_0, 48, "map:/geog/badlands/kompira", "Al Wakrah Independent Leisure Station" );
+				iMissionGenerator.PatronName( local_0, "generated_missions_30_email_sender_01" );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_30_OmanFeast_01", "generated_missions_30_email_subject_01", 4 );
+				iMissionGenerator.SetConclusion( local_0, "html:/html/email/generatedmissions/GM_30_OmanFeast_02", "generated_missions_30_email_subject_02", 4 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_omanmalfunction_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "Oman" ), 0.50 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 31:
+			iMissionGenerator.testPiracyRating( 14800.0 );
+			iMissionGenerator.testGlobalBool( "g_act2_mca_introduced", true );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "MCA Excavations" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m31" );
+				iMissionGenerator.CargoToGetCategory( local_0, 17, 1 );
+				iMissionGenerator.CargoReward( local_0, 505, 1 );
+				iMissionGenerator.PersonalDelivery( local_0, true );
+				iMissionGenerator.NumberOfRepeats( local_0, 1 );
+				iMissionGenerator.OwnerDetails( local_0, 2, "Light", "sn_maas_25", "sn_maas_26", "GenericSupply", "MAAS Corporation" );
+				iMissionGenerator.OwnerLocation( local_0, 54, "map:/geog/badlands/santa_romera", "Mercy NOMEX Fusionable Gases Mine" );
+				iMissionGenerator.PatronDetails( local_0, "ST_MiningHeavy", "Heavy", "sn_mca_67", "sn_mca_67", "GenericUnderworld", "M.C.A." );
+				iMissionGenerator.PatronLocation( local_0, 104, "map:/geog/badlands/santa_romera", "The Ritz" );
+				iMissionGenerator.PatronEscortDetails( local_0, "ST_CombatHeavy", "Heavy", "sn_underworld", "GenericUnderworld", 2 );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_31_MCAexcavations_01", "generated_missions_31_email_subject_01", 4 );
+				iMissionGenerator.SetConclusion( local_0, "generated_missions_30_email_subject_02", "generated_missions_30_email_subject_02", 5 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_mcaexcavations_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "M.C.A." ), 0.50 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 32:
+			iMissionGenerator.testPiracyRating( 14800.0 );
+			iMissionGenerator.testGlobalBool( "g_act2_mca_introduced", true );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "M.C.A. Terraforming" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m32" );
+				iMissionGenerator.CargoToGetCategory( local_0, 19, 2 );
+				iMissionGenerator.CargoReward( local_0, 596, 1 );
+				iMissionGenerator.PersonalDelivery( local_0, true );
+				iMissionGenerator.NumberOfRepeats( local_0, 1 );
+				iMissionGenerator.PatronDetails( local_0, "Security", "Heavy", "generated_missions_32_name_ship_01", "generated_missions_32_name_ship_02", "GenericUnderworld", "M.C.A." );
+				iMissionGenerator.PatronLocation( local_0, 104, "map:/geog/badlands/santa_somera", "The Ritz" );
+				iMissionGenerator.OwnerDetails( local_0, 1, "Light", "generated_missions_32_name_ship_03", "generated_missions_32_name_ship_04", "GenericSupply", "Independent" );
+				iMissionGenerator.OwnerLocation( local_0, 62, "map:/geog/badlands/santa_somera", "Liberty NOMEX Warehouse" );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_32_MCATerraforming_01", "generated_missions_32_email_subject_01", 4 );
+				iMissionGenerator.SetVerification( local_0, "generated_missions_32_MCATerraforming_01_jardan", "", 5 );
+				iMissionGenerator.SetConclusion( local_0, "GM_32_MCATerraforming_02_jardan", "generated_missions_30_email_subject_02", 5 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_MCAterraforming_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "M.C.A." ), 0.50 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 33:
+			iMissionGenerator.testPiracyRating( 14800.0 );
+			iMissionGenerator.testGlobalBool( "g_act2_mca_introduced", true );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "MCA Plague" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m33" );
+				iMissionGenerator.CargoToGetCategory( local_0, 11, 1 );
+				iMissionGenerator.CargoToGetCategory( local_0, 30, 1 );
+				iMissionGenerator.CargoToGetCategory( local_0, 31, 1 );
+				iMissionGenerator.CargoToGet( local_0, 332, 1 );
+				iMissionGenerator.CargoReward( local_0, 442, 1 );
+				iMissionGenerator.CargoReward( local_0, 597, 1 );
+				iMissionGenerator.CargoReward( local_0, 558, 1 );
+				iMissionGenerator.CargoReward( local_0, 558, 1 );
+				iMissionGenerator.PersonalDelivery( local_0, false );
+				iMissionGenerator.NumberOfRepeats( local_0, 2 );
+				iMissionGenerator.OwnerDetails( local_0, 2, "Light", "sn_maas_20", "sn_maas_21", "GenericSupply", "MAAS Corporation" );
+				iMissionGenerator.OwnerLocation( local_0, 54, "map:/geog/badlands/santa_romera", "St George Naval Defence Station" );
+				iMissionGenerator.PatronDetails( local_0, "Security", "Heavy", "generated_missions_33_name_ship_01", "generated_missions_33_name_ship_02", "GenericUnderworld", "M.C.A." );
+				iMissionGenerator.PatronLocation( local_0, 104, "map:/geog/badlands/santa_romera", "The Ritz" );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_33_MCAPlague_01", "generated_missions_33_email_subject_01", 4 );
+				iMissionGenerator.SetConclusion( local_0, "html:/html/email/generatedmissions/GM_33_MCAPlague_02", "generated_missions_33_email_subject_02", 4 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_mcaplague_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "M.C.A." ), 0.50 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 34:
+			iMissionGenerator.testPiracyRating( 14800.0 );
+			iMissionGenerator.testGlobalBool( "g_act2_mca_introduced", true );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "Oman Technology" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m34" );
+				iMissionGenerator.CargoToGetCategory( local_0, 55, 1 );
+				iMissionGenerator.CargoToGetCategory( local_0, 58, 1 );
+				iMissionGenerator.CargoReward( local_0, 500, 1 );
+				iMissionGenerator.CargoReward( local_0, 464, 1 );
+				iMissionGenerator.PersonalDelivery( local_0, false );
+				iMissionGenerator.NumberOfRepeats( local_0, 1 );
+				iMissionGenerator.PatronDetails( local_0, "Security", "Heavy", "sn_mca_59", "sn_mca_59", "GenericUnderworld", "M.C.A." );
+				iMissionGenerator.PatronLocation( local_0, 104, "map:/geog/badlands/santa_romera", "The Ritz" );
+				iMissionGenerator.OwnerDetails( local_0, 2, "Light", "sn_maas_31", "sn_maas_32", "GenericSupply", "MAAS Corporation" );
+				iMissionGenerator.OwnerLocation( local_0, 54, "map:/geog/badlands/santa_romera", "Grace MAAS Organics Processing Plant" );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/gm_34_mcaarmy_01", "generated_missions_34_email_subject_01", 4 );
+				iMissionGenerator.SetConclusion( local_0, "html:/html/email/generatedmissions/gm_34_mcaarmy_02", "generated_missions_34_email_subject_02", 4 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_mcaarmy_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "M.C.A." ), 0.50 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+		
+		case 35:
+			iMissionGenerator.testPiracyRating( 14800.0 );
+			iMissionGenerator.testGlobalBool( "gl_MCAsafetydrive_available", true );
+			iMissionGenerator.testGlobalBool( "g_act2_mca_introduced", true );
+			
+			if ( local_function_0() )
+			{
+				local_0 = iMissionGenerator.NewMission( "MCA Safety drive" );
+				iMissionGenerator.ObjectiveStub( local_0, "a4_m35" );
+				iMissionGenerator.CargoToGetCategory( local_0, 32, 1 );
+				iMissionGenerator.CargoReward( local_0, 433, 2 );
+				iMissionGenerator.PersonalDelivery( local_0, true );
+				iMissionGenerator.OwnerDetails( local_0, 2, "Light", "sn_maas_23", "sn_maas_24", "GenericSupply", "MAAS Corporation" );
+				iMissionGenerator.OwnerLocation( local_0, 54, "map:/geog/badlands/santa_romera", "Grace MAAS Organics Processing Plant" );
+				iMissionGenerator.NumberOfRepeats( local_0, 1 );
+				iMissionGenerator.PatronDetails( local_0, "Security", "Heavy", "sn_mca_38", "sn_mca_38", "GenericUnderworld", "M.C.A." );
+				iMissionGenerator.PatronLocation( local_0, 104, "map:/geog/badlands/santa_romera", "The Ritz" );
+				iMissionGenerator.SetBriefing( local_0, "html:/html/email/generatedmissions/GM_35_MCAsafetyDrive_01", "generated_missions_35_email_subject_01", 4 );
+				iMissionGenerator.SetConclusion( local_0, "html:/html/email/generatedmissions/GM_35_MCAsafetyDrive_02", "generated_missions_30_email_subject_02", 4 );
+				iMissionGenerator.FailIfPatronDead( local_0 );
+				iMissionGenerator.FailIfGlobalBool( local_0, "gl_stop_mcasafetydrive_mission", true );
+				iMissionGenerator.SuccessFactionModifier( local_0, iFaction.Find( "M.C.A." ), 0.50 );
+				iMissionGenerator.Activate( local_0 );
+				return true;
+			}
+			
+			if ( !local_function_0() )
+			{
+				return false;
+			}
+			
+			break;
+	}
+	
+	return false;
+}
+
+task local_function_2()
+{
+	int local_0;
+	
+	Task.Sleep( Task.Current(), 20.0 );
+	
+	debug atomic
+	{
+		Debug.PrintString( "Starting iGMTemplate tasks" );
+		Debug.PrintString( "\n" );
+	}
+	
+	InstantiateMission( 3 );
+}
+
+local_function_3()
+{
+	start local_function_2();
+}
+
+TestMissionGenerator()
+{
+	start local_function_2();
+}
+

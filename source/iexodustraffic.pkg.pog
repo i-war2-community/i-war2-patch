@@ -1,0 +1,2187 @@
+package iExodusTraffic;
+
+uses Debug,
+     Set,
+     List,
+     String,
+     Global,
+     Sim,
+     Group,
+     Math,
+     Object,
+     State,
+     Task,
+     iSim,
+     MapEnumerations,
+     iMapEntity,
+     iLagrangePoint,
+     iShip,
+     Subsim,
+     iDockport,
+     iAI,
+     iConversation,
+     iFaction,
+     iFormation,
+     iBody,
+     iHabitat,
+     iPilotSetup,
+     iRangeCheck,
+     INIFile,
+     iUtilities,
+     iCargo,
+     CargoTypes,
+     iCargoScript,
+     iShipCreation;
+
+provides ExodusTrafficGenerator,
+         CreateMagicCubeRelativeTo,
+         CreateFomalhautRefugees,
+         DisableAllTrafficInSystem,
+         GetInterstellarLPointIn,
+         pillager_retreat_orders,
+         police_retreat_orders;
+
+enum eStationSize
+{
+	Station_Small = 0x000003E7,
+	Station_Medium = 0x00001388,
+	Station_Big = 0x00002710
+};
+
+enum eRetreatType
+{
+	Retreat_Armed = 0x00000000,
+	Retreat_Civilian = 0x00000001,
+	Retreat_Mining = 0x00000002,
+	Retreat_Pillager = 0x00000003,
+	Retreat_Police = 0x00000004,
+	Retreat_Tanker = 0x00000005,
+	Retreat_Trade = 0x00000006,
+	Retreat_Stranded = 0x00000007
+};
+
+prototype hmapentity local_function_0();
+prototype task ExodusTrafficGenerator();
+prototype hgroup CreateFomalhautRefugees( hsim waypoint_ );
+prototype DisableAllTrafficInSystem( string system_ );
+prototype set CreateMagicCubeRelativeTo( hisim center_, float x_, float y_, float z_ );
+prototype int local_function_3( hmapentity mapentity_, int param_1_, int param_2_ );
+prototype int local_function_1( string param_0_ );
+prototype int local_function_10( string param_0_ );
+prototype local_function_7( hgroup group_, hmapentity mapentity_ );
+prototype local_function_6( hsim param_0_, hmapentity mapentity_ );
+prototype task local_function_8( hgroup group_, hmapentity mapentity_ );
+prototype task local_function_9( hship ship_, hmapentity mapentity_ );
+prototype set local_function_12( hlagrangepoint lagrangepoint_ );
+prototype hmapentity GetInterstellarLPointIn( string system_ );
+prototype hisim local_function_11( hsim param_0_, hisim param_1_ );
+prototype task pillager_retreat_orders( hgroup group_, hmapentity mapentity_ );
+prototype task police_retreat_orders( hgroup group_, hmapentity mapentity_ );
+prototype bool local_function_13( hgroup group_, hstate state_ );
+prototype set local_function_5( hlagrangepoint lagrangepoint_ );
+prototype local_function_4( hlagrangepoint lagrangepoint_, int param_1_, bool param_2_, int param_3_ );
+prototype int local_function_2( hmapentity mapentity_ );
+
+hmapentity local_function_0()
+{
+	return iMapEntity.FindByNameInSystem( "Remek L-Point", "map:/geog/gagarin/formhault" );
+}
+
+task ExodusTrafficGenerator()
+{
+	float gPlayerSensorRange = Global.Float( "g_player_sensor_range" );
+	hship playerShip = iShip.FindPlayerShip();
+	int gAlienSpreadRadius;
+	int local_3;
+	int ii;
+	list localList_0;
+	int itemCount;
+	hobject local_7;
+	hhabitat habitat;
+	hlagrangepoint lagrangePoint_0;
+	int local_10;
+	int local_11;
+	int local_12;
+	int local_13;
+	int local_14;
+	int jj;
+	list localList_1;
+	hlagrangepoint lagrangePoint_1;
+	float local_18;
+	hstate taskState;
+	hmapentity formhaultSystemAdministrationCentre = iMapEntity.FindByNameInSystem( "Formhault System Administration Centre", "map:/geog/gagarin/formhault" );
+	hmapentity mapentity = local_function_0();
+	set localSet_0;
+	set localSet_1;
+	bool local_24 = false;
+	string local_25;
+	hgroup group;
+	hsim local_27;
+	hsim local_28;
+	int constant_0 = 25;
+	int constant_1 = 999;
+	int constant_2 = 5000;
+	int constant_3 = 10000;
+	
+	debug Debug.PrintString( "iActThree.Event3_30_SurvivorsRetreat : starting\n" );
+	taskState = State.Find( Task.Current() );
+	
+	if ( taskState == false )
+	{
+		taskState = State.Create( Task.Current(), 0 );
+	}
+	
+	if ( !Global.Exists( "g_total_refugees_running" ) )
+	{
+		Global.CreateInt( "g_total_refugees_running", 2, 0 );
+	}
+	
+	if ( !Global.Exists( "g_refugees_waiting_at_fomalhaut" ) )
+	{
+		Global.CreateInt( "g_refugees_waiting_at_fomalhaut", 2, 0 );
+	}
+	
+	if ( Global.Exists( "g_alien_spread_radius" ) )
+	{
+		gAlienSpreadRadius = Global.Int( "g_alien_spread_radius" );
+	}
+	else
+	{
+		gAlienSpreadRadius = 0;
+		Global.CreateInt( "g_alien_spread_radius", 2, gAlienSpreadRadius );
+	}
+	
+	switch ( gAlienSpreadRadius )
+	{
+		case 3:
+			DisableAllTrafficInSystem( "map:/geog/gagarin/batatas" );
+		
+		case 2:
+			DisableAllTrafficInSystem( "map:/geog/gagarin/owens_star" );
+			DisableAllTrafficInSystem( "map:/geog/gagarin/formhault" );
+			DisableAllTrafficInSystem( "map:/geog/gagarin/ishime" );
+		
+		case 1:
+			DisableAllTrafficInSystem( "map:/geog/gagarin/drake" );
+			DisableAllTrafficInSystem( "map:/geog/gagarin/osprey" );
+		
+		case 0:
+			DisableAllTrafficInSystem( "map:/geog/gagarin/new_bavaria" );
+			break;
+	}
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( Global.Int( "g_story_3.145" ) != 2 )
+			{
+				if ( local_24 )
+				{
+					Group.Destroy( Group.FromSet( localSet_0 ), true );
+				}
+				
+				return;
+			}
+			
+			if ( !( iSim.ActiveWorld() == local_25 ) )
+			{
+				local_25 = iSim.ActiveWorld();
+				
+				if ( (local_25 == "map:/geog/gagarin/formhault") && (local_24 == 0) )
+				{
+					debug Debug.PrintString( "iAct3.Event3_30: Creating Magic Cube framework in fomalhaut.\n" );
+					localSet_0 = CreateMagicCubeRelativeTo( formhaultSystemAdministrationCentre, 0.0, 0.0, 1650000.0 );
+					local_24 = true;
+				}
+			}
+			else if ( Group.SimCount( group ) > 0 )
+			{
+				debug Debug.PrintString( "iAct3.Event3_30: removing refugee fleet refugees.\n" );
+				Group.Destroy( group, true );
+				local_28 = none;
+			}
+			
+			localList_0 = List.FromSet( iSim.NonPlanetaryInRadius( playerShip, gPlayerSensorRange * 2.0 ) );
+			local_3 = local_function_1( iSim.ActiveWorld() );
+			
+			if ( (local_3 == -1) && (Sim.DistanceBetween( playerShip, formhaultSystemAdministrationCentre ) < 1500000000.0) )
+			{
+				if ( Sim.DistanceBetween( playerShip, local_28 ) > 350000.0 )
+				{
+					debug Debug.PrintString( "iActThree.Event3_30_SurvivorsRetreat : removing out of range refugee fleet\n" );
+					Group.Destroy( group, true );
+					local_28 = none;
+				}
+				
+				localSet_1 = iSim.SimsInRadiusFromSet( localSet_0, playerShip, 300000.0, 8 );
+				
+				if ( Set.ItemCount( localSet_1 ) > 0 )
+				{
+					debug "iAct3.Event3_30: Player in range of refugee fleet.\n";
+					
+					if ( Set.ItemCount( localSet_1 ) > 1 )
+					{
+						debug Debug.PrintString( "iAct3.Event3_30: More than one cube point in range - this should never happen!\n" );
+					}
+					
+					local_27 = Sim.Cast( Set.FirstElement( localSet_1 ) );
+					
+					if ( local_27 != local_28 )
+					{
+						local_28 = local_27;
+						
+						if ( Object.IntProperty( local_28, "point_number" ) < Global.Int( "g_refugees_waiting_at_fomalhaut" ) )
+						{
+							CreateFomalhautRefugees( local_28 );
+						}
+					}
+				}
+			}
+			else if ( local_3 <= (gAlienSpreadRadius + 1) )
+			{
+				itemCount = List.ItemCount( localList_0 );
+				
+				for ( ii = 0; ii < itemCount; ++ii )
+				{
+					local_7 = List.GetNth( localList_0, ii );
+					habitat = iHabitat.Cast( local_7 );
+					
+					if ( habitat != false )
+					{
+						local_10 = iHabitat.Population( habitat );
+						
+						if ( local_10 < 999 )
+						{
+							if ( local_10 < 0 )
+							{
+								local_10 = 0;
+							}
+							
+							local_14 = 333;
+							local_12 = ( 1 + (local_10 / local_14) );
+							local_11 = 999;
+						}
+						else if ( local_10 < 5000 )
+						{
+							local_14 = ( (constant_2 - constant_1) / 6 );
+							local_12 = ( 3 + ((local_10 - 999) / local_14) );
+							local_11 = 5000;
+						}
+						else
+						{
+							if ( local_10 > 10000 )
+							{
+								local_10 = 10000;
+							}
+							
+							local_14 = ( (constant_3 - constant_2) / 5 );
+							local_12 = ( 8 + ((local_10 - 5000) / local_14) );
+							local_11 = 10000;
+						}
+						
+						if ( local_3 > gAlienSpreadRadius )
+						{
+							local_12 = ( local_12 / 4 );
+						}
+						
+						local_18 = iMapEntity.RadiusOfInfluence( habitat );
+						local_13 = ( local_12 - Set.ItemCount( iSim.SimsInRadius( habitat, local_18, 536838144 ) ) );
+						
+						if ( (local_13 + Global.Int( "g_total_refugees_running" )) > constant_0 )
+						{
+							local_13 = ( constant_0 - Global.Int( "g_total_refugees_running" ) );
+						}
+						
+						if ( local_13 > 0 )
+						{
+							debug Debug.PrintString( "iAct3.Event3_30: Creating " );
+							debug Debug.PrintString( String.FromInt( local_13 ) );
+							debug Debug.PrintString( String.Join( " from ", String.FromInt( local_12 ) ) );
+							debug Debug.PrintString( " at " );
+							debug Debug.PrintHandle( habitat );
+							debug Debug.PrintString( "\n" );
+							
+							do
+							{
+								local_13 = ( local_13 - local_function_3( habitat, local_function_2( habitat ), local_11 ) );
+							}
+							while ( local_13 > 0 );
+						}
+						else
+						{
+							debug Debug.PrintString( "iAct3.Event3_30: No free slots after capping at " );
+							debug Debug.PrintHandle( habitat );
+							debug Debug.PrintString( " - sleeping.\n" );
+						}
+					}
+					else
+					{
+						lagrangePoint_0 = iLagrangePoint.Cast( local_7 );
+						
+						if ( lagrangePoint_0 == false )
+						{
+							debug Debug.Error( "iAct3.Event3_30: located non-planetary is neither a habitat nor an l-point." );
+						}
+						else
+						{
+							local_function_4( lagrangePoint_0, gAlienSpreadRadius, true, constant_0 );
+							localList_1 = List.FromSet( local_function_5( lagrangePoint_0 ) );
+							
+							for ( jj = 0; jj < List.ItemCount( localList_1 ); ++jj )
+							{
+								lagrangePoint_1 = iLagrangePoint.Cast( List.GetNth( localList_1, jj ) );
+								local_function_4( lagrangePoint_1, gAlienSpreadRadius, false, constant_0 );
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		every 20.0:
+		{
+			if ( Global.Bool( "g_evacuate_through_accelerator" ) && (Global.Int( "g_refugees_waiting_at_fomalhaut" ) < 125) )
+			{
+				Global.SetInt( "g_refugees_waiting_at_fomalhaut", Global.Int( "g_refugees_waiting_at_fomalhaut" ) + Math.RandomInt( 3, 7 ) );
+			}
+		}
+	}
+	
+	debug Debug.PrintString( "iActThree.Event3_30_SurvivorsRetreat : ending\n" );
+}
+
+hgroup CreateFomalhautRefugees( hsim waypoint_ )
+{
+	hgroup group = Group.Create();
+	hship ship;
+	int local_2;
+	int local_3;
+	set localSet;
+	list localList;
+	hfaction faction;
+	int ii;
+	int random;
+	int local_9;
+	int local_10;
+	int local_11;
+	int local_12;
+	eShipType shipType;
+	
+	debug Debug.PrintString( "iExodustraffic.CreateFomalhautRegugees: kludge creating only one allegiance - should be ALL - non relevant (see code)\n" );
+	localSet = Set.FromList( iFaction.All() );
+	Set.Remove( localSet, iFaction.Find( "Marauders" ) );
+	Set.Remove( localSet, iFaction.Find( "Police" ) );
+	Set.Remove( localSet, iFaction.Find( "Military" ) );
+	Set.Remove( localSet, iFaction.Find( "Player" ) );
+	Set.Remove( localSet, iFaction.Find( "MAAS Corporation" ) );
+	Set.Remove( localSet, iFaction.Find( "The Third Way" ) );
+	Set.Remove( localSet, iFaction.Find( "Aliens" ) );
+	localList = List.FromSet( localSet );
+	random = Math.RandomInt( 9, 20 );
+	
+	for ( ii = 0; ii < random; ++ii )
+	{
+		faction = iFaction.Cast( List.GetNth( localList, Math.RandomInt( 0, List.ItemCount( localList ) - 1 ) ) );
+		
+		switch ( Math.RandomInt( 1, 7 ) )
+		{
+			case 1:
+				shipType = ST_CombatLight;
+				break;
+			
+			case 2:
+				shipType = ST_FreightCourier;
+				break;
+			
+			case 3:
+			case 4:
+				shipType = ST_PassengerLight;
+				break;
+			
+			case 5:
+				shipType = ST_PassengerHeavy;
+				break;
+			
+			case 6:
+			case 7:
+				shipType = ST_GeneralPurpose;
+				break;
+		}
+		
+		ship = iShip.Create( iShipCreation.GetShip( iFaction.Allegiance( faction ), shipType ), iShipCreation.ShipName( iFaction.Name( faction ), -1 ) );
+		iSim.SetFaction( ship, faction );
+		iPilotSetup.GenericCoward( ship );
+		Group.AddSim( group, ship );
+	}
+	
+	iUtilities.GroupSetCullable( group, false );
+	return group;
+}
+
+DisableAllTrafficInSystem( string system_ )
+{
+	int ii;
+	hmapentity mapEntity;
+	set lagrangePoints;
+	list localList;
+	
+	lagrangePoints = iMapEntity.SystemHabitatsInSystem( system_ );
+	localList = List.FromSet( lagrangePoints );
+	
+	for ( ii = 0; ii < List.ItemCount( localList ); ++ii )
+	{
+		mapEntity = iMapEntity.Cast( List.GetNth( localList, ii ) );
+		iRangeCheck.AddTrafficException( mapEntity );
+	}
+	
+	lagrangePoints = iMapEntity.SystemLagrangePointsInSystem( system_ );
+	localList = List.FromSet( lagrangePoints );
+	
+	for ( ii = 0; ii < List.ItemCount( localList ); ++ii )
+	{
+		mapEntity = iMapEntity.Cast( List.GetNth( localList, ii ) );
+		iRangeCheck.AddTrafficException( mapEntity );
+	}
+}
+
+set CreateMagicCubeRelativeTo( hisim center_, float x_, float y_, float z_ )
+{
+	set localSet;
+	hsim waypoint_0;
+	hsim waypoint_1;
+	float local_3;
+	float local_4;
+	float local_5;
+	float constant_0 = 750000.0;
+	int ii;
+	int jj;
+	int kk;
+	int constant_1 = 5;
+	int local_11 = 0;
+	
+	waypoint_0 = iUtilities.CreateWaypointRelativeTo( center_, x_, y_, z_ );
+	Sim.PointAt( waypoint_0, center_ );
+	local_3 = ( -constant_0 * 2.0 );
+	local_4 = ( -constant_0 * 2.0 );
+	local_5 = ( -constant_0 * 2.0 );
+	
+	for ( ii = 0; ii < constant_1; ++ii )
+	{
+		for ( jj = 0; jj < constant_1; ++jj )
+		{
+			for ( kk = 0; kk < constant_1; ++kk )
+			{
+				waypoint_1 = iUtilities.CreateWaypointRelativeTo( waypoint_0, local_3, local_4, local_5 );
+				Object.AddIntProperty( waypoint_1, "point_number", local_11 );
+				Set.Add( localSet, waypoint_1 );
+				local_11 = ( local_11 + 1 );
+				local_3 = ( local_3 + constant_0 );
+			}
+			
+			local_3 = ( -constant_0 * 2.0 );
+			local_4 = ( local_4 + constant_0 );
+		}
+		
+		local_4 = ( -constant_0 * 2.0 );
+		local_5 = ( local_5 + constant_0 );
+	}
+	
+	Sim.Destroy( waypoint_0 );
+	return localSet;
+}
+
+int local_function_3( hmapentity mapentity_, int param_1_, int param_2_ )
+{
+	int random;
+	int local_1 = local_function_1( iSim.WorldName( mapentity_ ) );
+	hgroup group;
+	hship ship;
+	eShipType shipType;
+	hfaction faction;
+	hfaction underworld = iFaction.Find( "Underworld" );
+	hfaction police = iFaction.Find( "Police" );
+	IeAllegiance ieAllegiance;
+	bool local_9;
+	int ii;
+	
+	if ( local_1 == -100 )
+	{
+		debug Debug.Error( "iAct3.create_retreat_at_location: Called outside Gagarin cluster" );
+		return 255;
+	}
+	
+	local_9 = ( iSim.ActiveWorld() == iSim.WorldName( mapentity_ ) );
+	
+	if ( iHabitat.Cast( mapentity_ ) )
+	{
+		ieAllegiance = iHabitat.Allegiance( iHabitat.Cast( mapentity_ ) );
+		faction = iFaction.Find( iUtilities.FromAllegianceEnum( ieAllegiance ) );
+	}
+	
+	switch ( param_1_ )
+	{
+		case 0:
+			if ( param_2_ == 999 )
+			{
+				random = Math.RandomInt( 1, 2 );
+			}
+			else if ( param_2_ == 5000 )
+			{
+				random = Math.RandomInt( 1, 3 );
+			}
+			else
+			{
+				random = Math.RandomInt( 2, 4 );
+			}
+			
+			group = iShipCreation.CreateCharacterGroup( ST_CombatAll, "GenericAggressive", random, faction, "Random" );
+			iUtilities.GroupSetCullable( group, false );
+			
+			if ( local_9 )
+			{
+				local_function_6( Group.Leader( group ), mapentity_ );
+			}
+			else
+			{
+				Sim.PlaceAt( Group.Leader( group ), none );
+			}
+			
+			iFormation.Goose( group, 100.0, true );
+			
+			if ( !local_9 )
+			{
+				local_function_7( group, mapentity_ );
+			}
+			
+			Task.Detach( start local_function_8( group, mapentity_ ) );
+			break;
+		
+		case 1:
+			if ( param_2_ == 999 )
+			{
+				random = 1;
+			}
+			else
+			{
+				random = Math.RandomInt( 1, 3 );
+			}
+			
+			group = Group.Create();
+			
+			for ( ii = 0; ii < random; ++ii )
+			{
+				switch ( Math.RandomInt( 1, 9 ) )
+				{
+					case 1:
+						shipType = ST_CombatLight;
+						break;
+					
+					case 2:
+					case 3:
+						shipType = ST_FreightLight;
+						break;
+					
+					case 4:
+						shipType = ST_FreightCourier;
+						break;
+					
+					case 5:
+					case 6:
+						shipType = ST_PassengerLight;
+						break;
+					
+					case 7:
+						shipType = ST_PassengerHeavy;
+						break;
+					
+					case 8:
+					case 9:
+						shipType = ST_GeneralPurpose;
+						break;
+					
+					default:
+						debug Debug.Error( "iAct.create_retreat: POG's random number generator is faulty!\n" );
+						shipType = ST_PassengerLight;
+				}
+				
+				ship = iShip.Create( iShipCreation.GetShip( ieAllegiance, shipType ), iShipCreation.ShipName( iUtilities.FromAllegianceEnum( ieAllegiance ), -1 ) );
+				iPilotSetup.GenericCoward( ship );
+				iSim.SetFaction( ship, faction );
+				Group.AddSim( group, ship );
+			}
+			
+			iUtilities.GroupSetCullable( group, false );
+			
+			if ( local_9 )
+			{
+				local_function_6( Group.Leader( group ), mapentity_ );
+			}
+			else
+			{
+				Sim.PlaceAt( Group.Leader( group ), none );
+			}
+			
+			iFormation.RandomSphere( group, 1000.0, true );
+			
+			if ( !local_9 )
+			{
+				local_function_7( group, mapentity_ );
+			}
+			
+			Task.Detach( start local_function_8( group, mapentity_ ) );
+			break;
+		
+		case 2:
+			if ( param_2_ == 999 )
+			{
+				random = Math.RandomInt( 1, 2 );
+			}
+			else
+			{
+				random = Math.RandomInt( 1, 3 );
+			}
+			
+			group = iShipCreation.CreateCharacterGroup( ST_MiningAll, "Generic", random, faction, "Random" );
+			iUtilities.GroupSetCullable( group, false );
+			
+			if ( local_9 )
+			{
+				local_function_6( Group.Leader( group ), mapentity_ );
+			}
+			else
+			{
+				Sim.PlaceAt( Group.Leader( group ), none );
+			}
+			
+			iFormation.Goose( group, 120.0, true );
+			
+			if ( !local_9 )
+			{
+				local_function_7( group, mapentity_ );
+			}
+			
+			Task.Detach( start local_function_8( group, mapentity_ ) );
+			break;
+		
+		case 3:
+			random = ( Math.RandomInt( 1, 2 ) + Math.RandomInt( 1, 2 ) );
+			group = iShipCreation.CreateCharacterGroup( ST_CombatAll, "Generic", random, underworld, "Random" );
+			iUtilities.GroupSetCullable( group, false );
+			
+			if ( local_9 )
+			{
+				local_function_6( Group.Leader( group ), mapentity_ );
+			}
+			else
+			{
+				Sim.PlaceAt( Group.Leader( group ), none );
+			}
+			
+			iFormation.LineAbreast( group, 100.0, true );
+			
+			if ( !local_9 )
+			{
+				local_function_7( group, mapentity_ );
+			}
+			
+			Task.Detach( start pillager_retreat_orders( group, mapentity_ ) );
+			break;
+		
+		case 4:
+			random = Math.RandomInt( 2, 4 );
+			group = iShipCreation.CreateCharacterGroup( ST_CombatAll, "Generic", random, police, "Random" );
+			iUtilities.GroupSetCullable( group, false );
+			
+			if ( local_9 )
+			{
+				local_function_6( Group.Leader( group ), mapentity_ );
+			}
+			else
+			{
+				Sim.PlaceAt( Group.Leader( group ), none );
+			}
+			
+			iFormation.Goose( group, 150.0, true );
+			
+			if ( !local_9 )
+			{
+				local_function_7( group, mapentity_ );
+			}
+			
+			Task.Detach( start police_retreat_orders( group, mapentity_ ) );
+			break;
+		
+		case 5:
+			if ( param_2_ == 999 )
+			{
+				random = 1;
+			}
+			else
+			{
+				random = Math.RandomInt( 1, 2 );
+			}
+			
+			group = iShipCreation.CreateCharacterGroup( ST_TankerAll, "GenericSupply", random, faction, "Random" );
+			iUtilities.GroupSetCullable( group, false );
+			
+			if ( local_9 )
+			{
+				local_function_6( Group.Leader( group ), mapentity_ );
+			}
+			else
+			{
+				Sim.PlaceAt( Group.Leader( group ), none );
+			}
+			
+			iFormation.RandomSphere( group, 1000.0, true );
+			
+			if ( !local_9 )
+			{
+				local_function_7( group, mapentity_ );
+			}
+			
+			Task.Detach( start local_function_8( group, mapentity_ ) );
+			break;
+		
+		case 6:
+			if ( param_2_ == 999 )
+			{
+				random = 1;
+			}
+			else if ( param_2_ == 5000 )
+			{
+				random = Math.RandomInt( 1, 2 );
+			}
+			else
+			{
+				random = Math.RandomInt( 2, 4 );
+			}
+			
+			group = iShipCreation.CreateCharacterGroup( ST_FreightAll, "GenericTrade", random, faction, "Random" );
+			iUtilities.GroupSetCullable( group, false );
+			
+			if ( local_9 )
+			{
+				local_function_6( Group.Leader( group ), mapentity_ );
+			}
+			else
+			{
+				Sim.PlaceAt( Group.Leader( group ), none );
+			}
+			
+			iFormation.RandomSphere( group, 1750.0, true );
+			
+			if ( !local_9 )
+			{
+				local_function_7( group, mapentity_ );
+			}
+			
+			Task.Detach( start local_function_8( group, mapentity_ ) );
+			break;
+		
+		case 7:
+			if ( !local_9 )
+			{
+				return 0;
+			}
+			
+			switch ( Math.RandomInt( 1, 9 ) )
+			{
+				case 1:
+					shipType = ST_CombatLight;
+					break;
+				
+				case 2:
+				case 3:
+					shipType = ST_FreightLight;
+					break;
+				
+				case 4:
+					shipType = ST_FreightCourier;
+					break;
+				
+				case 5:
+				case 6:
+					shipType = ST_PassengerLight;
+					break;
+				
+				case 7:
+					shipType = ST_PassengerHeavy;
+					break;
+				
+				case 8:
+				case 9:
+					shipType = ST_GeneralPurpose;
+					break;
+				
+				default:
+					debug Debug.Error( "iAct.create_retreat: POG's random number generator is faulty!\n" );
+					shipType = ST_PassengerLight;
+			}
+			
+			ship = iShip.Create( iShipCreation.GetShip( ieAllegiance, shipType ), iShipCreation.ShipName( iUtilities.FromAllegianceEnum( ieAllegiance ), -1 ) );
+			iSim.SetFaction( ship, faction );
+			local_function_6( ship, mapentity_ );
+			Task.Detach( start local_function_9( ship, mapentity_ ) );
+			break;
+		
+		default:
+			debug Debug.Error( "iAct3.create_retreat_at_location: Bad retreat type passed!" );
+			random = 1;
+	}
+	
+	return random;
+}
+
+int local_function_1( string param_0_ )
+{
+	if ( Global.Bool( "g_evacuate_through_accelerator" ) )
+	{
+		if ( (param_0_ == "map:/geog/gagarin/new_bavaria") || ((param_0_ == "map:/geog/gagarin/ishime") || (param_0_ == "map:/geog/gagarin/owens_star")) )
+		{
+			return -3;
+		}
+		else if ( (param_0_ == "map:/geog/gagarin/drake") || ((param_0_ == "map:/geog/gagarin/osprey") || (param_0_ == "map:/geog/gagarin/batatas")) )
+		{
+			return -2;
+		}
+		else if ( param_0_ == "map:/geog/gagarin/formhault" )
+		{
+			return -1;
+		}
+		else
+		{
+			debug Debug.PrintString( "iAct3.system_at_desirability: System not in Gagarin cluster.\n" );
+			return -100;
+		}
+	}
+	
+	return local_function_10( param_0_ );
+}
+
+int local_function_10( string param_0_ )
+{
+	if ( param_0_ == "map:/geog/gagarin/new_bavaria" )
+	{
+		return 0;
+	}
+	else if ( (param_0_ == "map:/geog/gagarin/drake") || (param_0_ == "map:/geog/gagarin/osprey") )
+	{
+		return 1;
+	}
+	else if ( (param_0_ == "map:/geog/gagarin/formhault") || ((param_0_ == "map:/geog/gagarin/owens_star") || (param_0_ == "map:/geog/gagarin/ishime")) )
+	{
+		return 2;
+	}
+	else if ( param_0_ == "map:/geog/gagarin/batatas" )
+	{
+		return 3;
+	}
+	
+	debug Debug.PrintString( "iAct3.system_at_desirability: System not in Gagarin cluster.\n" );
+	return -100;
+}
+
+local_function_7( hgroup group_, hmapentity mapentity_ )
+{
+	hlagrangepoint lagrangePoint = iLagrangePoint.Cast( mapentity_ );
+	int ii;
+	
+	if ( lagrangePoint == false )
+	{
+		debug Debug.Error( "iAct3.group_jump: destination is not a LaGrange point!" );
+		return;
+	}
+	
+	for ( ii = 0; ii < Group.SimCount( group_ ); ++ii )
+	{
+		iSim.CapsuleJump( iSim.Cast( Group.NthSim( group_, ii ) ), lagrangePoint );
+	}
+}
+
+local_function_6( hsim param_0_, hmapentity mapentity_ )
+{
+	hship playerShip;
+	float distance;
+	float random;
+	float local_3;
+	float gPlayerSensorRange = Global.Float( "g_player_sensor_range" );
+	hsim simWaypoint;
+	
+	playerShip = iShip.FindPlayerShip();
+	distance = Sim.DistanceBetween( playerShip, mapentity_ );
+	
+	if ( distance <= gPlayerSensorRange )
+	{
+		debug Debug.PrintString( " iAct3.place_traffic - Station is with players senser range - placing traffic on edge of player range\n" );
+		
+		if ( iLagrangePoint.Cast( mapentity_ ) )
+		{
+			Sim.PlaceNear( param_0_, playerShip, gPlayerSensorRange );
+		}
+		else
+		{
+			Sim.PlaceNear( param_0_, mapentity_, 5000.0 );
+		}
+		
+		return;
+	}
+	
+	if ( distance > (gPlayerSensorRange * 5.0) )
+	{
+		debug Debug.PrintString( "iAct3.place_traffic - location is miles from player, placing in close vicinity.\n" );
+		Sim.PlaceNear( param_0_, mapentity_, Math.Random( 5000.0, 50000.0 ) );
+		return;
+	}
+	
+	debug Debug.PrintString( "iAct3.place_traffic - Station is outside players senser range - placing traffic between player & ship \n" );
+	random = Math.Random( gPlayerSensorRange, gPlayerSensorRange + distance );
+	simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "Traffic centre" );
+	Sim.PlaceBetween( simWaypoint, playerShip, mapentity_, random / distance );
+	local_3 = ( random - gPlayerSensorRange );
+	
+	if ( local_3 > gPlayerSensorRange )
+	{
+		local_3 = gPlayerSensorRange;
+	}
+	
+	Sim.PlaceNear( param_0_, simWaypoint, Math.Random( 0.0, local_3 ) );
+}
+
+task local_function_8( hgroup group_, hmapentity mapentity_ )
+{
+	int simCount = Group.SimCount( group_ );
+	int gAlienSpreadRadius;
+	string name;
+	int local_3;
+	hisim local_4;
+	hship playerShip = iShip.FindPlayerShip();
+	hship ship;
+	set lagrangePoints;
+	list localList_0;
+	list localList_1;
+	hisim local_10;
+	hlagrangepoint lagrangePoint;
+	hmapentity formhaultSystemAdministrationCentre = iMapEntity.FindByNameInSystem( "Formhault System Administration Centre", "map:/geog/gagarin/formhault" );
+	int ii;
+	
+	name = iSim.WorldName( iSim.Cast( Group.Leader( group_ ) ) );
+	local_3 = local_function_1( name );
+	Global.SetInt( "g_total_refugees_running", Global.Int( "g_total_refugees_running" ) + simCount );
+	gAlienSpreadRadius = Global.Int( "g_alien_spread_radius" );
+	
+	if ( local_3 <= gAlienSpreadRadius )
+	{
+		lagrangePoints = iMapEntity.SystemLagrangePointsInSystem( name );
+		local_10 = iLagrangePoint.Nearest( lagrangePoints, Group.Leader( group_ ) );
+		local_4 = local_function_11( Group.Leader( group_ ), local_10 );
+		
+		if ( local_4 != false )
+		{
+			iAI.GiveFleeOrder( group_, local_4 );
+		}
+		else if ( local_3 == -1 )
+		{
+			if ( Sim.DistanceBetween( Group.Leader( group_ ), formhaultSystemAdministrationCentre ) < 2000000000.0 )
+			{
+				iAI.GiveApproachOrderAdvanced( group_, formhaultSystemAdministrationCentre, 100000.0, 500000.0, true );
+			}
+			else
+			{
+				iAI.GiveApproachOrderAdvanced( group_, local_10, 3000.0, 10000.0, true );
+			}
+		}
+		else
+		{
+			iAI.GiveApproachOrderAdvanced( group_, local_10, 3000.0, 10000.0, true );
+		}
+	}
+	else if ( iHabitat.Cast( mapentity_ ) )
+	{
+		local_10 = mapentity_;
+		iAI.GiveDockOrder( group_, local_10 );
+	}
+	else
+	{
+		localList_1 = List.FromSet( iMapEntity.SystemHabitatsInSystem( name ) );
+		local_10 = iSim.Cast( List.GetNth( localList_1, Math.RandomInt( 0, List.ItemCount( localList_1 ) - 1 ) ) );
+		iAI.GiveDockOrder( group_, local_10 );
+	}
+	
+	schedule
+	{
+		every 15.0:
+		{
+			if ( ((Sim.DistanceBetween( Group.Leader( group_ ), playerShip ) > 25000000.0) && (Sim.DistanceBetween( Group.Leader( group_ ), mapentity_ ) > 25000000.0)) || (Group.SimCount( group_ ) < 1) )
+			{
+				break;
+			}
+			
+			if ( iAI.IsOrderComplete( iShip.Cast( Group.Leader( group_ ) ) ) || (gAlienSpreadRadius != Global.Int( "g_alien_spread_radius" )) )
+			{
+				gAlienSpreadRadius = Global.Int( "g_alien_spread_radius" );
+				name = iSim.WorldName( iSim.Cast( Group.Leader( group_ ) ) );
+				local_3 = local_function_1( name );
+				
+				if ( (local_3 == -1) && (Sim.DistanceBetween( Group.Leader( group_ ), formhaultSystemAdministrationCentre ) < 2000000000.0) )
+				{
+					iUtilities.GroupSetCullable( group_, true );
+					Global.SetInt( "g_total_refugees_running", Global.Int( "g_total_refugees_running" ) - simCount );
+					return;
+				}
+				
+				if ( iSim.IsDockedTo( iShip.Cast( Group.Leader( group_ ) ), local_10 ) )
+				{
+					if ( local_3 > gAlienSpreadRadius )
+					{
+						iUtilities.GroupSetCullable( group_, true );
+						Global.SetInt( "g_total_refugees_running", Global.Int( "g_total_refugees_running" ) - simCount );
+						return;
+					}
+					else for ( ii = 0; ii < Group.SimCount( group_ ); ++ii )
+					{
+						ship = iShip.Cast( Group.NthSim( group_, ii ) );
+						
+						if ( iSim.IsDockedTo( ship, local_10 ) )
+						{
+							iShip.Undock( ship, local_10 );
+						}
+					}
+				}
+				
+				if ( local_3 <= gAlienSpreadRadius )
+				{
+					if ( iLagrangePoint.Cast( local_10 ) )
+					{
+						if ( local_10 == iSim.Cast( GetInterstellarLPointIn( name ) ) )
+						{
+							debug Debug.PrintString( "iAct3.refugee_retreat_orders: At interstellar l-point, finding best way out.\n" );
+							lagrangePoints = local_function_12( iLagrangePoint.Cast( local_10 ) );
+							localList_0 = List.FromSet( lagrangePoints );
+							
+							for ( ii = 0; ii < List.ItemCount( localList_0 ); ++ii )
+							{
+								lagrangePoint = iLagrangePoint.Cast( List.GetNth( localList_0, ii ) );
+								
+								if ( local_function_1( iSim.WorldName( lagrangePoint ) ) > local_3 )
+								{
+									break;
+								}
+							}
+							
+							local_10 = lagrangePoint;
+							iAI.GiveApproachOrderAdvanced( group_, local_10, 3000.0, 10000.0, true );
+						}
+						else
+						{
+							debug Debug.PrintString( "iAct3.refugee_retreat_orders: At local l-point, heading for interstellar l-point.\n" );
+							local_10 = GetInterstellarLPointIn( name );
+							iAI.GiveApproachOrderAdvanced( group_, local_10, 3000.0, 10000.0, true );
+						}
+					}
+					else
+					{
+						lagrangePoints = iMapEntity.SystemLagrangePointsInSystem( name );
+						local_10 = iLagrangePoint.Nearest( lagrangePoints, Group.Leader( group_ ) );
+						local_4 = local_function_11( Group.Leader( group_ ), local_10 );
+						
+						if ( local_4 != false )
+						{
+							iAI.GiveFleeOrder( group_, local_4 );
+						}
+						else
+						{
+							iAI.GiveApproachOrder( group_, local_10 );
+						}
+					}
+				}
+				else
+				{
+					localList_1 = List.FromSet( iMapEntity.SystemHabitatsInSystem( name ) );
+					local_10 = iSim.Cast( List.GetNth( localList_1, Math.RandomInt( 0, List.ItemCount( localList_1 ) - 1 ) ) );
+					iAI.GiveDockOrder( group_, local_10 );
+				}
+			}
+		}
+	}
+	
+	Group.Destroy( group_, true );
+	Global.SetInt( "g_total_refugees_running", Global.Int( "g_total_refugees_running" ) - simCount );
+}
+
+task local_function_9( hship ship_, hmapentity mapentity_ )
+{
+	hship playerShip = iShip.FindPlayerShip();
+	hgroup group;
+	hsim waypoint = none;
+	int random;
+	
+	if ( Sim.DistanceBetween( ship_, playerShip ) > 50000.0 )
+	{
+		iConversation.OneLiner( none, "name_smith", "a3_master_dialogue_smith_ive_picked_up_a_distress_signal" );
+		waypoint = iUtilities.CreateWaypointAt( ship_ );
+		iUtilities.MakeWaypointVisible( waypoint, true, "a3_master_waypoint_distress" );
+	}
+	
+	do
+	{
+		if ( Sim.DistanceBetween( ship_, playerShip ) < 50000.0 )
+		{
+			random = Math.RandomInt( 0, 4 );
+			
+			switch ( random )
+			{
+				case 0:
+					iConversation.OneLiner( ship_, "", "a3_master_dialogue_stranded_engines" );
+					break;
+				
+				case 1:
+					iConversation.OneLiner( ship_, "", "a3_master_dialogue_stranded_life_support" );
+					break;
+				
+				case 2:
+					iConversation.OneLiner( ship_, "", "a3_master_dialogue_stranded_computers" );
+					break;
+				
+				case 3:
+					iConversation.OneLiner( ship_, "", "a3_master_dialogue_stranded_mayday" );
+					break;
+				
+				case 4:
+					iConversation.OneLiner( ship_, "", "a3_master_dialogue_stranded_reactor_failure" );
+					break;
+			}
+			
+			break;
+		}
+		
+		if ( Sim.DistanceBetween( mapentity_, playerShip ) > 50000000.0 )
+		{
+			Sim.Destroy( ship_ );
+			
+			if ( waypoint != false )
+			{
+				Sim.Destroy( waypoint );
+			}
+			
+			return;
+		}
+		
+		Task.Sleep( Task.Current(), 1.0 );
+	}
+	while ( 1 );
+	
+	do
+	{
+		if ( Sim.DistanceBetween( mapentity_, playerShip ) > 50000000.0 )
+		{
+			Sim.Destroy( ship_ );
+			
+			if ( waypoint != false )
+			{
+				Sim.Destroy( waypoint );
+			}
+			
+			return;
+		}
+		
+		Task.Sleep( Task.Current(), 1.0 );
+	}
+	while ( !iSim.IsDockedTo( playerShip, ship_ ) );
+	
+	iSim.SetDockingLock( playerShip, ship_, true );
+	iConversation.OneLiner( none, "name_smith", "a3_master_dialogue_smith_im_going_aboard" );
+	Task.Sleep( Task.Current(), Math.Random( 15.0, 25.0 ) );
+	iConversation.OneLiner( none, "name_smith", "a3_master_dialogue_smith_fixed_it" );
+	iSim.SetDockingLock( playerShip, ship_, false );
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 1.0 );
+	}
+	while ( iSim.IsDockedTo( playerShip, ship_ ) );
+	
+	switch ( random )
+	{
+		case 0:
+			iConversation.OneLiner( ship_, "", "a3_master_dialogue_stranded_engines_thanks" );
+			break;
+		
+		case 1:
+			iConversation.OneLiner( ship_, "", "a3_master_dialogue_stranded_life_support_thanks" );
+			break;
+		
+		case 2:
+			iConversation.OneLiner( ship_, "", "a3_master_dialogue_stranded_computers_thanks" );
+			break;
+		
+		case 3:
+			iConversation.OneLiner( ship_, "", "a3_master_dialogue_stranded_mayday_thanks" );
+			break;
+		
+		case 4:
+			iConversation.OneLiner( ship_, "", "a3_master_dialogue_stranded_reactor_failure_thanks" );
+			break;
+	}
+	
+	iPilotSetup.GenericCoward( ship_ );
+	group = Group.Create();
+	Group.AddSim( group, ship_ );
+	Task.Detach( start local_function_8( group, mapentity_ ) );
+}
+
+set local_function_12( hlagrangepoint lagrangepoint_ )
+{
+	set localSet;
+	string name;
+	
+	if ( !iLagrangePoint.Interstellar( lagrangepoint_ ) )
+	{
+		return localSet;
+	}
+	
+	name = iSim.WorldName( lagrangepoint_ );
+	
+	if ( name == "map:/geog/gagarin/batatas" )
+	{
+		debug Debug.PrintString( "iAct3.get_interstellar_destination_l_points: Getting for Batatas.\n" );
+		Set.Add( localSet, GetInterstellarLPointIn( "map:/geog/gagarin/formhault" ) );
+	}
+	else if ( name == "map:/geog/gagarin/drake" )
+	{
+		debug Debug.PrintString( "iAct3.get_interstellar_destination_l_points: Getting for Drake.\n" );
+		Set.Add( localSet, GetInterstellarLPointIn( "map:/geog/gagarin/new_bavaria" ) );
+		Set.Add( localSet, GetInterstellarLPointIn( "map:/geog/gagarin/formhault" ) );
+		Set.Add( localSet, GetInterstellarLPointIn( "map:/geog/gagarin/ishime" ) );
+	}
+	else if ( name == "map:/geog/gagarin/formhault" )
+	{
+		debug Debug.PrintString( "iAct3.get_interstellar_destination_l_points: Getting for Formhault.\n" );
+		Set.Add( localSet, GetInterstellarLPointIn( "map:/geog/gagarin/drake" ) );
+		Set.Add( localSet, GetInterstellarLPointIn( "map:/geog/gagarin/osprey" ) );
+		Set.Add( localSet, GetInterstellarLPointIn( "map:/geog/gagarin/batatas" ) );
+	}
+	else if ( name == "map:/geog/gagarin/ishime" )
+	{
+		debug Debug.PrintString( "iAct3.get_interstellar_destination_l_points: Getting for Ishime.\n" );
+		Set.Add( localSet, GetInterstellarLPointIn( "map:/geog/gagarin/drake" ) );
+		Set.Add( localSet, GetInterstellarLPointIn( "map:/geog/gagarin/owens_star" ) );
+	}
+	else if ( name == "map:/geog/gagarin/new_bavaria" )
+	{
+		debug Debug.PrintString( "iAct3.get_interstellar_destination_l_points: Getting for New Bavaria.\n" );
+		Set.Add( localSet, GetInterstellarLPointIn( "map:/geog/gagarin/drake" ) );
+		Set.Add( localSet, GetInterstellarLPointIn( "map:/geog/gagarin/osprey" ) );
+	}
+	else if ( name == "map:/geog/gagarin/osprey" )
+	{
+		debug Debug.PrintString( "iAct3.get_interstellar_destination_l_points: Getting for Osprey.\n" );
+		Set.Add( localSet, GetInterstellarLPointIn( "map:/geog/gagarin/new_bavaria" ) );
+		Set.Add( localSet, GetInterstellarLPointIn( "map:/geog/gagarin/formhault" ) );
+		Set.Add( localSet, GetInterstellarLPointIn( "map:/geog/gagarin/owens_star" ) );
+	}
+	else if ( name == "map:/geog/gagarin/owens_star" )
+	{
+		debug Debug.PrintString( "iAct3.get_interstellar_destination_l_points: Getting for Owen's Star.\n" );
+		Set.Add( localSet, GetInterstellarLPointIn( "map:/geog/gagarin/ishime" ) );
+		Set.Add( localSet, GetInterstellarLPointIn( "map:/geog/gagarin/osprey" ) );
+	}
+	else debug Debug.PrintString( "iAct3.get_interstellar_destination_l_points: Called from outside gagarin cluster.\n" );
+	
+	return localSet;
+}
+
+hmapentity GetInterstellarLPointIn( string system_ )
+{
+	hmapentity mapentity = none;
+	
+	if ( system_ == "map:/geog/gagarin/batatas" )
+	{
+		mapentity = iMapEntity.FindByNameInSystem( "Kraken L-Point", system_ );
+	}
+	else if ( system_ == "map:/geog/gagarin/drake" )
+	{
+		mapentity = iMapEntity.FindByNameInSystem( "St Petersburg L-Point", system_ );
+	}
+	else if ( system_ == "map:/geog/gagarin/formhault" )
+	{
+		mapentity = iMapEntity.FindByNameInSystem( "Christmas L-Point", system_ );
+	}
+	else if ( system_ == "map:/geog/gagarin/ishime" )
+	{
+		mapentity = iMapEntity.FindByNameInSystem( "Haitsuchi L-Point", system_ );
+	}
+	else if ( system_ == "map:/geog/gagarin/new_bavaria" )
+	{
+		mapentity = iMapEntity.FindByNameInSystem( "Pepin L-Point", system_ );
+	}
+	else if ( system_ == "map:/geog/gagarin/osprey" )
+	{
+		mapentity = iMapEntity.FindByNameInSystem( "Vedas L-Point", system_ );
+	}
+	else if ( system_ == "map:/geog/gagarin/owens_star" )
+	{
+		mapentity = iMapEntity.FindByNameInSystem( "Marshall System L-Point", system_ );
+	}
+	else
+	{
+		debug Debug.PrintString( "iAct3.get_interstellar_l_point_in: called for outside gagarin cluster.\n" );
+		mapentity = none;
+	}
+	
+	if ( mapentity == false )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iAct3.get_interstellar_l_point_in: Can't find interstellar l-point for:" );
+			Debug.PrintString( system_ );
+			Debug.PrintString( ".\n" );
+		}
+	}
+	
+	return none;
+}
+
+hisim local_function_11( hsim param_0_, hisim param_1_ )
+{
+	float local_0;
+	float local_1;
+	set localSet;
+	hisim local_3;
+	
+	local_0 = ( Sim.DistanceBetweenCentres( param_0_, param_1_ ) / 9.0 );
+	local_3 = iSim.Cast( iUtilities.CreateWaypointAt( param_0_ ) );
+	
+	for ( local_1 = 0.0; local_1 < 9.0; local_1 = ( local_1 + 1.0 ) )
+	{
+		Sim.PlaceBetween( local_3, param_0_, param_1_, local_1 / 9.0 );
+		localSet = iSim.SimsInRadius( local_3, local_0, 536870912 );
+		
+		if ( !Set.IsEmpty( localSet ) )
+		{
+			Sim.Destroy( local_3 );
+			return iSim.Cast( Set.FirstElement( localSet ) );
+		}
+	}
+	
+	Sim.Destroy( local_3 );
+	return none;
+}
+
+task pillager_retreat_orders( hgroup group_, hmapentity mapentity_ )
+{
+	hstate taskState;
+	hship playerShip = iShip.FindPlayerShip();
+	int ii;
+	int simCount = Group.SimCount( group_ );
+	list localList_0;
+	list localList_1;
+	list localList_2;
+	hisim local_7 = none;
+	hship ship_0;
+	hship ship_1;
+	hship ship_2;
+	hship groupLeader;
+	float distance;
+	hfaction police = iFaction.Find( "Police" );
+	hfaction navy = iFaction.Find( "Navy" );
+	
+	taskState = State.Find( Task.Current() );
+	
+	if ( taskState == false )
+	{
+		taskState = State.Create( Task.Current(), 0 );
+	}
+	
+	Global.SetInt( "g_total_refugees_running", Global.Int( "g_total_refugees_running" ) + simCount );
+	
+	schedule
+	{
+		every 5.0:
+		{
+			if ( ((Sim.DistanceBetween( playerShip, Group.Leader( group_ ) ) > 25000000.0) && (Sim.DistanceBetween( Group.Leader( group_ ), mapentity_ ) > 25000000.0)) || (Group.SimCount( group_ ) < 1) )
+			{
+				State.SetProgress( taskState, 5 );
+			}
+			
+			switch ( State.Progress( taskState ) )
+			{
+				case 0:
+					groupLeader = iShip.Cast( Group.Leader( group_ ) );
+					localList_1 = List.FromSet( iSim.SimsInRadius( groupLeader, 125000.0, 500170752 ) );
+					ship_1 = none;
+					
+					for ( ii = 0; ii < List.ItemCount( localList_1 ); ++ii )
+					{
+						ship_2 = iShip.Cast( List.GetNth( localList_1, ii ) );
+						
+						if ( (iSim.Faction( ship_2 ) == police) || (iSim.Faction( ship_2 ) == navy) )
+						{
+							ship_1 = ship_2;
+							State.SetProgress( taskState, 4 );
+							iAI.GiveFleeOrder( group_, ship_1 );
+							break;
+						}
+					}
+					
+					if ( ship_1 == false )
+					{
+						localList_0 = List.FromSet( iSim.SimsInRadius( groupLeader, 125000.0, 34340864 ) );
+						
+						if ( List.IsEmpty( localList_0 ) )
+						{
+							State.SetProgress( taskState, 1 );
+						}
+						else
+						{
+							ship_0 = iShip.Cast( List.Head( localList_0 ) );
+							distance = Sim.DistanceBetween( groupLeader, ship_0 );
+							
+							for ( ii = 1; ii < List.ItemCount( localList_0 ); ++ii )
+							{
+								ship_2 = iShip.Cast( List.GetNth( localList_0, ii ) );
+								
+								if ( Sim.DistanceBetween( groupLeader, ship_2 ) < distance )
+								{
+									ship_0 = ship_2;
+									distance = Sim.DistanceBetween( playerShip, ship_2 );
+								}
+							}
+							
+							iAI.GiveAttackOrder( group_, ship_0 );
+							State.SetProgress( taskState, 2 );
+						}
+					}
+					
+					break;
+				
+				case 1:
+					if ( local_7 == false )
+					{
+						localList_2 = List.FromSet( iSim.NonPlanetaryInRadius( iSim.Cast( Group.Leader( group_ ) ), 49999998976.0 ) );
+						
+						if ( List.IsEmpty( localList_2 ) )
+						{
+							localList_2 = List.FromSet( iMapEntity.SystemHabitats() );
+						}
+						
+						local_7 = iSim.Cast( List.GetNth( localList_2, Math.RandomInt( 1, List.ItemCount( localList_2 ) ) - 1 ) );
+						ship_1 = iShip.Cast( local_function_11( Group.Leader( group_ ), local_7 ) );
+						
+						if ( ship_1 != false )
+						{
+							iAI.GiveApproachOrder( group_, local_7 );
+						}
+						else
+						{
+							iAI.GiveFleeOrder( group_, ship_1 );
+							local_7 = none;
+							State.SetProgress( taskState, 4 );
+						}
+					}
+					
+					if ( Sim.DistanceBetween( Group.Leader( group_ ), local_7 ) < 50000.0 )
+					{
+						local_7 = none;
+						State.SetProgress( taskState, 0 );
+					}
+					
+					break;
+				
+				case 2:
+					if ( Sim.IsDead( ship_0 ) )
+					{
+						State.SetProgress( taskState, 0 );
+					}
+					else for ( ii = 0; ii < Group.SimCount( group_ ); ++ii )
+					{
+						if ( iShip.Attacked( iShip.Cast( Group.NthSim( group_, ii ) ) ) )
+						{
+							iAI.GiveAttackOrder( group_, iShip.LastAttacker( iShip.Cast( Group.NthSim( group_, ii ) ) ) );
+							State.SetProgress( taskState, 3 );
+						}
+					}
+					
+					break;
+				
+				case 3:
+					if ( Sim.IsDead( ship_1 ) )
+					{
+						State.SetProgress( taskState, 0 );
+					}
+					else for ( ii = 0; ii < Group.SimCount( group_ ); ++ii )
+					{
+						if ( iUtilities.ReturnHullStructure( Group.NthSim( group_, ii ) ) < 0.50 )
+						{
+							iAI.GiveFleeOrder( group_, ship_1 );
+							State.SetProgress( taskState, 4 );
+						}
+					}
+					
+					break;
+				
+				case 4:
+					if ( Sim.DistanceBetween( Group.Leader( group_ ), ship_1 ) > 500000.0 )
+					{
+						State.SetProgress( taskState, 0 );
+					}
+					
+					break;
+				
+				case 5:
+					Group.Destroy( group_, true );
+					Global.SetInt( "g_total_refugees_running", Global.Int( "g_total_refugees_running" ) - simCount );
+					return;
+			}
+		}
+	}
+}
+
+task police_retreat_orders( hgroup group_, hmapentity mapentity_ )
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	float local_2;
+	float local_3;
+	hfaction police = iFaction.Find( "Police" );
+	hship ship_0;
+	hship ship_1;
+	hship playerShip = iShip.FindPlayerShip();
+	hship groupLeader = iShip.Cast( Group.Leader( group_ ) );
+	hisim local_9;
+	hisim local_10;
+	hstate taskState;
+	int simCount = Group.SimCount( group_ );
+	int ii;
+	list localList_0;
+	list localList_1;
+	set localSet;
+	
+	taskState = State.Find( Task.Current() );
+	
+	if ( taskState == false )
+	{
+		taskState = State.Create( Task.Current(), 6 );
+	}
+	
+	for ( ii = 0; ii < Group.SimCount( group_ ); ++ii )
+	{
+		Object.SetIntProperty( Group.NthSim( group_, ii ), "ignore_speed_limit", 1 );
+	}
+	
+	Global.SetInt( "g_total_refugees_running", Global.Int( "g_total_refugees_running" ) + simCount );
+	
+	schedule
+	{
+		every 7.0:
+		{
+			if ( Sim.IsDead( groupLeader ) )
+			{
+				groupLeader = iShip.Cast( Group.Leader( group_ ) );
+				iFormation.Goose( group_, 150.0, false );
+			}
+			
+			if ( (Sim.DistanceBetween( groupLeader, playerShip ) > 200000000.0) && (Sim.DistanceBetween( groupLeader, mapentity_ ) > 25000000.0) )
+			{
+				if ( Math.Random( 0.0, 1.0 ) < 0.050 )
+				{
+					State.SetProgress( taskState, 13 );
+				}
+			}
+			
+			if ( Group.SimCount( group_ ) < 1 )
+			{
+				State.SetProgress( taskState, 13 );
+			}
+			
+			switch ( State.Progress( taskState ) )
+			{
+				case 10:
+					if ( local_10 == false )
+					{
+						localList_1 = List.FromSet( iMapEntity.SystemHabitatsInSystem( iSim.WorldName( groupLeader ) ) );
+						local_10 = iSim.Cast( List.GetNth( localList_1, Math.RandomInt( 0, List.ItemCount( localList_1 ) - 1 ) ) );
+						iFormation.Goose( group_, 150.0, false );
+						iAI.GiveApproachOrder( local_10, groupLeader );
+					}
+					
+					if ( iAI.IsOrderComplete( groupLeader ) )
+					{
+						local_10 = none;
+						State.SetProgress( taskState, 6 );
+					}
+					
+					break;
+				
+				case 11:
+					local_1 = true;
+					
+					if ( Sim.DistanceBetween( groupLeader, playerShip ) < 30000.0 )
+					{
+						local_0 = local_function_13( group_, taskState );
+					}
+					
+					break;
+				
+				case 8:
+					if ( iAI.IsOrderComplete( groupLeader ) )
+					{
+						State.SetProgress( taskState, 6 );
+					}
+					
+					break;
+				
+				case 9:
+					if ( Sim.DistanceBetween( groupLeader, local_9 ) > 5000000.0 )
+					{
+						State.SetProgress( taskState, 6 );
+					}
+					
+					break;
+				
+				case 12:
+					if ( Math.Random( 0.0, 1.0 ) < 0.050 )
+					{
+						State.SetProgress( taskState, 6 );
+					}
+					
+					break;
+				
+				case 13:
+					Group.Destroy( group_, true );
+					Global.SetInt( "g_total_refugees_running", Global.Int( "g_total_refugees_running" ) - simCount );
+					return;
+			}
+			
+			if ( State.Progress( taskState ) == 6 )
+			{
+				if ( !Set.IsEmpty( iSim.SimsInRadius( groupLeader, 1000000.0, 536870912 ) ) )
+				{
+					local_9 = iSim.Cast( Set.FirstElement( iSim.SimsInRadius( groupLeader, 1000000.0, 536870912 ) ) );
+					iAI.GiveFleeOrder( groupLeader, local_9 );
+					State.SetProgress( taskState, 9 );
+				}
+				else if ( local_0 && (Sim.DistanceBetween( groupLeader, playerShip ) < 50000.0) )
+				{
+					iConversation.OneLiner( groupLeader, "", "a3_master_dialogue_police_2_i_told_you_to_go" );
+					iAI.GiveAttackOrder( group_, playerShip );
+					State.SetProgress( taskState, 8 );
+				}
+				else
+				{
+					localSet = iSim.ShipsInRadius( groupLeader, 100000.0 );
+					localList_0 = List.FromSet( localSet );
+					
+					for ( ii = 0; ii < List.ItemCount( localList_0 ); ++ii )
+					{
+						ship_0 = iShip.Cast( List.GetNth( localList_0, ii ) );
+						
+						debug atomic
+						{
+							Debug.PrintString( "iAct3.Police: Checking ship: " );
+							Debug.PrintHandle( ship_0 );
+							Debug.PrintString( ".\n" );
+						}
+						
+						if ( iShip.Attacked( ship_0 ) )
+						{
+							debug Debug.PrintString( " - Is attacked\n" );
+							ship_1 = iShip.Cast( iShip.LastAttacker( ship_0 ) );
+							
+							if ( Set.Contains( localSet, ship_1 ) )
+							{
+								debug Debug.PrintString( " - Set contains attacker\n" );
+								
+								if ( !iShip.HasFired( ship_0 ) )
+								{
+									iAI.GiveAttackOrder( group_, ship_1 );
+								}
+								else
+								{
+									local_3 = iFaction.Feeling( police, iSim.Faction( ship_0 ) );
+									local_2 = iFaction.Feeling( police, iSim.Faction( ship_1 ) );
+									
+									if ( local_3 == local_2 )
+									{
+										if ( iSim.Type( ship_0 ) & 36438016 )
+										{
+											if ( (iSim.Type( ship_1 ) & 36438016) && (Math.Random( 0.0, 1.0 ) < 0.50) )
+											{
+												iAI.GiveAttackOrder( group_, ship_0 );
+											}
+											else
+											{
+												iAI.GiveAttackOrder( group_, ship_1 );
+											}
+										}
+										else if ( !( iSim.Type( ship_1 ) & 36438016 ) && (Math.Random( 0.0, 1.0 ) < 0.50) )
+										{
+											iAI.GiveAttackOrder( group_, ship_0 );
+										}
+										else
+										{
+											iAI.GiveAttackOrder( group_, ship_1 );
+										}
+									}
+									else if ( local_3 > local_2 )
+									{
+										iAI.GiveAttackOrder( group_, ship_1 );
+									}
+									else
+									{
+										iAI.GiveAttackOrder( group_, ship_0 );
+									}
+								}
+								
+								State.SetProgress( taskState, 8 );
+								break;
+							}
+						}
+					}
+					
+					if ( State.Progress( taskState ) == 6 )
+					{
+						if ( !local_1 && ((Sim.DistanceBetween( groupLeader, playerShip ) < 50000.0) && (Math.Random( 0.0, 1.0 ) < 0.40)) )
+						{
+							iAI.GiveApproachOrder( groupLeader, playerShip );
+							State.SetProgress( taskState, 11 );
+						}
+						else if ( !List.IsEmpty( localList_0 ) && (Math.Random( 0.0, 1.0 ) < 0.40) )
+						{
+							ship_0 = iShip.Cast( List.GetNth( localList_0, Math.RandomInt( 0, List.ItemCount( localList_0 ) - 1 ) ) );
+							iAI.GiveFormateOrder( groupLeader, ship_0, 0.0, 0.0, -500.0 );
+							State.SetProgress( taskState, 12 );
+						}
+						else
+						{
+							State.SetProgress( taskState, 10 );
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+bool local_function_13( hgroup group_, hstate state_ )
+{
+	hship playerShip = iShip.FindPlayerShip();
+	hship groupLeader = iShip.Cast( Group.Leader( group_ ) );
+	bool local_2 = false;
+	int convoResponse;
+	
+	iConversation.Begin();
+	iConversation.AddResponse( "a3_master_text_cal_police_1_im_cal", "a3_master_dialogue_cal_police_1_im_cal" );
+	iConversation.AddResponse( "a3_master_text_cal_police_1_im_moonspike", "a3_master_dialogue_cal_police_1_im_moonspike" );
+	iConversation.AddResponse( "a3_master_text_cal_police_1_just_passing_through", "a3_master_dialogue_cal_police_1_just_passing_through" );
+	
+	if ( Global.Bool( "g_evacuate_through_accelerator" ) )
+	{
+		iConversation.AddResponse( "a3_master_text_cal_police_1_errand_for_hoffer", "a3_master_dialogue_cal_police_1_errand_for_hoffer" );
+	}
+	
+	convoResponse = iConversation.Ask( groupLeader, "", "a3_master_dialogue_police_1_state_your_name_and_business" );
+	
+	switch ( convoResponse )
+	{
+		case 1:
+			switch ( Math.RandomInt( 1, 4 ) )
+			{
+				case 1:
+					iConversation.Say( groupLeader, "", "a3_master_dialogue_police_1_sorry_sir" );
+					State.SetProgress( state_, 6 );
+					break;
+				
+				case 2:
+					iConversation.Say( groupLeader, "", "a3_master_dialogue_police_1_sure_i_have_pirate" );
+					iAI.GiveAttackOrder( group_, playerShip );
+					State.SetProgress( state_, 8 );
+					break;
+				
+				case 3:
+				case 4:
+					iConversation.AddResponse( "a3_master_text_cal_police_1_yes", "a3_master_dialogue_cal_police_1_yes" );
+					iConversation.AddResponse( "a3_master_text_cal_police_1_doesnt_matter_im_harmless", "a3_master_dialogue_cal_police_1_doesnt_matter_im_harmless" );
+					convoResponse = iConversation.Ask( groupLeader, "", "a3_master_dialogue_police_1_no_i_havent" );
+					
+					switch ( convoResponse )
+					{
+						case 1:
+							iConversation.AddResponse( "a3_master_text_cal_police_1_ok", "a3_master_dialogue_cal_police_1_ok" );
+							iConversation.AddResponse( "a3_master_text_cal_police_1_screw_you", "a3_master_dialogue_cal_police_1_screw_you" );
+							convoResponse = iConversation.Ask( groupLeader, "", "a3_master_dialogue_police_1_dont_take_that_tone" );
+							
+							switch ( convoResponse )
+							{
+								case 1:
+									iConversation.Say( groupLeader, "", "a3_master_dialogue_police_1_smart_choice" );
+									local_2 = true;
+									State.SetProgress( state_, 10 );
+									break;
+								
+								case 2:
+									iConversation.Say( groupLeader, "", "a3_master_dialogue_police_1_as_you_please_punk" );
+									iAI.GiveAttackOrder( group_, playerShip );
+									break;
+							}
+							
+							break;
+						
+						case 2:
+							iConversation.Say( groupLeader, "", "a3_master_dialogue_police_1_hmm_alright" );
+							break;
+					}
+					
+					break;
+			}
+			
+			break;
+		
+		case 2:
+			switch ( Math.RandomInt( 1, 4 ) )
+			{
+				case 1:
+					iConversation.Say( groupLeader, "", "a3_master_dialogue_police_1_wow_my_sons_a_fan" );
+					State.SetProgress( state_, 6 );
+					break;
+				
+				case 2:
+					iConversation.Say( groupLeader, "", "a3_master_dialogue_police_1_my_wifes_a_fan_but" );
+					State.SetProgress( state_, 6 );
+					break;
+				
+				case 3:
+				case 4:
+					iConversation.AddResponse( "a3_master_text_cal_police_1_its_cal", "a3_master_dialogue_cal_police_1_its_cal" );
+					iConversation.AddResponse( "a3_master_text_cal_police_1_im_miguel", "a3_master_dialogue_cal_police_1_im_miguel" );
+					convoResponse = iConversation.Ask( groupLeader, "", "a3_master_dialogue_police_1_nice_try_punk" );
+					
+					switch ( convoResponse )
+					{
+						case 1:
+							switch ( Math.RandomInt( 1, 3 ) )
+							{
+								case 1:
+									iConversation.Say( groupLeader, "", "a3_master_dialogue_police_1_the_cal_johnston" );
+									State.SetProgress( state_, 6 );
+									break;
+								
+								case 2:
+									iConversation.AddResponse( "a3_master_text_cal_police_1_i_am_cal", "a3_master_dialogue_cal_police_1_i_am_cal" );
+									iConversation.AddResponse( "a3_master_text_cal_police_1_im_better_than_you_too", "a3_master_dialogue_cal_police_1_im_better_than_you_too" );
+									iConversation.AddResponse( "a3_master_text_cal_police_1_im_miguel", "a3_master_dialogue_cal_police_1_im_miguel" );
+									convoResponse = iConversation.Ask( groupLeader, "", "a3_master_dialogue_police_1_cal_johnston_never" );
+									
+									switch ( convoResponse )
+									{
+										case 1:
+											iConversation.Say( groupLeader, "", "a3_master_dialogue_police_1_well_i_gave_you_a_chance" );
+											iAI.GiveAttackOrder( group_, playerShip );
+											State.SetProgress( state_, 8 );
+											break;
+										
+										case 2:
+											if ( Math.Random( 0.0, 1.0 ) < 0.40 )
+											{
+												iConversation.Say( groupLeader, "", "a3_master_dialogue_police_1_you_really_are_cal" );
+												State.SetProgress( state_, 10 );
+											}
+											else
+											{
+												iConversation.Say( groupLeader, "", "a3_master_dialogue_police_1_really_lets_test_that" );
+												iAI.GiveAttackOrder( group_, playerShip );
+												State.SetProgress( state_, 8 );
+											}
+											
+											break;
+										
+										case 3:
+											iConversation.Say( groupLeader, "", "a3_master_dialogue_police_1_at_last_a_little_sense" );
+											State.SetProgress( state_, 6 );
+											break;
+									}
+									
+									break;
+								
+								case 3:
+									iConversation.Say( groupLeader, "", "a3_master_dialogue_police_1_at_last_a_little_sense" );
+									State.SetProgress( state_, 6 );
+									break;
+							}
+							
+							break;
+						
+						case 2:
+							iConversation.Say( groupLeader, "", "a3_master_dialogue_police_1_at_last_a_little_sense" );
+							State.SetProgress( state_, 6 );
+							break;
+					}
+					
+					break;
+			}
+			
+			break;
+		
+		case 3:
+			iConversation.AddResponse( "a3_master_text_cal_police_1_maybe_but_its_no_crime", "a3_master_dialogue_cal_police_1_maybe_but_its_no_crime" );
+			iConversation.AddResponse( "a3_master_text_cal_police_1_no_ive_just_got_business", "a3_master_dialogue_cal_police_1_no_ive_just_got_business" );
+			convoResponse = iConversation.Ask( groupLeader, "", "a3_master_dialogue_police_1_just_passing_through_in_this" );
+			
+			switch ( convoResponse )
+			{
+				case 1:
+					if ( Math.Random( 0.0, 1.0 ) < 0.50 )
+					{
+						iConversation.Say( groupLeader, "", "a3_master_dialogue_police_1_well_i_suppose_youre_not_causing_any_trouble" );
+					}
+					else
+					{
+						iConversation.Say( groupLeader, "", "a3_master_dialogue_police_1_true_enough" );
+					}
+					
+					State.SetProgress( state_, 6 );
+					break;
+				
+				case 2:
+					switch ( Math.RandomInt( 1, 3 ) )
+					{
+						case 1:
+							iConversation.Say( groupLeader, "", "a3_master_dialogue_police_1_well_i_suppose_youre_not_causing_any_trouble" );
+							break;
+						
+						case 2:
+							iConversation.Say( groupLeader, "", "a3_master_dialogue_police_1_as_i_said_crazy" );
+							break;
+						
+						case 3:
+							iConversation.Say( groupLeader, "", "a3_master_dialogue_police_1_i_wish_i_could" );
+							break;
+					}
+					
+					State.SetProgress( state_, 6 );
+					break;
+			}
+			
+			break;
+		
+		case 4:
+			if ( Math.Random( 0.0, 1.0 ) < 0.50 )
+			{
+				iConversation.Say( groupLeader, "", "a3_master_dialogue_police_1_good_luck_mate" );
+			}
+			else
+			{
+				iConversation.Say( groupLeader, "", "a3_master_dialogue_police_1_you_are_welcome_here" );
+			}
+			
+			State.SetProgress( state_, 6 );
+			break;
+	}
+	
+	iConversation.End();
+	return local_2;
+}
+
+set local_function_5( hlagrangepoint lagrangepoint_ )
+{
+	set lagrangePoints = iMapEntity.SystemLagrangePointsInSystem( iSim.WorldName( lagrangepoint_ ) );
+	
+	Set.Remove( lagrangePoints, lagrangepoint_ );
+	
+	if ( !iLagrangePoint.Interstellar( lagrangepoint_ ) )
+	{
+		return lagrangePoints;
+	}
+	
+	Set.Union( lagrangePoints, local_function_12( lagrangepoint_ ) );
+	return lagrangePoints;
+}
+
+local_function_4( hlagrangepoint lagrangepoint_, int param_1_, bool param_2_, int param_3_ )
+{
+	int local_0;
+	int local_1;
+	int local_2;
+	
+	if ( lagrangepoint_ == false )
+	{
+		debug Debug.PrintString( "iAct3.generate_flavour_for_l_point: Passed Null L-point.\n" );
+		return;
+	}
+	
+	if ( local_function_1( iSim.WorldName( lagrangepoint_ ) ) <= param_1_ )
+	{
+		if ( !( iSim.WorldName( lagrangepoint_ ) == iSim.ActiveWorld() ) || iLagrangePoint.Interstellar( lagrangepoint_ ) )
+		{
+			if ( param_2_ )
+			{
+				local_0 = 15;
+			}
+			else
+			{
+				local_0 = 3;
+			}
+			
+			local_2 = 10000;
+		}
+		else
+		{
+			if ( param_2_ )
+			{
+				local_0 = 3;
+			}
+			else
+			{
+				local_0 = 1;
+			}
+			
+			local_2 = 999;
+		}
+	}
+	else if ( !( iSim.WorldName( lagrangepoint_ ) == iSim.ActiveWorld() ) || iLagrangePoint.Interstellar( lagrangepoint_ ) )
+	{
+		if ( param_2_ )
+		{
+			local_0 = 3;
+		}
+		else
+		{
+			local_0 = 1;
+		}
+		
+		local_2 = 10000;
+	}
+	else
+	{
+		local_0 = 1;
+		local_2 = 999;
+	}
+	
+	local_1 = ( local_0 - Set.ItemCount( iSim.SimsInRadius( lagrangepoint_, 75000.0, 536838144 ) ) );
+	
+	if ( (local_1 + Global.Int( "g_total_refugees_running" )) > param_3_ )
+	{
+		local_1 = ( param_3_ - Global.Int( "g_total_refugees_running" ) );
+	}
+	
+	if ( local_1 > 0 )
+	{
+		debug Debug.PrintString( "iAct3.generate_flavour_at_l_point: Creating " );
+		debug Debug.PrintString( String.FromInt( local_1 ) );
+		debug Debug.PrintString( String.Join( " from ", String.FromInt( local_0 ) ) );
+		debug Debug.PrintString( " at " );
+		debug Debug.PrintHandle( lagrangepoint_ );
+		debug Debug.PrintString( "\n" );
+		
+		do
+		{
+			local_1 = ( local_1 - local_function_3( lagrangepoint_, local_function_2( lagrangepoint_ ), local_2 ) );
+		}
+		while ( local_1 > 0 );
+		
+		return;
+	}
+	
+	debug Debug.PrintString( "iAct3.Event3_30: No free slots after capping at " );
+	debug Debug.PrintHandle( lagrangepoint_ );
+	debug Debug.PrintString( ".\n" );
+}
+
+int local_function_2( hmapentity mapentity_ )
+{
+	float local_0;
+	float local_1;
+	float local_2;
+	float local_3;
+	float local_4;
+	float local_5;
+	float local_6;
+	float local_7;
+	float local_8;
+	float random;
+	
+	if ( iHabitat.Cast( mapentity_ ) != false )
+	{
+		local_0 = 0.20;
+		local_1 = 0.60;
+		local_2 = 0.10;
+		local_3 = 0.40;
+		local_4 = 0.30;
+		local_5 = 0.20;
+		local_6 = 0.40;
+		local_7 = 0.10;
+	}
+	else
+	{
+		local_0 = 0.20;
+		local_1 = 0.60;
+		local_2 = 0.10;
+		local_3 = 0.40;
+		local_4 = 0.30;
+		local_5 = 0.20;
+		local_6 = 0.40;
+		local_7 = 0.10;
+	}
+	
+	local_8 = ( local_0 + (local_1 + (local_2 + (local_3 + (local_4 + (local_7 + (local_5 + local_6)))))) );
+	random = Math.Random( 0.0, local_8 );
+	
+	if ( random <= local_0 )
+	{
+		debug Debug.PrintString( "iAct3.get_retreat_type: Returning 'Armed'\n" );
+		return 0;
+	}
+	
+	random = ( random - local_0 );
+	
+	if ( random <= local_1 )
+	{
+		debug Debug.PrintString( "iAct3.get_retreat_type: Returning 'Civilian'\n" );
+		return 1;
+	}
+	
+	random = ( random - local_1 );
+	
+	if ( random <= local_2 )
+	{
+		debug Debug.PrintString( "iAct3.get_retreat_type: Returning 'Mining'\n" );
+		return 2;
+	}
+	
+	random = ( random - local_2 );
+	
+	if ( random <= local_3 )
+	{
+		debug Debug.PrintString( "iAct3.get_retreat_type: Returning 'Pillager'\n" );
+		return 3;
+	}
+	
+	random = ( random - local_3 );
+	
+	if ( random <= local_4 )
+	{
+		debug Debug.PrintString( "iAct3.get_retreat_type: Returning 'Police'\n" );
+		return 4;
+	}
+	
+	random = ( random - local_4 );
+	
+	if ( random <= local_7 )
+	{
+		debug Debug.PrintString( "iAct3.get_retreat_type: Returning 'Stranded'\n" );
+		return 7;
+	}
+	
+	random = ( random - local_7 );
+	
+	if ( random <= local_5 )
+	{
+		debug Debug.PrintString( "iAct3.get_retreat_type: Returning 'Tanker'\n" );
+		return 5;
+	}
+	
+	debug Debug.PrintString( "iAct3.get_retreat_type: Returning 'Trade'\n" );
+	return 6;
+}
+

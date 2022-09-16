@@ -1,0 +1,256 @@
+package iMissionGeneratorSelector;
+
+uses Debug,
+     String,
+     Set,
+     List,
+     Global,
+     INIFile,
+     Math;
+
+provides test,
+         Select;
+
+enum IeMissionStatus
+{
+	MS_Available = 0x00000000,
+	MS_TeaserSent = 0x00000001,
+	MS_InProgress = 0x00000002,
+	MS_Completed = 0x00000003,
+	MS_NotAvailable = 0x00000004
+};
+
+prototype hinifile local_function_0( hinifile inifile_, string param_1_, int param_2_ );
+prototype local_function_1( hinifile inifile_ );
+prototype Select();
+prototype test();
+
+hinifile local_function_0( hinifile inifile_, string param_1_, int param_2_ )
+{
+	string local_0 = INIFile.NumberedString( inifile_, param_1_, "mission", param_2_, "INVALID" );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGeneratorSelector.ini_for_mission - STARTED\n" );
+		Debug.PrintString( "iMissionGeneratorSelector.ini_for_mission - Act: " );
+		Debug.PrintString( param_1_ );
+		Debug.PrintString( " Mission: " );
+		Debug.PrintString( local_0 );
+		Debug.PrintString( "\n" );
+	}
+	
+	debug Debug.PrintString( "iMissionGeneratorSelector.ini_for_mission - COMPLETED\n" );
+	return INIFile.Create( local_0 );
+}
+
+local_function_1( hinifile inifile_ )
+{
+	debug Debug.PrintString( "iMissionGeneratorSelector.send_teaser - STARTED\n" );
+	debug Debug.PrintString( "iMissionGeneratorSelector.send_teaser - COMPLETED\n" );
+}
+
+Select()
+{
+	hinifile inifile_0 = INIFile.Create( "INI:/mission_directory" );
+	hinifile inifile_1;
+	string local_2;
+	string local_3 = String.Join( "GeneratedMissionListAct", String.FromInt( Global.Int( "g_current_act" ) ) );
+	int gGeneratedNumberOfMissions = Global.Int( "g_generated_number_of_missions" );
+	int local_5;
+	int random;
+	
+	debug Debug.PrintString( "iMissionGeneratorSelector.Select: STARTED\n" );
+	
+	if ( inifile_0 == false )
+	{
+		debug Debug.PrintString( "iMissionGeneratorSelector.Select: TERMINATED - ERROR: null mission list inifile.\n" );
+		return;
+	}
+	
+	if ( Global.Int( "g_generated_missions_running" ) >= Global.Int( "g_generated_max_number_of_missions" ) )
+	{
+		debug
+		{
+			debug Debug.Error( "iMissionGeneratorSelector.Select: TERMINATED - Max number of missions already running." );
+		}
+		return;
+	}
+	
+	if ( !Global.Exists( "g_generated_mission_chance" ) )
+	{
+		debug Debug.Error( "iMissionGeneratorSelector.Select: Mission chance global does not exist! " );
+		return;
+	}
+	
+	if ( Math.RandomInt( 1, 100 ) > Global.Int( "g_generated_mission_chance" ) )
+	{
+		debug
+		{
+			Debug.PrintInt( Global.Int( "g_generated_mission_chance" ) );
+			Debug.PrintString( "iMissionGeneratorSelector.Select: TERMINATED - Out of luck! Sorry, no mission this time! Try again.\n" );
+		}
+		
+		return;
+	}
+	
+	random = Math.RandomInt( 0, gGeneratedNumberOfMissions - 1 );
+	local_5 = random;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGeneratorSelector.Select: Total number of missions available = " );
+		Debug.PrintInt( gGeneratedNumberOfMissions );
+		Debug.PrintString( "\n" );
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGeneratorSelector.Select: Start Count = " );
+		Debug.PrintInt( random );
+		Debug.PrintString( "\n" );
+	}
+	
+	do
+	{
+		local_2 = String.Join( "g_generated_mission_", String.FromInt( random ) );
+		
+		debug atomic
+		{
+			Debug.PrintString( "iMissionGeneratorSelector.Select: Checking Mission " );
+			Debug.PrintString( local_2 );
+			Debug.PrintString( "\n" );
+		}
+		
+		switch ( Global.Int( local_2 ) )
+		{
+			case 0:
+				debug Debug.PrintString( "iMissionGeneratorSelector.Select: Mission is available.\n" );
+				random = local_5;
+				inifile_1 = local_function_0( inifile_0, local_3, random );
+				
+				if ( inifile_1 == false )
+				{
+					debug Debug.PrintString( "iMissionGeneratorSelector.Select: INVALID MISSION HANDLE - ABORTING\n" );
+					debug Debug.PrintString( "iMissionGeneratorSelector.Select: TERMINATED\n" );
+					return;
+				}
+				
+				if ( 1 )
+				{
+					debug Debug.PrintString( "iMissionGeneratorSelector.Select:  Mission not met. Checking for teaser... \n" );
+					local_function_1( inifile_1 );
+					Global.SetInt( local_2, 1 );
+					INIFile.Destroy( inifile_1 );
+					break;
+				}
+				else
+				{
+					debug Debug.PrintString( "iMissionGeneratorSelector.Select:  Mission Prerequisites met. Starting.\n" );
+					Global.SetInt( "g_generated_missions_running", Global.Int( "g_generated_missions_running" ) + 1 );
+					
+					debug atomic
+					{
+						Debug.PrintString( "iMissionGeneratorSelector.Select: Number of mission now running - " );
+						Debug.PrintInt( Global.Int( "g_generated_missions_running" ) );
+						Debug.PrintString( "\n" );
+					}
+					
+					Global.SetInt( local_2, 2 );
+				}
+				
+				break;
+			
+			case 1:
+				debug Debug.PrintString( "iMissionGeneratorSelector.Select:  teased Mission available \n" );
+				random = local_5;
+				inifile_1 = local_function_0( inifile_0, local_3, random );
+				
+				if ( inifile_1 == false )
+				{
+					debug Debug.PrintString( "iMissionGeneratorSelector.Select: INVALID  MISSION HANDLE - ABORTING\n" );
+					debug Debug.PrintString( "iMissionGeneratorSelector.Select: TERMINATED\n" );
+					return;
+				}
+				
+				if ( 1 )
+				{
+					debug Debug.PrintString( "iMissionGeneratorSelector.Select:  Mission Prerequisites met. Starting.\n" );
+					Global.SetInt( "g_generated_missions_running", Global.Int( "g_generated_missions_running" ) + 1 );
+					
+					debug atomic
+					{
+						Debug.PrintString( "iMissionGeneratorSelector.Select: Number of mission now running: " );
+						Debug.PrintInt( Global.Int( "g_generated_missions_running" ) );
+						Debug.PrintString( "\n" );
+					}
+					
+					Global.SetInt( local_2, 2 );
+					break;
+				}
+				else
+				{
+					INIFile.Destroy( inifile_1 );
+				}
+				
+				break;
+			
+			case 2:
+				debug Debug.PrintString( "iMissionGeneratorSelector.Select:  Mission is in progress - Aborting\n" );
+				random = ( random + 1 );
+				break;
+			
+			case 3:
+				debug Debug.PrintString( "iMissionGeneratorSelector.Select:  Mission already completed - Aborting\n" );
+				random = ( random + 1 );
+				break;
+			
+			case 4:
+				debug Debug.PrintString( "iMissionGeneratorSelector.Select:  Mission is not available - Aborting\n" );
+				random = ( random + 1 );
+				break;
+		}
+		
+		if ( (random + 1) > gGeneratedNumberOfMissions )
+		{
+			random = 0;
+		}
+	}
+	while ( random != local_5 );
+	
+	if ( inifile_0 != false )
+	{
+		INIFile.Destroy( inifile_0 );
+	}
+	
+	debug Debug.PrintString( "iMissionGeneratorSelector.Select: COMPLETED.\n" );
+}
+
+test()
+{
+	debug Debug.PrintString( "iMissionsGeneratorSelector.test: STARTED\n" );
+	Global.CreateInt( "g_current_act", 1, 1 );
+	Global.CreateInt( "g_generated_number_of_missions", 1, 7 );
+	Global.CreateInt( "g_generated_missions_running", 2, 0 );
+	Global.CreateInt( "g_generated_max_number_of_missions", 1, 5 );
+	Global.CreateInt( "g_generated_mission_chance", 1, 100 );
+	Global.CreateInt( "g_generated_mission_0", 2, 0 );
+	Global.CreateInt( "g_generated_mission_1", 2, 1 );
+	Global.CreateInt( "g_generated_mission_2", 2, 2 );
+	Global.CreateInt( "g_generated_mission_3", 2, 3 );
+	Global.CreateInt( "g_generated_mission_4", 2, 0 );
+	Global.CreateInt( "g_generated_mission_5", 2, 1 );
+	Global.CreateInt( "g_generated_mission_6", 2, 2 );
+	Global.CreateInt( "g_generated_mission_7", 2, 3 );
+	Global.CreateInt( "g_generated_mission_8", 2, 0 );
+	Select();
+	Select();
+	Select();
+	Select();
+	Select();
+	Select();
+	Select();
+	Select();
+	Select();
+	debug Debug.PrintString( "iMissionsGeneratorSelector.test: COMPLETED\n" );
+}
+

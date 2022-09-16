@@ -1,0 +1,28 @@
+package iact2mission19;
+
+uses String,
+     Set,
+     List,
+     Global,
+     Group,
+     Sim,
+     INIFile,
+     MapEnumerations,
+     iFaction,
+     iSim,
+     iMapEntity,
+     iBody,
+     iHabitat,
+     iShip,
+     iUtilities;
+
+provides Main;
+
+prototype Main();
+
+Main()
+{
+	iUtilities.ReleaseError( "iAct2Mission19.Main : Snooping Around - This mission does not yet exist, marking complete and skipping" );
+	Global.SetBool( "g_act2_snooping_complete", true );
+}
+

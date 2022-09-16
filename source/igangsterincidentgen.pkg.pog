@@ -1,0 +1,792 @@
+package iGangsterIncidentGen;
+
+uses Debug,
+     Set,
+     List,
+     String,
+     Global,
+     Sim,
+     Group,
+     Math,
+     Object,
+     State,
+     Task,
+     Text,
+     iSim,
+     iShip,
+     Subsim,
+     iDockport,
+     iLagrangePoint,
+     iAI,
+     iConversation,
+     iDirector,
+     MapEnumerations,
+     iFaction,
+     iFormation,
+     iMapEntity,
+     iBody,
+     iHabitat,
+     iRegion,
+     iScriptedOrders,
+     INIFile,
+     iUtilities,
+     iCargo,
+     CargoTypes,
+     iCargoScript,
+     iPilotSetup,
+     iShipCreation;
+
+provides GangsterWarGenerator,
+         CreateGlobals,
+         DestroyGlobals,
+         SetActive,
+         SetFaction,
+         SetNumberOfVesselAttackersVar,
+         SetNumberOfStationAttackersVar,
+         SetDelayCheck,
+         LegIt;
+
+prototype CreateGlobals();
+prototype DestroyGlobals();
+prototype SetActive( bool flag_ );
+prototype SetFaction( IeAllegiance allegiance_ );
+prototype SetNumberOfVesselAttackersVar( int amt_ );
+prototype SetNumberOfStationAttackersVar( int amt_ );
+prototype SetDelayCheck( float amt_ );
+prototype list local_function_0( hship ship_ );
+prototype task GangsterWarGenerator();
+prototype hgroup local_function_8( hsim param_0_ );
+prototype hfaction local_function_4();
+prototype task LegIt( hsim param_0_, int param_1_ );
+prototype local_function_5( hgroup group_ );
+prototype hgroup local_function_6( bool param_0_ );
+prototype hgroup local_function_10( hsim param_0_ );
+prototype list local_function_13( hgroup group_ );
+prototype string local_function_7();
+prototype string local_function_9( string param_0_, string param_1_, int param_2_ );
+prototype task local_function_1( hsim param_0_ );
+prototype task local_function_11( hgroup group_, hmapentity mapentity_ );
+prototype local_function_2( hmapentity mapentity_ );
+prototype task local_function_12( hgroup group_0_, hgroup group_1_, hmapentity mapentity_ );
+prototype local_function_3( hmapentity mapentity_ );
+
+CreateGlobals()
+{
+	Global.CreateBool( "g_gangster_incident_generator_active", 2, true );
+	Global.CreateInt( "g_gangster_faction", 2, 1 );
+	Global.CreateInt( "g_gangster_vessel_attack_variation", 2, 5 );
+	Global.CreateInt( "g_gangster_station_attack_variation", 2, 7 );
+	Global.CreateFloat( "g_gangster_delay_check", 2, 20.0 );
+	Global.CreateBool( "g_gangster_incident_running", 2, false );
+	Global.CreateBool( "g_gangster_locking_global", 2, false );
+	Text.Add( "csv:/text/act_2/act2_master_addendum" );
+}
+
+DestroyGlobals()
+{
+	Global.Destroy( "g_gangster_incident_generator_active" );
+	Global.Destroy( "g_gangster_faction" );
+	Global.Destroy( "g_gangster_vessel_attack_variation" );
+	Global.Destroy( "g_gangster_station_attack_variation" );
+	Global.Destroy( "g_gangster_delay_check" );
+	Global.Destroy( "g_gangster_incident_running" );
+	Global.Destroy( "g_gangster_locking_global" );
+}
+
+SetActive( bool flag_ )
+{
+	Global.SetBool( "g_gangster_incident_generator_active", flag_ );
+}
+
+SetFaction( IeAllegiance allegiance_ )
+{
+	switch ( allegiance_ )
+	{
+		case A_Marauders:
+			Global.SetInt( "g_gangster_faction", 1 );
+			return;
+		
+		case A_Neutral:
+			Global.SetInt( "g_gangster_faction", 2 );
+			return;
+		
+		case A_Government:
+			Global.SetInt( "g_gangster_faction", 3 );
+			return;
+		
+		default:
+			Global.SetInt( "g_gangster_faction", 4 );
+			return;
+	}
+}
+
+SetNumberOfVesselAttackersVar( int amt_ )
+{
+	Global.SetInt( "g_gangster_vessel_attack_variation", amt_ );
+}
+
+SetNumberOfStationAttackersVar( int amt_ )
+{
+	Global.SetInt( "g_gangster_station_attack_variation", amt_ );
+}
+
+SetDelayCheck( float amt_ )
+{
+	Global.SetFloat( "g_gangster_delay_check", amt_ );
+}
+
+list local_function_0( hship ship_ )
+{
+	list localList = List.FromSet( iSim.SimsInRadius( iSim.Cast( ship_ ), 100000.0, 8192 ) );
+	hhabitat habitat;
+	int itemCount = List.ItemCount( localList );
+	int ii;
+	
+	debug Debug.PrintString( "iGangsterIncidentGen: Checking area around player for likely points to start stuff\n" );
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		habitat = iHabitat.Cast( List.GetNth( localList, ii ) );
+		
+		if ( iHabitat.Type( habitat ) == HT_Disused )
+		{
+			List.Remove( localList, habitat );
+		}
+	}
+	
+	return localList;
+}
+
+task GangsterWarGenerator()
+{
+	hship playerShip;
+	hsim waypoint;
+	hmapentity lucreciasBase;
+	hmapentity mapEntity;
+	list localList;
+	float gPlayerSensorRange = Global.Float( "g_player_sensor_range" );
+	int itemCount;
+	int random_0;
+	int random_1;
+	htask currentTask = Task.Current();
+	hstate taskState;
+	
+	Task.Sleep( Task.Current(), Math.Random( 0.10, 0.90 ) );
+	
+	atomic
+	{
+		taskState = State.Find( currentTask );
+		
+		if ( taskState == false )
+		{
+			if ( Global.Bool( "g_gangster_locking_global" ) == 1 )
+			{
+				return;
+			}
+			
+			Global.SetBool( "g_gangster_locking_global", true );
+			taskState = State.Create( currentTask, 0 );
+		}
+	}
+	
+	Global.SetBool( "g_gangster_incident_running", false );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( Global.Bool( "g_gangster_incident_generator_active" ) == 1 )
+			{
+				do
+				{
+					lucreciasBase = iMapEntity.FindByNameInSystem( "Lucrecia's Base", Global.String( "g_player_base_system" ) );
+					playerShip = iShip.FindPlayerShip();
+					localList = local_function_0( playerShip );
+					
+					if ( List.Contains( localList, lucreciasBase ) )
+					{
+						List.Remove( localList, lucreciasBase );
+					}
+					
+					itemCount = List.ItemCount( localList );
+					
+					if ( !iDirector.IsBusy() && !iSim.IsCapsuleJumping( iSim.Cast( playerShip ) ) )
+					{
+						if ( itemCount > 0 )
+						{
+							if ( (Math.RandomInt( 0, 4 ) == 3) && (Global.Bool( "g_gangster_incident_running" ) == 0) )
+							{
+								mapEntity = iMapEntity.Cast( List.GetNth( localList, Math.RandomInt( 0, itemCount - 1 ) ) );
+								
+								if ( iMapEntity.EntityToSimDistance( mapEntity, playerShip ) < 5000.0 )
+								{
+									random_1 = Math.RandomInt( 1, 3 );
+								}
+								else
+								{
+									random_1 = Math.RandomInt( 1, 2 );
+								}
+								
+								switch ( random_1 )
+								{
+									case 1:
+										atomic
+										{
+											Global.SetBool( "g_gangster_incident_running", true );
+											waypoint = iUtilities.CreateWaypointRelativeToPlayer( Math.Random( gPlayerSensorRange - 10000.0, gPlayerSensorRange ), Math.Random( gPlayerSensorRange - 10000.0, gPlayerSensorRange ), Math.Random( gPlayerSensorRange - 10000.0, gPlayerSensorRange ) );
+											Object.SetStringProperty( waypoint, "name", "a2_master_name_distress" );
+											iSim.SetSensorVisibility( iSim.Cast( waypoint ), true );
+											Sim.SetCullable( waypoint, false );
+											debug Debug.PrintString( "iGangsterIncidentGen.GangsterWarGen: Picked Distress handler.......\n" );
+											Task.Detach( start local_function_1( waypoint ) );
+										}
+										
+										break;
+									
+									case 2:
+										if ( !Object.PropertyExists( mapEntity, "reactive_exception" ) )
+										{
+											debug atomic
+											{
+												Debug.PrintString( String.Join( "iGangsterIncidentGen.GangsterWarGen: Picked base attack handler with...", iMapEntity.Name( mapEntity ) ) );
+												Debug.PrintString( "\n" );
+											}
+											
+											atomic
+											{
+												Global.SetBool( "g_gangster_incident_running", true );
+												local_function_2( mapEntity );
+											}
+										}
+										
+										break;
+									
+									case 3:
+										if ( !Object.PropertyExists( mapEntity, "reactive_exception" ) )
+										{
+											debug atomic
+											{
+												Debug.PrintString( String.Join( "iGangsterIncidentGen.GangsterWarGen: Picked player local base attack handler with...", iMapEntity.Name( mapEntity ) ) );
+												Debug.PrintString( "\n" );
+											}
+											
+											atomic
+											{
+												Global.SetBool( "g_gangster_incident_running", true );
+												local_function_3( mapEntity );
+											}
+										}
+										
+										break;
+								}
+							}
+						}
+						else if ( Sim.DistanceBetween( playerShip, lucreciasBase ) > 3500000.0 )
+						{
+							random_0 = Math.RandomInt( 0, 4 );
+							
+							if ( (random_0 == 4) && (Global.Bool( "g_gangster_incident_running" ) == 0) )
+							{
+								atomic
+								{
+									Global.SetBool( "g_gangster_incident_running", true );
+									waypoint = iUtilities.CreateWaypointRelativeToPlayer( Math.Random( gPlayerSensorRange - 50000.0, gPlayerSensorRange + 100000.0 ), Math.Random( gPlayerSensorRange - 50000.0, gPlayerSensorRange + 100000.0 ), Math.Random( gPlayerSensorRange - 50000.0, gPlayerSensorRange + 100000.0 ) );
+									Object.SetStringProperty( waypoint, "name", "a2_master_name_distress" );
+									iSim.SetSensorVisibility( iSim.Cast( waypoint ), true );
+									Sim.SetCullable( waypoint, false );
+									debug Debug.PrintString( "iGangsterIncidentGen.GangsterWarGen: Picked Distress handler.......\n" );
+									Task.Detach( start local_function_1( waypoint ) );
+								}
+							}
+						}
+					}
+					
+					Task.Sleep( currentTask, Global.Float( "g_gangster_delay_check" ) );
+				}
+				while ( Global.Bool( "g_gangster_incident_generator_active" ) == 1 );
+			}
+			else debug Debug.PrintString( "iGangsterIncidentGen.GangsterWarGen: The Gangster Generator is disabled!!!\n" );
+		}
+	}
+	
+	Global.SetBool( "g_gangster_incident_running", false );
+}
+
+hgroup local_function_8( hsim param_0_ )
+{
+	int ii;
+	int simCount;
+	hgroup group;
+	
+	if ( Math.RandomInt( 0, 1 ) == 0 )
+	{
+		group = iShipCreation.GetTraffic( ST_FreightHeavy, A_Independent, Math.RandomInt( 1, 4 ) );
+		simCount = Group.SimCount( group );
+		
+		for ( ii = 0; ii < simCount; ++ii )
+		{
+			iShipCreation.CreateSupplyCargo( iShip.Cast( Group.NthSim( group, ii ) ), -1 );
+		}
+		
+		Sim.PlaceRelativeTo( Group.NthSim( group, 0 ), param_0_, 0.0, 0.0, 0.0 );
+		iFormation.LineAhead( group, 50.0, true );
+	}
+	else
+	{
+		group = iShipCreation.GetTraffic( ST_PassengerAll, A_Independent, Math.RandomInt( 1, 4 ) );
+		Sim.PlaceRelativeTo( Group.NthSim( group, 0 ), param_0_, 0.0, 0.0, 0.0 );
+		iFormation.RandomRectangle( group, 50.0, true );
+	}
+	
+	return group;
+}
+
+hfaction local_function_4()
+{
+	list localList = iFaction.All();
+	hfaction player = iFaction.Find( "Player" );
+	int itemCount = List.ItemCount( localList );
+	int ii;
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		if ( iFaction.Feeling( iFaction.Cast( List.GetNth( localList, ii ) ), player ) < 0.0 )
+		{
+			return iFaction.Cast( List.GetNth( localList, ii ) );
+		}
+	}
+	
+	return none;
+}
+
+task LegIt( hsim param_0_, int param_1_ )
+{
+	hgroup group = Group.Create();
+	
+	Group.AddSim( group, param_0_ );
+	Task.Detach( start iScriptedOrders.LagrangeHandler( group, "Dainn II L-Point" ) );
+}
+
+local_function_5( hgroup group_ )
+{
+	hship ship;
+	int simCount = Group.SimCount( group_ );
+	int ii;
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		ship = iShip.Cast( Group.NthSim( group_, ii ) );
+		iShip.RemovePilot( ship );
+		iShip.InstallAIPilot( ship, 0.10, 4.0, 0.20, "", "", "", "iGangsterIncidentGen.LegIt" );
+	}
+}
+
+hgroup local_function_6( bool param_0_ )
+{
+	hfaction faction;
+	hgroup group;
+	int gGangsterVesselAttackVariation = Global.Int( "g_gangster_vessel_attack_variation" );
+	
+	if ( param_0_ )
+	{
+		switch ( Global.Int( "g_gangster_faction" ) )
+		{
+			case 1:
+				group = iShipCreation.GetTraffic( ST_CombatLight, A_Marauders, Math.RandomInt( 2, gGangsterVesselAttackVariation ) );
+				break;
+			
+			case 2:
+				switch ( Math.RandomInt( 0, 5 ) )
+				{
+					case 0:
+						group = iShipCreation.GetTraffic( ST_CombatFighter, A_MAASCorporation, Math.RandomInt( 2, gGangsterVesselAttackVariation ) );
+						break;
+					
+					case 1:
+						group = iShipCreation.GetTraffic( ST_CombatFighter, A_NOMEXCorporation, Math.RandomInt( 2, gGangsterVesselAttackVariation ) );
+						break;
+					
+					case 2:
+						group = iShipCreation.GetTraffic( ST_CombatFighter, A_NSOLaplace, Math.RandomInt( 2, gGangsterVesselAttackVariation ) );
+						break;
+					
+					case 3:
+						group = iShipCreation.GetTraffic( ST_CombatFighter, A_TrimannShipping, Math.RandomInt( 2, gGangsterVesselAttackVariation ) );
+						break;
+					
+					case 4:
+						group = iShipCreation.GetTraffic( ST_CombatFighter, A_VonShellingIndustries, Math.RandomInt( 2, gGangsterVesselAttackVariation ) );
+						break;
+					
+					case 5:
+						group = iShipCreation.GetTraffic( ST_CombatFighter, A_AdvancedSecurityCorp, Math.RandomInt( 2, gGangsterVesselAttackVariation ) );
+						break;
+				}
+				
+				break;
+			
+			case 3:
+				group = iShipCreation.GetTraffic( ST_CombatFighter, A_Government, Math.RandomInt( 2, gGangsterVesselAttackVariation ) );
+				break;
+			
+			case 4:
+				faction = local_function_4();
+				group = iShipCreation.GetTraffic( ST_CombatFighter, iFaction.Allegiance( faction ), Math.RandomInt( 2, gGangsterVesselAttackVariation ) );
+				break;
+		}
+	}
+	else switch ( Global.Int( "g_gangster_faction" ) )
+	{
+		case 1:
+			group = iShipCreation.GetTraffic( ST_CombatLight, A_Marauders, Math.RandomInt( 3, gGangsterVesselAttackVariation ) );
+			break;
+		
+		case 2:
+			switch ( Math.RandomInt( 0, 5 ) )
+			{
+				case 0:
+					group = iShipCreation.GetTraffic( ST_CombatFighter, A_MAASCorporation, Math.RandomInt( 3, gGangsterVesselAttackVariation ) );
+					break;
+				
+				case 1:
+					group = iShipCreation.GetTraffic( ST_CombatFighter, A_NOMEXCorporation, Math.RandomInt( 3, gGangsterVesselAttackVariation ) );
+					break;
+				
+				case 2:
+					group = iShipCreation.GetTraffic( ST_CombatFighter, A_NSOLaplace, Math.RandomInt( 3, gGangsterVesselAttackVariation ) );
+					break;
+				
+				case 3:
+					group = iShipCreation.GetTraffic( ST_CombatFighter, A_TrimannShipping, Math.RandomInt( 3, gGangsterVesselAttackVariation ) );
+					break;
+				
+				case 4:
+					group = iShipCreation.GetTraffic( ST_CombatFighter, A_VonShellingIndustries, Math.RandomInt( 3, gGangsterVesselAttackVariation ) );
+					break;
+				
+				case 5:
+					group = iShipCreation.GetTraffic( ST_CombatFighter, A_AdvancedSecurityCorp, Math.RandomInt( 3, gGangsterVesselAttackVariation ) );
+					break;
+			}
+			
+			break;
+		
+		case 3:
+			group = iShipCreation.GetTraffic( ST_CombatFighter, A_Government, Math.RandomInt( 3, gGangsterVesselAttackVariation ) );
+			break;
+		
+		case 4:
+			faction = local_function_4();
+			group = iShipCreation.GetTraffic( ST_CombatFighter, iFaction.Allegiance( faction ), Math.RandomInt( 3, gGangsterVesselAttackVariation ) );
+			break;
+	}
+	
+	if ( Global.Int( "g_gangster_faction" ) == 1 )
+	{
+		local_function_5( group );
+	}
+	
+	return group;
+}
+
+hgroup local_function_10( hsim param_0_ )
+{
+	int local_0;
+	hgroup group = local_function_6( true );
+	
+	Sim.PlaceRelativeTo( Group.Leader( group ), param_0_, Math.Random( 2000.0, 3000.0 ), Math.Random( 2000.0, 3000.0 ), Math.Random( 2000.0, 3000.0 ) );
+	iFormation.Claw( group, 40.0, true );
+	return group;
+}
+
+list local_function_13( hgroup group_ )
+{
+	int ii;
+	hsim local_1;
+	list localList;
+	int simCount = Group.SimCount( group_ );
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		if ( local_1 )
+		{
+			if ( !iUtilities.PlayerInRange( local_1 ) )
+			{
+				Sim.Destroy( local_1 );
+			}
+			else
+			{
+				List.AddTail( localList, local_1 );
+			}
+		}
+	}
+	
+	return localList;
+}
+
+string local_function_7()
+{
+	switch ( Math.RandomInt( 0, 1 ) )
+	{
+		case 0:
+			return "male";
+		
+		case 1:
+			return "female";
+	}
+	
+	return "gooba";
+}
+
+string local_function_9( string param_0_, string param_1_, int param_2_ )
+{
+	string local_0 = String.Join( "stock_", param_0_ );
+	
+	local_0 = String.Join( local_0, "_" );
+	local_0 = String.Join( local_0, String.FromInt( param_2_ ) );
+	local_0 = String.Join( local_0, "_" );
+	local_0 = String.Join( local_0, param_1_ );
+	local_0 = String.Join( local_0, "_1" );
+	return local_0;
+}
+
+task local_function_1( hsim param_0_ )
+{
+	bool local_0 = true;
+	bool local_1 = false;
+	hship playerShip;
+	int local_3;
+	hgroup group_0 = Group.Create();
+	hgroup group_1 = Group.Create();
+	string local_6;
+	int local_7;
+	int random_0;
+	int simCount_0;
+	int simCount_1;
+	int random_1 = Math.RandomInt( 1, 4 );
+	string local_12 = local_function_7();
+	float local_13;
+	hregion region;
+	
+	random_0 = Math.RandomInt( 0, 3 );
+	group_0 = local_function_8( param_0_ );
+	iConversation.OneLiner( Group.Leader( group_0 ), "", local_function_9( "distress", local_12, random_1 ) );
+	region = iRegion.CreateTrafficControl( iSim.Cast( param_0_ ), 3000.0, 400.0 );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			playerShip = iShip.FindPlayerShip();
+			local_13 = ( local_13 + 30.0 );
+			
+			if ( ((local_13 > 900.0) && (Sim.DistanceBetween( playerShip, param_0_ ) > Global.Float( "g_player_sensor_range" ))) || !( iSim.ActiveWorld() == iSim.WorldName( iSim.Cast( param_0_ ) ) ) )
+			{
+				local_0 = false;
+				
+				if ( local_1 )
+				{
+					Group.Destroy( group_1, true );
+					Group.Destroy( group_0, true );
+				}
+			}
+			else if ( (Sim.DistanceBetween( playerShip, param_0_ ) < Global.Float( "g_player_sensor_range" )) && (local_1 == 0) )
+			{
+				debug Debug.PrintString( "iGangsterGen: Creating ships for distress scenario\n" );
+				group_1 = local_function_10( param_0_ );
+				local_1 = true;
+				simCount_0 = Group.SimCount( group_1 );
+				simCount_1 = Group.SimCount( group_0 );
+				iAI.GiveAttackOrder( group_1, group_0 );
+			}
+		}
+		
+		every 5.0:
+		{
+			if ( local_1 )
+			{
+				simCount_0 = Group.SimCount( group_1 );
+				simCount_1 = Group.SimCount( group_0 );
+				
+				if ( (Group.SimCount( group_0 ) == 0) && (Group.SimCount( group_1 ) != 0) )
+				{
+					if ( Global.Int( "g_gangster_faction" ) == 1 )
+					{
+						Task.Detach( start iScriptedOrders.LagrangeHandler( group_1, "Dainn II L-Point" ) );
+					}
+					else
+					{
+						Task.Detach( start iScriptedOrders.LagrangeHandler( group_1, "Random" ) );
+					}
+					
+					local_0 = false;
+					break;
+				}
+				
+				if ( (Group.SimCount( group_1 ) == 0) && (Group.SimCount( group_0 ) != 0) )
+				{
+					random_0 = Math.RandomInt( 0, 3 );
+					iConversation.OneLiner( Group.Leader( group_0 ), "", local_function_9( "thanks", local_12, random_1 ) );
+					
+					if ( Set.ItemCount( Sim.Children( Group.Leader( group_0 ) ) ) != 0 )
+					{
+						iShip.Undock( iShip.Cast( Set.FirstElement( Sim.Children( Group.Leader( group_0 ) ) ) ), Group.Leader( group_0 ) );
+					}
+					
+					local_0 = false;
+					Task.Detach( start iScriptedOrders.LagrangeHandler( group_0, "Random" ) );
+				}
+			}
+			
+			if ( !local_0 )
+			{
+				break;
+			}
+		}
+	}
+	
+	Sim.Destroy( param_0_ );
+	iRegion.Destroy( region );
+	Task.Sleep( Task.Current(), 30.0 );
+	Global.SetBool( "g_gangster_incident_running", false );
+}
+
+task local_function_11( hgroup group_, hmapentity mapentity_ )
+{
+	float constant = 5.0;
+	htask local_1;
+	float random = Math.Random( 60.0, 80.0 );
+	float local_3;
+	int local_4;
+	int simCount;
+	
+	do
+	{
+		Task.Sleep( Task.Current(), constant );
+		simCount = Group.SimCount( group_ );
+		
+		if ( simCount < 2 )
+		{
+			break;
+		}
+		
+		local_3 = ( local_3 + constant );
+	}
+	while ( local_3 < random );
+	
+	iFormation.Claw( group_, 50.0, false );
+	
+	if ( Global.Int( "g_gangster_faction" ) == 1 )
+	{
+		Task.Detach( local_1 = start iScriptedOrders.LagrangeHandler( group_, "Dainn II L-Point" ) );
+	}
+	else
+	{
+		Task.Detach( local_1 = start iScriptedOrders.LagrangeHandler( group_, "Random" ) );
+	}
+	
+	Task.Sleep( Task.Current(), 30.0 );
+	Global.SetBool( "g_gangster_incident_running", false );
+}
+
+local_function_2( hmapentity mapentity_ )
+{
+	int local_0;
+	int local_1;
+	int gGangsterVesselAttackVariation = Global.Int( "g_gangster_vessel_attack_variation" );
+	hgroup group;
+	
+	debug atomic
+	{
+		Debug.PrintString( String.Join( "iGangsterIncidentGen: Creating base attack function on ", iMapEntity.Name( mapentity_ ) ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	if ( Global.Int( "g_gangster_faction" ) == 1 )
+	{
+		group = iShipCreation.GetTraffic( ST_CombatLight, A_Marauders, Math.RandomInt( 3, gGangsterVesselAttackVariation ) );
+	}
+	else
+	{
+		group = iShipCreation.GetTraffic( ST_CombatFighter, A_Government, Math.RandomInt( 3, gGangsterVesselAttackVariation ) );
+	}
+	
+	Sim.PlaceRelativeTo( Group.Leader( group ), iMapEntity.WaypointForEntity( mapentity_ ), Math.Random( 10000.0, 12000.0 ), Math.Random( 10000.0, 12000.0 ), Math.Random( 10000.0, 12000.0 ) );
+	iFormation.Claw( group, 40.0, true );
+	iAI.GiveAttackOrder( group, iMapEntity.SimForEntity( mapentity_ ) );
+	Task.Detach( start local_function_11( group, mapentity_ ) );
+}
+
+task local_function_12( hgroup group_0_, hgroup group_1_, hmapentity mapentity_ )
+{
+	float constant = 3.0;
+	float random = Math.Random( 60.0, 80.0 );
+	float local_2;
+	int simCount_0;
+	int local_4;
+	int simCount_1;
+	htask local_6;
+	
+	do
+	{
+		simCount_0 = Group.SimCount( group_1_ );
+		simCount_1 = Group.SimCount( group_0_ );
+		
+		if ( simCount_1 < 2 )
+		{
+			break;
+		}
+		
+		Task.Sleep( Task.Current(), constant );
+		local_2 = ( local_2 + constant );
+	}
+	while ( local_2 < random );
+	
+	iFormation.Claw( group_0_, 50.0, false );
+	
+	if ( Global.Int( "g_gangster_faction" ) == 1 )
+	{
+		Task.Detach( local_6 = start iScriptedOrders.LagrangeHandler( group_0_, "Dainn II L-Point" ) );
+	}
+	else
+	{
+		Task.Detach( local_6 = start iScriptedOrders.LagrangeHandler( group_0_, "Random" ) );
+	}
+	
+	Task.Sleep( Task.Current(), 30.0 );
+	Global.SetBool( "g_gangster_incident_running", false );
+}
+
+local_function_3( hmapentity mapentity_ )
+{
+	int local_0;
+	int local_1;
+	int simCount;
+	int gGangsterVesselAttackVariation = Global.Int( "g_gangster_vessel_attack_variation" );
+	hgroup group_0 = Group.FromSet( iSim.ShipsInRadius( iSim.Cast( iMapEntity.WaypointForEntity( mapentity_ ) ), 10000.0 ) );
+	hgroup group_1;
+	
+	debug atomic
+	{
+		Debug.Error( String.Join( "iGangsterIncidentGen: Creating local player base attack function!", iMapEntity.Name( mapentity_ ) ) );
+		Debug.Error( "\n" );
+	}
+	
+	Group.AddSim( group_0, mapentity_ );
+	simCount = Group.SimCount( group_0 );
+	
+	if ( Global.Int( "g_gangster_faction" ) == 1 )
+	{
+		group_1 = iShipCreation.GetTraffic( ST_CombatLight, A_Marauders, Math.RandomInt( 3, gGangsterVesselAttackVariation ) );
+	}
+	else
+	{
+		group_1 = iShipCreation.GetTraffic( ST_CombatFighter, A_Government, Math.RandomInt( 3, gGangsterVesselAttackVariation ) );
+	}
+	
+	Sim.PlaceRelativeTo( Group.Leader( group_1 ), mapentity_, Math.Random( 10000.0, 12000.0 ), Math.Random( 10000.0, 12000.0 ), Math.Random( 10000.0, 12000.0 ) );
+	iFormation.Claw( group_1, 40.0, true );
+	iAI.GiveAttackOrder( group_1, group_0 );
+	Task.Detach( start local_function_12( group_1, group_0, mapentity_ ) );
+}
+

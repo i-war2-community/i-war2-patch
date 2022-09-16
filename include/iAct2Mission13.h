@@ -1,0 +1,26 @@
+//
+// (c) 1998-9 Particle Systems Ltd. All Rights Reserved
+//
+// iAct2Mission13.h
+//
+// Compiler-generated export header for package "iAct2Mission13"
+//
+// Revision control information:
+//
+// $Header: /iwar2/resource/scripts/include/iAct2Mission13.h 3     1/17/01 3:46p Richard $
+//
+
+// Dependencies ////////////////////////////////////////////////////////////////
+
+// Enumerated types ////////////////////////////////////////////////////////////
+
+// Functions ///////////////////////////////////////////////////////////////////
+
+prototype iAct2Mission13.Main();
+
+prototype iAct2Mission13.MissionHandler();
+
+prototype iAct2Mission13.Stub();
+
+// EOF /////////////////////////////////////////////////////////////////////////
+

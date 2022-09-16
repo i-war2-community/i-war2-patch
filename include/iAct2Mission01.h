@@ -1,0 +1,26 @@
+//
+// (c) 1998-9 Particle Systems Ltd. All Rights Reserved
+//
+// iAct2Mission01.h
+//
+// Compiler-generated export header for package "iAct2Mission01"
+//
+// Revision control information:
+//
+// $Header: /iwar2/resource/scripts/include/iAct2Mission01.h 3     1/17/01 3:46p Richard $
+//
+
+// Dependencies ////////////////////////////////////////////////////////////////
+
+// Enumerated types ////////////////////////////////////////////////////////////
+
+// Functions ///////////////////////////////////////////////////////////////////
+
+prototype iAct2Mission01.Main();
+
+prototype task iAct2Mission01.MissionHandler();
+
+prototype iAct2Mission01.Stub();
+
+// EOF /////////////////////////////////////////////////////////////////////////
+

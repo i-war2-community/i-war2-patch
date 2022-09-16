@@ -1,0 +1,707 @@
+package ABB_Common;
+
+uses Debug,
+     Set,
+     Sim,
+     Group,
+     List,
+     Object,
+     Task,
+     MapEnumerations,
+     String,
+     iFaction,
+     iMapEntity,
+     iSim,
+     iBody,
+     iHabitat,
+     iShip,
+     INIFile,
+     iUtilities,
+     iWingmen;
+
+provides WatchSimsMovement,
+         WatchSimsAndGroupCombat,
+         WatchGroupCombatTask,
+         SetCullableGroup,
+         SetFactionGroup,
+         SetPilotNoScriptsGroup,
+         RemovePilotGroup,
+         EmptyGroup,
+         DisruptLDSGroup,
+         MaterialiseGroupNear,
+         RecursiveSimCount,
+         AttachWayPointToGroupLeader;
+
+enum eWatchSims
+{
+	WS_Destroyed = 0x00000000,
+	WS_Int_Mask = 0x00000003,
+	WS_Enter_Close_Range = 0x00000010,
+	WS_Leave_Close_Range = 0x00000020,
+	WS_Enter_Long_Range = 0x00000040,
+	WS_Leave_Long_Range = 0x00000080,
+	WS_Leave_Same_System = 0x00000100,
+	WS_Enter_Same_System = 0x00000200,
+	WS_Nothing = 0x00000400,
+	WS_Return_Which = 0x00000800,
+	WS_SubGroup_Destroyed = 0x00001000,
+	WS_SubGroup_Sim_Destroyed = 0x00002000,
+	WS_SubGroup_All_Leave_Close_Range = 0x00004000,
+	WS_SubGroup_All_Enter_Close_Range = 0x00008000,
+	WS_Task_Halted = 0x00010000,
+	WS_Enum_Mask = 0xFFFFFFF0
+};
+
+prototype MaterialiseGroupNear( hgroup group_, hisim nearThis_, float distance_ );
+prototype SetCullableGroup( hgroup group_, bool status_ );
+prototype SetFactionGroup( hgroup group_, hfaction faction_ );
+prototype SetPilotNoScriptsGroup( hgroup group_, float ignore_fight_, float fight_flee_, float self_preserve_ );
+prototype RemovePilotGroup( hgroup group_ );
+prototype DisruptLDSGroup( hgroup group_to_disrupt_, float time_in_seconds_ );
+prototype EmptyGroup( hgroup group_to_empty_ );
+prototype task AttachWayPointToGroupLeader( hgroup group_, hisim waypoint_ );
+prototype int WatchSimsAndGroupCombat( hisim sim_to_watch_, hisim sim_relative_to_, hgroup compound_combat_group_, float close_range_radius_, float long_range_radius_, int watch_, float each_n_seconds_ );
+prototype int WatchGroupCombatTask( hisim sim_to_watch_, hisim sim_relative_to_, hgroup compound_combat_group_, float close_range_radius_, float long_range_radius_, htask a_task_, int watch_, float each_n_seconds_ );
+prototype int WatchSimsMovement( hisim sim_to_watch_, hisim sim_relative_to_, float close_range_radius_, float long_range_radius_, int watch_, float each_n_seconds_ );
+prototype int RecursiveSimCount( hgroup group_ );
+prototype int local_function_0( int param_0_, int param_1_ );
+
+MaterialiseGroupNear( hgroup group_, hisim nearThis_, float distance_ )
+{
+	int ii;
+	int jj;
+	int simCount;
+	
+	for ( ii = 0; ii < Group.GroupCount( group_ ); ++ii )
+	{
+		debug
+		{
+			Debug.PrintString( "Materialising Group " );
+			Debug.PrintInt( ii );
+			Debug.PrintString( "\n" );
+		}
+		
+		MaterialiseGroupNear( Group.NthGroup( group_, ii ), nearThis_, distance_ );
+	}
+	
+	simCount = Group.SimCount( group_ );
+	
+	debug
+	{
+		if ( simCount > 0 )
+		{
+			Debug.PrintString( "Materialising " );
+			Debug.PrintInt( simCount );
+			Debug.PrintString( " Sims \n" );
+		}
+	}
+	
+	for ( jj = 0; jj < simCount; ++jj )
+	{
+		Sim.PlaceNear( Group.NthSim( group_, jj ), nearThis_, distance_ );
+	}
+}
+
+SetCullableGroup( hgroup group_, bool status_ )
+{
+	int ii;
+	int jj;
+	
+	for ( ii = 0; ii < Group.GroupCount( group_ ); ++ii )
+	{
+		SetCullableGroup( Group.NthGroup( group_, ii ), status_ );
+	}
+	
+	for ( jj = 0; jj < Group.SimCount( group_ ); ++jj )
+	{
+		Sim.SetCullable( Group.NthSim( group_, jj ), status_ );
+	}
+}
+
+SetFactionGroup( hgroup group_, hfaction faction_ )
+{
+	int ii;
+	int jj;
+	
+	for ( ii = 0; ii < Group.GroupCount( group_ ); ++ii )
+	{
+		SetFactionGroup( Group.NthGroup( group_, ii ), faction_ );
+	}
+	
+	for ( jj = 0; jj < Group.SimCount( group_ ); ++jj )
+	{
+		iSim.SetFaction( iSim.Cast( Group.NthSim( group_, jj ) ), faction_ );
+	}
+}
+
+SetPilotNoScriptsGroup( hgroup group_, float ignore_fight_, float fight_flee_, float self_preserve_ )
+{
+	int ii;
+	int jj;
+	
+	for ( ii = 0; ii < Group.GroupCount( group_ ); ++ii )
+	{
+		SetPilotNoScriptsGroup( Group.NthGroup( group_, ii ), ignore_fight_, fight_flee_, self_preserve_ );
+	}
+	
+	for ( jj = 0; jj < Group.SimCount( group_ ); ++jj )
+	{
+		iShip.InstallAIPilot( iShip.Cast( Group.NthSim( group_, jj ) ), ignore_fight_, fight_flee_, self_preserve_, "", "", "", "" );
+	}
+}
+
+RemovePilotGroup( hgroup group_ )
+{
+	int ii;
+	int jj;
+	
+	for ( ii = 0; ii < Group.GroupCount( group_ ); ++ii )
+	{
+		RemovePilotGroup( Group.NthGroup( group_, ii ) );
+	}
+	
+	for ( jj = 0; jj < Group.SimCount( group_ ); ++jj )
+	{
+		iShip.RemovePilot( iShip.Cast( Group.NthSim( group_, jj ) ) );
+	}
+}
+
+DisruptLDSGroup( hgroup group_to_disrupt_, float time_in_seconds_ )
+{
+	int ii;
+	int jj;
+	int simCount;
+	
+	for ( ii = 0; ii < Group.GroupCount( group_to_disrupt_ ); ++ii )
+	{
+		debug
+		{
+			Debug.PrintString( "Disrupting LDS on subgroup " );
+			Debug.PrintInt( ii );
+			Debug.PrintString( "\n" );
+		}
+		
+		DisruptLDSGroup( Group.NthGroup( group_to_disrupt_, ii ), time_in_seconds_ );
+	}
+	
+	simCount = Group.SimCount( group_to_disrupt_ );
+	
+	debug
+	{
+		if ( simCount > 0 )
+		{
+			Debug.PrintString( "Disrupting LDS on " );
+			Debug.PrintInt( simCount );
+			Debug.PrintString( " Sims \n" );
+		}
+	}
+	
+	for ( jj = 0; jj < simCount; ++jj )
+	{
+		iShip.DisruptLDSDrive( iShip.Cast( Group.NthSim( group_to_disrupt_, jj ) ), time_in_seconds_ );
+	}
+}
+
+EmptyGroup( hgroup group_to_empty_ )
+{
+	int groupCount = Group.GroupCount( group_to_empty_ );
+	int simCount = Group.SimCount( group_to_empty_ );
+	int ii;
+	int jj;
+	
+	for ( ii = 0; ii < groupCount; ++ii )
+	{
+		Group.RemoveNthGroup( group_to_empty_, 0 );
+	}
+	
+	for ( jj = 0; jj < simCount; ++jj )
+	{
+		Group.RemoveNthSim( group_to_empty_, 0 );
+	}
+}
+
+task AttachWayPointToGroupLeader( hgroup group_, hisim waypoint_ )
+{
+	hsim groupLeader;
+	
+	do
+	{
+		if ( Sim.IsDead( groupLeader ) )
+		{
+			groupLeader = Group.Leader( group_ );
+			Sim.AttachChild( groupLeader, waypoint_ );
+		}
+		
+		Task.Sleep( Task.Current(), 1.0 );
+	}
+	while ( 1 );
+}
+
+int WatchSimsAndGroupCombat( hisim sim_to_watch_, hisim sim_relative_to_, hgroup compound_combat_group_, float close_range_radius_, float long_range_radius_, int watch_, float each_n_seconds_ )
+{
+	return WatchGroupCombatTask( sim_to_watch_, sim_relative_to_, compound_combat_group_, close_range_radius_, long_range_radius_, none, watch_, each_n_seconds_ );
+}
+
+int WatchGroupCombatTask( hisim sim_to_watch_, hisim sim_relative_to_, hgroup compound_combat_group_, float close_range_radius_, float long_range_radius_, htask a_task_, int watch_, float each_n_seconds_ )
+{
+	int local_0 = local_function_0( 4, Group.GroupCount( compound_combat_group_ ) );
+	int local_1;
+	hgroup group_1;
+	hgroup group_2;
+	hgroup group_3;
+	hgroup group_4;
+	int recursiveSimCount_0;
+	int recursiveSimCount_1;
+	int recursiveSimCount_2;
+	int recursiveSimCount_3;
+	bool local_10 = true;
+	int recursiveSimCount_4;
+	int local_12;
+	
+	debug
+	{
+		if ( Group.GroupCount( compound_combat_group_ ) == 0 )
+		{
+			Debug.PrintString( "ABB_Common.WatchSimsAndGroupCombat ERROR! combat group contains no subgroups\n" );
+		}
+	}
+	
+	if ( watch_ & 2048 )
+	{
+		local_1 = 3;
+	}
+	else
+	{
+		local_1 = 0;
+	}
+	
+	debug
+	{
+		if ( !( watch_ & 1024 ) )
+		{
+			Debug.PrintString( "watching sim '" );
+			Debug.PrintString( Object.StringProperty( sim_to_watch_, "name" ) );
+			Debug.PrintString( "' relative to sim '" );
+			Debug.PrintString( Object.StringProperty( sim_relative_to_, "name" ) );
+			Debug.PrintString( "' plus " );
+			Debug.PrintInt( local_0 );
+			Debug.PrintString( " additional groups, with options: " );
+			
+			if ( watch_ & 256 )
+			{
+				Debug.PrintString( "LSYS " );
+			}
+			
+			if ( watch_ & 512 )
+			{
+				Debug.PrintString( "ESYS " );
+			}
+			
+			if ( watch_ & 16 )
+			{
+				Debug.PrintString( "ECLO " );
+			}
+			
+			if ( watch_ & 64 )
+			{
+				Debug.PrintString( "ELON " );
+			}
+			
+			if ( watch_ & 32 )
+			{
+				Debug.PrintString( "LCLO " );
+			}
+			
+			if ( watch_ & 128 )
+			{
+				Debug.PrintString( "LLON " );
+			}
+			
+			if ( watch_ & 4096 )
+			{
+				Debug.PrintString( "SGDE " );
+			}
+			
+			if ( watch_ & 8192 )
+			{
+				Debug.PrintString( "SGSD " );
+			}
+			
+			if ( watch_ & 16384 )
+			{
+				Debug.PrintString( "SGA-LCLO " );
+			}
+			
+			if ( watch_ & 1024 )
+			{
+				Debug.PrintString( "Don't Wait " );
+			}
+			
+			Debug.PrintString( "\n" );
+		}
+	}
+	
+	switch ( local_0 )
+	{
+		case 4:
+			group_1 = Group.NthGroup( compound_combat_group_, local_0 - 4 );
+			recursiveSimCount_0 = RecursiveSimCount( group_1 );
+		
+		case 3:
+			group_2 = Group.NthGroup( compound_combat_group_, local_0 - 3 );
+			recursiveSimCount_1 = RecursiveSimCount( group_2 );
+		
+		case 2:
+			group_3 = Group.NthGroup( compound_combat_group_, local_0 - 2 );
+			recursiveSimCount_2 = RecursiveSimCount( group_3 );
+		
+		case 1:
+			group_4 = Group.NthGroup( compound_combat_group_, local_0 - 1 );
+			recursiveSimCount_3 = RecursiveSimCount( group_4 );
+	}
+	
+	do
+	{
+		if ( watch_ & 12288 )
+		{
+			switch ( local_0 )
+			{
+				case 4:
+					recursiveSimCount_4 = RecursiveSimCount( group_1 );
+					
+					if ( (watch_ & 4096) && (recursiveSimCount_4 == 0) )
+					{
+						debug Debug.PrintString( "Watch result : WS_SubGroup_Destroyed\n" );
+						return 4096 | (local_1 & (local_0 - 4));
+					}
+					
+					if ( (watch_ & 8192) && (recursiveSimCount_0 != recursiveSimCount_4) )
+					{
+						debug Debug.PrintString( "Watch result : WS_SubGroup_Sim_Destroyed\n" );
+						return 8192 | (local_1 & (local_0 - 4));
+					}
+				
+				case 3:
+					recursiveSimCount_4 = RecursiveSimCount( group_2 );
+					
+					if ( (watch_ & 4096) && (recursiveSimCount_4 == 0) )
+					{
+						debug Debug.PrintString( "Watch result : WS_SubGroup_Destroyed\n" );
+						return 4096 | (local_1 & (local_0 - 3));
+					}
+					
+					if ( (watch_ & 8192) && (recursiveSimCount_1 != recursiveSimCount_4) )
+					{
+						debug Debug.PrintString( "Watch result : WS_SubGroup_Sim_Destroyed\n" );
+						return 8192 | (local_1 & (local_0 - 3));
+					}
+				
+				case 2:
+					recursiveSimCount_4 = RecursiveSimCount( group_3 );
+					
+					if ( (watch_ & 4096) && (recursiveSimCount_4 == 0) )
+					{
+						debug Debug.PrintString( "Watch result : WS_SubGroup_Destroyed\n" );
+						return 4096 | (local_1 & (local_0 - 2));
+					}
+					
+					if ( (watch_ & 8192) && (recursiveSimCount_2 != recursiveSimCount_4) )
+					{
+						debug Debug.PrintString( "Watch result : WS_SubGroup_Sim_Destroyed\n" );
+						return 8192 | (local_1 & (local_0 - 2));
+					}
+				
+				case 1:
+					recursiveSimCount_4 = RecursiveSimCount( group_4 );
+					
+					if ( (watch_ & 4096) && (recursiveSimCount_4 == 0) )
+					{
+						debug Debug.PrintString( "Watch result : WS_SubGroup_Destroyed\n" );
+						return 4096 | (local_1 & (local_0 - 1));
+					}
+					
+					if ( (watch_ & 8192) && (recursiveSimCount_3 != recursiveSimCount_4) )
+					{
+						debug Debug.PrintString( "Watch result : WS_SubGroup_Sim_Destroyed\n" );
+						return 8192 | (local_1 & (local_0 - 1));
+					}
+			}
+		}
+		
+		if ( watch_ & 16384 )
+		{
+			switch ( local_0 )
+			{
+				case 4:
+					if ( !iUtilities.NearToGroup( sim_relative_to_, group_1, close_range_radius_, true ) )
+					{
+						debug Debug.PrintString( "Watch result : WS_SubGroup_All_Leave_Close_Range\n" );
+						return 16384 | (local_1 & (local_0 - 4));
+					}
+				
+				case 3:
+					if ( !iUtilities.NearToGroup( sim_relative_to_, group_2, close_range_radius_, true ) )
+					{
+						debug Debug.PrintString( "Watch result : WS_SubGroup_All_Leave_Close_Range\n" );
+						return 16384 | (local_1 & (local_0 - 3));
+					}
+				
+				case 2:
+					if ( !iUtilities.NearToGroup( sim_relative_to_, group_3, close_range_radius_, true ) )
+					{
+						debug Debug.PrintString( "Watch result : WS_SubGroup_All_Leave_Close_Range\n" );
+						return 16384 | (local_1 & (local_0 - 2));
+					}
+				
+				case 1:
+					if ( !iUtilities.NearToGroup( sim_relative_to_, group_4, close_range_radius_, true ) )
+					{
+						debug Debug.PrintString( "Watch result : WS_SubGroup_All_Leave_Close_Range\n" );
+						return 16384 | (local_1 & (local_0 - 1));
+					}
+			}
+		}
+		
+		if ( watch_ & 32768 )
+		{
+			switch ( local_0 )
+			{
+				case 4:
+					if ( !iUtilities.FarFromGroup( sim_relative_to_, group_1, close_range_radius_, true ) )
+					{
+						debug Debug.PrintString( "Watch result : WS_SubGroup_All_Enter_Close_Range\n" );
+						return 32768 | (local_1 & (local_0 - 4));
+					}
+				
+				case 3:
+					if ( !iUtilities.FarFromGroup( sim_relative_to_, group_2, close_range_radius_, true ) )
+					{
+						debug Debug.PrintString( "Watch result : WS_SubGroup_All_Enter_Close_Range\n" );
+						return 32768 | (local_1 & (local_0 - 3));
+					}
+				
+				case 2:
+					if ( !iUtilities.FarFromGroup( sim_relative_to_, group_3, close_range_radius_, true ) )
+					{
+						debug Debug.PrintString( "Watch result : WS_SubGroup_All_Enter_Close_Range\n" );
+						return 32768 | (local_1 & (local_0 - 2));
+					}
+				
+				case 1:
+					if ( !iUtilities.FarFromGroup( sim_relative_to_, group_4, close_range_radius_, true ) )
+					{
+						debug Debug.PrintString( "Watch result : WS_SubGroup_All_Enter_Close_Range\n" );
+						return 32768 | (local_1 & (local_0 - 1));
+					}
+			}
+		}
+		
+		if ( watch_ & 65536 )
+		{
+			if ( Task.IsHalted( a_task_ ) )
+			{
+				return 65536;
+			}
+		}
+		
+		local_12 = WatchSimsMovement( sim_to_watch_, sim_relative_to_, close_range_radius_, long_range_radius_, watch_ | 1024, 0.0 );
+		
+		if ( local_12 != 1024 )
+		{
+			return local_12;
+		}
+		
+		Task.Sleep( Task.Current(), each_n_seconds_ );
+	}
+	while ( 1 );
+	
+	return local_12;
+}
+
+int WatchSimsMovement( hisim sim_to_watch_, hisim sim_relative_to_, float close_range_radius_, float long_range_radius_, int watch_, float each_n_seconds_ )
+{
+	float distance;
+	string name_0;
+	string name_1;
+	
+	debug
+	{
+		if ( !( watch_ & 1024 ) )
+		{
+			Debug.PrintString( "watching sim '" );
+			Debug.PrintString( Object.StringProperty( sim_to_watch_, "name" ) );
+			Debug.PrintString( "' relative to sim '" );
+			Debug.PrintString( Object.StringProperty( sim_relative_to_, "name" ) );
+			Debug.PrintString( "' with options: " );
+			
+			if ( watch_ & 256 )
+			{
+				Debug.PrintString( "LSYS " );
+			}
+			
+			if ( watch_ & 512 )
+			{
+				Debug.PrintString( "ESYS " );
+			}
+			
+			if ( watch_ & 16 )
+			{
+				Debug.PrintString( "ECLO " );
+			}
+			
+			if ( watch_ & 64 )
+			{
+				Debug.PrintString( "ELON " );
+			}
+			
+			if ( watch_ & 32 )
+			{
+				Debug.PrintString( "LCLO " );
+			}
+			
+			if ( watch_ & 128 )
+			{
+				Debug.PrintString( "LLON " );
+			}
+			
+			if ( watch_ & 1024 )
+			{
+				Debug.PrintString( "Don't Wait " );
+			}
+			
+			Debug.PrintString( "\n" );
+		}
+	}
+	
+	do
+	{
+		if ( !iSim.Cast( sim_to_watch_ ) || !iSim.Cast( sim_relative_to_ ) )
+		{
+			debug Debug.PrintString( "Watch result : WS_Destroyed\n" );
+			return 0;
+		}
+		
+		if ( watch_ & 768 )
+		{
+			name_0 = iSim.WorldName( sim_to_watch_ );
+			name_1 = iSim.WorldName( sim_relative_to_ );
+			
+			if ( (name_0 == "None") || ((name_0 == "Loading") || ((name_1 == "None") || (name_1 == "Loading"))) )
+			{
+				Task.Sleep( Task.Current(), 1.0 );
+				continue;
+			}
+			
+			if ( watch_ & 256 )
+			{
+				if ( !( name_0 == name_1 ) )
+				{
+					debug Debug.PrintString( "Watch result : WS_Leave_Same_System\n" );
+					return 256;
+				}
+			}
+			
+			if ( watch_ & 512 )
+			{
+				if ( name_0 == name_1 )
+				{
+					debug Debug.PrintString( "Watch result : WS_Enter_Same_System\n" );
+					return 512;
+				}
+			}
+		}
+		
+		if ( watch_ & 176 )
+		{
+			distance = Sim.DistanceBetween( sim_to_watch_, sim_relative_to_ );
+		}
+		
+		if ( watch_ & 16 )
+		{
+			if ( distance < close_range_radius_ )
+			{
+				debug Debug.PrintString( "Watch result : WS_Enter_Close_Range\n" );
+				return 16;
+			}
+		}
+		
+		if ( watch_ & 64 )
+		{
+			if ( distance < long_range_radius_ )
+			{
+				debug Debug.PrintString( "Watch result : WS_Enter_Long_Range\n" );
+				return 64;
+			}
+		}
+		
+		if ( watch_ & 128 )
+		{
+			if ( distance > long_range_radius_ )
+			{
+				debug Debug.PrintString( "Watch result : WS_Leave_Long_Range\n" );
+				return 128;
+			}
+		}
+		
+		if ( watch_ & 32 )
+		{
+			if ( distance > close_range_radius_ )
+			{
+				debug Debug.PrintString( "Watch result : WS_Leave_Close_Range\n" );
+				return 32;
+			}
+		}
+		
+		if ( watch_ & 1024 )
+		{
+			debug
+			{
+				if ( !( watch_ & 1024 ) )
+				{
+					Debug.PrintString( "Watch result : WS_Nothing\n" );
+				}
+			}
+			
+			return 1024;
+		}
+		
+		Task.Sleep( Task.Current(), each_n_seconds_ );
+	}
+	while ( 1 );
+	
+	return 1024;
+}
+
+int RecursiveSimCount( hgroup group_ )
+{
+	int ii;
+	int groupCount = Group.GroupCount( group_ );
+	int simCount;
+	
+	if ( group_ == iWingmen.Group() )
+	{
+		simCount = ( Group.SimCount( group_ ) - 1 );
+	}
+	else
+	{
+		simCount = Group.SimCount( group_ );
+	}
+	
+	for ( ii = 0; ii < groupCount; ++ii )
+	{
+		simCount = ( simCount + RecursiveSimCount( Group.NthGroup( group_, ii ) ) );
+	}
+	
+	return simCount;
+}
+
+int local_function_0( int param_0_, int param_1_ )
+{
+	if ( param_0_ < param_1_ )
+	{
+		return param_0_;
+	}
+	
+	return param_1_;
+}
+

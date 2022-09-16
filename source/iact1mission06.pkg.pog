@@ -1,0 +1,656 @@
+package iAct1Mission06;
+
+uses Debug,
+     List,
+     Set,
+     String,
+     Global,
+     Sim,
+     Group,
+     Math,
+     Object,
+     State,
+     Stream,
+     Task,
+     Text,
+     iSim,
+     iBody,
+     iHabitat,
+     iShip,
+     Subsim,
+     iDockport,
+     iLagrangePoint,
+     iAI,
+     iComms,
+     iConversation,
+     iCutsceneUtilities,
+     iDirector,
+     GUI,
+     iEmail,
+     MapEnumerations,
+     iFaction,
+     iGangsterIncidentGen,
+     iJafsScript,
+     iMapEntity,
+     iMissionTracker,
+     iMusic,
+     iObjectives,
+     iPilotSetup,
+     iRangeCheck,
+     iRegion,
+     INIFile,
+     iUtilities;
+
+provides Main,
+         MissionHandler,
+         Stub;
+
+prototype Main();
+prototype Stub();
+prototype local_function_2( hstate state_ );
+prototype local_function_1();
+prototype task local_function_0();
+prototype task local_function_3( htask param_0_, hstate state_, hship ship_, hisim param_3_, hgroup group_0_, hgroup group_1_ );
+prototype task MissionHandler();
+prototype hgroup local_function_4( hisim param_0_, float param_1_ );
+prototype local_function_6( hship ship_0_, hgroup group_0_, hgroup group_1_, hisim param_3_ );
+prototype task local_function_8( hship ship_, int param_1_, int param_2_, int constant_, hgroup group_, hisim param_5_ );
+prototype local_function_9( int param_0_ );
+prototype task local_function_5( hship ship_, hisim param_1_ );
+prototype task local_function_7( hship ship_0_, hship ship_1_, hgroup group_0_, hisim param_3_ );
+
+Main()
+{
+	debug Debug.PrintString( "iAct1_Mission06.Main - STARTED\n" );
+	start local_function_0();
+}
+
+Stub()
+{
+	Global.SetBool( "g_act1_retreived_gunstars", true );
+}
+
+local_function_2( hstate state_ )
+{
+	hsim waypointMilitaryFTLOutpost;
+	hship playerShip = iShip.FindPlayerShip();
+	
+	waypointMilitaryFTLOutpost = iUtilities.CreateWaypointRelativeTo( iMapEntity.FindByName( "Military FTL Outpost" ), 0.0, 0.0, 9000000.0 );
+	Object.AddHandleProperty( playerShip, "restart_waypoint", waypointMilitaryFTLOutpost );
+	Object.AddHandleProperty( playerShip, "current_mission_state", state_ );
+}
+
+local_function_1()
+{
+	iObjectives.Remove( "a1_m06_objective_travel_to_base" );
+	iObjectives.Remove( "a1_m06_objective_dock_to_base" );
+	iObjectives.Remove( "a1_m06_objective_retrieve_arming_keys" );
+	iObjectives.Remove( "a1_m06_objective_disarm_gunstars" );
+}
+
+task local_function_0()
+{
+	while ( iComms.IsInConversation() )
+	{
+		Task.Sleep( Task.Current(), 0.50 );
+	}
+	
+	if ( !iUtilities.SkipMission( "Gunstar Supermarket Sweep ?" ) )
+	{
+		Task.Detach( start MissionHandler() );
+		return;
+	}
+	
+	Stub();
+}
+
+task local_function_3( htask param_0_, hstate state_, hship ship_, hisim param_3_, hgroup group_0_, hgroup group_1_ )
+{
+	schedule
+	{
+		every 0.10:
+		{
+			if ( State.Progress( state_ ) == 100 )
+			{
+				Sim.Destroy( ship_ );
+				Sim.Destroy( param_3_ );
+				Sim.Destroy( Sim.FindByName( "a1_m06_waypoint" ) );
+				Group.Destroy( group_0_, true );
+				Group.Destroy( group_1_, true );
+				
+				atomic
+				{
+					Global.SetBool( "g_skip_locked", false );
+				}
+				
+				Task.Detach( start local_function_0() );
+				local_function_1();
+				State.Destroy( param_0_ );
+				iUtilities.RemoveMissionRestart();
+				iMissionTracker.RemoveMission( Task.Current() );
+				Task.Halt( param_0_ );
+				return;
+			}
+		}
+	}
+}
+
+task MissionHandler()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	hship shipMegatransporterGunstarTransport;
+	hisim militaryFTLOutpost;
+	hisim simWaypoint;
+	hgroup group_0 = Group.Create();
+	hgroup group_1;
+	hfaction marauders = iFaction.Find( "Marauders" );
+	hfaction independent = iFaction.Find( "Independent" );
+	hregion region;
+	hstate taskState = State.Find( Task.Current() );
+	hemail email;
+	htask local_11;
+	htask local_12;
+	int ii;
+	
+	debug Debug.PrintString( "iAct1Mission06.MissionHandler: STARTED\n" );
+	Sim.Preload( "ini:/sims/ships/navy/gunstar" );
+	
+	if ( !taskState )
+	{
+		taskState = State.Create( Task.Current(), 0 );
+	}
+	
+	iMissionTracker.AddMission( Task.Current(), 1, 6 );
+	email = iEmail.Find( "html:/text/act_1/act1_mission06_email" );
+	
+	if ( !email )
+	{
+		debug Debug.PrintString( "iAct1_Mission06 Sending Email\n" );
+		iEmail.SendEmail( "a1_m06_email_sender", "a1_m06_email_subject", "html:/text/act_1/act1_mission06_email", true );
+		return;
+	}
+	
+	if ( !iEmail.Read( email ) )
+	{
+		debug Debug.PrintString( "iAct1_Mission06 Email not read yet. Exiting\n" );
+		return;
+	}
+	
+	debug Debug.PrintString( "iAct1_Mission06 Email read. Starting Mission\n" );
+	local_function_2( taskState );
+	Text.Add( "csv:/text/act_1/act1_mission06" );
+	Text.Add( "csv:/text/act_1/act1_mission06_addendum" );
+	militaryFTLOutpost = iSim.Cast( iMapEntity.FindByName( "Military FTL Outpost" ) );
+	
+	debug
+	{
+		if ( militaryFTLOutpost == false )
+		{
+			Debug.PrintString( "iAct1Mission06.MissionHandler: Can't find Outpost: EXITING\n" );
+			return;
+		}
+	}
+	
+	Task.Detach( start local_function_3( Task.Current(), taskState, shipMegatransporterGunstarTransport, simWaypoint, group_0, group_1 ) );
+	iRangeCheck.AddTrafficException( iMapEntity.Cast( militaryFTLOutpost ) );
+	iGangsterIncidentGen.SetActive( false );
+	simWaypoint = iSim.Cast( Sim.Create( "ini:/sims/nav/waypoint", "a1_m06_waypoint" ) );
+	iUtilities.SimPlaceBetweenExact( simWaypoint, militaryFTLOutpost, playerShip, 8000.0 );
+	iSim.SetSensorVisibility( simWaypoint, true );
+	iObjectives.Add( "a1_m06_objective_travel_to_base" );
+	Task.Sleep( Task.Current(), 3.0 );
+	iConversation.OneLiner( none, "name_clay", "a1_m06_dialogue_clay_lets_go" );
+	debug Debug.PrintString( "iAct1Mission06.MissionHandler: Waiting for player to get near outpost\n" );
+	
+	schedule
+	{
+		every 10.0:
+		{
+			if ( Sim.DistanceBetween( playerShip, simWaypoint ) < 500000.0 )
+			{
+				break;
+			}
+		}
+	}
+	
+	group_1 = local_function_4( militaryFTLOutpost, 5000.0 );
+	debug Debug.PrintString( "iAct1Mission06.MissionHandler: Waiting for player to get nearer outpost\n" );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( Sim.DistanceBetween( playerShip, simWaypoint ) < 40000.0 )
+			{
+				break;
+			}
+		}
+	}
+	
+	iMusic.SetSuite( MS_Down );
+	iMusic.SetMood( MM_Tension );
+	iObjectives.SetState( "a1_m06_objective_travel_to_base", OS_Succeeded );
+	iObjectives.Add( "a1_m06_objective_dock_to_base" );
+	iConversation.OneLiner( none, "name_smith", "a1_m06_dialogue_smith_lets_dock" );
+	debug Debug.PrintString( "iAct1Mission06.MissionHandler: Waiting for player to dock to outpost\n" );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( iSim.IsDockedToStructure( playerShip, militaryFTLOutpost ) )
+			{
+				break;
+			}
+		}
+	}
+	
+	iObjectives.SetState( "a1_m06_objective_dock_to_base", OS_Succeeded );
+	iObjectives.Add( "a1_m06_objective_retrieve_arming_keys" );
+	State.SetProgress( taskState, 1 );
+	iSim.SetDockingLock( playerShip, militaryFTLOutpost, true );
+	iJafsScript.DisableJafs();
+	iConversation.OneLiner( none, "name_smith", "a1_m06_dialogue_smith_ill_get_the_arming_codes" );
+	iConversation.OneLiner( none, "name_cal", "a1_m06_dialogue_cal_be_careful" );
+	Task.Sleep( Task.Current(), 4.0 );
+	region = iRegion.CreateLDSI( militaryFTLOutpost, 250000.0 );
+	local_11 = start local_function_5( playerShip, militaryFTLOutpost );
+	local_function_6( playerShip, group_1, group_0, militaryFTLOutpost );
+	iMusic.Pause();
+	iMusic.Play( "sound:/audio/music/a1_action", true, true );
+	Task.Sleep( Task.Current(), 1.0 );
+	iConversation.Begin();
+	iConversation.Say( none, "name_smith", "a1_m06_dialogue_smith_oops" );
+	iConversation.Say( none, "name_cal", "a1_m06_dialogue_cal_whats_wrong" );
+	iConversation.Say( none, "name_smith", "a1_m06_dialogue_smith_we_have_a_problem" );
+	iConversation.Say( none, "name_cal", "a1_m06_dialogue_cal_what_did_you_do" );
+	iConversation.Say( none, "name_smith", "a1_m06_dialogue_smith_the_gunstars_are_online" );
+	iConversation.Say( none, "name_cal", "a1_m06_dialogue_cal_thats_great" );
+	iConversation.Say( none, "name_smith", "a1_m06_dialogue_smith_theres_a_mine_field" );
+	iConversation.Say( none, "name_clay", "a1_m06_dialogue_clay_clever_comment" );
+	iConversation.Say( none, "name_cal", "a1_m06_dialogue_cal_what_do_we_do" );
+	iConversation.Say( none, "name_smith", "a1_m06_dialogue_smith_we_could_remove_the_arming_keys" );
+	iConversation.Say( none, "name_cal", "a1_m06_dialogue_cal_thats_suicide" );
+	iConversation.Say( none, "name_clay", "a1_m06_dialogue_clay_its_our_only_way_out" );
+	iConversation.Say( none, "name_smith", "a1_m06_dialogue_smith_the_gunstars_have_low_power" );
+	iConversation.End();
+	iObjectives.SetState( "a1_m06_objective_retrieve_arming_keys", OS_Succeeded );
+	iObjectives.Add( "a1_m06_objective_disarm_gunstars" );
+	iSim.SetDockingLock( playerShip, militaryFTLOutpost, false );
+	debug Debug.PrintString( "iAct1Mission06.MissionHandler: Waiting for player to capture all the gunstars.\n" );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( Group.SimCount( group_0 ) == 6 )
+			{
+				break;
+			}
+		}
+	}
+	
+	Group.AddGroup( group_0, group_1 );
+	Group.Flatten( group_0 );
+	iAI.PurgeOrders( group_0 );
+	
+	for ( ii = 0; ii < Group.SimCount( group_0 ); ++ii )
+	{
+		iShip.LockDownWeapons( iShip.Cast( Group.NthSim( group_0, ii ) ) );
+		iSim.SetHostile( iShip.Cast( Group.NthSim( group_0, ii ) ), false );
+	}
+	
+	iAI.PurgeOrders( group_1 );
+	Sim.Destroy( simWaypoint );
+	iRegion.Destroy( region );
+	Task.Halt( local_11 );
+	iObjectives.SetState( "a1_m06_objective_disarm_gunstars", OS_Succeeded );
+	iMusic.Play( "sound:/audio/music/a1_discovery", true, true );
+	iConversation.OneLiner( none, "name_smith", "a1_m06_dialogue_smith_thats_the_last_one" );
+	iConversation.OneLiner( none, "name_clay", "a1_m06_dialogue_clay_the_mines_have_deactivated" );
+	iConversation.OneLiner( none, "name_cal", "a1_m06_dialogue_cal_call_in_the_freighter" );
+	iDirector.Begin();
+	iDirector.FadeOut( 0.0, 0.0, 0.0, 0.0 );
+	iShip.Undock( playerShip, Sim.Parent( playerShip ) );
+	Sim.PlaceNear( playerShip, militaryFTLOutpost, 100000.0 );
+	shipMegatransporterGunstarTransport = iShip.Create( "ini:/sims/custom/act1_mission06/megatransporter_gunstar_transport", "" );
+	local_12 = start local_function_7( shipMegatransporterGunstarTransport, playerShip, group_0, militaryFTLOutpost );
+	iCutsceneUtilities.HandleAbort( local_12 );
+	
+	atomic
+	{
+		iShip.SetFreeWithoutPilot( playerShip, false );
+		Sim.PlaceNear( playerShip, militaryFTLOutpost, 2000.0 );
+		Sim.PointAt( playerShip, militaryFTLOutpost );
+		Sim.SetVelocity( playerShip, 0.0, 0.0, 0.0 );
+		Sim.SetAngularVelocityEuler( playerShip, 0.0, 0.0, 0.0 );
+		iShip.DisruptLDSDrive( playerShip, 1.0 );
+	}
+	
+	Stream.Stop( 0, false );
+	Stream.Stop( 1, false );
+	iMusic.Resume();
+	iMusic.SetSuite( MS_Down );
+	iMusic.SetMood( MM_Ambient );
+	Task.Sleep( Task.Current(), 3.0 );
+	
+	if ( Global.Exists( "g_act1_retreived_gunstars" ) )
+	{
+		Global.SetBool( "g_act1_retreived_gunstars", true );
+	}
+	
+	Text.Remove( "csv:/text/act_1/act1_mission06" );
+	Text.Remove( "csv:/text/act_1/act1_mission06_addendum" );
+	iGangsterIncidentGen.SetActive( true );
+	iMissionTracker.RemoveMission( Task.Current() );
+	iUtilities.RemoveMissionRestart();
+	State.Destroy( Task.Current() );
+	debug Debug.PrintString( "iAct1Mission06: MISSION COMPLETE\n" );
+}
+
+hgroup local_function_4( hisim param_0_, float param_1_ )
+{
+	hgroup group = Group.Create();
+	hship shipGunstarGatling_0 = iShip.Create( "ini:/sims/ships/navy/gunstar_gatling", "a1_m06_ship_gunstar_1" );
+	hship shipGunstarGatling_1 = iShip.Create( "ini:/sims/ships/navy/gunstar_gatling", "a1_m06_ship_gunstar_2" );
+	hship shipGunstarGatling_2 = iShip.Create( "ini:/sims/ships/navy/gunstar_gatling", "a1_m06_ship_gunstar_3" );
+	hship shipGunstarGatling_3 = iShip.Create( "ini:/sims/ships/navy/gunstar_gatling", "a1_m06_ship_gunstar_4" );
+	hship shipGunstarGatling_4 = iShip.Create( "ini:/sims/ships/navy/gunstar_gatling", "a1_m06_ship_gunstar_5" );
+	hship shipGunstarGatling_5 = iShip.Create( "ini:/sims/ships/navy/gunstar_gatling", "a1_m06_ship_gunstar_6" );
+	hfaction independent = iFaction.Find( "Independent" );
+	
+	Sim.SetCullable( shipGunstarGatling_0, false );
+	iSim.SetIndestructable( shipGunstarGatling_0, true );
+	iSim.SetFaction( shipGunstarGatling_0, independent );
+	Group.AddSim( group, shipGunstarGatling_0 );
+	iPilotSetup.GenericCargoPod( shipGunstarGatling_0 );
+	Sim.PlaceRelativeTo( shipGunstarGatling_0, param_0_, param_1_, 0.0, 0.0 );
+	Sim.SetOrientationEuler( shipGunstarGatling_0, 0.0, 0.0, -90.0 );
+	Sim.SetCullable( shipGunstarGatling_1, false );
+	iSim.SetIndestructable( shipGunstarGatling_1, true );
+	iSim.SetFaction( shipGunstarGatling_1, independent );
+	Group.AddSim( group, shipGunstarGatling_1 );
+	iPilotSetup.GenericCargoPod( shipGunstarGatling_1 );
+	Sim.PlaceRelativeTo( shipGunstarGatling_1, param_0_, -param_1_, 0.0, 0.0 );
+	Sim.SetOrientationEuler( shipGunstarGatling_1, 0.0, 0.0, 90.0 );
+	Sim.SetCullable( shipGunstarGatling_2, false );
+	iSim.SetIndestructable( shipGunstarGatling_2, true );
+	iSim.SetFaction( shipGunstarGatling_2, independent );
+	Group.AddSim( group, shipGunstarGatling_2 );
+	iPilotSetup.GenericCargoPod( shipGunstarGatling_2 );
+	Sim.PlaceRelativeTo( shipGunstarGatling_2, param_0_, 0.0, param_1_, 0.0 );
+	Sim.SetCullable( shipGunstarGatling_3, false );
+	iSim.SetIndestructable( shipGunstarGatling_3, true );
+	iSim.SetFaction( shipGunstarGatling_3, independent );
+	Group.AddSim( group, shipGunstarGatling_3 );
+	iPilotSetup.GenericCargoPod( shipGunstarGatling_3 );
+	Sim.PlaceRelativeTo( shipGunstarGatling_3, param_0_, 0.0, -param_1_, 0.0 );
+	Sim.SetOrientationEuler( shipGunstarGatling_3, 0.0, 180.0, 0.0 );
+	Sim.SetCullable( shipGunstarGatling_4, false );
+	iSim.SetIndestructable( shipGunstarGatling_4, true );
+	iSim.SetFaction( shipGunstarGatling_4, independent );
+	Group.AddSim( group, shipGunstarGatling_4 );
+	iPilotSetup.GenericCargoPod( shipGunstarGatling_4 );
+	Sim.PlaceRelativeTo( shipGunstarGatling_4, param_0_, 0.0, 0.0, param_1_ );
+	Sim.SetOrientationEuler( shipGunstarGatling_4, 0.0, 90.0, 0.0 );
+	Sim.SetCullable( shipGunstarGatling_5, false );
+	Group.AddSim( group, shipGunstarGatling_5 );
+	iSim.SetIndestructable( shipGunstarGatling_5, true );
+	iSim.SetFaction( shipGunstarGatling_5, independent );
+	iPilotSetup.GenericCargoPod( shipGunstarGatling_5 );
+	Sim.PlaceRelativeTo( shipGunstarGatling_5, param_0_, 0.0, 0.0, -param_1_ );
+	Sim.SetOrientationEuler( shipGunstarGatling_5, 0.0, -90.0, 0.0 );
+	return group;
+}
+
+local_function_6( hship ship_0_, hgroup group_0_, hgroup group_1_, hisim param_3_ )
+{
+	hship groupLeader = iShip.Cast( Group.Leader( group_0_ ) );
+	hship ship_1 = iShip.Cast( Group.NthSim( group_0_, 1 ) );
+	hship ship_2 = iShip.Cast( Group.NthSim( group_0_, 2 ) );
+	hship ship_3 = iShip.Cast( Group.NthSim( group_0_, 3 ) );
+	hship ship_4 = iShip.Cast( Group.NthSim( group_0_, 4 ) );
+	hship ship_5 = iShip.Cast( Group.NthSim( group_0_, 5 ) );
+	
+	start local_function_8( groupLeader, 20, 20, 5, group_1_, param_3_ );
+	start local_function_8( ship_1, 20, 20, 5, group_1_, param_3_ );
+	start local_function_8( ship_2, 20, 20, 10, group_1_, param_3_ );
+	start local_function_8( ship_3, 20, 20, 10, group_1_, param_3_ );
+	start local_function_8( ship_4, 20, 20, 15, group_1_, param_3_ );
+	start local_function_8( ship_5, 20, 20, 15, group_1_, param_3_ );
+}
+
+task local_function_8( hship ship_, int param_1_, int param_2_, int constant_, hgroup group_, hisim param_5_ )
+{
+	hship playerShip = iShip.FindPlayerShip();
+	hfaction marauders = iFaction.Find( "Marauders" );
+	hfaction independent = iFaction.Find( "Independent" );
+	hfaction player = iFaction.Find( "Player" );
+	int local_4;
+	
+	do
+	{
+		iShip.LockDownWeapons( ship_ );
+		iSim.SetHostile( ship_, true );
+		local_4 = constant_;
+		
+		schedule
+		{
+			every 1.0:
+			{
+				if ( iSim.IsDockedTo( playerShip, ship_ ) )
+				{
+					break;
+				}
+				
+				if ( iSim.IsDockedTo( playerShip, param_5_ ) )
+				{
+					iShip.LockDownWeapons( ship_ );
+				}
+				else
+				{
+					iAI.GiveAttackOrder( ship_, playerShip );
+				}
+				
+				if ( local_4 == param_1_ )
+				{
+					break;
+				}
+				
+				local_4 = ( local_4 + 1 );
+			}
+		}
+		
+		constant_ = 0;
+		iAI.PurgeOrders( ship_ );
+		iShip.LockDownWeapons( ship_ );
+		iSim.SetHostile( ship_, false );
+		
+		if ( iSim.IsDockedTo( playerShip, ship_ ) )
+		{
+			break;
+		}
+		
+		local_4 = 0;
+		
+		schedule
+		{
+			every 1.0:
+			{
+				if ( iSim.IsDockedTo( playerShip, ship_ ) )
+				{
+					break;
+				}
+				
+				if ( local_4 == param_2_ )
+				{
+					break;
+				}
+				
+				local_4 = ( local_4 + 1 );
+			}
+		}
+	}
+	while ( !iSim.IsDockedTo( playerShip, ship_ ) );
+	
+	iSim.SetDockingLock( playerShip, ship_, true );
+	iSim.SetSensorVisibility( ship_, false );
+	iAI.PurgeOrders( ship_ );
+	Group.AddSim( group_, ship_ );
+	Task.Sleep( Task.Current(), 4.0 );
+	local_function_9( Group.SimCount( group_ ) );
+	iSim.SetDockingLock( playerShip, ship_, false );
+}
+
+local_function_9( int param_0_ )
+{
+	switch ( param_0_ )
+	{
+		case 1:
+			iConversation.OneLiner( none, "name_smith", "a1_m06_dialogue_smith_thats_one" );
+			return;
+		
+		case 2:
+			iConversation.OneLiner( none, "name_smith", "a1_m06_dialogue_smith_thats_two" );
+			return;
+		
+		case 3:
+			iConversation.OneLiner( none, "name_smith", "a1_m06_dialogue_smith_half_done" );
+			return;
+		
+		case 4:
+			iConversation.OneLiner( none, "name_smith", "a1_m06_dialogue_smith_two_more" );
+			return;
+		
+		case 5:
+			iConversation.OneLiner( none, "name_smith", "a1_m06_dialogue_smith_one_to_go" );
+			return;
+	}
+}
+
+task local_function_5( hship ship_, hisim param_1_ )
+{
+	hship shipDemolitionMine;
+	int ii;
+	int local_2 = ( Object.IntProperty( ship_, "hit_points" ) / 10 );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( Sim.DistanceBetween( ship_, param_1_ ) > 15000.0 )
+			{
+				iComms.Shout( none, "name_clay", "a1_m06_dialogue_clay_minefield" );
+				
+				for ( ii = 0; ii < 10; ++ii )
+				{
+					if ( Sim.IsAlive( ship_ ) )
+					{
+						atomic
+						{
+							shipDemolitionMine = iShip.Create( "ini:/sims/custom/act3_mission03/demolition_mine", "mine" );
+							iSim.SetSensorVisibility( shipDemolitionMine, false );
+							Sim.PlaceRelativeTo( shipDemolitionMine, ship_, Math.Random( -50.0, 50.0 ), Math.Random( -50.0, 50.0 ), Math.Random( 80.0, 150.0 ) );
+							Sim.AttachChild( ship_, shipDemolitionMine );
+							iSim.Kill( shipDemolitionMine );
+						}
+					}
+					
+					Object.SetIntProperty( ship_, "hit_points", Object.IntProperty( ship_, "hit_points" ) - local_2 );
+					Task.Sleep( Task.Current(), Math.Random( 0.10, 0.250 ) );
+				}
+				
+				iSim.Kill( ship_ );
+				break;
+			}
+		}
+	}
+}
+
+task local_function_7( hship ship_0_, hship ship_1_, hgroup group_0_, hisim param_3_ )
+{
+	hship ship_2;
+	hsim local_1;
+	hsim waypoint_0;
+	hsim waypoint_1;
+	hgroup group_1;
+	int local_5;
+	int local_6;
+	int ii;
+	
+	iShip.SetFreeWithoutPilot( ship_1_, true );
+	group_1 = iCutsceneUtilities.GetKillGroup();
+	iAI.PurgeOrders( ship_1_ );
+	Sim.PlaceRelativeTo( ship_1_, param_3_, 0.0, 5000.0, 0.0 );
+	local_1 = iDirector.CreateDolly();
+	Group.AddSim( group_1, local_1 );
+	Group.AddSim( group_1, waypoint_0 );
+	Group.AddSim( group_1, waypoint_1 );
+	Group.AddGroup( group_1, group_0_ );
+	Group.AddSim( group_1, ship_0_ );
+	iDirector.SetDollyCamera( local_1 );
+	Sim.PlaceRelativeTo( ship_0_, param_3_, -5000.0, -5000.0, -5000.0 );
+	Sim.PointAt( ship_0_, param_3_ );
+	waypoint_0 = iUtilities.CreateWaypointRelativeTo( ship_0_, 500.0, -1000.0, 1000.0 );
+	waypoint_1 = iUtilities.CreateWaypointRelativeTo( ship_0_, 1000.0, 1000.0, 1000.0 );
+	Sim.PlaceRelativeTo( local_1, ship_0_, 200.0, 100.0, 1000.0 );
+	iShip.SetFreeWithoutPilot( ship_0_, true );
+	Sim.SetVelocityLocalToSim( ship_0_, 0.0, 0.0, 300.0 );
+	iDirector.SetFocus( ship_0_ );
+	iDirector.SetDirection( local_1, waypoint_0, waypoint_1, 15.0, 3.0 );
+	iDirector.FadeIn( 2.0, 0.0, 0.0, 0.0 );
+	Task.Sleep( Task.Current(), 2.0 );
+	iComms.Shout( none, "name_jafs", "a1_m06_dialogue_jafs_brought_the_freighter" );
+	Task.Sleep( Task.Current(), 10.0 );
+	iDirector.FadeOut( 1.0, 0.0, 0.0, 0.0 );
+	Task.Sleep( Task.Current(), 1.0 );
+	iShip.SetFreeWithoutPilot( ship_0_, false );
+	Sim.SetVelocityLocalToSim( ship_0_, 0.0, 0.0, 0.0 );
+	Sim.PlaceRelativeTo( ship_0_, param_3_, 1000.0, 1000.0, 1000.0 );
+	Sim.CopyOrientation( ship_0_, param_3_ );
+	
+	for ( ii = 0; ii < Group.SimCount( group_0_ ); ++ii )
+	{
+		ship_2 = iShip.Cast( Group.NthSim( group_0_, ii ) );
+		
+		atomic
+		{
+			iSim.Dock( ship_2, ship_0_ );
+			Sim.DetachChild( ship_0_, ship_2 );
+			Sim.PlaceRelativeToInside( ship_2, ship_2, 0.0, -200.0, 0.0 );
+		}
+	}
+	
+	Sim.PlaceRelativeTo( waypoint_0, ship_0_, -2000.0, 1000.0, 1000.0 );
+	Sim.PlaceRelativeTo( waypoint_1, ship_0_, -500.0, 200.0, -1000.0 );
+	iDirector.SetFocus( ship_0_ );
+	iDirector.SetDirection( local_1, waypoint_0, waypoint_1, 15.0, 3.0 );
+	Task.Sleep( Task.Current(), 1.0 );
+	iDirector.FadeIn( 2.0, 0.0, 0.0, 0.0 );
+	Task.Sleep( Task.Current(), 2.0 );
+	iComms.Shout( none, "name_cal", "a1_m06_dialogue_cal_we_had_a_few_problems" );
+	Task.Sleep( Task.Current(), 6.0 );
+	iDirector.FadeOut( 1.0, 0.0, 0.0, 0.0 );
+	Task.Sleep( Task.Current(), 1.0 );
+	
+	for ( ii = 0; ii < Group.SimCount( group_0_ ); ++ii )
+	{
+		ship_2 = iShip.Cast( Group.NthSim( group_0_, ii ) );
+		iSim.Dock( ship_2, ship_0_ );
+	}
+	
+	Sim.PlaceRelativeTo( ship_0_, param_3_, 0.0, 0.0, 2000.0 );
+	Sim.PlaceRelativeTo( waypoint_0, param_3_, 0.0, 0.0, 30000.0 );
+	Sim.PointAt( ship_0_, waypoint_0 );
+	Sim.PlaceRelativeTo( local_1, param_3_, 1000.0, -500.0, 6000.0 );
+	iShip.SetFreeWithoutPilot( ship_0_, false );
+	Sim.SetVelocityLocalToSim( ship_0_, 0.0, 0.0, 700.0 );
+	iDirector.SetFocus( ship_0_ );
+	Task.Sleep( Task.Current(), 1.0 );
+	iDirector.FadeIn( 2.0, 0.0, 0.0, 0.0 );
+	Task.Sleep( Task.Current(), 2.0 );
+	iComms.Shout( none, "name_jafs", "a1_m06_dialogue_jafs_see_you_later" );
+	Task.Sleep( Task.Current(), 6.0 );
+	iDirector.End();
+}
+

@@ -1,0 +1,364 @@
+package iSystemCutScene;
+
+uses Debug,
+     Set,
+     Sim,
+     Group,
+     Math,
+     List,
+     Object,
+     String,
+     Task,
+     iComms,
+     iFaction,
+     iSim,
+     iBody,
+     iHabitat,
+     iShip,
+     iCutsceneUtilities,
+     iDirector,
+     MapEnumerations,
+     iMapEntity,
+     iPilotSetup,
+     iScriptedOrders,
+     INIFile,
+     iUtilities;
+
+provides Main,
+         Kompira,
+         Eureka,
+         Firefrost,
+         Dagda,
+         Mwari,
+         Coyote;
+
+prototype task local_function_0( hgroup group_0_, float param_1_, bool param_2_ );
+prototype task local_function_1( hgroup group_, string param_1_, float param_2_, bool param_3_ );
+prototype Kompira();
+prototype Eureka();
+prototype Firefrost();
+prototype Dagda();
+prototype Mwari();
+prototype Coyote();
+prototype local_function_2( hship ship_, int param_1_ );
+prototype task local_function_3( hship ship_ );
+prototype Main();
+
+task local_function_0( hgroup group_0_, float param_1_, bool param_2_ )
+{
+	int local_0 = 0;
+	int simCount = Group.SimCount( group_0_ );
+	float local_2 = 0.0;
+	float local_3 = ( param_1_ / simCount );
+	hship shipFastGhost = iShip.Create( "ini:/sims/ships/player/fast_ghost", "I am a Ghost" );
+	hship playerShip = iShip.FindPlayerShip();
+	hmapentity mapentity = iMapEntity.SystemCentre();
+	hsim waypoint;
+	hsim local_8;
+	hgroup group_1;
+	
+	Sim.PlaceRelativeTo( playerShip, playerShip, 0.0, 0.0, 7000.0 );
+	iPilotSetup.GenericCargoPod( shipFastGhost );
+	iSim.SetIndestructable( shipFastGhost, true );
+	Sim.SetCullable( shipFastGhost, false );
+	iDirector.Begin();
+	local_8 = iDirector.CreateDolly();
+	
+	do
+	{
+		if ( local_2 < param_1_ )
+		{
+			if ( (local_2 < (local_3 * local_0)) && (local_0 != 0) )
+			{
+				local_2 = ( local_2 + 1.0 );
+			}
+			else
+			{
+				if ( local_0 > simCount )
+				{
+					if ( param_2_ && iComms.IsInConversation() )
+					{
+						local_0 = 0;
+						local_2 = 0.0;
+					}
+					else
+					{
+						break;
+					}
+				}
+				
+				Sim.Destroy( waypoint );
+				Group.Destroy( group_1, true );
+				waypoint = iUtilities.CreateWaypointBetweenExact( Group.NthSim( group_0_, local_0 ), mapentity, Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 12.0 );
+				Sim.PlaceRelativeTo( shipFastGhost, waypoint, 0.0, 0.0, -850000.0 );
+				iDirector.AttachDollyToSim( local_8, shipFastGhost );
+				iDirector.SetFocus( Group.NthSim( group_0_, local_0 ) );
+				group_1 = Group.Create();
+				
+				switch ( Math.RandomInt( 0, 3 ) )
+				{
+					case 0:
+						Group.AddSim( group_1, iUtilities.CreateWaypointRelativeTo( Group.NthSim( group_0_, local_0 ), Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 22.0, 0.0, Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 6.0 ) );
+						Group.AddSim( group_1, iUtilities.CreateWaypointRelativeTo( Group.NthSim( group_0_, local_0 ), Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 22.0, 0.0, 0.0 ) );
+						Group.AddSim( group_1, iUtilities.CreateWaypointRelativeTo( Group.NthSim( group_0_, local_0 ), Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 12.0, Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ), Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 16.0 ) );
+						Group.AddSim( group_1, iUtilities.CreateWaypointRelativeTo( Group.NthSim( group_0_, local_0 ), Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 12.0, Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ), Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 22.0 ) );
+						break;
+					
+					case 1:
+						Group.AddSim( group_1, iUtilities.CreateWaypointRelativeTo( Group.NthSim( group_0_, local_0 ), -( Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 22.0 ), 0.0, Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 6.0 ) );
+						Group.AddSim( group_1, iUtilities.CreateWaypointRelativeTo( Group.NthSim( group_0_, local_0 ), -( Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 22.0 ), 0.0, 0.0 ) );
+						Group.AddSim( group_1, iUtilities.CreateWaypointRelativeTo( Group.NthSim( group_0_, local_0 ), -( Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 12.0 ), Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ), Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 16.0 ) );
+						Group.AddSim( group_1, iUtilities.CreateWaypointRelativeTo( Group.NthSim( group_0_, local_0 ), -( Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 12.0 ), Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ), Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 22.0 ) );
+						break;
+					
+					case 2:
+						Group.AddSim( group_1, iUtilities.CreateWaypointRelativeTo( Group.NthSim( group_0_, local_0 ), -( Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 22.0 ), 0.0, Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 6.0 ) );
+						Group.AddSim( group_1, iUtilities.CreateWaypointRelativeTo( Group.NthSim( group_0_, local_0 ), -( Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 22.0 ), 0.0, 0.0 ) );
+						Group.AddSim( group_1, iUtilities.CreateWaypointRelativeTo( Group.NthSim( group_0_, local_0 ), -( Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 12.0 ), -Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ), Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 16.0 ) );
+						Group.AddSim( group_1, iUtilities.CreateWaypointRelativeTo( Group.NthSim( group_0_, local_0 ), -( Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 12.0 ), -Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ), Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 22.0 ) );
+						break;
+					
+					case 3:
+						Group.AddSim( group_1, iUtilities.CreateWaypointRelativeTo( Group.NthSim( group_0_, local_0 ), Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 22.0, 0.0, Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 6.0 ) );
+						Group.AddSim( group_1, iUtilities.CreateWaypointRelativeTo( Group.NthSim( group_0_, local_0 ), Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 22.0, 0.0, 0.0 ) );
+						Group.AddSim( group_1, iUtilities.CreateWaypointRelativeTo( Group.NthSim( group_0_, local_0 ), -( Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 12.0 ), -Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ), Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 16.0 ) );
+						Group.AddSim( group_1, iUtilities.CreateWaypointRelativeTo( Group.NthSim( group_0_, local_0 ), Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 12.0, -Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ), Object.FloatProperty( Group.NthSim( group_0_, local_0 ), "radius" ) * 22.0 ) );
+						break;
+				}
+				
+				start iScriptedOrders.FollowRoute( shipFastGhost, group_1, 0.10, 0.50, false, false, 0 );
+				
+				switch ( Math.RandomInt( 1, 2 ) )
+				{
+					case 1:
+						iDirector.SetInterpolateFieldOfView( 60.0, 30.0, local_3 - (local_3 / 3.0) );
+						break;
+					
+					case 2:
+						iDirector.SetInterpolateFieldOfView( 30.0, 60.0, local_3 - (local_3 / 3.0) );
+						break;
+				}
+				
+				iDirector.SetCaption( String.Join( "hud_long_type_planet+", String.Join( " :+", Object.StringProperty( Group.NthSim( group_0_, local_0 ), "name" ) ) ), 5.0 );
+				iDirector.SetDollyCamera( local_8 );
+				local_0 = ( local_0 + 1 );
+			}
+		}
+		
+		Task.Sleep( Task.Current(), 0.70 );
+	}
+	while ( (local_2 < param_1_) || iComms.IsInConversation() );
+	
+	iDirector.End();
+	Sim.Destroy( waypoint );
+	Sim.Destroy( shipFastGhost );
+	Group.Destroy( group_1, true );
+}
+
+task local_function_1( hgroup group_, string param_1_, float param_2_, bool param_3_ )
+{
+	do
+	{
+		Task.Sleep( Task.Current(), 1.0 );
+	}
+	while ( !( iSim.ActiveWorld() == param_1_ ) );
+	
+	Task.Sleep( Task.Current(), 4.0 );
+	iCutsceneUtilities.HandleAbort( start local_function_0( group_, param_2_, param_3_ ) );
+}
+
+Kompira()
+{
+	hgroup group = Group.Create();
+	
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Hutamah", "map:/geog/badlands/kompira" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Jahim", "map:/geog/badlands/kompira" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Jahannam", "map:/geog/badlands/kompira" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Saqar", "map:/geog/badlands/kompira" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Laza", "map:/geog/badlands/kompira" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Sa'ir", "map:/geog/badlands/kompira" ) );
+	start local_function_1( group, "map:/geog/badlands/kompira", 40.0, false );
+}
+
+Eureka()
+{
+	hgroup group = Group.Create();
+	
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Eureka", "map:/geog/badlands/eureka" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Angelica", "map:/geog/badlands/eureka" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Diablo", "map:/geog/badlands/eureka" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Portus", "map:/geog/badlands/eureka" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Roskilde", "map:/geog/badlands/eureka" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Storstrom", "map:/geog/badlands/eureka" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Illecebra", "map:/geog/badlands/eureka" ) );
+	start local_function_1( group, "map:/geog/badlands/eureka", 40.0, false );
+}
+
+Firefrost()
+{
+	hgroup group = Group.Create();
+	
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Sif", "map:/geog/badlands/firefrost" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Hyrrokin", "map:/geog/badlands/firefrost" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Orgelmir", "map:/geog/badlands/firefrost" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Fundin", "map:/geog/badlands/firefrost" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Mimir", "map:/geog/badlands/firefrost" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Balder", "map:/geog/badlands/firefrost" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Vidar", "map:/geog/badlands/firefrost" ) );
+	start local_function_1( group, "map:/geog/badlands/firefrost", 40.0, false );
+}
+
+Dagda()
+{
+	hgroup group = Group.Create();
+	
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Dagda Alpha Prime", "map:/geog/badlands/dagda" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Dagda Alpha 3", "map:/geog/badlands/dagda" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Dagda Beta Prime", "map:/geog/badlands/dagda" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Dagda Beta 1", "map:/geog/badlands/dagda" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Dagda Delta Prime", "map:/geog/badlands/dagda" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Dagda Delta 2", "map:/geog/badlands/dagda" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Dagda Epsilon Prime", "map:/geog/badlands/dagda" ) );
+	start local_function_1( group, "map:/geog/badlands/dagda", 40.0, false );
+}
+
+Mwari()
+{
+	hgroup group = Group.Create();
+	
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Hogin's Claim", "map:/geog/badlands/mwari" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Plato", "map:/geog/badlands/mwari" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Christos", "map:/geog/badlands/mwari" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Sierra", "map:/geog/badlands/mwari" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Blackdog", "map:/geog/badlands/mwari" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Toby", "map:/geog/badlands/mwari" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Pythagoras", "map:/geog/badlands/mwari" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Fronn", "map:/geog/badlands/mwari" ) );
+	start local_function_1( group, "map:/geog/badlands/mwari", 40.0, false );
+}
+
+Coyote()
+{
+	hgroup group = Group.Create();
+	
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Comanche", "map:/geog/badlands/coyote" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Penateka", "map:/geog/badlands/coyote" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Nokoni", "map:/geog/badlands/coyote" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Winnebago", "map:/geog/badlands/coyote" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Hois", "map:/geog/badlands/coyote" ) );
+	Group.AddSim( group, iMapEntity.FindByNameInSystem( "Huron", "map:/geog/badlands/coyote" ) );
+	start local_function_1( group, "map:/geog/badlands/coyote", 40.0, false );
+}
+
+local_function_2( hship ship_, int param_1_ )
+{
+	switch ( param_1_ )
+	{
+		case 100:
+			Debug.PrintString( "Commencing Kompira Cutscene!\n" );
+			iSim.CapsuleJump( ship_, iMapEntity.FindByNameInSystem( "Hutamah", "map:/geog/badlands/kompira" ) );
+			
+			do
+			{
+				Task.Sleep( Task.Current(), 1.0 );
+			}
+			while ( !( iSim.ActiveWorld() == "map:/geog/badlands/kompira" ) );
+			
+			Kompira();
+			return;
+		
+		case 111:
+			Debug.PrintString( "Commencing Eureka Cutscene!\n" );
+			iSim.CapsuleJump( ship_, iMapEntity.FindByNameInSystem( "Eureka", "map:/geog/badlands/eureka" ) );
+			
+			do
+			{
+				Task.Sleep( Task.Current(), 1.0 );
+			}
+			while ( !( iSim.ActiveWorld() == "map:/geog/badlands/eureka" ) );
+			
+			Eureka();
+			return;
+		
+		case 112:
+			Debug.PrintString( "Commencing Firefrost Cutscene!\n" );
+			iSim.CapsuleJump( ship_, iMapEntity.FindByNameInSystem( "Sif", "map:/geog/badlands/firefrost" ) );
+			
+			do
+			{
+				Task.Sleep( Task.Current(), 1.0 );
+			}
+			while ( !( iSim.ActiveWorld() == "map:/geog/badlands/firefrost" ) );
+			
+			Firefrost();
+			return;
+		
+		case 1123:
+			Debug.PrintString( "Commencing Dagda Cutscene!\n" );
+			iSim.CapsuleJump( ship_, iMapEntity.FindByNameInSystem( "Dagda Alpha Prime", "map:/geog/badlands/dagda" ) );
+			
+			do
+			{
+				Task.Sleep( Task.Current(), 1.0 );
+			}
+			while ( !( iSim.ActiveWorld() == "map:/geog/badlands/dagda" ) );
+			
+			Dagda();
+			return;
+		
+		case 1:
+			Debug.PrintString( "Commencing Mwari Cutscene!\n" );
+			iSim.CapsuleJump( ship_, iMapEntity.FindByNameInSystem( "Hogin's Claim", "map:/geog/badlands/mwari" ) );
+			
+			do
+			{
+				Task.Sleep( Task.Current(), 1.0 );
+			}
+			while ( !( iSim.ActiveWorld() == "map:/geog/badlands/mwari" ) );
+			
+			Mwari();
+			return;
+		
+		case 600:
+			Debug.PrintString( "Commencing Coyote Cutscene!\n" );
+			iSim.CapsuleJump( ship_, iMapEntity.FindByNameInSystem( "Comanche", "map:/geog/badlands/coyote" ) );
+			
+			do
+			{
+				Task.Sleep( Task.Current(), 1.0 );
+			}
+			while ( !( iSim.ActiveWorld() == "map:/geog/badlands/coyote" ) );
+			
+			Coyote();
+			return;
+	}
+}
+
+task local_function_3( hship ship_ )
+{
+	int local_0 = 1;
+	
+	schedule
+	{
+		every 5.0:
+		{
+			if ( !iDirector.IsBusy() )
+			{
+				local_function_2( ship_, local_0 );
+				local_0 = ( local_0 + 1 );
+				Task.Sleep( Task.Current(), 10.0 );
+			}
+		}
+	}
+}
+
+Main()
+{
+	hship shipFastAttackDemo = iShip.Create( "ini:/sims/ships/player/fast_attack_demo", "player ship" );
+	
+	Sim.PlaceAt( shipFastAttackDemo, iMapEntity.FindByName( "Lucrecia's Base" ) );
+	iShip.InstallPlayerPilot( shipFastAttackDemo );
+	iSim.SetIndestructable( shipFastAttackDemo, true );
+	start local_function_3( shipFastAttackDemo );
+}
+

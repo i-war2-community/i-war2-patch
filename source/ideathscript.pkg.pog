@@ -1,0 +1,739 @@
+package iDeathScript;
+
+uses Debug,
+     GUI,
+     Set,
+     List,
+     String,
+     Global,
+     Sim,
+     Group,
+     Input,
+     Math,
+     Object,
+     State,
+     Task,
+     Text,
+     iSim,
+     iBody,
+     iHabitat,
+     iShip,
+     iLagrangePoint,
+     Subsim,
+     iDockport,
+     iAI,
+     iComms,
+     iDirector,
+     MapEnumerations,
+     iFaction,
+     iGame,
+     iHUD,
+     iLoadout,
+     iMapEntity,
+     iPilotSetup,
+     iScore,
+     INIFile,
+     iUtilities,
+     CargoTypes,
+     iCargoScript,
+     iFormation,
+     iCargo,
+     iShipCreation;
+
+provides Antimatter,
+         Explosives,
+         PlayerDeathScript,
+         MegaPodDeath,
+         CriticalShipDeath,
+         RestorePlayerShip,
+         SetupCriticalGroupDeath,
+         CriticalGroupDeath;
+
+prototype task Antimatter( hsim sim_ );
+prototype local_function_0( hsim param_0_, float param_1_ );
+prototype task Explosives( hsim sim_ );
+prototype local_function_1( hsim param_0_ );
+prototype local_function_2( hsim param_0_ );
+prototype local_function_3( hsim param_0_ );
+prototype RestorePlayerShip( hsim player_ship_, hsim mission_waypoint_ );
+prototype local_function_6( hstate state_ );
+prototype local_function_4( hsim param_0_ );
+prototype local_function_5( hsim param_0_ );
+prototype task PlayerDeathScript( hsim sim_ );
+prototype task MegaPodDeath( hsim sim_ );
+prototype task CriticalShipDeath( hisim sim_ );
+prototype SetupCriticalGroupDeath( hgroup critical_group_, int critical_number_ );
+prototype task CriticalGroupDeath( hisim sim_ );
+
+task Antimatter( hsim sim_ )
+{
+	hsim sim10KmAntimatterExplosion = Sim.Create( "ini:/sims/explosions/10km_antimatter_explosion", "Big Bang" );
+	
+	Sim.PlaceAt( sim10KmAntimatterExplosion, sim_ );
+	Sim.Destroy( sim_ );
+}
+
+local_function_0( hsim param_0_, float param_1_ )
+{
+	float hitPoints;
+	
+	if ( param_0_ == false )
+	{
+		return;
+	}
+	
+	if ( !Object.PropertyExists( param_0_, "hit_points" ) )
+	{
+		debug Debug.PrintString( "iDeathScript.ApplyDamage: Error hit point property not found in sim!" );
+		return;
+	}
+	
+	hitPoints = Object.FloatProperty( param_0_, "hit_points" );
+	Object.SetFloatProperty( param_0_, "hit_points", hitPoints - param_1_ );
+	
+	if ( hitPoints <= 0.0 )
+	{
+		debug atomic
+		{
+			Debug.PrintString( String.Join( "iDeathScript: Explosives have destroyed.. ", Object.StringProperty( param_0_, "name" ) ) );
+			Debug.PrintString( "\n" );
+		}
+		
+		iSim.Kill( iSim.Cast( param_0_ ) );
+		return;
+		return;
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( String.Join( "iDeathScript: Explosives have damaged.. ", Object.StringProperty( param_0_, "name" ) ) );
+		Debug.PrintString( String.Join( " by this many points: ", String.FromFloat( param_1_ ) ) );
+		Debug.PrintString( "\n" );
+	}
+}
+
+task Explosives( hsim sim_ )
+{
+	list localList;
+	hsim local_1;
+	hsim waypoint = iUtilities.CreateWaypointAt( sim_ );
+	int ii;
+	int itemCount;
+	float explosiveDamage;
+	float explosiveRadius;
+	float distance;
+	float local_8;
+	
+	if ( Object.PropertyExists( sim_, "explosive_damage" ) )
+	{
+		explosiveDamage = Object.FloatProperty( sim_, "explosive_damage" );
+	}
+	else
+	{
+		explosiveDamage = 500.0;
+	}
+	
+	if ( Object.PropertyExists( sim_, "explosive_radius" ) )
+	{
+		explosiveRadius = Object.FloatProperty( sim_, "explosive_radius" );
+	}
+	else
+	{
+		explosiveRadius = 1000.0;
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iDeathScript: Calling Explosives with the values:\n" );
+		Debug.PrintString( String.Join( "max_damage: ", String.FromFloat( explosiveDamage ) ) );
+		Debug.PrintString( "\n" );
+		Debug.PrintString( String.Join( "max_explosive_radius: ", String.FromFloat( explosiveRadius ) ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	localList = List.FromSet( iSim.SimsInRadius( iSim.Cast( sim_ ), explosiveRadius, 536848384 ) );
+	itemCount = List.ItemCount( localList );
+	Object.SetStringProperty( sim_, "death_script", "" );
+	iSim.Kill( iSim.Cast( sim_ ) );
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		local_1 = Sim.Cast( List.GetNth( localList, ii ) );
+		distance = Sim.DistanceBetween( local_1, waypoint );
+		local_8 = ( explosiveDamage * ((explosiveRadius - distance) / explosiveRadius) );
+		local_function_0( local_1, local_8 );
+	}
+	
+	Sim.Destroy( waypoint );
+}
+
+local_function_1( hsim param_0_ )
+{
+	iShip.Heal( iShip.Cast( param_0_ ) );
+}
+
+local_function_2( hsim param_0_ )
+{
+	if ( param_0_ == false )
+	{
+		return;
+	}
+	
+	iLoadout.RearmFromThirdParty( iShip.Cast( param_0_ ), 1.0 );
+}
+
+local_function_3( hsim param_0_ )
+{
+	hsim nameLori;
+	
+	if ( Object.PropertyExists( param_0_, "name_lori" ) )
+	{
+		nameLori = Sim.Cast( Object.HandleProperty( param_0_, "name_lori" ) );
+		local_function_1( nameLori );
+		local_function_2( nameLori );
+		Sim.SetHidden( nameLori, false );
+		
+		if ( iSim.IsAlienInfectionEffectOn( iSim.Cast( nameLori ) ) )
+		{
+			iSim.AlienInfectionEffect( iSim.Cast( nameLori ), false );
+			iSim.SetAlienInfectionDamage( iSim.Cast( nameLori ), 0.0 );
+		}
+		
+		iSim.SetIndestructable( iSim.Cast( nameLori ), false );
+		iShip.InstallAIPilot( iShip.Cast( nameLori ), 0.40, 2.0, 0.80, "", "", "", "iWingmen.TFighterWarn" );
+		iShip.SetFreeWithoutPilot( iShip.Cast( nameLori ), false );
+		Object.SetStringProperty( nameLori, "death_script", "iWingmen.TFighterDeathScript" );
+	}
+	
+	if ( Object.PropertyExists( param_0_, "name_az" ) )
+	{
+		nameLori = Sim.Cast( Object.HandleProperty( param_0_, "name_az" ) );
+		local_function_1( nameLori );
+		local_function_2( nameLori );
+		Sim.SetHidden( nameLori, false );
+		
+		if ( iSim.IsAlienInfectionEffectOn( iSim.Cast( nameLori ) ) )
+		{
+			iSim.AlienInfectionEffect( iSim.Cast( nameLori ), false );
+			iSim.SetAlienInfectionDamage( iSim.Cast( nameLori ), 0.0 );
+		}
+		
+		iSim.SetIndestructable( iSim.Cast( nameLori ), false );
+		iShip.InstallAIPilot( iShip.Cast( nameLori ), 0.40, 2.0, 0.80, "", "", "", "iWingmen.TFighterWarn" );
+		iShip.SetFreeWithoutPilot( iShip.Cast( nameLori ), false );
+		Object.SetStringProperty( nameLori, "death_script", "iWingmen.TFighterDeathScript" );
+	}
+}
+
+RestorePlayerShip( hsim player_ship_, hsim mission_waypoint_ )
+{
+	hsim waypoint;
+	hmapentity lucreciasBase;
+	
+	if ( mission_waypoint_ != false )
+	{
+		waypoint = mission_waypoint_;
+	}
+	else
+	{
+		lucreciasBase = iMapEntity.FindByNameInSystem( "Lucrecia's Base", Global.String( "g_player_base_system" ) );
+		waypoint = iUtilities.CreateWaypointRelativeTo( lucreciasBase, 0.0, 0.0, Object.FloatProperty( lucreciasBase, "radius" ) + 500.0 );
+	}
+	
+	Sim.PlaceAt( player_ship_, waypoint );
+	Task.Sleep( Task.Current(), 2.0 );
+	local_function_1( player_ship_ );
+	Object.SetStringProperty( player_ship_, "death_script", "iDeathScript.PlayerDeathScript" );
+	local_function_2( player_ship_ );
+	local_function_3( player_ship_ );
+	
+	if ( mission_waypoint_ != false )
+	{
+		Sim.Destroy( waypoint );
+	}
+	
+	Sim.SetHidden( player_ship_, false );
+	
+	if ( iSim.IsAlienInfectionEffectOn( iSim.Cast( player_ship_ ) ) )
+	{
+		iSim.AlienInfectionEffect( iSim.Cast( player_ship_ ), false );
+		iSim.SetAlienInfectionDamage( iSim.Cast( player_ship_ ), 0.0 );
+	}
+	
+	iSim.SetIndestructable( iSim.Cast( player_ship_ ), false );
+	iShip.SetFreeWithoutPilot( iShip.Cast( player_ship_ ), false );
+}
+
+local_function_6( hstate state_ )
+{
+	State.SetProgress( state_, 100 );
+}
+
+local_function_4( hsim param_0_ )
+{
+	hisim local_0;
+	hgroup group;
+	list localList = List.FromSet( Sim.Children( param_0_ ) );
+	int itemCount = List.ItemCount( localList );
+	int ii;
+	
+	iSim.StartExplosion( iSim.Cast( param_0_ ) );
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		local_0 = iSim.Cast( List.GetNth( localList, ii ) );
+		
+		if ( !Sim.IsHidden( local_0 ) )
+		{
+			iSim.SetDockingLock( local_0, iSim.Cast( param_0_ ), false );
+			iSim.Undock( local_0, iSim.Cast( param_0_ ) );
+			iSim.Kill( local_0 );
+		}
+	}
+	
+	Task.Sleep( Task.Current(), 3.0 );
+	iSim.StopExplosion( iSim.Cast( param_0_ ), SE_Normal, false );
+	Task.Sleep( Task.Current(), 0.10 );
+	Sim.SetHidden( param_0_, true );
+	iSim.SetIndestructable( iSim.Cast( param_0_ ), true );
+	group = Group.FromSet( iSim.PlayerHostilesInRadius( 300000.0, 536838144 ) );
+	Sim.PlaceAt( param_0_, iMapEntity.SystemCentre() );
+	Group.Destroy( group, true );
+}
+
+local_function_5( hsim param_0_ )
+{
+	hisim local_0;
+	int local_1;
+	list localList = List.FromSet( Sim.Children( param_0_ ) );
+	int itemCount = List.ItemCount( localList );
+	int ii;
+	
+	iSim.StartExplosion( iSim.Cast( param_0_ ) );
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		local_0 = iSim.Cast( List.GetNth( localList, ii ) );
+		
+		if ( !Sim.IsHidden( local_0 ) )
+		{
+			iSim.SetDockingLock( local_0, iSim.Cast( param_0_ ), false );
+			iSim.Undock( local_0, iSim.Cast( param_0_ ) );
+			iSim.Kill( local_0 );
+		}
+	}
+}
+
+task PlayerDeathScript( hsim sim_ )
+{
+	bool local_0 = false;
+	hsim waypoint_0;
+	hsim waypoint_1;
+	hsim waypoint_2;
+	hsim waypoint_3 = none;
+	hstate currentMissionState;
+	int ii;
+	int local_7;
+	string deathCaption;
+	string name;
+	bool local_10;
+	
+	if ( Object.PropertyExists( sim_, "player_dying" ) == 0 )
+	{
+		atomic
+		{
+			Input.SuspendBindings();
+			iScore.DisableLogging();
+			iComms.Abort( true );
+			Object.AddBoolProperty( sim_, "player_dying", true );
+		}
+		
+		Global.CreateBool( "g_disable_mission_restart", 2, true );
+		
+		if ( (Global.Exists( "g_disable_mission_restart" ) == 0) && (iGame.GameType() != 2) )
+		{
+			debug Debug.Error( "iDeathScript.PlayerDeathScript : Attempting to restart...that's not on." );
+			
+			if ( iSim.IsDocked( iSim.Cast( sim_ ) ) )
+			{
+				iShip.Undock( iShip.Cast( sim_ ), Sim.Parent( sim_ ) );
+			}
+			
+			if ( Object.PropertyExists( sim_, "restart_waypoint" ) )
+			{
+				local_0 = true;
+				currentMissionState = State.Cast( Object.HandleProperty( sim_, "current_mission_state" ) );
+				waypoint_3 = iUtilities.CreateWaypointAt( Sim.Cast( Object.HandleProperty( sim_, "restart_waypoint" ) ) );
+			}
+			
+			iAI.PurgeOrders( sim_ );
+			iAI.ClearAutopilot();
+			Sim.SetVelocity( sim_, 0.0, 0.0, 0.0 );
+			iHUD.SetPrompt( "", "" );
+			iShip.HasFired( iShip.Cast( sim_ ) );
+			iHUD.SetPrompt( "", "" );
+			
+			if ( Object.PropertyExists( sim_, "death_caption" ) )
+			{
+				deathCaption = Object.StringProperty( sim_, "death_caption" );
+			}
+			else
+			{
+				deathCaption = Text.Field( "E_VesselDestroyed", FT_Text );
+				deathCaption = String.Join( deathCaption, "+: +" );
+				deathCaption = String.Join( deathCaption, Object.StringProperty( sim_, "name" ) );
+			}
+			
+			iDirector.Begin();
+			iDirector.SetCaption( deathCaption, 20.0 );
+			Sim.SetAngularVelocity( sim_, 0.0, 0.0, 0.0, 0.0 );
+			Sim.SetVelocity( sim_, 0.0, 0.0, 0.0 );
+			waypoint_0 = iUtilities.CreateWaypointRelativeTo( sim_, -100.0, 0.0, 0.0 );
+			waypoint_1 = iUtilities.CreateWaypointRelativeTo( sim_, 100.0, 0.0, 0.0 );
+			waypoint_2 = iUtilities.CreateWaypointRelativeTo( sim_, 0.0, 0.0, 0.0 );
+			iDirector.SetFocus( waypoint_0 );
+			iDirector.SetSecondaryFocus( waypoint_1 );
+			iDirector.SetCamera( CAM_Conversation );
+			
+			if ( Object.PropertyExists( sim_, "destroy_sim" ) == 0 )
+			{
+				local_function_4( sim_ );
+			}
+			else if ( Object.BoolProperty( sim_, "destroy_sim" ) == 1 )
+			{
+				local_function_4( sim_ );
+			}
+			
+			Task.Sleep( Task.Current(), 4.0 );
+			Global.CreateBool( "restart_screen_mission_running", 2, local_0 );
+			Global.CreateHandle( "restart_screen_mission_state", 2, currentMissionState );
+			Global.CreateHandle( "restart_screen_player_ship", 2, sim_ );
+			Global.CreateHandle( "restart_screen_mission_waypoint", 2, waypoint_3 );
+			Global.CreateHandle( "restart_screen_point_of_death", 2, waypoint_2 );
+			GUI.OverlayScreen( "icRestartScreen" );
+			
+			do
+			{
+				Task.Sleep( Task.Current(), 0.50 );
+			}
+			while ( Global.Exists( "restart_screen_made_decision" ) == 0 );
+			
+			Global.Destroy( "restart_screen_made_decision" );
+			Task.Sleep( Task.Current(), 2.0 );
+			Object.RemoveProperty( sim_, "player_dying" );
+			
+			if ( Global.Bool( "restart_screen_restarting" ) == 1 )
+			{
+				iDirector.End();
+			}
+			
+			Global.Destroy( "restart_screen_restarting" );
+			iComms.AbortEnd();
+			Sim.Destroy( waypoint_0 );
+			Sim.Destroy( waypoint_1 );
+			Input.ResumeBindings();
+			iScore.EnableLogging();
+			return;
+		}
+		
+		iDirector.Begin();
+		
+		if ( Object.PropertyExists( sim_, "death_caption" ) == 1 )
+		{
+			deathCaption = Object.StringProperty( sim_, "death_caption" );
+			deathCaption = Text.Field( deathCaption, FT_Text );
+			iDirector.Obituary( deathCaption );
+			Object.RemoveProperty( sim_, "death_caption" );
+		}
+		else
+		{
+			deathCaption = Text.Field( "E_VesselDestroyed", FT_Text );
+			deathCaption = String.Join( deathCaption, ": " );
+			name = Object.StringProperty( sim_, "name" );
+			name = Text.Field( name, FT_Text );
+			deathCaption = String.Join( deathCaption, name );
+			iDirector.Obituary( deathCaption );
+		}
+		
+		Task.Sleep( Task.Current(), 1.0 );
+		local_10 = false;
+		
+		if ( Object.PropertyExists( sim_, "destroy_sim" ) == 0 )
+		{
+			local_10 = true;
+		}
+		else if ( Object.BoolProperty( sim_, "destroy_sim" ) == 1 )
+		{
+			local_10 = true;
+		}
+		
+		if ( local_10 )
+		{
+			local_function_5( sim_ );
+			Task.Sleep( Task.Current(), 4.0 );
+			iSim.StopExplosion( iSim.Cast( sim_ ), SE_Normal, false );
+			Sim.SetHidden( sim_, true );
+		}
+		
+		for ( ii = 0; (ii < 10) && iDirector.IsObituaryView(); ++ii )
+		{
+			Task.Sleep( Task.Current(), 1.0 );
+		}
+		
+		if ( ii == 10 )
+		{
+			iDirector.SetCaption( "cam_press_space", 0.0 );
+		}
+		
+		while ( (ii < 60) && iDirector.IsObituaryView() )
+		{
+			Task.Sleep( Task.Current(), 1.0 );
+			ii = ( ii + 1 );
+		}
+	}
+}
+
+task MegaPodDeath( hsim sim_ )
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	string local_2;
+	hgroup group;
+	hfaction marauders = iFaction.Find( "Marauders" );
+	hship shipFighter;
+	hship ship;
+	int random_0 = Math.RandomInt( 0, 10 );
+	int random_1 = Math.RandomInt( 0, 1 );
+	int typeCargo = Object.IntProperty( sim_, "type_cargo" );
+	int numberSmallPods = Object.IntProperty( sim_, "number_small_pods" );
+	int ii;
+	
+	Object.SetBoolProperty( sim_, "no_explode_fling_child", true );
+	
+	if ( (random_0 == 1) && (iShip.Cast( iSim.LastAttacker( iSim.Cast( sim_ ) ) ) == iShip.FindPlayerShip()) )
+	{
+		local_0 = true;
+	}
+	
+	if ( random_1 == 0 )
+	{
+		local_1 = true;
+	}
+	
+	if ( local_0 )
+	{
+		shipFighter = iShip.Create( "ini:/sims/ships/marauder/fighter", iShipCreation.ShipName( "Marauders", -1 ) );
+		iSim.SetFaction( shipFighter, marauders );
+		iPilotSetup.GenericCargoPod( shipFighter );
+		Sim.AddChildRelativeTo( sim_, shipFighter, -30.0, 0.0, 10.0 );
+		Group.AddSim( group, shipFighter );
+		shipFighter = iShip.Create( "ini:/sims/ships/marauder/fighter", iShipCreation.ShipName( "Marauders", -1 ) );
+		iSim.SetFaction( shipFighter, marauders );
+		iPilotSetup.GangsterAggressive( shipFighter );
+		Sim.AddChildRelativeTo( sim_, shipFighter, -30.0, 0.0, 10.0 );
+		Group.AddSim( group, shipFighter );
+		numberSmallPods = 2;
+	}
+	else if ( local_1 )
+	{
+		group = iShipCreation.CreateMegapodCargo( iShip.Cast( sim_ ), numberSmallPods, typeCargo );
+		iShipCreation.StackCargo( iShip.Cast( sim_ ), group );
+	}
+	
+	if ( local_1 || local_0 )
+	{
+		Sim.AvatarAddChannel( sim_, "door", 1.0 );
+		iSim.StartExplosion( iSim.Cast( sim_ ) );
+		Task.Sleep( Task.Current(), 0.50 );
+		
+		if ( numberSmallPods != 0 )
+		{
+			for ( ii = 0; ii < numberSmallPods; ++ii )
+			{
+				ship = iShip.Cast( Group.NthSim( group, ii ) );
+				
+				atomic
+				{
+					Sim.DetachChild( sim_, ship );
+					Sim.SetAngularVelocityEuler( ship, Math.Random( 3.0, 10.0 ), Math.Random( 3.0, 10.0 ), Math.Random( 3.0, 10.0 ) );
+					Sim.SetVelocityLocalToSim( ship, Math.Random( 3.0, 10.0 ), Math.Random( 3.0, 10.0 ), Math.Random( 450.0, 550.0 ) );
+				}
+				
+				Task.Sleep( Task.Current(), 1.50 );
+				Sim.SetCollision( ship, true );
+				
+				if ( local_0 )
+				{
+					iAI.GiveAttackOrder( group, iShip.FindPlayerShip() );
+				}
+			}
+		}
+		
+		iSim.StopExplosion( iSim.Cast( sim_ ), SE_Normal, true );
+		Group.Destroy( group, false );
+		return;
+	}
+	
+	iSim.Kill( iSim.Cast( sim_ ) );
+}
+
+task CriticalShipDeath( hisim sim_ )
+{
+	hship playerShip = iShip.FindPlayerShip();
+	string name = Sim.Name( sim_ );
+	hisim local_2 = iSim.LastAttacker( sim_ );
+	
+	iDirector.Begin();
+	iDirector.SetFocus( sim_ );
+	
+	if ( ((local_2 != false) || Sim.IsAlive( local_2 )) && (sim_ != local_2) )
+	{
+		iDirector.SetSecondaryFocus( local_2 );
+		iDirector.SetCamera( CAM_TwoShot );
+	}
+	else
+	{
+		iDirector.SetCamera( CAM_External );
+	}
+	
+	Task.Sleep( Task.Current(), 1.0 );
+	iDirector.SetCaption( String.Join( "caption_failed_ship_destroyed+: +", name ), 5.0 );
+	iSim.StartExplosion( sim_ );
+	Task.Sleep( Task.Current(), 4.0 );
+	iSim.StopExplosion( sim_, SE_Normal, true );
+	Task.Sleep( Task.Current(), 2.0 );
+	iDirector.End();
+	Object.AddBoolProperty( playerShip, "destroy_sim", false );
+	Object.AddStringProperty( playerShip, "death_caption", "caption_failed_generic" );
+	Task.Detach( start PlayerDeathScript( playerShip ) );
+}
+
+SetupCriticalGroupDeath( hgroup critical_group_, int critical_number_ )
+{
+	int ii;
+	hisim local_1;
+	
+	atomic
+	{
+		if ( !Group.Cast( critical_group_ ) )
+		{
+			debug Debug.PrintString( "iDeathScript.SetupCriticalGroupDeath: Invalid group handle. Cannot add deathscript.\n" );
+			return;
+		}
+		
+		if ( Group.SimCount( critical_group_ ) == 0 )
+		{
+			debug Debug.PrintString( "iDeathScript.SetupCriticalGroupDeath: Group is empty. Cannot add deathscript.\n" );
+			return;
+		}
+		
+		if ( critical_number_ < 0 )
+		{
+			debug Debug.PrintString( "iDeathScript.SetupCriticalGroupDeath: Critical number is < 0. Capping to 0.\n" );
+			critical_number_ = 0;
+		}
+		
+		if ( critical_number_ > Group.SimCount( critical_group_ ) )
+		{
+			debug Debug.PrintString( "iDeathScript.SetupCriticalGroupDeath: Critical group sim count (" );
+			debug Debug.PrintInt( Group.SimCount( critical_group_ ) );
+			debug Debug.PrintString( ") > the critical number (" );
+			debug Debug.PrintInt( critical_number_ );
+			debug Debug.PrintString( ") Capping to the sim count.\n" );
+			critical_number_ = Group.SimCount( critical_group_ );
+		}
+		
+		for ( ii = 0; ii < Group.SimCount( critical_group_ ); ++ii )
+		{
+			local_1 = iSim.Cast( Group.NthSim( critical_group_, ii ) );
+			Object.SetStringProperty( local_1, "death_script", "iDeathScript.CriticalGroupDeath" );
+			Object.AddHandleProperty( local_1, "critical_group", critical_group_ );
+			Object.AddIntProperty( local_1, "critical_number", critical_number_ );
+			iSim.SetMissionCritical( local_1, true );
+		}
+		
+		debug Debug.PrintString( "iDeathScript.SetupCriticalGroupDeath: Added Critical group Deathcript to " );
+		debug Debug.PrintInt( ii );
+		debug Debug.PrintString( " sims. Critical number = " );
+		debug Debug.PrintInt( critical_number_ );
+		debug Debug.PrintString( " \n" );
+	}
+}
+
+task CriticalGroupDeath( hisim sim_ )
+{
+	hship playerShip = iShip.FindPlayerShip();
+	hisim local_1 = iSim.LastAttacker( sim_ );
+	hgroup criticalGroup;
+	string name = Sim.Name( sim_ );
+	int local_4;
+	int criticalNumber = 0;
+	bool local_6 = true;
+	
+	atomic
+	{
+		if ( Object.PropertyExists( sim_, "critical_group" ) )
+		{
+			criticalGroup = Group.Cast( Object.HandleProperty( sim_, "critical_group" ) );
+		}
+		
+		if ( !criticalGroup )
+		{
+			debug Debug.PrintString( "iDeathScript.CriticalGroupDeath: Invalid group handle. " );
+			debug Debug.PrintString( Sim.Name( sim_ ) );
+			debug Debug.PrintString( " exploding normally.\n" );
+			local_6 = false;
+		}
+		
+		if ( Sim.Group( sim_ ) != criticalGroup )
+		{
+			debug Debug.PrintString( "iDeathScript.CriticalGroupDeath: " );
+			debug Debug.PrintString( Sim.Name( sim_ ) );
+			debug Debug.PrintString( " is no longer a member of the critical group. Exploding normally.\n" );
+			local_6 = false;
+		}
+		
+		Group.RemoveSim( criticalGroup, sim_ );
+		
+		if ( Object.PropertyExists( sim_, "critical_number" ) )
+		{
+			criticalNumber = Object.IntProperty( sim_, "critical_number" );
+		}
+		
+		if ( Group.SimCount( criticalGroup ) > criticalNumber )
+		{
+			debug Debug.PrintString( "iDeathScript.CriticalGroupDeath: Critical group sim count (" );
+			debug Debug.PrintInt( Group.SimCount( criticalGroup ) );
+			debug Debug.PrintString( ") > the critical number (" );
+			debug Debug.PrintInt( criticalNumber );
+			debug Debug.PrintString( ") \n" );
+			debug Debug.PrintString( "iDeathScript.CriticalGroupDeath: " );
+			debug Debug.PrintString( Sim.Name( sim_ ) );
+			debug Debug.PrintString( " exploding normally.\n" );
+			local_6 = false;
+		}
+	}
+	
+	if ( local_6 == 0 )
+	{
+		iHUD.Print( String.Join( "log_critical_ship_destroyed+: +", name ) );
+		Object.SetStringProperty( sim_, "death_script", "" );
+		iSim.Kill( sim_ );
+		return;
+	}
+	
+	atomic
+	{
+		debug Debug.PrintString( "iDeathScript.CriticalGroupDeath: Critical group sim count (" );
+		debug Debug.PrintInt( Group.SimCount( criticalGroup ) );
+		debug Debug.PrintString( ") is <= the critical number (" );
+		debug Debug.PrintInt( criticalNumber );
+		debug Debug.PrintString( ") \n" );
+		debug Debug.PrintString( "iDeathScript.CriticalGroupDeath: Killing sim " );
+		debug Debug.PrintString( Sim.Name( sim_ ) );
+		debug Debug.PrintString( " and ending the game.\n" );
+	}
+	
+	Task.Detach( start CriticalShipDeath( sim_ ) );
+}
+

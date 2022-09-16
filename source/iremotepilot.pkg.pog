@@ -1,0 +1,187 @@
+package iRemotePilot;
+
+uses Debug,
+     String,
+     Set,
+     List,
+     Global,
+     Object,
+     Group,
+     Sim,
+     iComms,
+     MapEnumerations,
+     iMapEntity,
+     iBody,
+     iHabitat,
+     iFaction,
+     iSim,
+     iShip;
+
+provides Install,
+         EnableRemoteConnection,
+         RemoteActive,
+         ReturnCurrentRemoteVessel,
+         DeactivateConnection;
+
+prototype task local_function_0( hship ship_ );
+prototype Install();
+prototype EnableRemoteConnection( hship ship_, bool status_ );
+prototype bool RemoteActive();
+prototype hship ReturnCurrentRemoteVessel();
+prototype DeactivateConnection();
+
+task local_function_0( hship ship_ )
+{
+	hship gPlayerShipHandle = iShip.Cast( Global.Handle( "g_player_ship_handle" ) );
+	
+	schedule
+	{
+		every 4.0:
+		{
+			if ( Object.FloatProperty( gPlayerShipHandle, "hit_points" ) <= 0.0 )
+			{
+				iShip.RemovePilot( ship_ );
+				iShip.InstallPlayerPilot( gPlayerShipHandle );
+				return;
+			}
+			
+			if ( !Global.Exists( "g_player_ship_handle" ) )
+			{
+				return;
+			}
+			else if ( Object.FloatProperty( ship_, "hit_points" ) <= 0.0 )
+			{
+				iShip.RemovePilot( ship_ );
+				iShip.InstallPlayerPilot( gPlayerShipHandle );
+				Global.Destroy( "g_player_ship_handle" );
+				iComms.Shout( none, "Generic", "Remote Link Terminated...." );
+				return;
+			}
+		}
+	}
+}
+
+Install()
+{
+	hship playerShip_0;
+	hship playerShip_1;
+	hisim currentTarget;
+	
+	if ( !Global.Exists( "g_player_ship_handle" ) )
+	{
+		playerShip_0 = iShip.FindPlayerShip();
+		currentTarget = iShip.CurrentTarget( playerShip_0 );
+		
+		debug atomic
+		{
+			Debug.PrintString( String.Join( "iRemotePilot.Install: attempting to link to vessel ", Object.StringProperty( currentTarget, "name" ) ) );
+			Debug.PrintString( "\n" );
+		}
+		
+		if ( Object.PropertyExists( currentTarget, "remote_connection_available" ) )
+		{
+			if ( iShip.Cast( currentTarget ) )
+			{
+				Sim.SetCullable( playerShip_0, false );
+				Global.CreateHandle( "g_player_ship_handle", 1, playerShip_0 );
+				Global.CreateHandle( "g_remote_vessel_handle", 1, currentTarget );
+				iShip.RemovePilot( playerShip_0 );
+				iShip.RemovePilot( iShip.Cast( currentTarget ) );
+				iShip.InstallPlayerPilot( iShip.Cast( currentTarget ) );
+				iComms.Shout( none, "Generic", String.Join( "Remote Linked To: ", Object.StringProperty( currentTarget, "name" ) ) );
+			}
+			else
+			{
+				iComms.Shout( none, "Generic", "Unable to make remote connection...." );
+				
+				debug
+				{
+					Debug.PrintString( "iRemotePilot.Install: Invalid ship set as remote enabled - THIS IS PROBABLY A BUG!!\n" );
+					Debug.PrintString( "iRemotePilot.Install: Vessels handle was " );
+					Debug.PrintHandle( currentTarget );
+					Debug.PrintString( "\n" );
+				}
+				
+				return;
+			}
+		}
+		else
+		{
+			debug atomic
+			{
+				Debug.PrintString( String.Join( "iRemotePilot.Install: Unable to find remote enable property in ", Object.StringProperty( currentTarget, "name" ) ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			iComms.Shout( none, "Generic", "Unable to make remote connection...." );
+			return;
+		}
+		
+		start local_function_0( iShip.Cast( currentTarget ) );
+		return;
+	}
+	
+	playerShip_1 = iShip.FindPlayerShip();
+	iShip.RemovePilot( playerShip_1 );
+	iShip.InstallPlayerPilot( iShip.Cast( Global.Handle( "g_player_ship_handle" ) ) );
+	Global.Destroy( "g_player_ship_handle" );
+	Global.Destroy( "g_remote_vessel_handle" );
+	iComms.Shout( none, "Generic", "Remote Link Terminated...." );
+}
+
+EnableRemoteConnection( hship ship_, bool status_ )
+{
+	if ( status_ == 1 )
+	{
+		if ( !Object.PropertyExists( ship_, "remote_connection_available" ) )
+		{
+			debug Debug.PrintString( "iRemotePilot.EnableRemote: Adding remote_connection_avaialbe int\n" );
+			Object.AddIntProperty( ship_, "remote_connection_available", 1 );
+		}
+		else
+		{
+			debug Debug.PrintString( "iRemotePilot.EnableRemote: Setting remote_connection_avaialbe int\n" );
+			Object.SetIntProperty( ship_, "remote_connection_available", 1 );
+		}
+		
+		return;
+	}
+	
+	if ( Object.PropertyExists( ship_, "remote_connection_available" ) )
+	{
+		debug Debug.PrintString( "iRemotePilot.EnableRemote: Removing remote_connection_avaialbe int\n" );
+		Object.RemoveProperty( ship_, "remote_connection_available" );
+	}
+}
+
+bool RemoteActive()
+{
+	if ( Global.Exists( "g_player_ship_handle" ) )
+	{
+		return true;
+	}
+	
+	return false;
+}
+
+hship ReturnCurrentRemoteVessel()
+{
+	if ( Global.Exists( "g_remote_vessel_handle" ) )
+	{
+		return iShip.Cast( Global.Handle( "g_remote_vessel_handle" ) );
+	}
+	
+	return none;
+}
+
+DeactivateConnection()
+{
+	if ( Global.Exists( "g_player_ship_handle" ) )
+	{
+		iShip.RemovePilot( iShip.Cast( Global.Handle( "g_remote_vessel_handle" ) ) );
+		iShip.InstallPlayerPilot( iShip.Cast( Global.Handle( "g_player_ship_handle" ) ) );
+		Global.Destroy( "g_player_ship_handle" );
+		iComms.Shout( none, "Generic", "Remote Link Terminated...." );
+	}
+}
+

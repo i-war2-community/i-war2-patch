@@ -1,0 +1,1009 @@
+package iInstantAction;
+
+uses Config,
+     Debug,
+     Set,
+     List,
+     String,
+     Global,
+     Sim,
+     Group,
+     Math,
+     Object,
+     Subsim,
+     Task,
+     Text,
+     iSim,
+     iDockport,
+     iBody,
+     iHabitat,
+     iShip,
+     iLagrangePoint,
+     iAI,
+     MapEnumerations,
+     iFaction,
+     iFormation,
+     iHUD,
+     GUI,
+     iLoadout,
+     iMapEntity,
+     iMultiplay,
+     iPilotSetup,
+     iRangeCheck,
+     iScore,
+     iScriptedOrders,
+     INIFile,
+     iUtilities,
+     iCargo,
+     CargoTypes,
+     iCargoScript,
+     iShipCreation,
+     iWingmen;
+
+provides Main,
+         ScoreDeathScript;
+
+prototype hgroup local_function_7( hisim param_0_ );
+prototype task ScoreDeathScript( hobject param_0_ );
+prototype hship local_function_0( string param_0_, int param_1_, int param_2_ );
+prototype hship local_function_1( int param_0_ );
+prototype local_function_2( hgroup group_ );
+prototype task local_function_3( hgroup group_0_, hgroup group_1_, hgroup group_2_ );
+prototype local_function_9( hisim param_0_, hgroup group_0_, hgroup group_1_, int param_3_, int param_4_, int param_5_, int param_6_ );
+prototype task local_function_4( hship ship_, hgroup group_ );
+prototype local_function_8( hisim param_0_, int param_1_ );
+prototype local_function_6( hship ship_ );
+prototype local_function_5( hship ship_ );
+prototype task local_function_11( hisim param_0_, hgroup group_0_ );
+prototype int local_function_12();
+prototype int local_function_10( hgroup group_, int param_1_ );
+prototype task local_function_13( hisim param_0_ );
+prototype local_function_14();
+prototype Main();
+
+hgroup local_function_7( hisim param_0_ )
+{
+	hgroup group = Group.Create();
+	hsim local_1;
+	hsim waypoint;
+	int constant_0 = 8;
+	int constant_1 = 1;
+	int ii;
+	
+	waypoint = iUtilities.CreateWaypointRelativeTo( param_0_, 0.0, 0.0, 10000.0 );
+	
+	for ( ii = 0; ii < constant_0; ++ii )
+	{
+		if ( Math.RandomInt( 0, 1 ) == 1 )
+		{
+			local_1 = Sim.Create( "ini:/sims/ships/utility/asteroid_l", "Ast" );
+		}
+		else
+		{
+			local_1 = Sim.Create( "ini:/sims/ships/utility/asteroid_m", "Ast" );
+		}
+		
+		Group.AddSim( group, local_1 );
+		Sim.PlaceNear( local_1, waypoint, Math.Random( 500.0, 5000.0 ) );
+		Sim.SetOrientationEuler( local_1, Math.Random( 5.0, 360.0 ), Math.Random( 5.0, 360.0 ), Math.Random( 5.0, 360.0 ) );
+		iShip.SetFreeWithoutPilot( iShip.Cast( local_1 ), true );
+		Sim.SetAngularVelocityEuler( local_1, Math.Random( 5.0, 10.0 ), Math.Random( 5.0, 10.0 ), Math.Random( 5.0, 10.0 ) );
+		iSim.SetSensorVisibility( iSim.Cast( local_1 ), false );
+	}
+	
+	waypoint = iUtilities.CreateWaypointRelativeTo( param_0_, 0.0, 0.0, 12500.0 );
+	
+	for ( ii = 0; ii < constant_0; ++ii )
+	{
+		if ( Math.RandomInt( 0, 1 ) == 1 )
+		{
+			local_1 = Sim.Create( "ini:/sims/ships/utility/asteroid_l", "Ast" );
+		}
+		else
+		{
+			local_1 = Sim.Create( "ini:/sims/ships/utility/asteroid_m", "Ast" );
+		}
+		
+		Group.AddSim( group, local_1 );
+		Sim.PlaceNear( local_1, waypoint, Math.Random( 500.0, 5000.0 ) );
+		Sim.SetOrientationEuler( local_1, Math.Random( 5.0, 360.0 ), Math.Random( 5.0, 360.0 ), Math.Random( 5.0, 360.0 ) );
+		iShip.SetFreeWithoutPilot( iShip.Cast( local_1 ), true );
+		Sim.SetAngularVelocityEuler( local_1, Math.Random( 5.0, 10.0 ), Math.Random( 5.0, 10.0 ), Math.Random( 5.0, 10.0 ) );
+		iSim.SetSensorVisibility( iSim.Cast( local_1 ), false );
+	}
+	
+	waypoint = iUtilities.CreateWaypointRelativeTo( param_0_, 0.0, 0.0, 15000.0 );
+	
+	for ( ii = 0; ii < constant_0; ++ii )
+	{
+		if ( Math.RandomInt( 0, 1 ) == 1 )
+		{
+			local_1 = Sim.Create( "ini:/sims/ships/utility/asteroid_l", "Ast" );
+		}
+		else
+		{
+			local_1 = Sim.Create( "ini:/sims/ships/utility/asteroid_m", "Ast" );
+		}
+		
+		Group.AddSim( group, local_1 );
+		Sim.PlaceNear( local_1, waypoint, Math.Random( 500.0, 5000.0 ) );
+		Sim.SetOrientationEuler( local_1, Math.Random( 5.0, 360.0 ), Math.Random( 5.0, 360.0 ), Math.Random( 5.0, 360.0 ) );
+		iShip.SetFreeWithoutPilot( iShip.Cast( local_1 ), true );
+		Sim.SetAngularVelocityEuler( local_1, Math.Random( 5.0, 10.0 ), Math.Random( 5.0, 10.0 ), Math.Random( 5.0, 10.0 ) );
+		iSim.SetSensorVisibility( iSim.Cast( local_1 ), false );
+	}
+	
+	waypoint = iUtilities.CreateWaypointRelativeTo( param_0_, 0.0, 0.0, 17500.0 );
+	
+	for ( ii = 0; ii < constant_0; ++ii )
+	{
+		if ( Math.RandomInt( 0, 1 ) == 1 )
+		{
+			local_1 = Sim.Create( "ini:/sims/ships/utility/asteroid_l", "Ast" );
+		}
+		else
+		{
+			local_1 = Sim.Create( "ini:/sims/ships/utility/asteroid_m", "Ast" );
+		}
+		
+		Group.AddSim( group, local_1 );
+		Sim.PlaceNear( local_1, waypoint, Math.Random( 500.0, 5000.0 ) );
+		Sim.SetOrientationEuler( local_1, Math.Random( 5.0, 360.0 ), Math.Random( 5.0, 360.0 ), Math.Random( 5.0, 360.0 ) );
+		iShip.SetFreeWithoutPilot( iShip.Cast( local_1 ), true );
+		Sim.SetAngularVelocityEuler( local_1, Math.Random( 5.0, 10.0 ), Math.Random( 5.0, 10.0 ), Math.Random( 5.0, 10.0 ) );
+		iSim.SetSensorVisibility( iSim.Cast( local_1 ), false );
+	}
+	
+	waypoint = iUtilities.CreateWaypointRelativeTo( param_0_, 0.0, 0.0, 22500.0 );
+	
+	for ( ii = 0; ii < constant_1; ++ii )
+	{
+		local_1 = Sim.Create( "ini:/sims/multiplayer/asteroid", "Mega" );
+		Group.AddSim( group, local_1 );
+		Sim.PlaceNear( local_1, waypoint, Math.Random( 500.0, 5000.0 ) );
+		Sim.SetOrientationEuler( local_1, Math.Random( 5.0, 360.0 ), Math.Random( 5.0, 360.0 ), Math.Random( 5.0, 360.0 ) );
+		iShip.SetFreeWithoutPilot( iShip.Cast( local_1 ), true );
+		iSim.SetSensorVisibility( iSim.Cast( local_1 ), false );
+	}
+	
+	Sim.Destroy( waypoint );
+	return group;
+}
+
+task ScoreDeathScript( hobject param_0_ )
+{
+	hfaction player = iFaction.Find( "Player" );
+	hfaction faction = iSim.Faction( iSim.Cast( param_0_ ) );
+	int class = Object.IntProperty( param_0_, "class" );
+	int score = Object.IntProperty( param_0_, "score" );
+	
+	if ( faction != player )
+	{
+		switch ( class )
+		{
+			case 0:
+				Global.SetInt( "g_num_easy_in_world", Global.Int( "g_num_easy_in_world" ) - 1 );
+				break;
+			
+			case 1:
+				Global.SetInt( "g_num_med_in_world", Global.Int( "g_num_med_in_world" ) - 1 );
+				break;
+			
+			case 2:
+				Global.SetInt( "g_num_hard_in_world", Global.Int( "g_num_hard_in_world" ) - 1 );
+				break;
+			
+			case 3:
+				Global.SetInt( "g_num_vhard_in_world", Global.Int( "g_num_vhard_in_world" ) - 1 );
+				break;
+		}
+	}
+	
+	iSim.Kill( iSim.Cast( param_0_ ) );
+	iHUD.SetPrompt( String.FromInt( score ), "" );
+}
+
+hship local_function_0( string param_0_, int param_1_, int param_2_ )
+{
+	hship ship = iShip.Create( param_0_, iShipCreation.ShipName( "General", -1 ) );
+	
+	Object.AddIntProperty( ship, "score", param_1_ );
+	Object.AddIntProperty( ship, "class", param_2_ );
+	Object.SetStringProperty( ship, "death_script", "iInstantAction.ScoreDeathScript" );
+	Sim.SetCullable( ship, false );
+	iPilotSetup.GenericCargoPod( ship );
+	return ship;
+}
+
+hship local_function_1( int param_0_ )
+{
+	hship ship;
+	string local_1;
+	
+	switch ( param_0_ )
+	{
+		case 0:
+			switch ( Math.RandomInt( 0, 2 ) )
+			{
+				case 0:
+					ship = local_function_0( "ini:/sims/ships/independent/f-fighter", 200, 0 );
+					break;
+				
+				case 1:
+					ship = local_function_0( "ini:/sims/ships/navy/fighter", 200, 0 );
+					break;
+				
+				case 2:
+					ship = local_function_0( "ini:/sims/ships/independent/tug_armed_weak", 100, 0 );
+					break;
+			}
+			
+			return ship;
+		
+		case 1:
+			switch ( Math.RandomInt( 0, 3 ) )
+			{
+				case 0:
+					ship = local_function_0( "ini:/sims/ships/cops/fighter", 200, 1 );
+					break;
+				
+				case 1:
+					ship = local_function_0( "ini:/sims/ships/corporate/interceptor", 250, 1 );
+					break;
+				
+				case 2:
+					ship = local_function_0( "ini:/sims/ships/independent/tug_armed", 100, 1 );
+					break;
+				
+				case 3:
+					ship = local_function_0( "ini:/sims/ships/navy/patcom", 150, 1 );
+					break;
+			}
+			
+			return ship;
+		
+		case 2:
+			switch ( Math.RandomInt( 0, 2 ) )
+			{
+				case 0:
+					ship = local_function_0( "ini:/sims/ships/cops/interceptor", 250, 2 );
+					break;
+				
+				case 1:
+					ship = local_function_0( "ini:/sims/ships/corporate/large_corp_interceptor", 400, 2 );
+					break;
+				
+				case 2:
+					ship = local_function_0( "ini:/sims/ships/marauder/marauder_cutter", 400, 2 );
+					break;
+			}
+			
+			return ship;
+		
+		case 3:
+			switch ( Math.RandomInt( 0, 4 ) )
+			{
+				case 0:
+					ship = local_function_0( "ini:/sims/ships/corporate/corp_cruiser_turrets", 1200, 3 );
+					break;
+				
+				case 1:
+					ship = local_function_0( "ini:/sims/ships/navy/heavy_destroyer_turret", 1000, 3 );
+					break;
+				
+				case 2:
+					ship = local_function_0( "ini:/sims/ships/navy/old_destroyer", 900, 3 );
+					break;
+				
+				case 3:
+					ship = local_function_0( "ini:/sims/ships/navy/capital_carrier", 1500, 3 );
+					break;
+				
+				case 4:
+					ship = local_function_0( "ini:/sims/ships/navy/heavy_cruiser", 1200, 3 );
+					break;
+				
+				case 5:
+					ship = local_function_0( "ini:/sims/ships/navy/capital_carrier_multibay", 1500, 3 );
+					break;
+			}
+			
+			return ship;
+	}
+	
+	return none;
+}
+
+local_function_2( hgroup group_ )
+{
+	switch ( Math.RandomInt( 0, 4 ) )
+	{
+		case 0:
+			iFormation.Goose( group_, 40.0, false );
+			return;
+		
+		case 1:
+			iFormation.Claw( group_, 40.0, false );
+			return;
+		
+		case 2:
+			iFormation.Cross( group_, 40.0, false );
+			return;
+		
+		case 3:
+			iFormation.V( group_, 40.0, false );
+			return;
+		
+		case 4:
+			iFormation.Outrider( group_, 40.0, false );
+			return;
+	}
+}
+
+task local_function_3( hgroup group_0_, hgroup group_1_, hgroup group_2_ )
+{
+	hship groupLeader_0 = iShip.Cast( Group.Leader( group_0_ ) );
+	hsim groupLeader_1 = Group.Leader( group_2_ );
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 1.0 );
+	}
+	while ( !( iSim.WorldName( iSim.Cast( Group.NthSim( group_0_, Group.SimCount( group_0_ ) - 1 ) ) ) == iSim.ActiveWorld() ) );
+	
+	iAI.GiveApproachOrder( groupLeader_0, group_2_ );
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 0.50 );
+	}
+	while ( Sim.DistanceBetween( groupLeader_0, groupLeader_1 ) > 7500.0 );
+	
+	iAI.GiveAttackOrder( group_0_, group_2_ );
+	Group.AddGroup( group_1_, group_0_ );
+	Group.Flatten( group_1_ );
+	return;
+}
+
+local_function_9( hisim param_0_, hgroup group_0_, hgroup group_1_, int param_3_, int param_4_, int param_5_, int param_6_ )
+{
+	hfaction marauders = iFaction.Find( "Marauders" );
+	hgroup group_2 = Group.Create();
+	hship ship;
+	int ii;
+	
+	if ( param_3_ != 0 )
+	{
+		Global.SetInt( "g_num_easy_in_world", Global.Int( "g_num_easy_in_world" ) + param_3_ );
+		
+		for ( ii = 0; ii < param_3_; ++ii )
+		{
+			ship = local_function_1( 0 );
+			Group.AddSim( group_2, ship );
+			iSim.SetFaction( ship, marauders );
+			iSim.CapsuleJump( iSim.Cast( ship ), iSim.Cast( param_0_ ) );
+			Task.Sleep( Task.Current(), 0.10 );
+		}
+	}
+	
+	if ( param_4_ != 0 )
+	{
+		Global.SetInt( "g_num_med_in_world", Global.Int( "g_num_med_in_world" ) + param_4_ );
+		
+		for ( ii = 0; ii < param_4_; ++ii )
+		{
+			ship = local_function_1( 1 );
+			Group.AddSim( group_2, ship );
+			iSim.SetFaction( ship, marauders );
+			iSim.CapsuleJump( iSim.Cast( ship ), iSim.Cast( param_0_ ) );
+			Task.Sleep( Task.Current(), 0.10 );
+		}
+	}
+	
+	if ( param_5_ != 0 )
+	{
+		Global.SetInt( "g_num_hard_in_world", Global.Int( "g_num_hard_in_world" ) + param_5_ );
+		
+		for ( ii = 0; ii < param_5_; ++ii )
+		{
+			ship = local_function_1( 2 );
+			Group.AddSim( group_2, ship );
+			iSim.SetFaction( ship, marauders );
+			iSim.CapsuleJump( iSim.Cast( ship ), iSim.Cast( param_0_ ) );
+			Task.Sleep( Task.Current(), 0.10 );
+		}
+	}
+	
+	if ( param_6_ != 0 )
+	{
+		Global.SetInt( "g_num_vhard_in_world", Global.Int( "g_num_vhard_in_world" ) + param_6_ );
+		
+		for ( ii = 0; ii < param_6_; ++ii )
+		{
+			ship = local_function_1( 3 );
+			Group.AddSim( group_2, ship );
+			iSim.SetFaction( ship, marauders );
+			iSim.CapsuleJump( iSim.Cast( ship ), iSim.Cast( param_0_ ) );
+			Task.Sleep( Task.Current(), 0.10 );
+		}
+	}
+	
+	local_function_2( group_2 );
+	Task.Detach( start local_function_3( group_2, group_0_, group_1_ ) );
+}
+
+task local_function_4( hship ship_, hgroup group_ )
+{
+	do
+	{
+		Task.Sleep( Task.Current(), 1.0 );
+	}
+	while ( !( iSim.WorldName( iSim.Cast( ship_ ) ) == iSim.ActiveWorld() ) );
+	
+	iFormation.Goose( group_, 40.0, false );
+}
+
+local_function_8( hisim param_0_, int param_1_ )
+{
+	hship ship;
+	hfaction player = iFaction.Find( "Player" );
+	hgroup group = iWingmen.Group();
+	int local_3;
+	int local_4 = ( Group.SimCount( group ) - 1 );
+	int ii;
+	
+	local_3 = ( param_1_ - local_4 );
+	
+	if ( local_3 <= 0 )
+	{
+		return;
+	}
+	
+	for ( ii = 0; ii < local_3; ++ii )
+	{
+		ship = local_function_1( 2 );
+		iWingmen.AddWingman( ship );
+		iSim.SetFaction( ship, player );
+		iSim.CapsuleJump( iSim.Cast( ship ), iSim.Cast( param_0_ ) );
+		Task.Detach( start local_function_4( ship, group ) );
+	}
+}
+
+local_function_6( hship ship_ )
+{
+	list localList = List.FromSet( iDockport.DockportsOfType( ship_, DT_All, DS_Any ) );
+	int itemCount = List.ItemCount( localList );
+	int ii;
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		iDockport.Disable( iDockport.Cast( List.GetNth( localList, ii ) ) );
+	}
+}
+
+local_function_5( hship ship_ )
+{
+	list localList_0 = List.FromSet( Sim.Children( ship_ ) );
+	list localList_1;
+	int itemCount = List.ItemCount( localList_0 );
+	int ii;
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		iSim.Undock( ship_, iShip.Cast( List.GetNth( localList_0, ii ) ) );
+	}
+	
+	localList_1 = List.FromSet( iDockport.DockportsOfType( ship_, DT_All, DS_Any ) );
+	itemCount = List.ItemCount( localList_1 );
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		iDockport.Disable( iDockport.Cast( List.GetNth( localList_0, ii ) ) );
+	}
+}
+
+task local_function_11( hisim param_0_, hgroup group_0_ )
+{
+	hsim waypoint = iUtilities.CreateWaypointNear( param_0_, 7000.0 );
+	hsim local_1;
+	hgroup group_1;
+	hfaction player = iFaction.Find( "Player" );
+	hship shipSupplyShip = iShip.Create( "ini:/sims/ships/utility/supply_ship", "instant_action_text_supply" );
+	list localList;
+	bool local_6 = false;
+	int itemCount;
+	int ii;
+	int local_9;
+	
+	iSim.SetFaction( shipSupplyShip, player );
+	iPilotSetup.GenericCargoPod( shipSupplyShip );
+	iSim.CapsuleJump( iSim.Cast( shipSupplyShip ), iSim.Cast( param_0_ ) );
+	iHUD.SetPrompt( "instant_action_text_arrive", "" );
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 1.0 );
+	}
+	while ( !( iSim.WorldName( iSim.Cast( shipSupplyShip ) ) == iSim.ActiveWorld() ) );
+	
+	iAI.GiveApproachOrder( shipSupplyShip, waypoint );
+	
+	do
+	{
+		localList = List.FromSet( Sim.Children( shipSupplyShip ) );
+		
+		if ( List.ItemCount( localList ) != 0 )
+		{
+			itemCount = List.ItemCount( localList );
+			
+			debug atomic
+			{
+				Debug.PrintString( "iInstantAction: " );
+				Debug.PrintInt( itemCount );
+				Debug.PrintString( " ships docked to re-arm ship. \n" );
+			}
+			
+			if ( local_6 && !iSim.IsDockedTo( iSim.Cast( Group.Leader( group_0_ ) ), shipSupplyShip ) )
+			{
+				local_6 = false;
+			}
+			
+			for ( ii = 0; ii < itemCount; ++ii )
+			{
+				local_1 = Sim.Cast( List.GetNth( localList, ii ) );
+				
+				if ( (local_1 == Group.Leader( group_0_ )) && !local_6 )
+				{
+					local_6 = true;
+					iHUD.SetPrompt( String.Join( "instant_action_text_rearm+ +", Object.StringProperty( local_1, "name" ) ), "" );
+					Task.Sleep( Task.Current(), 3.0 );
+					
+					if ( iSim.IsDockedTo( iSim.Cast( local_1 ), shipSupplyShip ) )
+					{
+						debug Debug.PrintString( "iInstantAction: rearmed player. \n" );
+						iLoadout.RearmFromThirdParty( iShip.Cast( local_1 ), 1.0 );
+					}
+				}
+				
+				if ( Object.FloatProperty( local_1, "hit_points" ) < Object.FloatProperty( local_1, "max_hit_points" ) )
+				{
+					if ( iSim.IsDockedTo( iSim.Cast( local_1 ), shipSupplyShip ) )
+					{
+						iHUD.SetPrompt( String.Join( "instant_action_text_repair+ +", Object.StringProperty( local_1, "name" ) ), "" );
+						Task.Sleep( Task.Current(), 3.0 );
+					}
+					
+					if ( iSim.IsDockedTo( iSim.Cast( local_1 ), shipSupplyShip ) )
+					{
+						Object.SetFloatProperty( local_1, "hit_points", Object.FloatProperty( local_1, "max_hit_points" ) );
+					}
+				}
+			}
+		}
+		
+		Task.Sleep( Task.Current(), 0.90 );
+		local_9 = ( local_9 + 1 );
+	}
+	while ( (local_9 < 120) || Sim.IsDead( shipSupplyShip ) );
+	
+	if ( Sim.IsAlive( shipSupplyShip ) )
+	{
+		group_1 = Group.Create();
+		Group.AddSim( group_1, shipSupplyShip );
+		
+		atomic
+		{
+			local_function_5( shipSupplyShip );
+			local_function_6( shipSupplyShip );
+		}
+		
+		Task.Detach( start iScriptedOrders.LagrangeHandler( group_1, "Random" ) );
+	}
+	
+	Sim.Destroy( waypoint );
+}
+
+int local_function_12()
+{
+	return Global.Int( "g_num_easy_in_world" ) + (Global.Int( "g_num_med_in_world" ) + (Global.Int( "g_num_hard_in_world" ) + Global.Int( "g_num_vhard_in_world" )));
+}
+
+int local_function_10( hgroup group_, int param_1_ )
+{
+	int itemCount = 0;
+	int simCount = Group.SimCount( group_ );
+	int local_2;
+	list localList = List.FromSet( iSim.PlayerHostilesInRadius( param_1_, 536838144 ) );
+	
+	itemCount = List.ItemCount( localList );
+	return itemCount;
+}
+
+task local_function_13( hisim param_0_ )
+{
+	hgroup group_0 = Group.Create();
+	hgroup group_1 = iWingmen.Group();
+	hship playerShip = iShip.FindPlayerShip();
+	htask local_3;
+	int local_4;
+	int constant_0 = 4;
+	int constant_1 = 8;
+	int constant_2 = 15;
+	int constant_3 = 144;
+	int local_9 = 16;
+	int local_10 = 400;
+	int local_11 = 0;
+	int local_12 = 0;
+	bool local_13 = false;
+	int local_14 = 1;
+	int constant_4 = 3;
+	int constant_5 = 6;
+	int constant_6 = 9;
+	int local_18 = 6;
+	int local_19;
+	string local_20 = Text.Field( "instant_action_new_ship", FT_Text );
+	string local_21;
+	hgroup group_2;
+	
+	Task.Sleep( Task.Current(), 0.30 );
+	group_2 = local_function_7( param_0_ );
+	Task.Sleep( Task.Current(), 10.0 );
+	local_function_8( param_0_, local_14 );
+	Task.Sleep( Task.Current(), 1.0 );
+	local_function_9( param_0_, group_0, group_1, 1, 0, 0, 0 );
+	Task.Sleep( Task.Current(), 1.0 );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			local_4 = iScore.Total();
+			
+			debug
+			{
+				Debug.PrintString( "iInstantAction.wave: " );
+				Debug.PrintInt( local_11 );
+				Debug.PrintString( " easy: " );
+				Debug.PrintInt( Global.Int( "g_num_easy_in_world" ) );
+				Debug.PrintString( " med: " );
+				Debug.PrintInt( Global.Int( "g_num_med_in_world" ) );
+				Debug.PrintString( " hard: " );
+				Debug.PrintInt( Global.Int( "g_num_hard_in_world" ) );
+				Debug.PrintString( " vhard: " );
+				Debug.PrintInt( Global.Int( "g_num_vhard_in_world" ) );
+				Debug.PrintString( " \n" );
+			}
+			
+			if ( local_4 >= local_10 )
+			{
+				local_9 = ( local_9 + 1 );
+				
+				if ( local_9 > constant_2 )
+				{
+					local_10 = ( local_4 + 1000 );
+				}
+				else if ( local_9 > constant_1 )
+				{
+					local_10 = ( local_4 + 500 );
+				}
+				else if ( local_9 > constant_0 )
+				{
+					local_10 = ( local_4 + 200 );
+				}
+				else
+				{
+					local_10 = ( local_4 + 100 );
+				}
+			}
+			
+			if ( local_13 != 0 )
+			{
+				local_19 = local_function_10( group_0, 25000 );
+				
+				if ( local_19 <= 1 )
+				{
+					local_13 = false;
+					
+					if ( Task.IsHalted( local_3 ) == 1 )
+					{
+						local_3 = start local_function_11( param_0_, group_1 );
+						local_18 = 0;
+					}
+				}
+			}
+			
+			if ( (Task.IsHalted( local_3 ) != 1) && (local_18 <= 41) )
+			{
+				if ( local_function_12() == 0 )
+				{
+					local_18 = ( local_18 + 1 );
+				}
+			}
+			else if ( (Task.IsHalted( local_3 ) == 1) && (local_18 < 41) )
+			{
+				local_18 = 41;
+			}
+		}
+		
+		every 5.0:
+		{
+			local_19 = local_function_10( group_0, 25000 );
+			local_function_8( param_0_, local_14 );
+			
+			debug
+			{
+				Debug.PrintString( "iInstantAction.enemies_in_range: " );
+				Debug.PrintInt( local_19 );
+				Debug.PrintString( " \n" );
+			}
+			
+			if ( (local_18 > 40) && (local_19 == 0) )
+			{
+				Task.Sleep( Task.Current(), Math.RandomInt( 6, 9 ) );
+				
+				switch ( local_11 )
+				{
+					case 0:
+						local_function_9( param_0_, group_0, group_1, 2, 0, 0, 0 );
+						break;
+					
+					case 1:
+						local_function_9( param_0_, group_0, group_1, 3, 0, 0, 0 );
+						break;
+					
+					case 2:
+						local_function_9( param_0_, group_0, group_1, 0, 2, 0, 0 );
+						break;
+					
+					case 3:
+						local_function_9( param_0_, group_0, group_1, 0, 3, 0, 0 );
+						local_13 = true;
+						local_14 = 2;
+						break;
+					
+					case 4:
+						local_function_9( param_0_, group_0, group_1, 1, 4, 0, 0 );
+						break;
+					
+					case 5:
+						local_function_9( param_0_, group_0, group_1, 1, 0, 2, 0 );
+						break;
+					
+					case 6:
+						local_function_9( param_0_, group_0, group_1, 0, 0, 4, 0 );
+						local_13 = true;
+						local_14 = 3;
+						break;
+					
+					case 7:
+						local_function_9( param_0_, group_0, group_1, 1, 0, 0, 1 );
+						break;
+					
+					case 8:
+						local_function_9( param_0_, group_0, group_1, 3, 0, 0, 0 );
+						break;
+					
+					case 9:
+						local_function_9( param_0_, group_0, group_1, 3, 0, 0, 1 );
+						local_13 = true;
+						local_14 = 4;
+						break;
+					
+					case 10:
+						local_function_9( param_0_, group_0, group_1, 3, 2, 2, 0 );
+						break;
+					
+					case 11:
+						local_function_9( param_0_, group_0, group_1, 2, 0, 3, 1 );
+						break;
+					
+					case 12:
+						local_function_9( param_0_, group_0, group_1, 0, 4, 4, 0 );
+						local_13 = true;
+						break;
+					
+					case 13:
+						local_function_9( param_0_, group_0, group_1, 3, 0, 0, 0 );
+						break;
+					
+					case 14:
+						local_function_9( param_0_, group_0, group_1, 0, 4, 0, 0 );
+						break;
+					
+					case 15:
+						local_function_9( param_0_, group_0, group_1, 4, 0, 4, 0 );
+						local_13 = true;
+						break;
+					
+					case 16:
+						local_function_9( param_0_, group_0, group_1, 4, 4, 0, 1 );
+						break;
+					
+					case 17:
+						local_function_9( param_0_, group_0, group_1, 0, 6, 0, 1 );
+						break;
+					
+					case 18:
+						local_function_9( param_0_, group_0, group_1, 4, 4, 0, 2 );
+						local_13 = true;
+						break;
+					
+					case 19:
+						local_function_9( param_0_, group_0, group_1, 4, 4, 2, 2 );
+						break;
+				}
+				
+				local_11 = ( local_11 + 1 );
+				
+				if ( local_11 >= 20 )
+				{
+					local_11 = 12;
+				}
+				
+				local_12 = ( local_12 + 1 );
+				iHUD.SetPrompt( String.Join( "instant_action_text_new+ +", String.FromInt( local_12 ) ), "" );
+			}
+			
+			if ( !Config.GetBool( "system", "InstantAction", "tug" ) && (local_11 > constant_4) )
+			{
+				if ( Config.Exists( "system", "InstantAction", "tug" ) )
+				{
+					Config.SetBool( "system", "InstantAction", "tug", true );
+				}
+				else
+				{
+					Config.CreateBool( "system", "InstantAction", "tug", true );
+				}
+				
+				local_21 = String.Join( local_20, Text.Field( "ship_type_tug", FT_Text ) );
+				local_21 = String.UpperCase( local_21 );
+				iHUD.SetPrompt( "", local_21 );
+			}
+			
+			if ( !Config.GetBool( "system", "InstantAction", "fast_attack_ship" ) && (local_11 > constant_5) )
+			{
+				if ( Config.Exists( "system", "InstantAction", "fast_attack_ship" ) )
+				{
+					Config.SetBool( "system", "InstantAction", "fast_attack_ship", true );
+				}
+				else
+				{
+					Config.CreateBool( "system", "InstantAction", "fast_attack_ship", true );
+				}
+				
+				local_21 = String.Join( local_20, Text.Field( "ship_type_fast_attack_ship", FT_Text ) );
+				local_21 = String.UpperCase( local_21 );
+				iHUD.SetPrompt( "", local_21 );
+			}
+			
+			if ( !Config.GetBool( "system", "InstantAction", "heavy_corvette" ) && (local_11 > constant_6) )
+			{
+				if ( Config.Exists( "system", "InstantAction", "heavy_corvette" ) )
+				{
+					Config.SetBool( "system", "InstantAction", "heavy_corvette", true );
+				}
+				else
+				{
+					Config.CreateBool( "system", "InstantAction", "heavy_corvette", true );
+				}
+				
+				local_21 = String.Join( local_20, Text.Field( "ship_type_heavy_corvette", FT_Text ) );
+				local_21 = String.UpperCase( local_21 );
+				iHUD.SetPrompt( "", local_21 );
+			}
+		}
+		
+		every 10.0:
+		{
+			iHUD.SetPrompt( String.Join( "instant_action_text_current+ +", String.FromInt( iScore.Total() ) ), "" );
+		}
+	}
+}
+
+local_function_14()
+{
+	hship ship;
+	hisim krakenLPoint;
+	hfaction marauders;
+	hfaction player;
+	list localList;
+	hsubsim subsim;
+	int ii;
+	int itemCount;
+	string local_8;
+	
+	if ( !Global.Exists( "g_tfighters_menu_option_enabled" ) )
+	{
+		Global.CreateBool( "g_tfighters_menu_option_enabled", 2, true );
+	}
+	
+	Text.Add( "csv:/text/act_1/act1_master_addendum2" );
+	local_8 = Global.String( "g_instant_action_ship_ini" );
+	
+	if ( local_8 == "" )
+	{
+		local_8 = "ini:/sims/ships/player/storm_petrel_prefitted";
+		debug Debug.Error( "No ship set for instant action - g_instant_action_ship_ini not set." );
+	}
+	
+	ship = iShip.Create( local_8, "a1_ship_name_2" );
+	iShip.InstallPlayerPilot( ship );
+	subsim = Sim.FindSubsimByName( ship, "Cargo_LDSClass1Drive" );
+	
+	if ( subsim != false )
+	{
+		Subsim.Destroy( subsim );
+	}
+	else
+	{
+		subsim = Sim.FindSubsimByName( ship, "Cargo_LDSClass2Drive" );
+		
+		if ( subsim != false )
+		{
+			Subsim.Destroy( subsim );
+		}
+		else
+		{
+			subsim = Sim.FindSubsimByName( ship, "Cargo_LDSClass3Drive" );
+			
+			if ( subsim != false )
+			{
+				Subsim.Destroy( subsim );
+			}
+		}
+	}
+	
+	debug Debug.PrintString( "iInstantAction.wait_for_ship : Created player ship: " );
+	debug Debug.PrintHandle( ship );
+	debug Debug.PrintString( "\n" );
+	Global.CreateInt( "g_num_easy_in_world", 2, 0 );
+	Global.CreateInt( "g_num_med_in_world", 2, 0 );
+	Global.CreateInt( "g_num_hard_in_world", 2, 0 );
+	Global.CreateInt( "g_num_vhard_in_world", 2, 0 );
+	iWingmen.Initialise();
+	krakenLPoint = iSim.FindByNameInSystem( "Kraken L-Point", "map:/geog/gagarin/batatas" );
+	
+	if ( krakenLPoint == false )
+	{
+		debug Debug.Error( "Unable to create waypoint for start location" );
+	}
+	
+	iRangeCheck.AddTrafficException( iMapEntity.Cast( krakenLPoint ) );
+	localList = List.FromSet( iSim.SimsInRadius( iSim.Cast( krakenLPoint ), 100000.0, 8192 ) );
+	itemCount = List.ItemCount( localList );
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		iRangeCheck.AddTrafficException( iMapEntity.Cast( List.GetNth( localList, ii ) ) );
+	}
+	
+	Sim.PlaceRelativeTo( ship, krakenLPoint, 4000.0, 4000.0, 4000.0 );
+	Sim.PointAt( ship, krakenLPoint );
+	iHUD.SetMenuNodeEnabled( "hud_menu_map", false );
+	iMultiplay.LinkShipWeapons( ship );
+	marauders = iFaction.Find( "Marauders" );
+	player = iFaction.Find( "Player" );
+	
+	if ( marauders == false )
+	{
+		debug Debug.Error( "Invalid Marauders handle." );
+	}
+	
+	if ( player == false )
+	{
+		debug Debug.Error( "Invalid Player handle." );
+	}
+	
+	iFaction.SetFeeling( marauders, player, -1.0 );
+	iFaction.SetFeeling( player, marauders, -1.0 );
+	iSim.SetFaction( ship, player );
+	Task.Detach( start local_function_13( krakenLPoint ) );
+}
+
+Main()
+{
+	debug Debug.PrintString( "iInstantAction.Main: Starting instant action script.\n" );
+	Text.Add( "csv:/text/instant_action" );
+	local_function_14();
+}
+

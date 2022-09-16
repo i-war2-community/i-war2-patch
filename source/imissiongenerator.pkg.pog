@@ -1,0 +1,3293 @@
+package iMissionGenerator;
+
+uses Debug,
+     Set,
+     List,
+     String,
+     Global,
+     Sim,
+     Group,
+     INIFile,
+     Math,
+     Object,
+     State,
+     Task,
+     iSim,
+     Subsim,
+     iDockport,
+     iShip,
+     iLagrangePoint,
+     iAI,
+     iCargo,
+     iComms,
+     iConversation,
+     GUI,
+     iEmail,
+     iEscort,
+     MapEnumerations,
+     iFaction,
+     iFormation,
+     iMapEntity,
+     iBody,
+     iHabitat,
+     CargoTypes,
+     iInventory,
+     iObjectives,
+     iPilotSetup,
+     iRangeCheck,
+     iScriptedOrders,
+     iUtilities,
+     iCargoScript,
+     iShipCreation,
+     iTrade;
+
+provides testPiracyRating,
+         testGlobalInt,
+         testGlobalBool,
+         testEmail,
+         testFactionRating,
+         CargoToGet,
+         CargoReward,
+         PersonalDelivery,
+         NewMission,
+         CargoToGetCategory,
+         NumberOfRepeats,
+         PatronDetails,
+         PatronLocation,
+         PatronEscortDetails,
+         OwnerDetails,
+         OwnerLocation,
+         OwnerEscortDetails,
+         SetBriefing,
+         SetPrompt,
+         SetVerification,
+         SetRepeatMsg,
+         SetConclusion,
+         FailIfPatronDead,
+         FailIfOwnerDead,
+         FailIfGlobalBool,
+         FailPrecludes,
+         SuccessFactionModifier,
+         SuccessBool,
+         SuccessAddMission,
+         Activate,
+         NewMissionTask,
+         ExclusiveTrades,
+         OwnerSetEscortFaction,
+         ObjectiveStub,
+         BaseJafsChecker,
+         BaseMain,
+         MonkeyAbout,
+         PatronName;
+
+enum eGMCommType
+{
+	COM_None = 0x00000000,
+	COM_Jafs = 0x00000001,
+	COM_Smith = 0x00000002,
+	COM_Clay = 0x00000003,
+	COM_EMail = 0x00000004,
+	COM_Patron = 0x00000005,
+	COM_Owner = 0x00000006
+};
+
+prototype testPiracyRating( float value_ );
+prototype testEmail( string reference_ );
+prototype testFactionRating( string faction_name_, float value_ );
+prototype testGlobalInt( string global_name_, int value_ );
+prototype testGlobalBool( string global_name_, bool value_ );
+prototype local_function_20();
+prototype task local_function_1( hship ship_ );
+prototype bool local_function_18( hship ship_, hstate state_ );
+prototype ObjectiveStub( htask mission_task_, string stub_ );
+prototype local_function_7( hobject param_0_, string param_1_, int param_2_ );
+prototype local_function_3( hstate state_ );
+prototype CargoToGet( htask mission_task_, int cargo_enum_, int cargo_quantity_ );
+prototype CargoToGetCategory( htask mission_task_, int cargo_enum_, int cargo_quantity_ );
+prototype CargoReward( htask mission_task_, int cargo_enum_, int cargo_quantity_ );
+prototype PersonalDelivery( htask mission_task_, bool value_ );
+prototype NumberOfRepeats( htask mission_task_, int value_ );
+prototype PatronName( htask mission_task_, string name_ );
+prototype PatronDetails( htask mission_task_, string ship_type_, string function_, string ship_name_, string character_name_, string pilot_type_, string faction_ );
+prototype PatronEscortDetails( htask mission_task_, string ship_type_, string function_, string ship_name_, string pilot_type_, int quantity_ );
+prototype PatronLocation( htask mission_task_, int base_type_, string star_system_, string location_name_ );
+prototype OwnerDetails( htask mission_task_, int ship_type_, string function_, string ship_name_, string character_name_, string pilot_type_, string faction_ );
+prototype OwnerEscortDetails( htask mission_task_, int ship_type_, string function_, string ship_name_, string pilot_type_, int quantity_ );
+prototype OwnerLocation( htask mission_task_, int base_type_, string star_system_, string location_name_ );
+prototype SetBriefing( htask mission_task_, string reference1_, string reference2_, int comm_enum_ );
+prototype SetPrompt( htask mission_task_, string reference1_, string reference2_, int comm_enum_ );
+prototype SetVerification( htask mission_task_, string reference1_, string reference2_, int comm_enum_ );
+prototype SetRepeatMsg( htask mission_task_, string reference1_, string reference2_, int comm_enum_ );
+prototype SetConclusion( htask mission_task_, string reference1_, string reference2_, int comm_enum_ );
+prototype local_function_26( hstate state_ );
+prototype FailIfPatronDead( htask mission_task_ );
+prototype OwnerSetEscortFaction( htask mission_task_, string faction_name_ );
+prototype ExclusiveTrades( htask mission_task_, bool exclusive_ );
+prototype FailIfOwnerDead( htask mission_task_ );
+prototype FailIfGlobalBool( htask mission_task_, string variable_name_, bool value_ );
+prototype FailPrecludes( htask mission_task_, int mission_enum_ );
+prototype bool local_function_37( hobject param_0_ );
+prototype string local_function_12( string param_0_ );
+prototype hsim local_function_38( hobject param_0_ );
+prototype local_function_11( hobject param_0_ );
+prototype hsim local_function_39( hobject param_0_ );
+prototype hsim local_function_6( hobject param_0_, string param_1_ );
+prototype string local_function_8( string param_0_, int param_1_ );
+prototype local_function_28( hstate state_ );
+prototype local_function_5( hobject param_0_, string param_1_ );
+prototype local_function_21( hobject param_0_, int param_1_, string param_2_, string param_3_ );
+prototype local_function_40( hship ship_, string param_1_, string param_2_, string param_3_ );
+prototype local_function_41( hobject param_0_, hgroup group_, hmapentity mapentity_ );
+prototype list local_function_14( hship ship_, float param_1_ );
+prototype int local_function_15( hobject param_0_, hship ship_0_, hship ship_1_ );
+prototype int local_function_13( hobject param_0_ );
+prototype bool local_function_16( hobject param_0_ );
+prototype local_function_17( hgroup group_ );
+prototype task local_function_42( hobject param_0_ );
+prototype bool local_function_29( hstate state_ );
+prototype bool local_function_24( hstate state_ );
+prototype local_function_27( hstate state_ );
+prototype local_function_19( hstate state_ );
+prototype local_function_30( hstate state_ );
+prototype local_function_43( hobject param_0_ );
+prototype local_function_22( hstate state_ );
+prototype htask NewMission( string mission_name_ );
+prototype task NewMissionTask();
+prototype string local_function_4( string param_0_, int param_1_ );
+prototype int local_function_0( hobject param_0_, string param_1_, int param_2_ );
+prototype float local_function_35( hstate state_, string param_1_, int param_2_ );
+prototype string local_function_36( hstate state_, string param_1_, int param_2_ );
+prototype hobject local_function_34( hstate state_, string param_1_, int param_2_ );
+prototype local_function_2( hstate state_, string param_1_, string param_2_, int param_3_ );
+prototype local_function_32( hstate state_, string param_1_, string param_2_, float param_3_ );
+prototype local_function_33( hstate state_, string param_1_, string param_2_, string param_3_ );
+prototype local_function_31( hstate state_, string param_1_, string param_2_, hfaction faction_ );
+prototype local_function_44( hobject param_0_ );
+prototype local_function_45( hobject param_0_ );
+prototype Activate( htask mission_task_ );
+prototype SuccessFactionModifier( htask mission_task_, hfaction faction_handle_, float modifier_ );
+prototype SuccessBool( htask mission_task_, string bool_name_, bool value_ );
+prototype local_function_46( htask param_0_, int param_1_, int param_2_ );
+prototype SuccessAddMission( htask mission_task_, int mission_enum_ );
+prototype local_function_47( hstate state_ );
+prototype local_function_25( hstate state_ );
+prototype local_function_23( hstate state_ );
+prototype local_function_48();
+prototype local_function_9( hgroup group_0_ );
+prototype task BaseJafsChecker();
+prototype task BaseMain();
+prototype task MonkeyAbout( hship ship_, hmapentity mapentity_0_ );
+prototype local_function_10( hobject param_0_, hship ship_ );
+
+testPiracyRating( float value_ )
+{
+	float local_0;
+	
+	if ( local_0 > Global.Float( "g_player_piracy_rating" ) )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iMissionGenerator: failed piracy rating test" );
+			Debug.PrintString( "\n" );
+		}
+		
+		Global.SetBool( "g_accept_generated_mission", false );
+		return;
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: passed piracy rating test" );
+		Debug.PrintString( "\n" );
+	}
+}
+
+testEmail( string reference_ )
+{
+	if ( !iEmail.Received( reference_ ) )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iMissionGenerator: failed email test" );
+			Debug.PrintString( "\n" );
+		}
+		
+		Global.SetBool( "g_accept_generated_mission", false );
+		return;
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: passed email test" );
+		Debug.PrintString( "\n" );
+	}
+}
+
+testFactionRating( string faction_name_, float value_ )
+{
+	hfaction faction = iFaction.Find( faction_name_ );
+	hfaction player = iFaction.Find( "player" );
+	
+	if ( iFaction.Feeling( faction, player ) < value_ )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iMissionGenerator: failed faction rating test" );
+			Debug.PrintString( "\n" );
+		}
+		
+		Global.SetBool( "g_accept_generated_mission", false );
+		return;
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: passed faction rating test" );
+		Debug.PrintString( "\n" );
+	}
+}
+
+testGlobalInt( string global_name_, int value_ )
+{
+	if ( !Global.Exists( global_name_ ) )
+	{
+		Global.SetBool( "g_accept_generated_mission", false );
+		return;
+	}
+	
+	if ( Global.Int( global_name_ ) < value_ )
+	{
+		Global.SetBool( "g_accept_generated_mission", false );
+	}
+}
+
+testGlobalBool( string global_name_, bool value_ )
+{
+	if ( !Global.Exists( global_name_ ) )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iMissionGenerator: Global bool doesn't exist: Ignoring criteria." );
+			Debug.PrintString( "\n" );
+		}
+		
+		return;
+	}
+	
+	if ( Global.Bool( global_name_ ) != value_ )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iMissionGenerator: failed global bool test" );
+			Debug.PrintString( "\n" );
+		}
+		
+		Global.SetBool( "g_accept_generated_mission", false );
+		return;
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: passed global bool test" );
+		Debug.PrintString( "\n" );
+	}
+}
+
+local_function_20()
+{
+	do
+	{
+		Task.Sleep( Task.Current(), 5000.0 );
+	}
+	while ( 1 );
+}
+
+task local_function_1( hship ship_ )
+{
+	Task.Sleep( Task.Current(), 5.0 );
+	Sim.SetCollision( Sim.Cast( ship_ ), true );
+}
+
+bool local_function_18( hship ship_, hstate state_ )
+{
+	int ii;
+	int cargoDoubleCounter;
+	int local_2;
+	int local_3;
+	int cargoDroppedIndex;
+	int local_5;
+	int local_6;
+	hship shipMailPod;
+	hgroup group;
+	
+	debug Debug.PrintString( "iMissionGenerator:DitchCargo starting\n" );
+	
+	if ( 1 == Object.PropertyExists( state_, "proper_cargo" ) )
+	{
+		iShip.UndockSelf( ship_ );
+		return false;
+	}
+	
+	if ( 1 == Object.PropertyExists( state_, "cargo_double_counter" ) )
+	{
+		cargoDoubleCounter = Object.IntProperty( state_, "cargo_double_counter" );
+		cargoDoubleCounter = ( cargoDoubleCounter / 2 );
+		
+		debug atomic
+		{
+			Debug.PrintString( "iMissionGenerator - cargo_double_counter has value" );
+			Debug.PrintInt( cargoDoubleCounter );
+			Debug.PrintString( "\n" );
+		}
+		
+		local_5 = 0;
+		local_6 = 0;
+		cargoDroppedIndex = Object.IntProperty( state_, "cargo_dropped_index" );
+		
+		for ( ii = 0; ii < cargoDoubleCounter; ++ii )
+		{
+			local_2 = local_function_0( state_, "cargo_to_get", ii * 2 );
+			local_3 = local_function_0( state_, "cargo_to_get_quantity", (ii * 2) + 1 );
+			
+			if ( local_2 > 1000 )
+			{
+				local_2 = ( local_2 - 1000 );
+				local_2 = iInventory.CargoTypeFromCategoryIndex( local_2 );
+			}
+			
+			do
+			{
+				if ( cargoDroppedIndex <= local_6 )
+				{
+					debug Debug.PrintString( "iMissionGenerator.DitchCargo dropping a pod ol' matey.\n" );
+					shipMailPod = iShip.Create( "ini:/sims/ships/utility/mail_pod", iCargo.Name( iCargo.Find( local_2 ) ) );
+					Object.AddIntProperty( shipMailPod, "cargo", local_2 );
+					Group.AddSim( group, shipMailPod );
+					Sim.SetCollision( Sim.Cast( shipMailPod ), false );
+					Sim.PlaceRelativeTo( shipMailPod, ship_, 0.0, 0.0, 0.0 );
+					Sim.SetVelocityLocalToSim( shipMailPod, 0.0, -( 15 * local_5 ), -215.0 );
+					Task.Detach( start local_function_1( shipMailPod ) );
+					Task.Sleep( Task.Current(), 1.0 );
+					local_5 = ( local_5 + 1 );
+				}
+				
+				local_3 = ( local_3 + -1 );
+				local_6 = ( local_6 + 1 );
+			}
+			while ( (local_3 > 0) && (local_5 < 6) );
+			
+			if ( local_5 >= 6 )
+			{
+				Object.SetIntProperty( state_, "cargo_dropped_index", cargoDroppedIndex );
+				return false;
+			}
+		}
+	}
+	else debug Debug.PrintString( "iMissionGenerator.DitchCargo: Jumping Assmuppets, Batman! There's no cargo to ditch!\n" );
+	
+	Object.SetIntProperty( state_, "cargo_dropped_index", cargoDroppedIndex );
+	return true;
+}
+
+ObjectiveStub( htask mission_task_, string stub_ )
+{
+	hstate taskState = State.Find( mission_task_ );
+	
+	Object.AddStringProperty( taskState, "objective_stub", stub_ );
+	Object.AddIntProperty( taskState, "objective_state_collect", 0 );
+	Object.AddIntProperty( taskState, "objective_state_deliver", 0 );
+	Object.AddIntProperty( taskState, "objective_state_goto", 0 );
+}
+
+local_function_7( hobject param_0_, string param_1_, int param_2_ )
+{
+	int local_0;
+	string local_1;
+	
+	local_0 = Object.IntProperty( param_0_, String.Join( "objective_state", param_1_ ) );
+	Object.SetIntProperty( param_0_, String.Join( "objective_state", param_1_ ), param_2_ );
+	local_1 = String.Join( Object.StringProperty( param_0_, "objective_stub" ), String.Join( "_objectives", param_1_ ) );
+	
+	if ( local_0 == 0 )
+	{
+		iObjectives.Add( local_1 );
+	}
+	
+	if ( param_2_ == 1 )
+	{
+		iObjectives.SetState( local_1, OS_Incomplete );
+		return;
+	}
+	
+	iObjectives.SetState( local_1, OS_Succeeded );
+}
+
+local_function_3( hstate state_ )
+{
+	int local_0 = Object.IntProperty( state_, "objectives_state_goto" );
+	
+	if ( local_0 != 0 )
+	{
+		iObjectives.Add( String.Join( Object.StringProperty( state_, "objective_stub" ), "_objectives_goto" ) );
+		
+		if ( local_0 == 1 )
+		{
+			iObjectives.SetState( String.Join( Object.StringProperty( state_, "objective_stub" ), "_objectives_goto" ), OS_Incomplete );
+		}
+		else
+		{
+			iObjectives.SetState( String.Join( Object.StringProperty( state_, "objective_stub" ), "_objectives_goto" ), OS_Succeeded );
+		}
+	}
+	
+	local_0 = Object.IntProperty( state_, "objectives_state_collect" );
+	
+	if ( local_0 != 0 )
+	{
+		iObjectives.Add( String.Join( Object.StringProperty( state_, "objective_stub" ), "_objectives_collect" ) );
+		
+		if ( local_0 == 1 )
+		{
+			iObjectives.SetState( String.Join( Object.StringProperty( state_, "objective_stub" ), "_objectives_collect" ), OS_Incomplete );
+		}
+		else
+		{
+			iObjectives.SetState( String.Join( Object.StringProperty( state_, "objective_stub" ), "_objectives_collect" ), OS_Succeeded );
+		}
+	}
+	
+	local_0 = Object.IntProperty( state_, "objectives_state_deliver" );
+	
+	if ( local_0 != 0 )
+	{
+		iObjectives.Add( String.Join( Object.StringProperty( state_, "objective_stub" ), "_objectives_deliver" ) );
+		
+		if ( local_0 == 1 )
+		{
+			iObjectives.SetState( String.Join( Object.StringProperty( state_, "objective_stub" ), "_objectives_deliver" ), OS_Incomplete );
+			return;
+		}
+		
+		iObjectives.SetState( String.Join( Object.StringProperty( state_, "objective_stub" ), "_objectives_deliver" ), OS_Succeeded );
+	}
+}
+
+CargoToGet( htask mission_task_, int cargo_enum_, int cargo_quantity_ )
+{
+	hstate taskState;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Set cargo for player to fetch" );
+		Debug.PrintString( "\n" );
+	}
+	
+	taskState = State.Find( mission_task_ );
+	local_function_2( taskState, "cargo_to_get", "cargo_double_counter", cargo_enum_ );
+	local_function_2( taskState, "cargo_to_get_quantity", "cargo_double_counter", cargo_quantity_ );
+}
+
+CargoToGetCategory( htask mission_task_, int cargo_enum_, int cargo_quantity_ )
+{
+	hstate taskState;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Set cargo for player to fetch" );
+		Debug.PrintString( "\n" );
+	}
+	
+	taskState = State.Find( mission_task_ );
+	local_function_2( taskState, "cargo_to_get", "cargo_double_counter", cargo_enum_ + 1000 );
+	local_function_2( taskState, "cargo_to_get_quantity", "cargo_double_counter", cargo_quantity_ );
+}
+
+CargoReward( htask mission_task_, int cargo_enum_, int cargo_quantity_ )
+{
+	hstate taskState;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Set cargo for player's reward" );
+		Debug.PrintString( "\n" );
+	}
+	
+	taskState = State.Find( mission_task_ );
+	local_function_2( taskState, "cargo_reward", "cargo_reward_double_counter", cargo_enum_ );
+	local_function_2( taskState, "cargo_reward_quantity", "cargo_reward_double_counter", cargo_quantity_ );
+}
+
+PersonalDelivery( htask mission_task_, bool value_ )
+{
+	hstate taskState;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: player should deliver this personaly" );
+		Debug.PrintString( "\n" );
+	}
+	
+	taskState = State.Find( mission_task_ );
+	Object.AddBoolProperty( taskState, "personal_delivery", value_ );
+}
+
+NumberOfRepeats( htask mission_task_, int value_ )
+{
+	hstate taskState;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Set number of repeats" );
+		Debug.PrintString( "\n" );
+	}
+	
+	taskState = State.Find( mission_task_ );
+	Object.SetIntProperty( taskState, "number_of_repeats", value_ );
+}
+
+PatronName( htask mission_task_, string name_ )
+{
+	hstate taskState = State.Find( mission_task_ );
+	
+	Object.SetStringProperty( taskState, "patron_character_name", name_ );
+}
+
+PatronDetails( htask mission_task_, string ship_type_, string function_, string ship_name_, string character_name_, string pilot_type_, string faction_ )
+{
+	hstate taskState;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Set Patron details" );
+		Debug.PrintString( "\n" );
+	}
+	
+	taskState = State.Find( mission_task_ );
+	Object.SetStringProperty( taskState, "patron_ship_type", ship_type_ );
+	Object.SetStringProperty( taskState, "patron_ship_function", function_ );
+	Object.SetStringProperty( taskState, "patron_ship_name", ship_name_ );
+	Object.SetStringProperty( taskState, "patron_character_name", character_name_ );
+	Object.SetStringProperty( taskState, "patron_faction", faction_ );
+}
+
+PatronEscortDetails( htask mission_task_, string ship_type_, string function_, string ship_name_, string pilot_type_, int quantity_ )
+{
+	hstate taskState;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Added patron details" );
+		Debug.PrintString( "\n" );
+	}
+	
+	taskState = State.Find( mission_task_ );
+	Object.SetStringProperty( taskState, "patron_escort_ship_type", ship_type_ );
+	Object.SetStringProperty( taskState, "patron_escort_ship_function", function_ );
+	Object.SetStringProperty( taskState, "patron_escort_ship_name", ship_name_ );
+	Object.SetStringProperty( taskState, "patron_escort_pilot_type", pilot_type_ );
+	Object.SetIntProperty( taskState, "patron_escort_quantity", quantity_ );
+}
+
+PatronLocation( htask mission_task_, int base_type_, string star_system_, string location_name_ )
+{
+	hstate taskState;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Set Patron system" );
+		Debug.PrintString( star_system_ );
+		Debug.PrintString( "\n" );
+	}
+	
+	taskState = State.Find( mission_task_ );
+	Object.AddIntProperty( taskState, "patron_location_type", base_type_ );
+	Object.AddStringProperty( taskState, "patron_location_system", star_system_ );
+	
+	if ( !( location_name_ == "" ) )
+	{
+		Object.AddStringProperty( taskState, "patron_location_name", location_name_ );
+	}
+}
+
+OwnerDetails( htask mission_task_, int ship_type_, string function_, string ship_name_, string character_name_, string pilot_type_, string faction_ )
+{
+	hstate taskState;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Set Owner Details" );
+		Debug.PrintString( "\n" );
+	}
+	
+	taskState = State.Find( mission_task_ );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator:OwnerDetails recieved state " );
+		Debug.PrintHandle( taskState );
+		Debug.PrintString( "\n" );
+	}
+	
+	Object.AddIntProperty( taskState, "owner_ship_type", ship_type_ );
+	Object.AddStringProperty( taskState, "owner_ship_function", function_ );
+	Object.AddStringProperty( taskState, "owner_ship_name", ship_name_ );
+	Object.AddStringProperty( taskState, "owner_pilot_type", pilot_type_ );
+	Object.AddStringProperty( taskState, "owner_character_name", character_name_ );
+	Object.AddStringProperty( taskState, "owner_faction", faction_ );
+}
+
+OwnerEscortDetails( htask mission_task_, int ship_type_, string function_, string ship_name_, string pilot_type_, int quantity_ )
+{
+	hstate taskState;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Set Escort details" );
+		Debug.PrintString( "\n" );
+	}
+	
+	taskState = State.Find( mission_task_ );
+	Object.AddIntProperty( taskState, "owner_escort_type", ship_type_ );
+	Object.AddStringProperty( taskState, "owner_escort_ship_function", function_ );
+	Object.AddStringProperty( taskState, "owner_escort_ship_name", ship_name_ );
+	Object.AddStringProperty( taskState, "owner_escort_pilot_type", pilot_type_ );
+	Object.AddIntProperty( taskState, "owner_escort_quantity", quantity_ );
+}
+
+OwnerLocation( htask mission_task_, int base_type_, string star_system_, string location_name_ )
+{
+	hstate taskState;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Set Owner Location:" );
+		Debug.PrintString( location_name_ );
+		Debug.PrintString( "\n" );
+	}
+	
+	taskState = State.Find( mission_task_ );
+	
+	debug atomic
+	{
+		Debug.PrintString( "state of passed function is " );
+		Debug.PrintHandle( taskState );
+		Debug.PrintString( "\n" );
+	}
+	
+	Object.AddIntProperty( taskState, "owner_location_type", base_type_ );
+	Object.AddStringProperty( taskState, "owner_location_system", star_system_ );
+	Object.AddStringProperty( taskState, "owner_location_name", location_name_ );
+}
+
+SetBriefing( htask mission_task_, string reference1_, string reference2_, int comm_enum_ )
+{
+	hstate taskState;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Set Briefing" );
+		Debug.PrintString( "\n" );
+	}
+	
+	taskState = State.Find( mission_task_ );
+	
+	if ( !Object.PropertyExists( taskState, "comm_briefing_type" ) )
+	{
+		Object.AddIntProperty( taskState, "comm_briefing_type", comm_enum_ );
+	}
+	else
+	{
+		Object.SetIntProperty( taskState, "comm_briefing_type", comm_enum_ );
+	}
+	
+	if ( !Object.PropertyExists( taskState, "comm_briefing_reference" ) )
+	{
+		Object.AddStringProperty( taskState, "comm_briefing_reference", reference1_ );
+	}
+	else
+	{
+		Object.SetStringProperty( taskState, "comm_briefing_reference", reference1_ );
+	}
+	
+	if ( !Object.PropertyExists( taskState, "comm_briefing_subject" ) )
+	{
+		Object.AddStringProperty( taskState, "comm_briefing_subject", reference2_ );
+		return;
+	}
+	
+	Object.SetStringProperty( taskState, "comm_briefing_subject", reference2_ );
+}
+
+SetPrompt( htask mission_task_, string reference1_, string reference2_, int comm_enum_ )
+{
+	hstate taskState;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Setting prompt information" );
+		Debug.PrintString( "\n" );
+	}
+	
+	taskState = State.Find( mission_task_ );
+	Object.AddIntProperty( taskState, "comm_prompt_type", comm_enum_ );
+	Object.AddStringProperty( taskState, "comm_prompt_reference", reference1_ );
+	
+	if ( comm_enum_ == 4 )
+	{
+		Object.AddStringProperty( taskState, "comm_prompt_subject", reference2_ );
+	}
+}
+
+SetVerification( htask mission_task_, string reference1_, string reference2_, int comm_enum_ )
+{
+	hstate taskState;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Setting Verification messages" );
+		Debug.PrintString( "\n" );
+	}
+	
+	taskState = State.Find( mission_task_ );
+	Object.AddIntProperty( taskState, "comm_verification_type", comm_enum_ );
+	Object.AddStringProperty( taskState, "comm_verification_reference", reference1_ );
+	Object.AddStringProperty( taskState, "comm_verification_subject", reference2_ );
+}
+
+SetRepeatMsg( htask mission_task_, string reference1_, string reference2_, int comm_enum_ )
+{
+	hstate taskState;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Setting message telling player to repeat task" );
+		Debug.PrintString( "\n" );
+	}
+	
+	taskState = State.Find( mission_task_ );
+	Object.AddIntProperty( taskState, "comm_repeat_msg_type", comm_enum_ );
+	Object.AddStringProperty( taskState, "comm_repeat_msg_reference", reference1_ );
+	
+	if ( comm_enum_ == 4 )
+	{
+		Object.AddStringProperty( taskState, "comm_repeat_msg_subject", reference2_ );
+	}
+}
+
+SetConclusion( htask mission_task_, string reference1_, string reference2_, int comm_enum_ )
+{
+	hstate taskState;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Setting information for conclusion" );
+		Debug.PrintString( "\n" );
+	}
+	
+	taskState = State.Find( mission_task_ );
+	Object.AddIntProperty( taskState, "comm_conclusion_type", comm_enum_ );
+	Object.AddStringProperty( taskState, "comm_conclusion_reference", reference1_ );
+	Object.AddStringProperty( taskState, "comm_conclusion_subject", reference2_ );
+}
+
+local_function_26( hstate state_ )
+{
+	Object.RemoveProperty( state_, "patron_ship_handle" );
+	Object.RemoveProperty( state_, "patron_location_handle" );
+	Object.RemoveProperty( state_, "patron_escort_group" );
+	Object.SetIntProperty( state_, "patron_state", 0 );
+	Object.RemoveProperty( state_, "owner_ship_handle" );
+	Object.RemoveProperty( state_, "owner_location_handle" );
+	Object.RemoveProperty( state_, "owner_escort_group" );
+	Object.SetIntProperty( state_, "owner_state", 0 );
+	local_function_3( state_ );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Rehydration under way" );
+		Debug.PrintString( "\n" );
+	}
+}
+
+FailIfPatronDead( htask mission_task_ )
+{
+	int failureCondition;
+	hstate taskState = State.Find( mission_task_ );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Adding patron is dead failure condition" );
+		Debug.PrintString( "\n" );
+	}
+	
+	if ( !Object.PropertyExists( taskState, "failure_condition" ) )
+	{
+		failureCondition = 0;
+		Object.AddIntProperty( taskState, "failure_condition", 0 );
+	}
+	else
+	{
+		failureCondition = Object.IntProperty( taskState, "failure_condition" );
+	}
+	
+	failureCondition = ( failureCondition | 2 );
+	Object.SetIntProperty( taskState, "failure_condition", 0 );
+}
+
+OwnerSetEscortFaction( htask mission_task_, string faction_name_ )
+{
+}
+
+ExclusiveTrades( htask mission_task_, bool exclusive_ )
+{
+}
+
+FailIfOwnerDead( htask mission_task_ )
+{
+	int failureCondition;
+	hstate taskState = State.Find( mission_task_ );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Adding failure clause on owner death" );
+		Debug.PrintString( "\n" );
+	}
+	
+	if ( !Object.PropertyExists( taskState, "failure_condition" ) )
+	{
+		failureCondition = 0;
+		Object.AddIntProperty( taskState, "failure_condition", 0 );
+	}
+	else
+	{
+		failureCondition = Object.IntProperty( taskState, "failure_condition" );
+	}
+	
+	failureCondition = ( failureCondition | 1 );
+	Object.SetIntProperty( taskState, "failure_condition", 0 );
+}
+
+FailIfGlobalBool( htask mission_task_, string variable_name_, bool value_ )
+{
+	int failureCondition;
+	hstate taskState = State.Find( mission_task_ );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Adding failure on global bool test" );
+		Debug.PrintString( "\n" );
+	}
+	
+	if ( !Object.PropertyExists( taskState, "failure_condition" ) )
+	{
+		failureCondition = 0;
+		Object.AddIntProperty( taskState, "failure_condition", 0 );
+	}
+	else
+	{
+		failureCondition = Object.IntProperty( taskState, "failure_condition" );
+	}
+	
+	Object.SetIntProperty( taskState, "failure_condition", 0 );
+}
+
+FailPrecludes( htask mission_task_, int mission_enum_ )
+{
+	hstate taskState = State.Find( mission_task_ );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: adding mission preclusion for failure" );
+		Debug.PrintString( "\n" );
+	}
+	
+	local_function_2( taskState, "failure_mission_value", "failure_mission_counter", mission_enum_ );
+}
+
+bool local_function_37( hobject param_0_ )
+{
+	int failureClauseNumber;
+	int ii;
+	int local_2;
+	int local_3;
+	string local_4;
+	hship patronShipHandle;
+	hship ownerShip;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Full-on failure test" );
+		Debug.PrintString( "\n" );
+	}
+	
+	failureClauseNumber = Object.IntProperty( param_0_, "failure_clause_number" );
+	
+	for ( ii = 0; ii < failureClauseNumber; ++ii )
+	{
+		local_3 = Object.IntProperty( param_0_, String.Join( "failure_type", String.FromInt( local_2 ) ) );
+		local_2 = ( local_2 + 1 );
+		
+		if ( local_3 == 2 )
+		{
+			if ( Object.IntProperty( param_0_, "patron_state" ) != 1 )
+			{
+				break;
+			}
+			
+			patronShipHandle = iShip.Cast( Object.HandleProperty( param_0_, "patron_ship_handle" ) );
+			
+			if ( Sim.IsDead( patronShipHandle ) )
+			{
+				iComms.Shout( none, "", Object.StringProperty( param_0_, local_function_4( "failure_clause_reference", ii ) ) );
+				return true;
+			}
+		}
+		
+		if ( local_3 == 1 )
+		{
+			if ( Object.IntProperty( param_0_, "owner_state" ) != 1 )
+			{
+				break;
+			}
+			
+			ownerShip = iShip.Cast( Object.HandleProperty( param_0_, "owner_ship" ) );
+			
+			if ( !Sim.IsDead( ownerShip ) )
+			{
+				break;
+			}
+			
+			local_4 = Object.StringProperty( param_0_, String.Join( "failure_clause_reference", String.FromInt( local_2 ) ) );
+			local_2 = ( local_2 + 1 );
+			
+			if ( Object.PropertyExists( param_0_, local_4 ) )
+			{
+				iComms.Shout( none, "", local_4 );
+			}
+			
+			return true;
+		}
+	}
+	
+	return false;
+}
+
+string local_function_12( string param_0_ )
+{
+	list localList = List.FromSet( iMapEntity.SystemHabitats() );
+	int ii;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Picking location of desired type" );
+		Debug.PrintString( "\n" );
+	}
+	
+	for ( ii = 0; ii < List.ItemCount( localList ); ++ii )
+	{
+		if ( !( iUtilities.FromLocationEnum( iHabitat.Type( iHabitat.Cast( List.GetNth( localList, ii ) ) ) ) == param_0_ ) )
+		{
+			List.RemoveNth( localList, ii );
+			
+			if ( List.ItemCount( localList ) != 0 )
+			{
+				ii = ( ii + -1 );
+			}
+			else
+			{
+				debug Debug.PrintString( String.Join( "iMissionGenerator.PickLocation: Unable to find location of specified type: ", param_0_ ) );
+				break;
+			}
+		}
+	}
+	
+	return iMapEntity.Name( iMapEntity.Cast( iHabitat.Random( Set.FromList( localList ) ) ) );
+}
+
+hsim local_function_38( hobject param_0_ )
+{
+	hhabitat habitat = none;
+	hsim waypoint;
+	int itemCount;
+	list localList = List.FromSet( iMapEntity.SystemHabitats() );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Generating patron location" );
+		Debug.PrintString( "\n" );
+	}
+	
+	if ( Object.PropertyExists( param_0_, "patron_location_handle" ) == 1 )
+	{
+		if ( Object.HandleProperty( param_0_, "patron_location_handle" ) != none )
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iMissionGenerator: patron location already exists" );
+				Debug.PrintString( "\n" );
+			}
+			
+			return none;
+		}
+	}
+	
+	localList = List.FromSet( iMapEntity.SystemHabitats() );
+	
+	if ( !( Object.StringProperty( param_0_, "patron_location_name" ) == "" ) )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iMissionGenerator: Finding named location" );
+			Debug.PrintString( "\n" );
+		}
+		
+		habitat = iHabitat.FindByName( Object.StringProperty( param_0_, "patron_location_name" ) );
+		
+		if ( habitat != false )
+		{
+			Object.AddHandleProperty( param_0_, "patron_location_handle", habitat );
+		}
+	}
+	
+	if ( habitat == false )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iMissionGenerator: Finding location of type" );
+			Debug.PrintString( "\n" );
+		}
+		
+		localList = List.FromSet( iHabitat.FilterOnType( iMapEntity.SystemHabitats(), iHabitat.CastIntToHabitatType( Object.IntProperty( param_0_, "patron_location_type" ) ) ) );
+		itemCount = List.ItemCount( localList );
+		
+		if ( itemCount > 0 )
+		{
+			habitat = iHabitat.Cast( List.GetNth( localList, Math.RandomInt( 1, itemCount ) ) );
+		}
+	}
+	
+	if ( habitat == false )
+	{
+		debug Debug.PrintString( "iMissionGenerator: patron location still not found, picking randomly from within system.\n" );
+		localList = List.FromSet( iMapEntity.SystemHabitats() );
+		itemCount = List.ItemCount( localList );
+		
+		debug atomic
+		{
+			Debug.PrintString( "iMissionGenerator: number of locations in system " );
+			Debug.PrintInt( itemCount );
+			Debug.PrintString( "\n" );
+		}
+		
+		if ( itemCount > 0 )
+		{
+			habitat = iHabitat.Cast( List.GetNth( localList, Math.RandomInt( 1, itemCount ) ) );
+			
+			debug atomic
+			{
+				Debug.PrintString( "iMissionGenerator: patron location chosen as " );
+				Debug.PrintString( iMapEntity.Name( iMapEntity.Cast( habitat ) ) );
+				Debug.PrintString( "\n" );
+			}
+		}
+	}
+	
+	waypoint = iMapEntity.WaypointForEntity( habitat );
+	Object.AddHandleProperty( param_0_, "patron_location_handle", waypoint );
+	
+	if ( 0 == Object.PropertyExists( param_0_, "patron_location_name" ) )
+	{
+		if ( Object.StringProperty( param_0_, "patron_location_name" ) == "" )
+		{
+			Object.AddStringProperty( param_0_, "patron_location_name", iMapEntity.Name( iMapEntity.Cast( habitat ) ) );
+		}
+	}
+	
+	return waypoint;
+}
+
+local_function_11( hobject param_0_ )
+{
+	local_function_5( param_0_, "patron" );
+}
+
+hsim local_function_39( hobject param_0_ )
+{
+	return local_function_6( param_0_, "character" );
+}
+
+hsim local_function_6( hobject param_0_, string param_1_ )
+{
+	hisim local_0 = none;
+	hsim local_1;
+	int local_2;
+	int itemCount;
+	string local_4;
+	list localList = List.FromSet( iMapEntity.SystemHabitats() );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Generating character location" );
+		Debug.PrintString( "\n" );
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator:WaitForOrMake character recieved state " );
+		Debug.PrintHandle( param_0_ );
+		Debug.PrintString( "\n" );
+	}
+	
+	local_4 = Object.StringProperty( param_0_, String.Join( param_1_, "_location_system" ) );
+	
+	if ( Object.PropertyExists( param_0_, String.Join( param_1_, "_location_handle" ) ) == 1 )
+	{
+		if ( Object.HandleProperty( param_0_, String.Join( param_1_, "_location_handle" ) ) != none )
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iMissionGenerator: character location already exists" );
+				Debug.PrintString( "\n" );
+			}
+			
+			local_1 = Sim.Cast( Object.HandleProperty( param_0_, String.Join( param_1_, "_location_handle" ) ) );
+			iSim.SetSensorVisibility( iSim.Cast( local_1 ), true );
+			iRangeCheck.AddTrafficException( iHabitat.Cast( local_1 ) );
+			return local_1;
+		}
+	}
+	
+	localList = List.FromSet( iMapEntity.SystemHabitats() );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: character Location name is" );
+		Debug.PrintString( Object.StringProperty( param_0_, String.Join( param_1_, "_location_name" ) ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Finding named location: " );
+		Debug.PrintString( Object.StringProperty( param_0_, String.Join( param_1_, "_location_name" ) ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	local_0 = iSim.FindByNameInSystem( Object.StringProperty( param_0_, String.Join( param_1_, "_location_name" ) ), local_4 );
+	
+	if ( local_0 != false )
+	{
+		Object.AddHandleProperty( param_0_, String.Join( param_1_, "_location_handle" ), local_0 );
+		iRangeCheck.AddTrafficException( iHabitat.Cast( local_0 ) );
+		iSim.SetSensorVisibility( iSim.Cast( local_0 ), true );
+		return local_0;
+	}
+	
+	if ( local_0 == false )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iMissionGenerator: Finding location of type" );
+			Debug.PrintString( "\n" );
+		}
+		
+		localList = List.FromSet( iHabitat.FilterOnType( iMapEntity.SystemHabitats(), iHabitat.CastIntToHabitatType( Object.IntProperty( param_0_, String.Join( param_1_, "_location_type" ) ) ) ) );
+		itemCount = List.ItemCount( localList );
+		
+		if ( itemCount > 0 )
+		{
+			local_0 = iSim.Cast( List.GetNth( localList, Math.RandomInt( 1, itemCount ) ) );
+		}
+	}
+	
+	if ( !( local_4 == iSim.ActiveWorld() ) )
+	{
+		do
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iMissionGenerator:GetcharacterLocation - in wrong system. in, wanted: " );
+				Debug.PrintString( iSim.ActiveWorld() );
+				Debug.PrintString( "," );
+				Debug.PrintString( local_4 );
+				Debug.PrintString( "\n" );
+			}
+			
+			Task.Sleep( Task.Current(), 7.50 );
+		}
+		while ( !( local_4 == iSim.ActiveWorld() ) );
+	}
+	
+	if ( local_0 == false )
+	{
+		debug Debug.PrintString( "iMissionGenerator: character location still not found, picking randomly from within system.\n" );
+		localList = List.FromSet( iMapEntity.SystemHabitats() );
+		itemCount = List.ItemCount( localList );
+		
+		debug atomic
+		{
+			Debug.PrintString( "iMissionGenerator: number of locations in system " );
+			Debug.PrintInt( itemCount );
+			Debug.PrintString( "\n" );
+		}
+		
+		if ( itemCount > 0 )
+		{
+			local_0 = iSim.Cast( List.GetNth( localList, Math.RandomInt( 1, itemCount ) ) );
+			
+			debug atomic
+			{
+				Debug.PrintString( "iMissionGenerator: character location chosen as " );
+				Debug.PrintString( iMapEntity.Name( iMapEntity.Cast( local_0 ) ) );
+				Debug.PrintString( "\n" );
+			}
+		}
+	}
+	
+	local_1 = local_0;
+	Object.AddHandleProperty( param_0_, String.Join( param_1_, "_location_handle" ), local_1 );
+	
+	if ( (0 == Object.PropertyExists( param_0_, String.Join( param_1_, "_location_name" ) )) || (Object.StringProperty( param_0_, String.Join( param_1_, "_location_name" ) ) == "") )
+	{
+		Object.AddStringProperty( param_0_, String.Join( param_1_, "_location_name" ), iMapEntity.Name( iMapEntity.Cast( local_0 ) ) );
+	}
+	
+	debug Debug.PrintString( "iMissionGenerator: Adding location to traffic exception.\n" );
+	iRangeCheck.AddTrafficException( iHabitat.Cast( local_0 ) );
+	iSim.SetSensorVisibility( iSim.Cast( local_1 ), true );
+	return local_1;
+}
+
+string local_function_8( string param_0_, int param_1_ )
+{
+	int local_0;
+	string local_1;
+	
+	atomic
+	{
+		debug Debug.PrintString( "iMissionGenerator.IncreaseStringNumber in " );
+		debug Debug.PrintString( param_0_ );
+		debug Debug.PrintString( "\n" );
+	}
+	
+	local_0 = String.ToInt( String.Right( param_0_, 1 ) );
+	local_1 = String.Join( String.TrimRight( param_0_, 1 ), String.FromInt( local_0 + param_1_ ) );
+	
+	atomic
+	{
+		debug Debug.PrintString( "iMissionGenerator.IncreaseStringNumber out " );
+		debug Debug.PrintString( local_1 );
+		debug Debug.PrintString( "\n" );
+	}
+	
+	return local_1;
+}
+
+local_function_28( hstate state_ )
+{
+	local_function_5( state_, "owner" );
+}
+
+local_function_5( hobject param_0_, string param_1_ )
+{
+	hship groupLeader = none;
+	hsim local_1;
+	hgroup group;
+	hship playerShip = iShip.FindPlayerShip();
+	int local_4;
+	int ii;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator:WaitForOrMake character recieved state " );
+		Debug.PrintHandle( param_0_ );
+		Debug.PrintString( "\n" );
+	}
+	
+	if ( Object.PropertyExists( param_0_, String.Join( param_1_, "_ship_handle" ) ) )
+	{
+		groupLeader = iShip.Cast( Object.HandleProperty( param_0_, String.Join( param_1_, "_ship_handle" ) ) );
+	}
+	
+	if ( groupLeader == false )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iMissionGenerator:WaitForOrMakecharacter - ship name is" );
+			Debug.PrintString( Object.StringProperty( param_0_, String.Join( param_1_, "_ship_name" ) ) );
+			Debug.PrintString( "\n" );
+		}
+		
+		local_1 = local_function_6( param_0_, param_1_ );
+		
+		if ( param_1_ == "owner" )
+		{
+			local_function_7( param_0_, "_goto", 1 );
+		}
+		
+		do
+		{
+			Task.Sleep( Task.Current(), 1.0 );
+		}
+		while ( Sim.DistanceBetween( playerShip, local_1 ) > 50000.0 );
+		
+		debug Debug.PrintString( "iMissionGenerator:WaitForOrMakecharacter - player has closed the range.\n" );
+		
+		if ( param_1_ == "owner" )
+		{
+			local_function_7( param_0_, "_goto", 2 );
+		}
+		
+		if ( !local_1 )
+		{
+			local_1 = playerShip;
+		}
+		
+		atomic
+		{
+			if ( 1 == Object.PropertyExists( param_0_, String.Join( param_1_, "_escort_type" ) ) )
+			{
+				debug Debug.PrintString( "iMissionGenerator:WaitForOrMakecharacter creating character with escort\n" );
+				group = iShipCreation.CreateCharacterShips( Object.IntProperty( param_0_, String.Join( param_1_, "_ship_type" ) ), Object.StringProperty( param_0_, String.Join( param_1_, "_ship_name" ) ), Object.StringProperty( param_0_, String.Join( param_1_, "_character_name" ) ), Object.StringProperty( param_0_, String.Join( param_1_, "_pilot_type" ) ), 1, Object.IntProperty( param_0_, String.Join( param_1_, "_escort_type" ) ), Object.StringProperty( param_0_, String.Join( param_1_, "_escort_ship_name" ) ), Object.StringProperty( param_0_, String.Join( param_1_, "_escort_pilot_type" ) ), Object.IntProperty( param_0_, String.Join( param_1_, "_escort_quantity" ) ), iFaction.Find( Object.StringProperty( param_0_, String.Join( param_1_, "_faction" ) ) ) );
+				
+				for ( ii = Object.IntProperty( param_0_, String.Join( param_1_, "_escort_quantity" ) ); ii >= 0; --ii )
+				{
+					groupLeader = iShip.Cast( Group.NthSim( group, ii ) );
+					Object.SetStringProperty( groupLeader, "name", local_function_8( Object.StringProperty( param_0_, String.Join( param_1_, "_ship_name" ) ), ii ) );
+				}
+			}
+			else
+			{
+				debug Debug.PrintString( "iMissionGenerator:WaitForOrMakecharacter creating character by himself.\n" );
+				group = iShipCreation.CreateCharacterShips( Object.IntProperty( param_0_, String.Join( param_1_, "_ship_type" ) ), Object.StringProperty( param_0_, String.Join( param_1_, "_ship_name" ) ), Object.StringProperty( param_0_, String.Join( param_1_, "_character_name" ) ), Object.StringProperty( param_0_, String.Join( param_1_, "_pilot_type" ) ), 1, ST_FreightLight, "", "", 0, iFaction.Find( Object.StringProperty( param_0_, String.Join( param_1_, "_faction" ) ) ) );
+				groupLeader = iShip.Cast( Group.Leader( group ) );
+				Object.SetStringProperty( groupLeader, "name", Object.StringProperty( param_0_, String.Join( param_1_, "_ship_name" ) ) );
+			}
+			
+			local_function_9( group );
+			groupLeader = iShip.Cast( Group.Leader( group ) );
+			Sim.PlaceNear( groupLeader, local_1, 25000.0 );
+			iEscort.Goose( group, 30.0, 12000.0, true );
+			
+			if ( param_1_ == "owner" )
+			{
+				local_function_10( param_0_, groupLeader );
+			}
+		}
+		
+		debug atomic
+		{
+			Debug.PrintString( "iMissionGenerator: Created " );
+			Debug.PrintInt( Group.GroupCount( group ) );
+			Debug.PrintString( " character vessels in group.\n" );
+		}
+		
+		iUtilities.GroupSetCullable( group, false );
+		Object.AddHandleProperty( param_0_, String.Join( param_1_, "_ship_handle" ), groupLeader );
+	}
+	else
+	{
+		return;
+	}
+	
+	Object.AddHandleProperty( param_0_, String.Join( param_1_, "_escort_group" ), group );
+	
+	if ( !( param_1_ == "patron" ) )
+	{
+		Task.Detach( start MonkeyAbout( iShip.Cast( Group.Leader( group ) ), iMapEntity.Cast( local_1 ) ) );
+	}
+	else
+	{
+		debug Debug.PrintString( "iMissionGenerator: Patron made, returning to delivery handler.\n" );
+		return;
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Waiting for character." );
+		Debug.PrintString( "\n" );
+	}
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 1.0 );
+	}
+	while ( Sim.DistanceBetween( playerShip, groupLeader ) > 5000.0 );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Player close enough to character - returning from wait." );
+		Debug.PrintString( "\n" );
+	}
+}
+
+local_function_21( hobject param_0_, int param_1_, string param_2_, string param_3_ )
+{
+	hisim patronShipHandle;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Sending communication" );
+		Debug.PrintString( "\n" );
+	}
+	
+	switch ( param_1_ )
+	{
+		case 4:
+			debug atomic
+			{
+				Debug.PrintString( "iMissionGenerator: Sending Email" );
+				Debug.PrintString( "\n" );
+			}
+			
+			if ( !( Object.StringProperty( param_0_, "patron_character_name" ) == "" ) )
+			{
+				iEmail.SendEmail( Object.StringProperty( param_0_, "patron_character_name" ), param_3_, param_2_, false );
+			}
+			else
+			{
+				iEmail.SendEmail( "Independent", param_3_, param_2_, false );
+			}
+			
+			return;
+		
+		case 1:
+			do
+			{
+				Task.Sleep( Task.Current(), 1.0 );
+			}
+			while ( !( Global.String( "gl_genmission_jafs" ) == "" ) );
+			
+			Global.SetString( "gl_genmission_jafs", param_2_ );
+			return;
+		
+		case 3:
+			debug atomic
+			{
+				Debug.PrintString( "iMissionGenerator: Clay shouts somat" );
+				Debug.PrintString( "\n" );
+			}
+			
+			iComms.Shout( none, "name_lay", param_2_ );
+			return;
+		
+		case 2:
+			debug atomic
+			{
+				Debug.PrintString( "iMissionGenerator: Smith sez somat" );
+				Debug.PrintString( "\n" );
+			}
+			
+			iComms.Shout( none, "name_smith", param_2_ );
+			return;
+		
+		case 5:
+			local_function_11( param_0_ );
+			
+			debug atomic
+			{
+				Debug.PrintString( "iMissionGenerator: Starting iGMTemplate tasks" );
+				Debug.PrintString( "\n" );
+			}
+			
+			patronShipHandle = iSim.Cast( Object.HandleProperty( param_0_, "patron_ship_handle" ) );
+			iConversation.OneLiner( patronShipHandle, "", param_2_ );
+			return;
+		
+		default:
+			debug atomic
+			{
+				Debug.PrintString( "iMissionGenerator: iGeneratedMission.SendBriefing - Error, invalid briefing type !" );
+				Debug.PrintString( "\n" );
+			}
+			
+			return;
+	}
+}
+
+local_function_40( hship ship_, string param_1_, string param_2_, string param_3_ )
+{
+	hmapentity mapentity;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Behaviour handler starts" );
+		Debug.PrintString( "\n" );
+	}
+	
+	if ( param_1_ == "TravelTo" )
+	{
+		if ( !( param_2_ == "None" ) )
+		{
+			mapentity = iMapEntity.FindByName( local_function_12( param_2_ ) );
+		}
+		else
+		{
+			mapentity = iMapEntity.FindByName( local_function_12( param_3_ ) );
+		}
+		
+		if ( mapentity == false )
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iMissionGenerator.BehaviourHandler: Error: Unable to create location handle from given parameters: " );
+				Debug.PrintString( param_2_ );
+				Debug.PrintString( "\n" );
+				Debug.PrintString( param_3_ );
+				Debug.PrintString( "\n" );
+				Debug.PrintString( "iMissionGenerator.BehaviourHandler: Unable to create a location handle from given parameters\n" );
+			}
+		}
+		
+		Task.Detach( start iScriptedOrders.TravelTo( ship_, mapentity ) );
+		return;
+	}
+	
+	if ( param_1_ == "TravelBetween" )
+	{
+		if ( !( param_2_ == "None" ) )
+		{
+			mapentity = iMapEntity.FindByName( local_function_12( param_2_ ) );
+		}
+		else
+		{
+			mapentity = iMapEntity.FindByName( local_function_12( param_3_ ) );
+		}
+		
+		if ( mapentity == false )
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iMissionGenerator.BehaviourHandler: Error: Unable to create location handle from given parameters: " );
+				Debug.PrintString( param_2_ );
+				Debug.PrintString( "\n" );
+				Debug.PrintString( param_3_ );
+				Debug.PrintString( "\n" );
+				Debug.PrintString( "iMissionGenerator.BehaviourHandler: Unable to create a location handle from given parameters" );
+			}
+		}
+		
+		Task.Detach( start iScriptedOrders.TravelBetween( ship_, mapentity ) );
+		return;
+	}
+	
+	if ( param_1_ == "MonkeyAbout" )
+	{
+		if ( !( param_2_ == "None" ) )
+		{
+			mapentity = iMapEntity.FindByName( local_function_12( param_2_ ) );
+		}
+		else
+		{
+			mapentity = iMapEntity.FindByName( local_function_12( param_3_ ) );
+		}
+		
+		if ( mapentity == false )
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iMissionGenerator.BehaviourHandler: Error: Unable to create location handle from given parameters: " );
+				Debug.PrintString( param_2_ );
+				Debug.PrintString( "\n" );
+				Debug.PrintString( param_3_ );
+				Debug.PrintString( "\n" );
+				Debug.PrintString( "iMissionGenerator.BehaviourHandler: Unable to create a location handle from given parameters" );
+			}
+		}
+		
+		Task.Detach( start iScriptedOrders.MonkeyAbout( ship_, mapentity ) );
+	}
+}
+
+local_function_41( hobject param_0_, hgroup group_, hmapentity mapentity_ )
+{
+	bool local_0;
+	int ii;
+	int jj;
+	int local_3;
+	int numberOfCargoTypes = Object.IntProperty( param_0_, "number_of_cargo_types" );
+	string name;
+	list localList;
+	hship ship;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Installing mission cargo on ships" );
+		Debug.PrintString( "\n" );
+	}
+	
+	if ( Object.StringProperty( param_0_, "target_locomotion" ) == "Yes" )
+	{
+		local_0 = true;
+	}
+	
+	for ( ii = 0; ii < numberOfCargoTypes; ++ii )
+	{
+		ship = iShip.Cast( Group.NthSim( group_, ii ) );
+		local_3 = Object.IntProperty( param_0_, local_function_4( "cargo_quantity", ii ) );
+		
+		for ( jj = 0; jj < local_3; ++jj )
+		{
+			debug atomic
+			{
+				Debug.PrintString( String.Join( "iMissionGenerator.setupcargo: seting up cargo pod ", String.FromInt( jj ) ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			name = iUtilities.GetCargoNameFromINI( Object.StringProperty( param_0_, local_function_4( "required_cargo_type", ii ) ) );
+			List.AddTail( localList, iShip.Create( "ini:/sims/ships/utility/cargo_pod", String.Join( "Pod of ", name ) ) );
+			Object.AddStringProperty( List.Tail( localList ), "mission_cargo", Object.StringProperty( param_0_, local_function_4( "required_cargo_type", ii ) ) );
+			
+			if ( local_0 )
+			{
+				iShip.Dock( iShip.Cast( List.Tail( localList ) ), ship );
+			}
+			else
+			{
+				Sim.PlaceNear( iShip.Cast( List.GetNth( localList, jj ) ), iMapEntity.WaypointForEntity( mapentity_ ), Math.Random( 600.0, 1000.0 ) );
+			}
+		}
+	}
+}
+
+list local_function_14( hship ship_, float param_1_ )
+{
+	list localList_0 = List.FromSet( iSim.ShipsInRadius( ship_, param_1_ ) );
+	list localList_1;
+	hobject local_2;
+	int itemCount = List.ItemCount( localList_0 );
+	int ii;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Checking for new cargo" );
+		Debug.PrintString( "\n" );
+	}
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		local_2 = List.GetNth( localList_0, ii );
+		
+		if ( Object.PropertyExists( local_2, "mission_cargo" ) && !Object.PropertyExists( local_2, "acquired" ) )
+		{
+			List.AddTail( localList_1, local_2 );
+			Object.AddIntProperty( List.Tail( localList_1 ), "acquired", 1 );
+		}
+	}
+	
+	return localList_1;
+}
+
+int local_function_15( hobject param_0_, hship ship_0_, hship ship_1_ )
+{
+	list localList;
+	hship playerShip = iShip.FindPlayerShip();
+	bool local_2 = false;
+	int ii;
+	int jj;
+	int numberOfCargoTypes = Object.IntProperty( param_0_, "number_of_cargo_types" );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Count how many bits of cargo we've got" );
+		Debug.PrintString( "\n" );
+	}
+	
+	if ( !Object.PropertyExists( ship_0_, "mission_cargo" ) )
+	{
+		return 0;
+	}
+	
+	for ( ii = 0; ii < numberOfCargoTypes; ++ii )
+	{
+		if ( Object.StringProperty( ship_0_, "mission_cargo" ) == Object.StringProperty( param_0_, local_function_4( "required_cargo_type", ii ) ) )
+		{
+			if ( (Object.IntProperty( param_0_, local_function_4( "acquired_cargo_quantity", ii ) ) + 1) > Object.IntProperty( param_0_, "cargo_quantity_required" ) )
+			{
+				iComms.Shout( none, Object.StringProperty( ship_1_, "name" ), "I've got enough of that!" );
+				return -1;
+			}
+			
+			while ( !local_2 )
+			{
+				localList = List.FromSet( Sim.Children( playerShip ) );
+				local_2 = true;
+				
+				for ( jj = 0; jj < List.ItemCount( localList ); ++jj )
+				{
+					if ( Object.PropertyExists( List.GetNth( localList, jj ), "acquired" ) )
+					{
+						iComms.Shout( none, Object.StringProperty( ship_1_, "name" ), "Just drop the pod off for me!" );
+						local_2 = false;
+						break;
+					}
+				}
+			}
+			
+			iPilotSetup.GenericCargoPod( ship_0_ );
+			iAI.GiveDockOrder( ship_0_, ship_1_ );
+			return ii;
+		}
+	}
+	
+	return -1;
+}
+
+int local_function_13( hobject param_0_ )
+{
+	int local_0;
+	int numberOfCargoTypes = Object.IntProperty( param_0_, "number_of_cargo_types" );
+	int ii;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: How much cargo is there?" );
+		Debug.PrintString( "\n" );
+	}
+	
+	for ( ii = 0; ii < numberOfCargoTypes; ++ii )
+	{
+		local_0 = ( local_0 + Object.IntProperty( param_0_, local_function_4( "acquired_cargo_quantity", ii ) ) );
+	}
+	
+	return local_0;
+}
+
+bool local_function_16( hobject param_0_ )
+{
+	int numberOfCargoTypes = Object.IntProperty( param_0_, "number_of_cargo_types" );
+	int local_1;
+	int ii;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Has the patron got all his cargo?" );
+		Debug.PrintString( "\n" );
+	}
+	
+	if ( Object.StringProperty( param_0_, "target_requirement_type" ) == "Total" )
+	{
+		if ( local_function_13( param_0_ ) >= Object.IntProperty( param_0_, "cargo_quantity_required" ) )
+		{
+			return true;
+		}
+	}
+	else for ( ii = 0; ii < numberOfCargoTypes; ++ii )
+	{
+		if ( Object.IntProperty( param_0_, local_function_4( "acquired_cargo_quantity", ii ) ) >= Object.IntProperty( param_0_, "cargo_quantity_required" ) )
+		{
+			local_1 = ( local_1 + 1 );
+		}
+	}
+	
+	if ( local_1 == numberOfCargoTypes )
+	{
+		return true;
+	}
+	
+	return false;
+}
+
+local_function_17( hgroup group_ )
+{
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Patron sods off into the wild blue yonder" );
+		Debug.PrintString( "\n" );
+	}
+	
+	Task.Detach( start iScriptedOrders.LagrangeHandler( group_, "Random" ) );
+}
+
+task local_function_42( hobject param_0_ )
+{
+	hgroup group;
+	list localList_0;
+	list localList_1;
+	list localList_2;
+	hship ship;
+	hsim local_5;
+	hship playerShip = iShip.FindPlayerShip();
+	hship shipCargoPod;
+	int ii;
+	int local_9;
+	int jj;
+	int cargoQuantityRequired = Object.IntProperty( param_0_, "cargo_quantity_required" );
+	int simCount;
+	string name_0;
+	string name_1;
+	hinifile generatedMissionIniHandle = INIFile.Cast( Object.HandleProperty( param_0_, "generated_mission_ini_handle" ) );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator.patronh: starting patron task\n" );
+		Debug.PrintString( "\n" );
+	}
+	
+	if ( Object.IntProperty( param_0_, "patron_state" ) != 2 )
+	{
+		return;
+	}
+	
+	if ( Object.PropertyExists( param_0_, "patron_ship_type" ) )
+	{
+		ship = iShip.Cast( Group.NthSim( group, 0 ) );
+		name_0 = Object.StringProperty( ship, "name" );
+		
+		for ( ii = 0; ii < Object.IntProperty( param_0_, "number_of_cargo_types" ); ++ii )
+		{
+			if ( Object.IntProperty( param_0_, local_function_4( "acquired_cargo_quantity", ii ) ) > 0 )
+			{
+				for ( jj = 0; jj < Object.IntProperty( param_0_, local_function_4( "acquired_cargo_quantity", ii ) ); ++jj )
+				{
+					name_1 = iUtilities.GetCargoNameFromINI( Object.StringProperty( param_0_, local_function_4( "required_cargo_type", ii ) ) );
+					shipCargoPod = iShip.Create( "ini:/sims/ships/utility/cargo_pod", String.Join( "Pod of ", name_1 ) );
+					Object.AddStringProperty( shipCargoPod, "mission_cargo", Object.StringProperty( param_0_, local_function_4( "required_cargo_type", ii ) ) );
+					Object.AddIntProperty( shipCargoPod, "acquired", 1 );
+					iShip.Dock( shipCargoPod, ship );
+				}
+			}
+		}
+	}
+	
+	if ( !Object.PropertyExists( param_0_, "patron_x_pos" ) )
+	{
+		Object.AddFloatProperty( param_0_, "patron_x_pos", Math.Random( 800.0, 3000.0 ) );
+		Object.AddFloatProperty( param_0_, "patron_y_pos", Math.Random( 1000.0, 2000.0 ) );
+		Object.AddFloatProperty( param_0_, "patron_z_pos", Math.Random( 400.0, 1000.0 ) );
+	}
+	
+	Sim.PlaceRelativeTo( ship, local_5, Object.FloatProperty( param_0_, "patron_x_pos" ), Object.FloatProperty( param_0_, "patron_y_pos" ), Object.FloatProperty( param_0_, "patron_z_pos" ) );
+	iFormation.Claw( group, 30.0, true );
+	
+	schedule
+	{
+		every 10.0:
+		{
+			if ( (Sim.Group( ship ) != group) && (Object.IntProperty( param_0_, "patron_destroyed" ) != 1) )
+			{
+				debug Debug.PrintString( "iMissionGenerator: Noted Patron Destroyed.... Setting flag" );
+				Object.SetIntProperty( param_0_, "patron_destroyed", 1 );
+				break;
+			}
+			
+			if ( Sim.DistanceBetween( playerShip, ship ) <= 250.0 )
+			{
+				localList_0 = local_function_14( ship, 1600.0 );
+			}
+			else
+			{
+				localList_0 = localList_1;
+			}
+			
+			if ( (Sim.DistanceBetween( playerShip, ship ) <= 250.0) && List.IsEmpty( localList_0 ) )
+			{
+			}
+			else
+			{
+				for ( ii = 0; ii < List.ItemCount( localList_0 ); ++ii )
+				{
+					shipCargoPod = iShip.Cast( List.GetNth( localList_0, ii ) );
+					local_9 = local_function_15( param_0_, shipCargoPod, ship );
+					
+					if ( local_9 != -1 )
+					{
+						do
+						{
+							Task.Sleep( Task.Current(), 7.0 );
+						}
+						while ( !iAI.IsOrderComplete( shipCargoPod ) );
+						
+						Object.SetIntProperty( param_0_, local_function_4( "acquired_cargo_quantity", local_9 ), Object.IntProperty( param_0_, local_function_4( "acquired_cargo_quantity", local_9 ) ) + 1 );
+						
+						if ( !local_function_16( param_0_ ) )
+						{
+							if ( Object.StringProperty( param_0_, "success_payment_method" ) == "Unit" )
+							{
+								iInventory.Add( Object.IntProperty( param_0_, "success_payment_type" ), Object.IntProperty( param_0_, "success_payment_quantity" ) );
+							}
+							
+							iComms.Shout( none, name_0, INIFile.String( generatedMissionIniHandle, "Success", "intrim_comm_reference", "default" ) );
+							Task.Sleep( Task.Current(), 10.0 );
+						}
+					}
+					else
+					{
+						iComms.Shout( none, name_0, "Thats not what I asked for!" );
+					}
+				}
+				
+				if ( Object.StringProperty( param_0_, "success_payment_method" ) == "Unit" )
+				{
+					iInventory.Add( Object.IntProperty( param_0_, "success_payment_type" ), Object.IntProperty( param_0_, "success_payment_quantity" ) );
+				}
+				
+				Task.Sleep( Task.Current(), 20.0 );
+				local_function_17( group );
+			}
+		}
+		
+		every 30.0:
+		{
+			if ( !iUtilities.PlayerInRange( local_5 ) )
+			{
+				break;
+			}
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator.PatronHandler: Player left the patron, ending task\n" );
+		Debug.PrintString( "\n" );
+	}
+	
+	simCount = Group.SimCount( group );
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		localList_2 = List.FromSet( Sim.Children( Group.NthSim( group, ii ) ) );
+		
+		if ( List.ItemCount( localList_2 ) != 0 )
+		{
+			iUtilities.KillListOfSims( localList_2 );
+		}
+	}
+	
+	Group.Destroy( group, true );
+}
+
+bool local_function_29( hstate state_ )
+{
+	hgroup ownerEscortGroup;
+	hship groupLeader;
+	int local_2;
+	int local_3;
+	string local_4;
+	bool local_5;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Waiting for player piracy against owners." );
+		Debug.PrintString( "\n" );
+	}
+	
+	ownerEscortGroup = Group.Cast( Object.HandleProperty( state_, "owner_escort_group" ) );
+	groupLeader = iShip.Cast( Group.Leader( ownerEscortGroup ) );
+	local_function_7( state_, "_collect", 1 );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( Object.PropertyExists( groupLeader, "has_surrendered" ) == 1 )
+			{
+				debug Debug.PrintString( "iMissionGenerator: Resolve Piracy - ship has surrendered its cargo.\n" );
+				break;
+			}
+			
+			debug Debug.PrintString( "iMissionGenerator: Resolve Piracy - regular wait for mechanical surrender.\n" );
+			
+			if ( (Object.FloatProperty( groupLeader, "hit_points" ) / Object.FloatProperty( groupLeader, "max_hit_points" )) < 0.350 )
+			{
+				debug Debug.PrintString( "iMissionGenerator: Resolve Piracy - ship is down to under a third hits.\n" );
+				break;
+			}
+		}
+	}
+	
+	debug Debug.PrintString( "iMissionGenerator.ResolvePiracy: Owner has surrendered and will now ditch cargo.\n" );
+	local_5 = local_function_18( groupLeader, state_ );
+	local_function_7( state_, "_collect", 2 );
+	iUtilities.GroupSetCullable( ownerEscortGroup, true );
+	local_5 = true;
+	return local_5;
+}
+
+bool local_function_24( hstate state_ )
+{
+	string missionName = Object.StringProperty( state_, "mission_name" );
+	int ii;
+	htrade trade;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator:TestForCompletion will be looking for mission by the name of " );
+		Debug.PrintString( missionName );
+		Debug.PrintString( " \n" );
+	}
+	
+	for ( ii = ( iTrade.NumTrades() - 1 ); ii >= 0; --ii )
+	{
+		trade = iTrade.NthTrade( ii );
+		
+		if ( !( Object.StringProperty( trade, "generated_mission" ) == "" ) )
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iMissionGenerator:TestForCompletion testing trade with name " );
+				Debug.PrintString( Object.StringProperty( trade, "generated_mission" ) );
+				Debug.PrintString( " \n" );
+			}
+			
+			if ( Object.StringProperty( trade, "generated_mission" ) == missionName )
+			{
+				debug Debug.PrintString( "iMissionGenerator:TestForCompletion found a referenced trade, so gen mission isn't closed.\n" );
+				return false;
+			}
+		}
+	}
+	
+	debug Debug.PrintString( "iMissionGenerator:TestForCompletion found bugger all indication of trades, so gen mission must be finished.\n" );
+	return true;
+}
+
+local_function_27( hstate state_ )
+{
+	int local_0;
+	int local_1;
+	int local_2;
+	int local_3;
+	int ii;
+	hfaction independent;
+	htrade trade;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Setting up trade within trade system." );
+		Debug.PrintString( "\n" );
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator:SetUpTradeDelivery - cargo_needed is " );
+		Debug.PrintInt( Object.IntProperty( state_, "cargo_reward_double_counter" ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	if ( Global.Int( "cargo_double_counter" ) != Global.Int( "cargo_reward_double_counter" ) )
+	{
+		debug
+		{
+			Debug.PrintString( "iMissionGenerator:SetUpTradeDelivery - generated mission with mismatching trades encountered: " );
+			Debug.PrintString( Object.StringProperty( state_, "mission_name" ) );
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator:SetUpTradeDelivery - faction to find is " );
+		Debug.PrintString( Object.StringProperty( state_, "patron_faction" ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	independent = iFaction.Find( Object.StringProperty( state_, "patron_faction" ) );
+	
+	if ( !independent )
+	{
+		independent = iFaction.Find( "Independent" );
+		debug Debug.PrintString( "Trying to find independent faction\n" );
+	}
+	
+	for ( ii = 0; ii < Object.IntProperty( state_, "cargo_reward_double_counter" ); ii += 2 )
+	{
+		local_0 = local_function_0( state_, "cargo_reward", ii );
+		local_1 = local_function_0( state_, "cargo_to_get", ii );
+		local_2 = local_function_0( state_, "cargo_reward_quantity", ii + 1 );
+		local_3 = local_function_0( state_, "cargo_to_get_quantity", ii + 1 );
+		
+		debug atomic
+		{
+			Debug.PrintString( "iMissionGenerator:SetUpTradeDelivery - cargo_needed is " );
+			Debug.PrintInt( local_0 );
+			Debug.PrintString( "\n" );
+		}
+		
+		debug atomic
+		{
+			Debug.PrintString( "iMissionGenerator:SetUpTradeDelivery - cargo_for is " );
+			Debug.PrintInt( local_1 );
+			Debug.PrintString( "\n" );
+		}
+		
+		debug Debug.PrintString( "Adding trade, w'hoo!\n" );
+		
+		if ( local_1 < 1000 )
+		{
+			trade = iTrade.CreateTradeForCargoType( independent, local_0, local_2, local_1, local_3, 1 );
+		}
+		else
+		{
+			trade = iTrade.CreateTradeForCargoCategory( independent, local_0, local_2, local_1 - 1000, local_3, 1 );
+		}
+		
+		iTrade.OfferTrade( trade );
+		Object.AddStringProperty( trade, "generated_mission", Object.StringProperty( state_, "mission_name" ) );
+		
+		if ( Object.BoolProperty( state_, "personal_delivery" ) == 1 )
+		{
+			debug Debug.PrintString( "iMissionGenerator.SetupTradeDelivery: adding 'personal_delivery' to trade.\n" );
+			Object.SetIntProperty( trade, "personal_delivery", 1 );
+		}
+		else debug Debug.PrintString( "iMissionGenerator.SetupTradeDelivery: not adding 'personal_delivery' to trade.\n" );
+	}
+}
+
+local_function_19( hstate state_ )
+{
+	int local_0;
+	int local_1;
+	int local_2;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Wait for jafs to be able to deliver via the trading screen." );
+		Debug.PrintString( "\n" );
+	}
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 500.0 );
+	}
+	while ( 1 );
+}
+
+local_function_30( hstate state_ )
+{
+	list localList;
+	hsim local_1;
+	hsim local_2;
+	hisim patronShipHandle;
+	hship playerShip = iShip.FindPlayerShip();
+	int itemCount;
+	
+	local_2 = none;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Resolving the delivery by player or Jafs" );
+		Debug.PrintString( "\n" );
+	}
+	
+	if ( 0 == Object.BoolProperty( state_, "personal_delivery" ) )
+	{
+		local_function_19( state_ );
+	}
+	else
+	{
+		local_function_11( state_ );
+		patronShipHandle = iSim.Cast( Object.HandleProperty( state_, "patron_ship_handle" ) );
+		
+		do
+		{
+			Task.Sleep( Task.Current(), 0.50 );
+			debug Debug.PrintString( "iMissionGenerator.ResolveDelivery waiting for player to get close to patron.\n" );
+		}
+		while ( Sim.DistanceBetween( patronShipHandle, playerShip ) > 50000.0 );
+		
+		localList = List.FromSet( Sim.Children( playerShip ) );
+		itemCount = List.ItemCount( localList );
+		
+		while ( itemCount > 0 )
+		{
+			itemCount = ( itemCount + -1 );
+			local_1 = Sim.Cast( List.GetNth( localList, itemCount ) );
+			
+			if ( iSim.IsDockedTo( iSim.Cast( playerShip ), iSim.Cast( local_1 ) ) )
+			{
+				local_2 = local_1;
+			}
+		}
+		
+		if ( (local_2 == false) || (Object.PropertyExists( local_2, "cargo" ) == 0) )
+		{
+			debug Debug.PrintString( "iMissionGenerator.ResolveDelivery has failed, the player isn't carrying cargo.\n" );
+			local_function_20();
+		}
+		
+		debug Debug.PrintString( "iMissionGenerator.ResolveDelivery player has a cargo pod, formating patron.\n" );
+		iAI.GiveFormateOrder( patronShipHandle, playerShip, 800.0, 0.0, 2000.0 );
+		
+		do
+		{
+			Task.Sleep( Task.Current(), 0.50 );
+			debug Debug.PrintString( "iMissionGenerator.ResolveDelivery waiting for player to drop off the pod." );
+		}
+		while ( iSim.IsDockedTo( iSim.Cast( playerShip ), iSim.Cast( local_2 ) ) );
+		
+		if ( patronShipHandle != false )
+		{
+			iShip.InstallAIPilot( iShip.Cast( local_2 ), 30.0, 30.0, 0.10, "", "", "", "" );
+			iAI.PurgeOrders( patronShipHandle );
+			iAI.GiveDockOrder( iShip.Cast( local_2 ), iShip.Cast( patronShipHandle ) );
+			
+			do
+			{
+				Task.Sleep( Task.Current(), 2.0 );
+				debug Debug.PrintString( "iMissionGenerator.ResolveDelivery: Waiting for patron and cargo to dock.\n" );
+			}
+			while ( 0 == iSim.IsDockedTo( iShip.Cast( local_2 ), iShip.Cast( patronShipHandle ) ) );
+		}
+		else
+		{
+			local_function_20();
+		}
+	}
+	
+	debug Debug.PrintString( "iMissionGenerator.ResolveDelivery: Cargo safely delivered to Patron.\n" );
+}
+
+local_function_43( hobject param_0_ )
+{
+	string successDebriefCommType = Object.StringProperty( param_0_, "success_debrief_comm_type" );
+	string successDebriefCommReference = Object.StringProperty( param_0_, "success_debrief_comm_reference" );
+	string successPaymentType = Object.StringProperty( param_0_, "success_payment_type" );
+	string successPaymentMethod = Object.StringProperty( param_0_, "success_payment_method" );
+	int successPaymentQuantity = Object.IntProperty( param_0_, "success_payment_quantity" );
+	int successPirateModifier = Object.IntProperty( param_0_, "success_pirate_modifier" );
+	hfaction player = iFaction.Find( "Player" );
+	hfaction patronFactionHandle = iFaction.Cast( Object.HandleProperty( param_0_, "patron_faction_handle" ) );
+	hfaction ownerFactionHandle = iFaction.Cast( Object.HandleProperty( param_0_, "owner_faction_handle" ) );
+	int successNumberOfMissions;
+	int local_10;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Apply the rewards of success." );
+		Debug.PrintString( "\n" );
+	}
+	
+	iFaction.IncrementFeeling( patronFactionHandle, player, Object.FloatProperty( param_0_, "success_patron_modifier" ) );
+	iFaction.IncrementFeeling( ownerFactionHandle, player, Object.FloatProperty( param_0_, "success_target_modifier" ) );
+	
+	if ( Object.PropertyExists( param_0_, "comm_briefing_type" ) )
+	{
+		local_function_21( param_0_, Object.IntProperty( param_0_, "comm_briefing_type" ), Object.StringProperty( param_0_, "comm_briefing_reference" ), Object.StringProperty( param_0_, "comm_briefing_subject" ) );
+	}
+	
+	if ( Object.PropertyExists( param_0_, "success_number_of_missions" ) )
+	{
+		for ( successNumberOfMissions = Object.IntProperty( param_0_, "success_number_of_missions" ); successNumberOfMissions > 0; local_10 = local_function_0( param_0_, "success_new_mission", successNumberOfMissions ) )
+		{
+			successNumberOfMissions = ( successNumberOfMissions + -1 );
+		}
+	}
+}
+
+local_function_22( hstate state_ )
+{
+	debug Debug.PrintString( "iMissionGenerator: InitialiseStateVariables." );
+	Object.AddIntProperty( state_, "cargo_double_counter", 0 );
+	Object.AddIntProperty( state_, "failure_mission_counter", 0 );
+	Object.AddIntProperty( state_, "success_faction_handle_counter", 0 );
+	Object.AddIntProperty( state_, "success_faction_modifier_counter", 0 );
+	Object.AddIntProperty( state_, "success_bool_name_counter", 0 );
+	Object.AddIntProperty( state_, "success_bool_value_counter", 0 );
+	Object.AddIntProperty( state_, "success_mission_counter", 0 );
+	Object.AddIntProperty( state_, "patron_state", 0 );
+	Object.AddIntProperty( state_, "owner_state", 0 );
+	Object.AddIntProperty( state_, "cargo_reward_double_counter", 0 );
+	Object.AddStringProperty( state_, "owner_location_name", "" );
+	Object.AddHandleProperty( state_, "owner_location_handle", none );
+	Object.AddIntProperty( state_, "cargo_dropped_index", 0 );
+	Object.AddStringProperty( state_, "patron_ship_type", "" );
+	Object.AddStringProperty( state_, "patron_ship_function", "" );
+	Object.AddStringProperty( state_, "patron_ship_name", "default" );
+	Object.AddStringProperty( state_, "patron_character_name", "default" );
+	Object.AddStringProperty( state_, "patron_faction", "Independent" );
+	Object.AddStringProperty( state_, "owner_ship_type", "" );
+	Object.AddStringProperty( state_, "owner_ship_function", "" );
+	Object.AddStringProperty( state_, "owner_character_name", "default" );
+	Object.AddStringProperty( state_, "owner_faction", "Independent" );
+}
+
+htask NewMission( string mission_name_ )
+{
+	htask local_0;
+	hstate taskState;
+	
+	debug Debug.PrintString( "start of newmission htask.\n" );
+	
+	atomic
+	{
+		local_0 = start NewMissionTask();
+		taskState = State.Find( local_0 );
+		
+		if ( !taskState )
+		{
+			State.Create( local_0, 0 );
+			taskState = State.Find( local_0 );
+			local_function_22( taskState );
+		}
+		
+		Object.AddStringProperty( taskState, "mission_name", mission_name_ );
+		
+		debug
+		{
+			Debug.PrintString( "state of new function is " );
+			Debug.PrintHandle( taskState );
+			Debug.PrintString( "\n" );
+		}
+	}
+	
+	Task.Detach( local_0 );
+	return local_0;
+}
+
+task NewMissionTask()
+{
+	int local_0;
+	int local_1;
+	int local_2;
+	int local_3;
+	int local_4;
+	int local_5;
+	int local_6;
+	int commBriefingType;
+	int local_8;
+	int local_9;
+	int countout;
+	hstate taskState;
+	htask currentTask;
+	string local_13;
+	
+	currentTask = Task.Current();
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator:NewMissionTask task is " );
+		Debug.PrintHandle( currentTask );
+		Debug.PrintString( "\n" );
+	}
+	
+	taskState = State.Find( currentTask );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator:NewMissionTask state is " );
+		Debug.PrintHandle( taskState );
+		Debug.PrintString( "\n" );
+	}
+	
+	if ( 1 == Object.PropertyExists( taskState, "patron_location_system" ) )
+	{
+		countout = Object.IntProperty( taskState, "countout" );
+		
+		debug atomic
+		{
+			Debug.PrintString( "iMissionGenerator:NewMissionTask countout value is " );
+			Debug.PrintInt( countout );
+			Debug.PrintString( " \n" );
+		}
+		
+		if ( countout > 4 )
+		{
+			atomic
+			{
+				Global.SetInt( "gl_missgen_number_currently_active", Global.Int( "gl_missgen_number_currently_active" ) - 1 );
+			}
+			
+			iObjectives.SetState( String.Join( Object.StringProperty( taskState, "objective_stub" ), "_objectives_goto" ), OS_Failed );
+			iObjectives.SetState( String.Join( Object.StringProperty( taskState, "objective_stub" ), "_objectives_collect" ), OS_Failed );
+			iObjectives.SetState( String.Join( Object.StringProperty( taskState, "objective_stub" ), "_objectives_deliver" ), OS_Failed );
+			local_function_23( taskState );
+			State.Destroy( Task.Current() );
+			return;
+		}
+		
+		Object.SetIntProperty( taskState, "countout", countout + 1 );
+	}
+	else
+	{
+		Object.AddIntProperty( taskState, "countout", 0 );
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: New mission task - now started but dormant" );
+		Debug.PrintString( "\n" );
+	}
+	
+	local_9 = State.Progress( taskState );
+	
+	if ( local_9 > 1 )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iMissionGenerator.NewMissionTask mission_state is apparently " );
+			Debug.PrintInt( local_9 );
+			Debug.PrintString( " \n" );
+		}
+		
+		debug atomic
+		{
+			Debug.PrintString( "iMissionGenerator.NewMissionTask MS_WaitToRead is " );
+			Debug.PrintInt( 4 );
+			Debug.PrintString( " \n" );
+		}
+		
+		if ( local_9 > 5 )
+		{
+			if ( local_function_24( taskState ) )
+			{
+				local_function_25( taskState );
+				
+				atomic
+				{
+					Global.SetInt( "gl_missgen_number_currently_active", Global.Int( "gl_missgen_number_currently_active" ) - 1 );
+				}
+				
+				State.SetProgress( taskState, 3 );
+			}
+		}
+		
+		local_function_26( taskState );
+	}
+	
+	do
+	{
+		switch ( State.Progress( taskState ) )
+		{
+			case 0:
+				debug Debug.PrintString( "iMissionGenerator: progress MS_Dormant\n" );
+				
+				do
+				{
+					Task.Sleep( Task.Current(), 5.0 );
+					
+					debug atomic
+					{
+						Debug.PrintString( "iMissionGenerator: GMission checking state" );
+						Debug.PrintString( "\n" );
+					}
+					
+					debug atomic
+					{
+						Debug.PrintString( "checked state is " );
+						Debug.PrintHandle( taskState );
+						Debug.PrintString( "\n" );
+					}
+				}
+				while ( State.Progress( taskState ) == 0 );
+				
+				debug atomic
+				{
+					Debug.PrintString( "iMissionGenerator: GMission state change - going around" );
+					Debug.PrintString( "\n" );
+				}
+				
+				break;
+			
+			case 1:
+				local_function_27( taskState );
+				debug Debug.PrintString( "iMissionGenerator: progress MS_Waiting\n" );
+				
+				debug atomic
+				{
+					Debug.PrintString( "iMissionGenerator: GMission sending briefing" );
+					Debug.PrintString( "\n" );
+				}
+				
+				if ( Object.PropertyExists( taskState, "comm_briefing_type" ) )
+				{
+					commBriefingType = Object.IntProperty( taskState, "comm_briefing_type" );
+					
+					debug atomic
+					{
+						Debug.PrintString( "comm_type: " );
+						Debug.PrintInt( commBriefingType );
+						Debug.PrintString( "\n" );
+					}
+					
+					if ( commBriefingType == 5 )
+					{
+					}
+					
+					local_function_21( taskState, commBriefingType, Object.StringProperty( taskState, "comm_briefing_reference" ), Object.StringProperty( taskState, "comm_briefing_subject" ) );
+				}
+				
+				if ( commBriefingType != 4 )
+				{
+					State.SetProgress( taskState, 5 );
+				}
+				else
+				{
+					State.SetProgress( taskState, 4 );
+				}
+				
+				if ( commBriefingType == 1 )
+				{
+					debug Debug.PrintString( "iMissionGenerator:NewMissionTask - waiting for player to return to base and speak to Jafs.\n" );
+					local_function_20();
+				}
+				
+				break;
+			
+			case 4:
+				debug Debug.PrintString( "iMissionGenerator: progress MS_WaitToRead\n" );
+				
+				do
+				{
+					Task.Sleep( Task.Current(), 5.0 );
+				}
+				while ( 0 == iEmail.Read( iEmail.Find( Object.StringProperty( taskState, "comm_briefing_reference" ) ) ) );
+				
+				State.SetProgress( taskState, 5 );
+				Object.SetIntProperty( taskState, "countout", 0 );
+				break;
+			
+			case 5:
+				local_function_7( taskState, "_goto", 1 );
+				local_function_7( taskState, "_collect", 1 );
+				local_function_7( taskState, "_deliver", 1 );
+				debug Debug.PrintString( "iMissionGenerator: progress MS_Piracy\n" );
+				
+				debug atomic
+				{
+					Debug.PrintString( "iMissionGenerator: GMission in piracy mode" );
+					Debug.PrintString( "\n" );
+				}
+				
+				local_function_28( taskState );
+				
+				if ( local_function_29( taskState ) )
+				{
+					State.SetProgress( taskState, 7 );
+					Object.SetIntProperty( taskState, "countout", 0 );
+				}
+				else
+				{
+					Task.Sleep( Task.Current(), 25.0 );
+					local_function_20();
+				}
+				
+				State.SetProgress( taskState, 7 );
+				break;
+			
+			case 7:
+				State.SetProgress( taskState, 6 );
+				break;
+			
+			case 6:
+				debug Debug.PrintString( "iMissionGenerator: progress MS_Delivery\n" );
+				
+				debug atomic
+				{
+					Debug.PrintString( "iMissionGenerator: Mission waiting for player to make delivery" );
+					Debug.PrintString( "\n" );
+				}
+				
+				local_function_30( taskState );
+				Object.SetIntProperty( taskState, "countout", 0 );
+				State.SetProgress( taskState, 9 );
+				break;
+			
+			case 9:
+				debug Debug.PrintString( "iMissionGenerator: progress MS_Complete\n" );
+				
+				debug atomic
+				{
+					Debug.PrintString( "iMissionGenerator: Mission is done and dusted" );
+					Debug.PrintString( "\n" );
+				}
+				
+				State.SetProgress( taskState, 3 );
+				local_function_25( taskState );
+				Task.Sleep( Task.Current(), 10.0 );
+				break;
+			
+			default:
+				debug atomic
+				{
+					Debug.PrintString( "iMissionGenerator: Unrecognised state, y' bastard" );
+					Debug.PrintString( "\n" );
+				}
+		}
+	}
+	while ( State.Progress( taskState ) != 3 );
+	
+	debug Debug.PrintString( "iMissionGenerator:NewMissionTask removing task's state. \n" );
+	iObjectives.SetState( String.Join( Object.StringProperty( taskState, "objective_stub" ), "_objectives_goto" ), OS_Succeeded );
+	iObjectives.SetState( String.Join( Object.StringProperty( taskState, "objective_stub" ), "_objectives_collect" ), OS_Succeeded );
+	iObjectives.SetState( String.Join( Object.StringProperty( taskState, "objective_stub" ), "_objectives_deliver" ), OS_Succeeded );
+	
+	atomic
+	{
+		Global.SetInt( "gl_missgen_number_currently_active", Global.Int( "gl_missgen_number_currently_active" ) - 1 );
+	}
+	
+	State.Destroy( Task.Current() );
+}
+
+string local_function_4( string param_0_, int param_1_ )
+{
+	string local_0;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: returning mission property." );
+		Debug.PrintString( "\n" );
+	}
+	
+	local_0 = String.Join( local_0, param_0_ );
+	local_0 = String.Join( local_0, "_" );
+	local_0 = String.Join( local_0, String.FromInt( param_1_ ) );
+	return local_0;
+}
+
+int local_function_0( hobject param_0_, string param_1_, int param_2_ )
+{
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Extracting generated mission integer" );
+		Debug.PrintString( "\n" );
+	}
+	
+	return Object.IntProperty( param_0_, String.Join( param_1_, String.FromInt( param_2_ ) ) );
+}
+
+float local_function_35( hstate state_, string param_1_, int param_2_ )
+{
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Extracting generated mission float" );
+		Debug.PrintString( "\n" );
+	}
+	
+	return Object.FloatProperty( state_, String.Join( param_1_, String.FromInt( param_2_ ) ) );
+}
+
+string local_function_36( hstate state_, string param_1_, int param_2_ )
+{
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Extracting generated mission string" );
+		Debug.PrintString( "\n" );
+	}
+	
+	return Object.StringProperty( state_, String.Join( param_1_, String.FromInt( param_2_ ) ) );
+}
+
+hobject local_function_34( hstate state_, string param_1_, int param_2_ )
+{
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Extracting generated mission handle" );
+		Debug.PrintString( "\n" );
+	}
+	
+	return Object.HandleProperty( state_, String.Join( param_1_, String.FromInt( param_2_ ) ) );
+}
+
+local_function_2( hstate state_, string param_1_, string param_2_, int param_3_ )
+{
+	int local_0;
+	string local_1;
+	
+	debug
+	{
+		if ( 0 == Object.PropertyExists( state_, param_2_ ) )
+		{
+			Debug.Error( String.Join( "iMissionGenerator: missing counter variable ", param_2_ ) );
+			Object.AddIntProperty( state_, param_2_, 0 );
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Setting GMission int" );
+		Debug.PrintString( "\n" );
+	}
+	
+	local_0 = Object.IntProperty( state_, param_2_ );
+	local_1 = String.Join( param_1_, String.FromInt( local_0 ) );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Setting " );
+		Debug.PrintString( local_1 );
+		Debug.PrintString( "\n" );
+	}
+	
+	Object.AddIntProperty( state_, local_1, param_3_ );
+	Object.SetIntProperty( state_, param_2_, local_0 + 1 );
+}
+
+local_function_32( hstate state_, string param_1_, string param_2_, float param_3_ )
+{
+	int local_0;
+	string local_1;
+	
+	debug
+	{
+		if ( 0 == Object.PropertyExists( state_, param_2_ ) )
+		{
+			Debug.Error( String.Join( "iMissionGenerator missing counter variable ", param_2_ ) );
+			Object.AddFloatProperty( state_, param_2_, 0.0 );
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Setting GMission Float" );
+		Debug.PrintString( "\n" );
+	}
+	
+	local_0 = ( Object.IntProperty( state_, param_2_ ) + 1 );
+	local_1 = String.Join( param_1_, String.FromInt( local_0 ) );
+	Object.SetFloatProperty( state_, local_1, param_3_ );
+}
+
+local_function_33( hstate state_, string param_1_, string param_2_, string param_3_ )
+{
+	int local_0;
+	string local_1;
+	
+	debug
+	{
+		if ( 0 == Object.PropertyExists( state_, param_2_ ) )
+		{
+			Debug.Error( String.Join( "iMissionGenerator missing counter variable ", param_2_ ) );
+			Object.AddStringProperty( state_, param_2_, "" );
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Setting GMission String" );
+		Debug.PrintString( "\n" );
+	}
+	
+	local_0 = ( Object.IntProperty( state_, param_2_ ) + 1 );
+	local_1 = String.Join( param_1_, String.FromInt( local_0 ) );
+	Object.SetStringProperty( state_, local_1, param_3_ );
+}
+
+local_function_31( hstate state_, string param_1_, string param_2_, hfaction faction_ )
+{
+	int local_0;
+	string local_1;
+	
+	debug
+	{
+		if ( 0 == Object.PropertyExists( state_, param_2_ ) )
+		{
+			Debug.Error( String.Join( "iMissionGenerator missing counter variable ", param_2_ ) );
+			Object.AddHandleProperty( state_, param_2_, none );
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Setting GMission Handle" );
+		Debug.PrintString( "\n" );
+	}
+	
+	local_0 = ( Object.IntProperty( state_, param_2_ ) + 1 );
+	local_1 = String.Join( param_1_, String.FromInt( local_0 ) );
+	Object.SetHandleProperty( state_, local_1, faction_ );
+}
+
+local_function_44( hobject param_0_ )
+{
+	hinifile generatedMissionIniHandle = INIFile.Cast( Object.HandleProperty( param_0_, "generated_mission_ini_handle" ) );
+	int local_1 = iUtilities.FindNumberOfINIEntries( generatedMissionIniHandle, "Target", "required_cargo" );
+	int ii;
+	int local_3;
+	string local_4;
+	string local_5;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Add cargo properties - old function" );
+		Debug.PrintString( "\n" );
+	}
+	
+	for ( ii = 0; ii < local_1; ++ii )
+	{
+		local_5 = INIFile.NumberedString( generatedMissionIniHandle, "Target", "required_cargo", ii, "Invalid!" );
+		Object.AddStringProperty( param_0_, local_function_4( "required_cargo_type", ii ), local_5 );
+		Object.AddIntProperty( param_0_, local_function_4( "acquired_cargo_quantity", ii ), 0 );
+		local_3 = INIFile.NumberedInt( generatedMissionIniHandle, "Target", "cargo_quantity", ii, -666 );
+		Object.AddIntProperty( param_0_, local_function_4( "cargo_quantity", ii ), INIFile.NumberedInt( generatedMissionIniHandle, "Target", "cargo_quantity", ii, -666 ) );
+		
+		if ( Object.IntProperty( param_0_, local_function_4( "cargo_quantity", ii ) ) == -666 )
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iMissionGenerator: Error - unable to read in cargo quantity" );
+				Debug.PrintString( "\n" );
+			}
+		}
+	}
+	
+	Object.AddIntProperty( param_0_, "cargo_quantity_required", INIFile.Int( generatedMissionIniHandle, "Target", "required_quantity", -666 ) );
+	Object.AddIntProperty( param_0_, "number_of_cargo_types", local_1 );
+}
+
+local_function_45( hobject param_0_ )
+{
+	hinifile generatedMissionIniHandle = INIFile.Cast( Object.HandleProperty( param_0_, "generated_mission_ini_handle" ) );
+	int local_1 = iUtilities.FindNumberOfINIEntries( generatedMissionIniHandle, "Failure", "clause" );
+	int ii;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Add failure properties from ini - old function" );
+		Debug.PrintString( "\n" );
+	}
+	
+	for ( ii = 0; ii < local_1; ++ii )
+	{
+		if ( !( INIFile.NumberedString( generatedMissionIniHandle, "Failure", "clause", ii, "default" ) == "None" ) )
+		{
+			Object.AddStringProperty( param_0_, local_function_4( "failure_clause", ii ), INIFile.NumberedString( generatedMissionIniHandle, "Failure", "clause", ii, "default" ) );
+			Object.AddIntProperty( param_0_, local_function_4( "failure_clause_value", ii ), INIFile.NumberedInt( generatedMissionIniHandle, "Failure", "clause_value", ii, -666 ) );
+			Object.AddStringProperty( param_0_, local_function_4( "failure_clause_comm_type", ii ), INIFile.NumberedString( generatedMissionIniHandle, "Failure", "comm_type", ii, "default" ) );
+			Object.AddStringProperty( param_0_, local_function_4( "failure_clause_reference", ii ), INIFile.NumberedString( generatedMissionIniHandle, "Failure", "reference", ii, "default" ) );
+			Object.AddStringProperty( param_0_, local_function_4( "failure_clause_knockon", ii ), INIFile.NumberedString( generatedMissionIniHandle, "Failure", "reference", ii, "default" ) );
+		}
+	}
+	
+	Object.AddIntProperty( param_0_, "number_of_failure_clauses", local_1 );
+}
+
+Activate( htask mission_task_ )
+{
+	hstate taskState;
+	
+	debug atomic
+	{
+		Debug.PrintString( "\nMission task passed:" );
+		Debug.PrintHandle( mission_task_ );
+		Debug.PrintString( "\n" );
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Mission activator called" );
+		Debug.PrintString( "\n" );
+	}
+	
+	taskState = State.Find( mission_task_ );
+	
+	debug atomic
+	{
+		Debug.PrintString( "Mission state aquired:" );
+		Debug.PrintHandle( taskState );
+		Debug.PrintString( "\n" );
+	}
+	
+	if ( State.Progress( taskState ) == 0 )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iMissionGenerator: found mission state, advancing." );
+			Debug.PrintString( "\n" );
+		}
+		
+		State.SetProgress( taskState, 1 );
+		
+		debug atomic
+		{
+			Debug.PrintString( "advanced state is " );
+			Debug.PrintHandle( taskState );
+			Debug.PrintString( "\n" );
+		}
+	}
+}
+
+SuccessFactionModifier( htask mission_task_, hfaction faction_handle_, float modifier_ )
+{
+	hstate taskState;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Adding faction success modifier to GMission" );
+		Debug.PrintString( "\n" );
+	}
+	
+	taskState = State.Find( mission_task_ );
+	local_function_31( taskState, "success_faction_handle", "success_faction_handle_counter", faction_handle_ );
+	local_function_32( taskState, "success_faction_modifier", "success_faction_modifier_counter", modifier_ );
+}
+
+SuccessBool( htask mission_task_, string bool_name_, bool value_ )
+{
+	hstate taskState = State.Find( mission_task_ );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Adding success bool to GMission" );
+		Debug.PrintString( "\n" );
+	}
+	
+	local_function_33( taskState, "success_bool_name", "success_bool_name_counter", bool_name_ );
+	local_function_2( taskState, "success_bool_value", "success_bool_value_counter", value_ );
+}
+
+local_function_46( htask param_0_, int param_1_, int param_2_ )
+{
+	hstate taskState = State.Find( param_0_ );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Adding cargo reward to GMission" );
+		Debug.PrintString( "\n" );
+	}
+	
+	local_function_2( taskState, "success_cargo_type", "success_cargo_type_counter", param_1_ );
+	local_function_2( taskState, "success_cargo_quantity", "success_cargo_quantity_counter", param_2_ );
+}
+
+SuccessAddMission( htask mission_task_, int mission_enum_ )
+{
+	hstate taskState = State.Find( mission_task_ );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Adding available mission to GMission" );
+		Debug.PrintString( "\n" );
+	}
+	
+	local_function_2( taskState, "success_mission_value", "success_mission_counter", mission_enum_ );
+}
+
+local_function_47( hstate state_ )
+{
+	int commConclustionType;
+	int ii;
+	string commConclusionReference;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Do stuff upon mission failure" );
+		Debug.PrintString( "\n" );
+	}
+	
+	if ( Object.PropertyExists( state_, "failure_preclusion_counter" ) )
+	{
+		for ( ii = Object.IntProperty( state_, "failure_preclusion_counter" ); ii > 0; --ii )
+		{
+			commConclustionType = local_function_0( state_, "failure_preclusion_enum", ii );
+		}
+	}
+	
+	if ( Object.PropertyExists( state_, "comms_conclusion" ) )
+	{
+		commConclusionReference = Object.StringProperty( state_, "comm_conclusion_reference" );
+		commConclustionType = Object.IntProperty( state_, "comm_conclustion_type" );
+	}
+	
+	State.SetProgress( state_, 3 );
+}
+
+local_function_25( hstate state_ )
+{
+	int ii;
+	hfaction faction;
+	float local_2;
+	eCargoType cargoType;
+	int commConclusionType;
+	string commConclusionReference;
+	bool local_6;
+	string missionName;
+	int jj;
+	htrade trade;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Generated mission complete - set everything accordingly" );
+		Debug.PrintString( "\n" );
+	}
+	
+	if ( Object.PropertyExists( state_, "success_faction_handle_counter" ) )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iMissionGenerator: Modifiying one or more success parameters" );
+			Debug.PrintString( "\n" );
+		}
+		
+		for ( ii = Object.IntProperty( state_, "success_faction_handle_counter" ); ii > 0; --ii )
+		{
+			faction = iFaction.Cast( local_function_34( state_, "success_faction_handle", ii ) );
+			local_2 = local_function_35( state_, "success_faction_modifier", ii );
+		}
+	}
+	
+	if ( Object.PropertyExists( state_, "success_bool_name_counter" ) )
+	{
+		for ( ii = Object.IntProperty( state_, "success_bool_name_counter" ); ii > 0; --ii )
+		{
+			commConclusionReference = local_function_36( state_, "success_bool_name", ii );
+			local_6 = local_function_0( state_, "success_bool_value", ii );
+			
+			debug
+			{
+				if ( !Global.Exists( commConclusionReference ) )
+				{
+					debug atomic
+					{
+						Debug.PrintString( "iMissionGenerator: OnSuccess took an invalid variable name from the mission generator setup." );
+						Debug.PrintString( "\n" );
+					}
+				}
+			}
+			
+			Global.SetBool( commConclusionReference, local_6 );
+		}
+	}
+	
+	if ( Object.BoolProperty( state_, "personal_delivery" ) == 1 )
+	{
+		debug Debug.PrintString( "iMissionGenerator.OnSuccess: adding cargo to players inventory.\n" );
+		
+		if ( Object.PropertyExists( state_, "cargo_reward_double_counter" ) )
+		{
+			ii = ( Object.IntProperty( state_, "cargo_reward_double_counter" ) / 2 );
+			
+			debug atomic
+			{
+				Debug.PrintString( "iMissionGenerator.OnSuccess:  " );
+				Debug.PrintInt( ii );
+				Debug.PrintString( "\n" );
+			}
+			
+			while ( ii > 0 )
+			{
+				commConclusionType = local_function_0( state_, "cargo_reward_quantity", (ii * 2) - 1 );
+				cargoType = local_function_0( state_, "cargo_reward", (ii * 2) - 2 );
+				iInventory.Add( cargoType, commConclusionType );
+				ii = ( ii - 2 );
+			}
+		}
+		else debug Debug.PrintString( "iMissionGenerator.OnSuccess: can't find cargo reqard counter.\n" );
+	}
+	else debug Debug.PrintString( "iMissionGenerator.OnSuccess: players already got the trade completed.\n" );
+	
+	if ( Object.PropertyExists( state_, "comm_conclusion_type" ) )
+	{
+		debug Debug.PrintString( "iMissionGenerator: Sending concluding message" );
+		commConclusionReference = Object.StringProperty( state_, "comm_conclusion_reference" );
+		commConclusionType = Object.IntProperty( state_, "comm_conclusion_type" );
+		local_function_21( state_, commConclusionType, Object.StringProperty( state_, "comm_conclusion_reference" ), Object.StringProperty( state_, "comm_conclusion_subject" ) );
+	}
+	else debug Debug.PrintString( "iMissionGenerator: No concluding message to send. " );
+	
+	missionName = Object.StringProperty( state_, "mission_name" );
+	
+	for ( jj = ( iTrade.NumTrades() - 1 ); jj >= 0; --jj )
+	{
+		trade = iTrade.NthTrade( jj );
+		
+		if ( !( Object.StringProperty( trade, "generated_mission" ) == "" ) )
+		{
+			if ( Object.StringProperty( trade, "generated_mission" ) == missionName )
+			{
+				debug Debug.PrintString( "iMissionGenerator:TestForCompletion found a referenced trade, removing as complete.\n" );
+				iTrade.RemoveTrade( trade );
+			}
+		}
+	}
+	
+	local_function_7( state_, "_deliver", 2 );
+	Global.SetInt( "gl_missgen_number_currently_active", Global.Int( "gl_missgen_number_currently_active" ) - 1 );
+}
+
+local_function_23( hstate state_ )
+{
+	string missionName = Object.StringProperty( state_, "mission_name" );
+	htrade trade;
+	int ii;
+	
+	for ( ii = ( iTrade.NumTrades() - 1 ); ii >= 0; --ii )
+	{
+		trade = iTrade.NthTrade( ii );
+		
+		if ( !( Object.StringProperty( trade, "generated_mission" ) == "" ) )
+		{
+			if ( Object.StringProperty( trade, "generated_mission" ) == missionName )
+			{
+				debug Debug.PrintString( "iMissionGenerator:TestForCompletion found a referenced trade, removing as failed.\n" );
+				iTrade.RemoveTrade( trade );
+			}
+		}
+	}
+}
+
+local_function_48()
+{
+	hstate state;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator: Tidying up the generated mission before shutting it down." );
+		Debug.PrintString( "\n" );
+	}
+	
+	State.SetProgress( state, 3 );
+}
+
+local_function_9( hgroup group_0_ )
+{
+	int groupCount = Group.GroupCount( group_0_ );
+	int ii;
+	int simCount;
+	int jj;
+	hgroup group_1;
+	hsim groupIter;
+	
+	for ( ii = ( groupCount - 1 ); ii >= 0; --ii )
+	{
+		group_1 = Group.NthGroup( group_0_, ii );
+		simCount = Group.SimCount( group_0_ );
+		
+		for ( jj = ( Group.SimCount( group_1 ) - 1 ); jj >= 0; --jj )
+		{
+			groupIter = Group.NthSim( group_1, jj );
+			Group.AddSim( group_0_, groupIter );
+			Group.RemoveNthSim( group_1, jj );
+		}
+		
+		Group.RemoveNthGroup( group_0_, ii );
+		Group.Destroy( group_1, false );
+	}
+}
+
+task BaseJafsChecker()
+{
+	string local_0 = Global.String( "gl_genmission_jafs" );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator.BaseJafsChecker - message key is '" );
+		Debug.PrintString( local_0 );
+		Debug.PrintString( "'\n" );
+	}
+	
+	if ( !( local_0 == "" ) )
+	{
+		iConversation.OneLiner( none, "name_jafs", local_0 );
+		Global.SetString( "gl_genmission_jafs", "" );
+	}
+}
+
+task BaseMain()
+{
+	Task.Detach( start BaseJafsChecker() );
+}
+
+task MonkeyAbout( hship ship_, hmapentity mapentity_0_ )
+{
+	set localSet_0 = Global.Set( "g_filtered_system_habitats" );
+	set localSet_1 = Sim.Children( ship_ );
+	hsim simWaypoint;
+	hmapentity mapentity_1 = mapentity_0_;
+	float local_4 = 800.0;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iMissionGenerator.MonkeyAbout: vessel orders passed to \n" );
+		Debug.PrintString( Object.StringProperty( ship_, "name" ) );
+		Debug.PrintString( " monkeying about location " );
+		Debug.PrintString( iMapEntity.Name( mapentity_0_ ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "monkey destination" );
+	Sim.PlaceNear( simWaypoint, mapentity_1, Math.Random( local_4 / 2.0, local_4 ) + 2500.0 );
+	iAI.GiveApproachOrder( ship_, simWaypoint );
+	
+	schedule
+	{
+		every 30.0:
+		{
+			if ( !Sim.Cast( ship_ ) )
+			{
+				debug Debug.PrintString( "iMissionGenerator.monkeyabout: monkier nolonger Exists, ending task\n" );
+				break;
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iMissionGenerator.monkeyabout: Checking monkier " );
+				Debug.PrintString( Object.StringProperty( ship_, "name" ) );
+				Debug.PrintString( " for its order status\n" );
+			}
+			
+			if ( iAI.IsOrderComplete( ship_ ) || (Sim.DistanceBetween( ship_, simWaypoint ) < 1000.0) )
+			{
+				Sim.Destroy( simWaypoint );
+				simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "monkey destination" );
+				Sim.PlaceNear( simWaypoint, mapentity_1, Math.Random( local_4 / 2.0, local_4 ) + 2500.0 );
+				iSim.SetSensorVisibility( iSim.Cast( simWaypoint ), false );
+				iAI.GiveApproachOrder( ship_, simWaypoint );
+				local_4 = ( Math.Random( 1000.0, 10000.0 ) * Math.Random( 2.0, 10.0 ) );
+			}
+		}
+		
+		every 120.0:
+		{
+			if ( !iUtilities.PlayerInRange( ship_ ) )
+			{
+				break;
+			}
+		}
+	}
+}
+
+local_function_10( hobject param_0_, hship ship_ )
+{
+	int cargoDoubleCounter;
+	int local_1;
+	int ii;
+	int local_3;
+	hship shipCargoPod;
+	string local_5;
+	
+	debug Debug.PrintString( "iMissionGenerator.StickOnCargo: trying to add physical cargo pods\n" );
+	
+	if ( iDockport.Count( ship_, DT_CargoFreightOnly, DS_Free ) < 4 )
+	{
+		return;
+	}
+	else
+	{
+		Object.AddIntProperty( param_0_, "proper_cargo", 1 );
+	}
+	
+	if ( 1 == Object.PropertyExists( param_0_, "cargo_double_counter" ) )
+	{
+		cargoDoubleCounter = Object.IntProperty( param_0_, "cargo_double_counter" );
+		cargoDoubleCounter = ( cargoDoubleCounter / 2 );
+		
+		for ( ii = 0; ii < cargoDoubleCounter; ++ii )
+		{
+			local_1 = local_function_0( param_0_, "cargo_to_get", ii * 2 );
+			local_3 = local_function_0( param_0_, "cargo_to_get_quantity", (ii * 2) + 1 );
+			
+			if ( local_1 > 1000 )
+			{
+				local_1 = ( local_1 - 1000 );
+				local_1 = iInventory.CargoTypeFromCategoryIndex( local_1 );
+			}
+			
+			do
+			{
+				atomic
+				{
+					shipCargoPod = iShip.Create( "ini:/sims/ships/utility/cargo_pod", iCargo.Name( iCargo.Find( local_1 ) ) );
+					Object.AddIntProperty( shipCargoPod, "cargo", local_1 );
+					iShip.Dock( shipCargoPod, ship_ );
+					Sim.SetCullable( shipCargoPod, false );
+				}
+				
+				local_3 = ( local_3 + -1 );
+				debug Debug.PrintString( "iMissionGenerator.StickOnCargo: adding actual cargo pod.\n" );
+			}
+			while ( local_3 > 0 );
+		}
+	}
+}
+

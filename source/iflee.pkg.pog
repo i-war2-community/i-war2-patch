@@ -1,0 +1,260 @@
+package iFlee;
+
+uses Debug,
+     List,
+     Set,
+     String,
+     Global,
+     Sim,
+     Group,
+     INIFile,
+     Math,
+     Object,
+     Task,
+     iFaction,
+     iSim,
+     iShip,
+     Subsim,
+     iDockport,
+     iLagrangePoint,
+     iAI,
+     iComms,
+     iFormation,
+     MapEnumerations,
+     iMapEntity,
+     iBody,
+     iHabitat,
+     iUtilities,
+     CargoTypes,
+     iCargoScript,
+     iCargo,
+     iPilotSetup,
+     iShipCreation;
+
+provides GangsterRunForHelp,
+         CivilianRunForHelp;
+
+prototype hinifile local_function_0();
+prototype task GangsterRunForHelp( hship requestor_ship_, hship aggressor_ship_ );
+prototype task CivilianRunForHelp( hship requestor_ship_, hship aggressor_ship_ );
+
+hinifile local_function_0()
+{
+	return INIFile.Cast( Global.Handle( "g_stock_utterance_ini" ) );
+}
+
+task GangsterRunForHelp( hship requestor_ship_, hship aggressor_ship_ )
+{
+	int random;
+	int local_1;
+	set localSet_0 = iMapEntity.SystemHabitats();
+	set localSet_1;
+	IeAllegiance ieAllegiance = A_MAASCorporation;
+	hinifile gShippingIni = INIFile.Cast( Global.Handle( "g_shipping_ini" ) );
+	hinifile inifile;
+	hgroup group = iShipCreation.GetTraffic( ST_CombatAll, ieAllegiance, Math.RandomInt( 1, 5 ) );
+	hship ship_2 = iShip.Cast( Group.NthSim( group, 0 ) );
+	hship playerShip;
+	string local_10;
+	
+	if ( Object.PropertyExists( requestor_ship_, "fleeing" ) )
+	{
+		Group.Destroy( group, true );
+		return;
+	}
+	
+	Object.AddIntProperty( requestor_ship_, "fleeing", 1 );
+	
+	if ( Object.IDModulus( requestor_ship_, 2 ) == 1 )
+	{
+		local_10 = "_male_1";
+	}
+	else
+	{
+		local_10 = "_female_1";
+	}
+	
+	debug Debug.PrintString( "iFlee.GangsterCallForHelp: Starting task\n" );
+	localSet_1 = iUtilities.FilterOnFriendlyHabitats( localSet_0, ieAllegiance );
+	
+	if ( Set.ItemCount( localSet_1 ) == 0 )
+	{
+		debug Debug.PrintString( "iFlee.GangsterCallForHelp: Unable to find habitat of the correct allegiance to send out ships from!!\n" );
+		return;
+	}
+	
+	inifile = local_function_0();
+	local_1 = INIFile.Int( inifile, "stock_flee_gangster", "num_entries", 1 );
+	random = Math.RandomInt( 1, local_1 );
+	
+	if ( !Object.PropertyExists( requestor_ship_, "hard_dude" ) )
+	{
+		playerShip = iShip.FindPlayerShip();
+		
+		if ( (aggressor_ship_ == playerShip) && (Sim.DistanceBetween( playerShip, requestor_ship_ ) < 50000.0) )
+		{
+			iComms.Shout( requestor_ship_, "", String.Join( String.Join( "stock_flee_gangster_", String.FromInt( random ) ), local_10 ) );
+		}
+	}
+	
+	debug Debug.PrintString( "iFlee.GangsterCallForHelp: Placing Head Ship\n" );
+	Sim.PlaceRelativeTo( ship_2, iMapEntity.WaypointForEntity( iHabitat.Nearest( localSet_1, requestor_ship_ ) ), 500.0, 0.0, 0.0 );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iFlee.GangsterCallForHelp: Placing " );
+		Debug.PrintInt( Group.SimCount( group ) );
+		Debug.PrintString( " Ships in Formation\n" );
+	}
+	
+	if ( Group.SimCount( group ) > 1 )
+	{
+		iFormation.Impi( group, 20.0, true );
+	}
+	
+	debug Debug.PrintString( "iFlee.GangsterCallForHelp: Giving support ships destination orders\n" );
+	iAI.GiveFormateOrder( ship_2, requestor_ship_, 0.0, 0.0, 0.0 );
+	debug Debug.PrintString( "iFlee.GangsterCallForHelp: Giving requestor ship orders to head for support\n" );
+	iAI.RemoveOrder( requestor_ship_ );
+	iAI.GiveApproachOrder( requestor_ship_, ship_2 );
+	debug Debug.PrintString( "iFlee.GangsterCallForHelp: Starting Wait for arrival loop\n" );
+	
+	schedule
+	{
+		every 30.0:
+		{
+			if ( iAI.IsOrderComplete( ship_2 ) )
+			{
+				break;
+			}
+		}
+	}
+	
+	debug Debug.PrintString( "iFlee.GangsterCallForHelp: Arrived at destination, staying alive while player is here\n" );
+	
+	while ( iUtilities.PlayerInRange( ship_2 ) )
+	{
+		Task.Sleep( Task.Current(), 30.0 );
+	}
+	
+	debug Debug.PrintString( "iFlee.GangsterCallForHelp: Destroying support vessels\n" );
+	Group.Destroy( group, true );
+}
+
+task CivilianRunForHelp( hship requestor_ship_, hship aggressor_ship_ )
+{
+	int random;
+	int local_1;
+	bool local_2 = true;
+	set localSet_0 = iMapEntity.SystemHabitats();
+	set localSet_1;
+	IeAllegiance ieAllegiance = A_Police;
+	hinifile gShippingIni = INIFile.Cast( Global.Handle( "g_shipping_ini" ) );
+	hinifile inifile;
+	hship playerShip = iShip.FindPlayerShip();
+	hsim simWaypoint;
+	hhabitat habitat;
+	hgroup group = iShipCreation.GetTraffic( ST_CombatAll, ieAllegiance, Math.RandomInt( 2, 5 ) );
+	hship ship_2 = iShip.Cast( Group.NthSim( group, 0 ) );
+	string local_13;
+	
+	if ( Object.PropertyExists( requestor_ship_, "fleeing" ) )
+	{
+		Group.Destroy( group, true );
+		return;
+	}
+	
+	if ( Object.IDModulus( requestor_ship_, 2 ) == 1 )
+	{
+		local_13 = "_male_1";
+	}
+	else
+	{
+		local_13 = "_female_1";
+	}
+	
+	Object.AddIntProperty( requestor_ship_, "fleeing", 1 );
+	debug Debug.PrintString( "iFlee.CivilianCallForHelp: Starting task\n" );
+	simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "Attack Location" );
+	Sim.PlaceRelativeTo( simWaypoint, Sim.Cast( requestor_ship_ ), 0.0, 0.0, 0.0 );
+	localSet_1 = iHabitat.FilterOnType( localSet_0, HT_PoliceBase );
+	Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_PoliceOutpost ) );
+	inifile = local_function_0();
+	local_1 = INIFile.Int( inifile, "stock_flee_civillian", "num_entries", 1 );
+	random = Math.RandomInt( 1, local_1 );
+	
+	if ( !Object.PropertyExists( requestor_ship_, "hard_dude" ) )
+	{
+		playerShip = iShip.FindPlayerShip();
+		
+		if ( (aggressor_ship_ == playerShip) && (Sim.DistanceBetween( playerShip, requestor_ship_ ) < 50000.0) )
+		{
+			iComms.Shout( requestor_ship_, "", String.Join( String.Join( "stock_flee_civillian_", String.FromInt( random ) ), local_13 ) );
+		}
+	}
+	
+	debug Debug.PrintString( "iFlee.GangsterCallForHelp: Placing Head Ship\n" );
+	
+	if ( Set.ItemCount( localSet_1 ) == 0 )
+	{
+		debug Debug.PrintString( "iFlee.CivilianCallForHelp: Unable to find Police Facility to find backup from!\n" );
+		return;
+	}
+	
+	habitat = iHabitat.Nearest( localSet_1, requestor_ship_ );
+	debug Debug.PrintString( "iFlee.CivilianCallForHelp: Placing Head Ship\n" );
+	Sim.PlaceRelativeTo( ship_2, iMapEntity.WaypointForEntity( habitat ), 500.0, 0.0, 0.0 );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iFlee.CivilianCallForHelp: Placing " );
+		Debug.PrintInt( Group.SimCount( group ) );
+		Debug.PrintString( " Ships in Formation\n" );
+	}
+	
+	iFormation.Impi( group, 20.0, true );
+	debug Debug.PrintString( "iFlee.CivilianCallForHelp: Giving support ships destination orders\n" );
+	iAI.GiveApproachOrder( ship_2, requestor_ship_ );
+	debug Debug.PrintString( "iFlee.CivilianCallForHelp: Giving requestor ship orders to head for support\n" );
+	iAI.RemoveOrder( requestor_ship_ );
+	iAI.GiveApproachOrder( requestor_ship_, Group.NthSim( group, 0 ) );
+	debug Debug.PrintString( "iFlee.CivilianCallForHelp: Starting Wait for arrival loop\n" );
+	
+	schedule
+	{
+		every 30.0:
+		{
+			if ( iAI.IsOrderComplete( ship_2 ) )
+			{
+				break;
+			}
+		}
+	}
+	
+	iAI.RemoveOrder( ship_2 );
+	iAI.GiveFormateOrder( ship_2, requestor_ship_, 20.0, 0.0, 0.0 );
+	iAI.GiveApproachOrder( requestor_ship_, iMapEntity.WaypointForEntity( habitat ) );
+	iAI.GiveApproachOrder( ship_2, simWaypoint );
+	
+	schedule
+	{
+		every 30.0:
+		{
+			if ( iAI.IsOrderComplete( ship_2 ) )
+			{
+				break;
+			}
+		}
+	}
+	
+	debug Debug.PrintString( "iFlee.CivilianCallForHelp: Arrived at destination, staying alive while player is here\n" );
+	
+	while ( iUtilities.PlayerInRange( ship_2 ) )
+	{
+		Task.Sleep( Task.Current(), 50.0 );
+	}
+	
+	debug Debug.PrintString( "iFlee.CivilianCallForHelp: Destroying support vessels\n" );
+	Group.Destroy( group, true );
+}
+

@@ -1,0 +1,490 @@
+package iAct0Mission50;
+
+uses Debug,
+     String,
+     Set,
+     List,
+     Global,
+     Sim,
+     Group,
+     Math,
+     Object,
+     State,
+     Task,
+     Text,
+     iSim,
+     iShip,
+     Subsim,
+     iDockport,
+     iLagrangePoint,
+     iAI,
+     GUI,
+     iBaseGUI,
+     iComms,
+     iConversation,
+     iCutsceneUtilities,
+     iDirector,
+     MapEnumerations,
+     iFaction,
+     iFormation,
+     iMapEntity,
+     iBody,
+     iHabitat,
+     iMissionTracker,
+     iMusic,
+     iObjectives,
+     iPilotSetup,
+     iRangeCheck,
+     iScore,
+     iScriptedOrders,
+     INIFile,
+     iUtilities,
+     CargoTypes,
+     iCargoScript,
+     iCargo,
+     iShipCreation,
+     iStation;
+
+provides Main,
+         MissionHandler,
+         Stub;
+
+prototype Main();
+prototype Stub();
+prototype local_function_6( hstate state_ );
+prototype local_function_8();
+prototype task local_function_0();
+prototype hship local_function_1( hfaction faction_ );
+prototype hgroup local_function_3( hmapentity mapentity_, hgroup group_0_ );
+prototype local_function_5( hgroup group_ );
+prototype hgroup local_function_2( hmapentity mapentity_ );
+prototype task local_function_7( hship ship_, hmapentity mapentity_, hstate state_ );
+prototype task MissionHandler();
+prototype task local_function_4( hmapentity mapentity_, hgroup group_ );
+
+Main()
+{
+	start local_function_0();
+}
+
+Stub()
+{
+	Global.SetBool( "g_act0_recovered_reactor", true );
+	iBaseGUI.SetTradeScreenEnabled( true );
+	iBaseGUI.SetRecyclingScreenEnabled( true );
+	iBaseGUI.SetManufacturingScreenEnabled( true );
+}
+
+local_function_6( hstate state_ )
+{
+	hsim waypointJunkyard;
+	hship playerShip = iShip.FindPlayerShip();
+	
+	waypointJunkyard = iUtilities.CreateWaypointRelativeTo( iMapEntity.FindByName( "Junkyard" ), 0.0, 0.0, 900000.0 );
+	Object.AddHandleProperty( playerShip, "restart_waypoint", waypointJunkyard );
+	Object.AddHandleProperty( playerShip, "current_mission_state", state_ );
+	iScore.SetRestartPoint();
+}
+
+local_function_8()
+{
+	iObjectives.Remove( "a0_m50_objectives_sneak" );
+	iObjectives.Remove( "a0_m50_objectives_return" );
+	iObjectives.Remove( "a0_m50_objectives_scout" );
+}
+
+task local_function_0()
+{
+	htask local_0;
+	int local_1;
+	
+	while ( iComms.IsInConversation() )
+	{
+		Task.Sleep( Task.Current(), 0.50 );
+	}
+	
+	if ( !iUtilities.SkipMission( "Steal reactor?" ) )
+	{
+		Task.Detach( local_0 = start MissionHandler() );
+		return;
+	}
+	
+	Stub();
+	return;
+}
+
+hship local_function_1( hfaction faction_ )
+{
+	hship ship;
+	
+	switch ( Math.RandomInt( 0, 2 ) )
+	{
+		case 0:
+			ship = iShip.Create( "ini:/sims/ships/independent/tug_armed", iShipCreation.ShipName( "General", -1 ) );
+			iSim.SetFaction( ship, faction_ );
+			iPilotSetup.GenericAggressive( ship );
+			break;
+		
+		case 1:
+			ship = iShip.Create( "ini:/sims/ships/independent/puffin_armed", iShipCreation.ShipName( "General", -1 ) );
+			iSim.SetFaction( ship, faction_ );
+			iPilotSetup.GenericAggressive( ship );
+			break;
+		
+		case 2:
+			ship = iShip.Create( "ini:/sims/ships/independent/truck_missile_carrier", iShipCreation.ShipName( "General", -1 ) );
+			iSim.SetFaction( ship, faction_ );
+			iPilotSetup.GenericAggressive( ship );
+			break;
+	}
+	
+	return ship;
+}
+
+hgroup local_function_3( hmapentity mapentity_, hgroup group_0_ )
+{
+	hgroup group_1 = Group.Create();
+	hgroup group_2;
+	hfaction junkers = iFaction.Find( "Junkers" );
+	hship ship;
+	htask local_4;
+	int constant = 3;
+	int ii;
+	int jj;
+	
+	for ( ii = 0; ii < constant; ++ii )
+	{
+		group_2 = Group.Create();
+		
+		for ( jj = 0; jj < 3; ++jj )
+		{
+			ship = local_function_1( junkers );
+			Group.AddSim( group_2, ship );
+		}
+		
+		Sim.PlaceNear( Group.Leader( group_2 ), mapentity_, 1000.0 );
+		iFormation.Goose( group_2, 60.0, true );
+		Task.Detach( local_4 = start iScriptedOrders.FollowRoute( iShip.Cast( Group.Leader( group_2 ) ), Group.NthGroup( group_0_, ii ), 0.30, 0.50, true, true, Math.RandomInt( 0, 3 ) ) );
+		Object.AddHandleProperty( Group.Leader( group_2 ), "g_task_handle", local_4 );
+		Group.AddGroup( group_1, group_2 );
+	}
+	
+	return group_1;
+}
+
+local_function_5( hgroup group_ )
+{
+	int groupCount = Group.GroupCount( group_ );
+	int simCount;
+	int ii;
+	int jj;
+	
+	for ( ii = 0; ii < groupCount; ++ii )
+	{
+		simCount = Group.SimCount( Group.NthGroup( group_, ii ) );
+		
+		for ( jj = 0; jj < simCount; ++jj )
+		{
+			Object.SetBoolProperty( Group.NthSim( Group.NthGroup( group_, jj ), ii ), "ignore_speed_limit", true );
+		}
+	}
+}
+
+hgroup local_function_2( hmapentity mapentity_ )
+{
+	hgroup group_0 = Group.Create();
+	hgroup group_1 = Group.Create();
+	hsim waypoint = iUtilities.CreateWaypointRelativeTo( mapentity_, 7000.0, 0.0, -8000.0 );
+	
+	Group.AddSim( group_1, waypoint );
+	waypoint = iUtilities.CreateWaypointRelativeTo( mapentity_, 8000.0, 0.0, 8000.0 );
+	Group.AddSim( group_1, waypoint );
+	waypoint = iUtilities.CreateWaypointRelativeTo( mapentity_, -6500.0, 0.0, 6500.0 );
+	Group.AddSim( group_1, waypoint );
+	waypoint = iUtilities.CreateWaypointRelativeTo( mapentity_, -6500.0, 0.0, -6500.0 );
+	Group.AddSim( group_1, waypoint );
+	Group.AddGroup( group_0, group_1 );
+	group_1 = Group.Create();
+	waypoint = iUtilities.CreateWaypointRelativeTo( mapentity_, 6500.0, -6500.0, 0.0 );
+	Group.AddSim( group_1, waypoint );
+	waypoint = iUtilities.CreateWaypointRelativeTo( mapentity_, 6500.0, 6500.0, 0.0 );
+	Group.AddSim( group_1, waypoint );
+	waypoint = iUtilities.CreateWaypointRelativeTo( mapentity_, -8000.0, 8000.0, 0.0 );
+	Group.AddSim( group_1, waypoint );
+	waypoint = iUtilities.CreateWaypointRelativeTo( mapentity_, -8000.0, -8000.0, 0.0 );
+	Group.AddSim( group_1, waypoint );
+	Group.AddGroup( group_0, group_1 );
+	group_1 = Group.Create();
+	waypoint = iUtilities.CreateWaypointRelativeTo( mapentity_, 0.0, 6500.0, -6500.0 );
+	Group.AddSim( group_1, waypoint );
+	waypoint = iUtilities.CreateWaypointRelativeTo( mapentity_, 0.0, 6500.0, 6500.0 );
+	Group.AddSim( group_1, waypoint );
+	waypoint = iUtilities.CreateWaypointRelativeTo( mapentity_, 0.0, -8000.0, 8000.0 );
+	Group.AddSim( group_1, waypoint );
+	waypoint = iUtilities.CreateWaypointRelativeTo( mapentity_, 0.0, -8000.0, -8000.0 );
+	Group.AddSim( group_1, waypoint );
+	Group.AddGroup( group_0, group_1 );
+	return group_0;
+}
+
+task local_function_7( hship ship_, hmapentity mapentity_, hstate state_ )
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	bool local_2 = false;
+	string local_3;
+	float local_4;
+	int local_5;
+	hsim gReactorHandle;
+	hmapentity lucreciasBase = iMapEntity.FindByName( "Lucrecia's Base" );
+	hgroup group_0;
+	hgroup group_1;
+	float radius = Object.FloatProperty( iMapEntity.FindByName( "The Effrit" ), "radius" );
+	hsim local_11;
+	hsim groupIter;
+	hgroup group_2 = iCutsceneUtilities.GetKillGroup();
+	int simCount;
+	int local_15;
+	int ii;
+	
+	group_1 = local_function_2( mapentity_ );
+	group_0 = local_function_3( mapentity_, group_1 );
+	
+	schedule
+	{
+		every 2.0:
+		{
+			if ( Sim.DistanceBetween( ship_, mapentity_ ) < 20000.0 )
+			{
+				if ( State.Progress( state_ ) != 1 )
+				{
+					iConversation.OneLiner( none, "name_clay", "a0_m50_dialogue_clay_yep_thisll" );
+					iObjectives.SetState( "a0_m50_objectives_scout", OS_Succeeded );
+					State.SetProgress( state_, 1 );
+					iAI.PurgeOrders( ship_ );
+					iCutsceneUtilities.HandleAbort( start local_function_4( mapentity_, group_0 ) );
+					iObjectives.Add( "a0_m50_objectives_sneak" );
+				}
+				
+				gReactorHandle = Sim.Cast( Global.Handle( "g_reactor_handle" ) );
+				
+				debug
+				{
+					if ( gReactorHandle == false )
+					{
+						Debug.PrintString( "Error:- (at junkyard) Unable to find reactor from global!!" );
+					}
+				}
+				
+				break;
+			}
+		}
+	}
+	
+	Group.Flatten( group_0 );
+	simCount = Group.SimCount( group_0 );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( iSim.IsDockedTo( iSim.Cast( ship_ ), iSim.Cast( gReactorHandle ) ) )
+			{
+				iObjectives.SetState( "a0_m50_objectives_sneak", OS_Succeeded );
+				iObjectives.Add( "a0_m50_objectives_return" );
+				iConversation.OneLiner( none, "name_clay", "a0_m50_dialogue_clay_good_work" );
+				iSim.SetDockingLock( ship_, iSim.Cast( gReactorHandle ), true );
+				Task.Sleep( Task.Current(), 2.0 );
+				iSim.SetDockingLock( ship_, iSim.Cast( gReactorHandle ), false );
+				iConversation.OneLiner( none, "name_clay", "a0_m50_dialogue_clay_ok_lets" );
+				
+				do
+				{
+					Task.Sleep( Task.Current(), 1.0 );
+				}
+				while ( iSim.IsDockedTo( iSim.Cast( ship_ ), iSim.Cast( gReactorHandle ) ) );
+				
+				Global.SetBool( "g_act0_recovered_reactor", true );
+				break;
+			}
+		}
+		
+		every 1.0:
+		{
+			for ( ii = 0; ii < simCount; ++ii )
+			{
+				groupIter = Group.NthSim( group_0, ii );
+				
+				if ( Sim.DistanceBetween( groupIter, ship_ ) < Sim.DistanceBetween( local_11, ship_ ) )
+				{
+					local_11 = groupIter;
+				}
+			}
+			
+			local_4 = iShip.BrightnessOf( ship_, local_11, 8000.0, false );
+			
+			if ( ((local_4 > 0.190) || local_1) && !local_0 )
+			{
+				if ( local_1 )
+				{
+					local_15 = ( local_15 + 1 );
+					
+					if ( (local_15 > 5) && (local_4 > 0.190) )
+					{
+						local_0 = true;
+						iConversation.OneLiner( Group.Leader( Group.NthGroup( group_0, 0 ) ), "", "a0_m50_dialogue_junkers_intruder" );
+						Task.Halt( Task.Cast( Object.HandleProperty( Group.Leader( Group.NthGroup( group_0, 0 ) ), "g_task_handle" ) ) );
+						iAI.PurgeOrders( group_0 );
+						iAI.GiveAttackOrder( group_0, ship_ );
+					}
+					else if ( (local_15 > 5) && (local_4 < 0.220) )
+					{
+						local_15 = 0;
+					}
+				}
+				else
+				{
+					iConversation.OneLiner( none, "name_clay", "a0_m50_dialogue_clay_watch_out" );
+					local_1 = true;
+				}
+			}
+		}
+	}
+	
+	State.SetProgress( state_, 2 );
+	
+	if ( !local_0 )
+	{
+		iConversation.OneLiner( Group.Leader( Group.NthGroup( group_0, 0 ) ), "", "a0_m50_dialogue_junkers_alert_all" );
+	}
+	
+	Task.Halt( Task.Cast( Object.HandleProperty( Group.Leader( Group.NthGroup( group_0, 0 ) ), "g_task_handle" ) ) );
+	local_function_5( group_0 );
+	iAI.PurgeOrders( group_0 );
+	iAI.GiveAttackOrder( group_0, ship_ );
+	iConversation.OneLiner( none, "name_clay", "a0_m50_dialogue_clay_run_for" );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( Sim.DistanceBetween( ship_, lucreciasBase ) <= radius )
+			{
+				iObjectives.SetState( "a0_m50_objectives_return", OS_Succeeded );
+				iAI.PurgeOrders( group_0 );
+				Group.Destroy( group_0, false );
+				Group.Destroy( group_1, true );
+				iConversation.OneLiner( none, "name_clay", "a0_m50_dialogue_clay_well_done" );
+				State.SetProgress( state_, 8 );
+				return;
+			}
+		}
+	}
+}
+
+task MissionHandler()
+{
+	bool local_0 = false;
+	hmapentity junkyard = iMapEntity.FindByName( "Junkyard" );
+	hship playerShip = iShip.FindPlayerShip();
+	hstate taskState;
+	int local_4;
+	htask local_5;
+	htask currentTask = Task.Current();
+	
+	Text.Add( "csv:/text/act_0/act0_mission50" );
+	taskState = State.Find( currentTask );
+	
+	if ( !taskState )
+	{
+		taskState = State.Create( currentTask, 0 );
+	}
+	
+	local_function_6( taskState );
+	iMissionTracker.AddMission( Task.Current(), 0, 50 );
+	iRangeCheck.AddTrafficException( iMapEntity.Cast( junkyard ) );
+	iStation.AddReactiveException( iHabitat.Cast( junkyard ) );
+	
+	if ( State.Progress( taskState ) == 0 )
+	{
+		iConversation.OneLiner( none, "name_clay", "a0_m50_dialogue_clay_ok_i_think" );
+		iObjectives.Add( "a0_m50_objectives_scout" );
+	}
+	
+	iSim.SetSensorVisibility( iSim.Cast( junkyard ), true );
+	
+	schedule
+	{
+		every 2.0:
+		{
+			if ( (Sim.DistanceBetween( playerShip, junkyard ) < 350000.0) && (!local_0 && (State.Progress( taskState ) != 2)) )
+			{
+				local_0 = true;
+				local_5 = start local_function_7( playerShip, junkyard, taskState );
+			}
+			else if ( local_0 && (!iUtilities.PlayerInRange( junkyard ) && (State.Progress( taskState ) != 2)) )
+			{
+				Task.Halt( local_5 );
+				local_0 = false;
+			}
+			
+			if ( State.Progress( taskState ) == 8 )
+			{
+				if ( State.Progress( taskState ) != 100 )
+				{
+					Global.SetBool( "g_act0_recovered_reactor", true );
+					debug Debug.PrintString( "iAct0_Mission50.MissionHandler : Enabling base buttons.\n" );
+					iBaseGUI.SetTradeScreenEnabled( true );
+					iBaseGUI.SetRecyclingScreenEnabled( true );
+					iBaseGUI.SetManufacturingScreenEnabled( true );
+				}
+				else
+				{
+					atomic
+					{
+						Global.SetBool( "g_skip_locked", false );
+					}
+					
+					Task.Detach( start local_function_0() );
+					local_function_8();
+					iScore.GotoRestartPoint();
+				}
+				
+				iSim.SetStandardSensorVisibility( iSim.Cast( junkyard ), true );
+				iUtilities.RemoveMissionRestart();
+				State.Destroy( Task.Current() );
+				iMissionTracker.RemoveMission( Task.Current() );
+				Text.Remove( "csv:/text/act_0/act0_mission50" );
+				iStation.RemoveReactiveException( iHabitat.Cast( junkyard ) );
+				iRangeCheck.RemoveTrafficException( iMapEntity.Cast( junkyard ) );
+				return;
+			}
+		}
+	}
+}
+
+task local_function_4( hmapentity mapentity_, hgroup group_ )
+{
+	int ii;
+	
+	iAI.ClearAutopilot();
+	Sim.SetAngularVelocity( iShip.FindPlayerShip(), 0.0, 0.0, 0.0, 0.0 );
+	iDirector.Begin();
+	iMusic.SetMood( MM_Tension );
+	iDirector.SetSecondaryFocus( Group.Leader( Group.NthGroup( group_, 0 ) ) );
+	iDirector.SetFocus( mapentity_ );
+	iDirector.SetCamera( CAM_TwoShot );
+	iConversation.OneLiner( none, "name_clay", "a0_m50_dialogue_clay_looks_like" );
+	Task.Sleep( Task.Current(), 6.0 );
+	
+	for ( ii = 0; ii < 3; ++ii )
+	{
+		iDirector.SetFocus( iSim.Cast( Group.Leader( Group.NthGroup( group_, ii ) ) ) );
+		iDirector.SetSecondaryFocus( mapentity_ );
+		iDirector.SetCamera( CAM_TwoShot );
+		Task.Sleep( Task.Current(), 5.0 );
+	}
+	
+	iDirector.End();
+}
+

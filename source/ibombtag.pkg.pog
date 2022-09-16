@@ -1,0 +1,1247 @@
+package ibombtag;
+
+uses Debug,
+     GUI,
+     Set,
+     List,
+     String,
+     Global,
+     Sim,
+     Group,
+     INIFile,
+     Input,
+     Math,
+     Object,
+     Task,
+     Text,
+     MapEnumerations,
+     iFaction,
+     iSim,
+     iBody,
+     iHabitat,
+     iShip,
+     iBotPak,
+     iConversation,
+     iDirector,
+     iFactionScript,
+     iGame,
+     iHUD,
+     iMPUtils,
+     iMap,
+     iMapEntity,
+     iMultiplay,
+     iMultiplayGUI,
+     iUtilities;
+
+provides ServerMain,
+         ServerExit,
+         ServerPlayerEnter,
+         ServerPlayerLeave,
+         ServerOnUserMessage,
+         ServerOnUpdateScores,
+         PlayerDeath,
+         ClientMain,
+         ClientExit,
+         ClientOnUserMessage,
+         ClientPlayerSay,
+         ClientPlayerTeamSay,
+         ClientPlayerKilled,
+         ClientOpponentKilled,
+         ClientPlayerEnter,
+         ClientPlayerLeave,
+         ClientEndGame,
+         ClientRespawn,
+         ClientGUI,
+         ClientDoUndock,
+         ClientScores,
+         ClientDoScores,
+         ClientTauntReturn,
+         ClientDefaultTaunt1,
+         ClientDefaultTaunt2,
+         ClientDefaultTaunt3,
+         ClientDefaultTaunt4,
+         WeaponAmmoPowerUp,
+         WeaponAmmoPowerUp,
+         HealthPowerUp,
+         SpeedPowerUp,
+         SpeedPowerDown,
+         BotDeath,
+         ServerOnEndGame;
+
+prototype ServerOnUpdateScores();
+prototype ServerOnEndGame();
+prototype WeaponAmmoPowerUp( hsim param_0_, hsim param_1_ );
+prototype SpeedPowerUp( hsim param_0_, hsim param_1_ );
+prototype SpeedPowerDown( hsim param_0_, hsim param_1_ );
+prototype HealthPowerUp( hsim param_0_, hsim param_1_ );
+prototype local_function_1( hship ship_, bool param_1_ );
+prototype local_function_0( hship ship_ );
+prototype local_function_7( hship ship_0_, hship ship_1_ );
+prototype ServerOnUserMessage( hsim param_0_, int param_1_, string param_2_ );
+prototype ServerPlayerLeave( hsim param_0_ );
+prototype task local_function_2( hsim param_0_, string param_1_ );
+prototype PlayerDeath( hsim param_0_ );
+prototype ServerPlayerEnter( hsim param_0_ );
+prototype task local_function_4( hsim param_0_, float param_1_, float param_2_ );
+prototype task local_function_3();
+prototype task local_function_6();
+prototype ServerExit();
+prototype ServerMain();
+prototype ClientGUI();
+prototype ClientRespawn( hship ship_ );
+prototype ClientPlayerEnter( hobject param_0_ );
+prototype ClientPlayerLeave();
+prototype task local_function_12( hsim param_0_, float param_1_, float param_2_ );
+prototype task local_function_10( float param_0_ );
+prototype task local_function_8( hship ship_ );
+prototype local_function_5( hgroup group_, hship ship_0_ );
+prototype task BotDeath( hsim param_0_ );
+prototype ClientPlayerSay();
+prototype ClientPlayerTeamSay();
+prototype ClientTauntReturn( string param_0_ );
+prototype ClientDefaultTaunt1();
+prototype ClientDefaultTaunt2();
+prototype ClientDefaultTaunt3();
+prototype ClientDefaultTaunt4();
+prototype task local_function_9( hisim param_0_, hship ship_ );
+prototype ClientPlayerKilled();
+prototype ClientOpponentKilled();
+prototype ClientScores();
+prototype ClientDoScores();
+prototype ClientEndGame( int param_0_, bool param_1_ );
+prototype ClientDoUndock();
+prototype task local_function_11( hisim param_0_, hisim param_1_ );
+prototype ClientOnUserMessage( hsim param_0_, int param_1_, int param_2_ );
+prototype ClientExit();
+prototype ClientMain();
+
+ServerOnUpdateScores()
+{
+	list localList;
+	int ii;
+	hisim local_2;
+	int fragCount;
+	int botDeaths;
+	string local_5;
+	int local_6;
+	hgroup gBotsHandle = Group.Cast( Global.Handle( "g_bots_handle" ) );
+	
+	for ( ii = 0; ii < Group.SimCount( gBotsHandle ); ++ii )
+	{
+		List.AddTail( localList, Group.NthSim( gBotsHandle, ii ) );
+	}
+	
+	for ( ii = 0; ii < List.ItemCount( localList ); ++ii )
+	{
+		local_2 = iSim.Cast( List.GetNth( localList, ii ) );
+		
+		if ( local_2 )
+		{
+			fragCount = Object.IntProperty( local_2, "frag_count" );
+			botDeaths = Object.IntProperty( local_2, "bot_deaths" );
+			iMultiplay.AddBotEndGameInfo( Object.StringProperty( local_2, "name" ), "", fragCount, 0, botDeaths );
+		}
+	}
+}
+
+ServerOnEndGame()
+{
+	ServerOnUpdateScores();
+}
+
+WeaponAmmoPowerUp( hsim param_0_, hsim param_1_ )
+{
+	iMPUtils.WeaponAmmoPowerUp( param_0_, param_1_ );
+}
+
+SpeedPowerUp( hsim param_0_, hsim param_1_ )
+{
+	iMPUtils.SpeedPowerUp( param_0_, param_1_ );
+}
+
+SpeedPowerDown( hsim param_0_, hsim param_1_ )
+{
+	iMPUtils.SpeedPowerDown( param_0_, param_1_ );
+}
+
+HealthPowerUp( hsim param_0_, hsim param_1_ )
+{
+	iMPUtils.HealthPowerUp( param_0_, param_1_ );
+}
+
+local_function_1( hship ship_, bool param_1_ )
+{
+	bool local_0 = false;
+	
+	if ( Object.PropertyExists( ship_, "player" ) )
+	{
+		local_0 = true;
+	}
+	
+	if ( !Object.PropertyExists( ship_, "frag_count" ) )
+	{
+		return;
+	}
+	
+	if ( param_1_ )
+	{
+		if ( local_0 )
+		{
+			iMultiplay.ServerSetPlayerFragsCount( ship_, iMultiplay.ServerPlayerFragCount( ship_ ) + 2 );
+		}
+		else
+		{
+			Object.SetIntProperty( ship_, "frag_count", Object.IntProperty( ship_, "frag_count" ) + 2 );
+		}
+		
+		return;
+	}
+	
+	if ( Global.Exists( "g_ship_with_bomb" ) )
+	{
+		if ( iShip.Cast( Global.Handle( "g_ship_with_bomb" ) ) == ship_ )
+		{
+			if ( local_0 )
+			{
+				iMultiplay.ServerSetPlayerFragsCount( ship_, iMultiplay.ServerPlayerFragCount( ship_ ) + 5 );
+			}
+			else
+			{
+				Object.SetIntProperty( ship_, "frag_count", Object.IntProperty( ship_, "frag_count" ) + 5 );
+			}
+			
+			return;
+		}
+	}
+	
+	if ( local_0 )
+	{
+		iMultiplay.ServerSetPlayerFragsCount( ship_, iMultiplay.ServerPlayerFragCount( ship_ ) - 1 );
+		return;
+	}
+	
+	Object.SetIntProperty( ship_, "frag_count", Object.IntProperty( ship_, "frag_count" ) - 1 );
+}
+
+local_function_0( hship ship_ )
+{
+	if ( Object.PropertyExists( ship_, "player" ) )
+	{
+		iMultiplay.ServerSetPlayerDiedCount( ship_, iMultiplay.ServerPlayerDiedCount( ship_ ) + 1 );
+		return;
+	}
+	
+	Object.SetIntProperty( ship_, "bot_deaths", Object.IntProperty( ship_, "bot_deaths" ) + 1 );
+}
+
+local_function_7( hship ship_0_, hship ship_1_ )
+{
+	Object.SetStringProperty( ship_1_, "death_script", "iBombTag.BotDeath" );
+	Object.AddIntProperty( ship_1_, "frag_count", Object.IntProperty( ship_0_, "frag_count" ) );
+	Object.AddIntProperty( ship_1_, "bot_deaths", Object.IntProperty( ship_0_, "bot_deaths" ) );
+}
+
+ServerOnUserMessage( hsim param_0_, int param_1_, string param_2_ )
+{
+	hship ship;
+	
+	switch ( param_1_ )
+	{
+		case 15:
+			ship = iShip.Cast( param_0_ );
+			iShip.UndockSelf( ship );
+			iMultiplay.ServerSendUserMessage( ship, 15, "" );
+			return;
+		
+		case 16:
+			iMultiplay.SendScores( param_0_ );
+			return;
+		
+		case 99:
+			iMPUtils.ServerDoDebug( iSim.Cast( param_0_ ), param_2_ );
+			return;
+		
+		default:
+			return;
+	}
+}
+
+ServerPlayerLeave( hsim param_0_ )
+{
+	string name = Object.StringProperty( param_0_, "name" );
+	
+	name = String.Join( name, "+ : +" );
+	name = String.Join( name, "mp_frag_player_left" );
+	iMultiplay.ServerBroadcastMessage( param_0_, name, BMT_Info );
+}
+
+task local_function_2( hsim param_0_, string param_1_ )
+{
+	Task.Sleep( Task.Current(), 2.0 );
+	iMultiplay.ServerBroadcastMessage( param_0_, param_1_, BMT_Event );
+}
+
+PlayerDeath( hsim param_0_ )
+{
+	hship ship = iShip.Cast( iShip.LastAttacker( iShip.Cast( param_0_ ) ) );
+	hsim gBomb;
+	string local_2;
+	int random;
+	string local_4;
+	string local_5;
+	string name = Object.StringProperty( param_0_, "name" );
+	htask local_7;
+	
+	local_function_0( iShip.Cast( param_0_ ) );
+	
+	atomic
+	{
+		iMPUtils.SpawnKilledPlayerPowerUps( param_0_ );
+		gBomb = Sim.Cast( Global.Handle( "g_bomb" ) );
+		
+		if ( Sim.Parent( gBomb ) == param_0_ )
+		{
+			Sim.DetachChild( param_0_, gBomb );
+			Sim.SetMass( gBomb, 0.0 );
+			iMultiplay.ServerSendUserMessage( param_0_, 27, "" );
+			iMultiplay.ServerSendUserMessage( param_0_, 29, "" );
+			iSim.SetFaction( iSim.Cast( param_0_ ), iFaction.Find( "Player" ) );
+			Global.Destroy( "g_ship_with_bomb" );
+			local_function_1( ship, true );
+		}
+		else if ( (ship == false) || (ship == iShip.Cast( param_0_ )) )
+		{
+		}
+		else
+		{
+			local_function_1( ship, false );
+		}
+		
+		Sim.Destroy( param_0_ );
+		
+		if ( Object.PropertyExists( param_0_, "is_bot" ) )
+		{
+			local_7 = start local_function_2( none, String.Join( String.Join( Object.StringProperty( ship, "name" ), Text.Field( "mp_bomb_killed_bot", FT_Text ) ), Object.StringProperty( param_0_, "name" ) ) );
+			Task.Detach( local_7 );
+		}
+		else if ( (ship == false) || (ship == iShip.Cast( param_0_ )) )
+		{
+			random = Math.RandomInt( 1, 2 );
+			local_2 = "mp_suicide_";
+			local_2 = String.Join( local_2, String.FromInt( random ) );
+			local_7 = start local_function_2( param_0_, local_2 );
+			Task.Detach( local_7 );
+		}
+		else
+		{
+			local_4 = iMPUtils.MakeDeathMessage( ship, param_0_ );
+			local_7 = start local_function_2( param_0_, local_4 );
+			Task.Detach( local_7 );
+		}
+	}
+}
+
+ServerPlayerEnter( hsim param_0_ )
+{
+	hfaction player;
+	string local_1;
+	hgroup gBotsHandle;
+	hisim local_3;
+	bool local_4;
+	hship gShipWithBomb;
+	
+	if ( iMultiplay.ServerPlayerDiedCount( param_0_ ) == 0 )
+	{
+		local_4 = true;
+	}
+	else
+	{
+		local_4 = false;
+	}
+	
+	Object.AddIntProperty( param_0_, "frag_count", 0 );
+	Object.AddBoolProperty( param_0_, "player", true );
+	Object.SetStringProperty( param_0_, "death_script", "iBombTag.PlayerDeath" );
+	player = iFaction.Find( "Player" );
+	iSim.SetFaction( iSim.Cast( param_0_ ), player );
+	iMultiplay.ServerBroadcastMessage( param_0_, "mp_frag_player_spawned", BMT_Info );
+	iMultiplay.SetShipLimits( iShip.Cast( param_0_ ) );
+	iMultiplay.LinkShipWeapons( iShip.Cast( param_0_ ) );
+	
+	if ( local_4 && (iMultiplay.UseAIBots() && (iMultiplay.AIBotsCount() > 0)) )
+	{
+		gBotsHandle = Group.Cast( Global.Handle( "g_bots_handle" ) );
+		local_3 = iSim.Cast( Group.NthSim( gBotsHandle, 0 ) );
+		Group.RemoveSim( gBotsHandle, local_3 );
+		Sim.Destroy( local_3 );
+	}
+	
+	if ( Global.Exists( "g_ship_with_bomb" ) )
+	{
+		gShipWithBomb = iShip.Cast( Global.Handle( "g_ship_with_bomb" ) );
+		iMultiplay.ServerSendUserMessage( gShipWithBomb, 31, "" );
+	}
+}
+
+task local_function_4( hsim param_0_, float param_1_, float param_2_ )
+{
+	hisim local_0;
+	int ii;
+	string local_2;
+	int local_3;
+	list localList;
+	int itemCount;
+	hgroup mpRespawnGroup = Group.Cast( Global.Handle( "mp_respawn_group" ) );
+	
+	schedule
+	{
+		every 2.0:
+		{
+			localList = iMultiplay.ServerPlayerList();
+			itemCount = List.ItemCount( localList );
+			
+			for ( ii = 0; ii < itemCount; ++ii )
+			{
+				local_0 = iSim.Cast( List.GetNth( localList, ii ) );
+				
+				if ( local_0 != false )
+				{
+					if ( Sim.DistanceBetween( param_0_, local_0 ) > param_2_ )
+					{
+						if ( !Object.PropertyExists( local_0, "mp_respawning" ) )
+						{
+							iMultiplay.ServerSendPlayerMessage( ii, "mp_frag_player_transported", BMT_Event );
+							iMPUtils.SpawnPlayer( local_0, mpRespawnGroup );
+							Object.AddBoolProperty( local_0, "mp_respawning", true );
+						}
+					}
+					else
+					{
+						Object.RemoveProperty( local_0, "mp_respawning" );
+					}
+				}
+			}
+		}
+	}
+}
+
+task local_function_3()
+{
+	float local_0 = 120.0;
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( local_0 > 10.0 )
+			{
+				iMultiplay.ServerBroadcastMessage( none, String.Join( "mp_bomb_detonation_time+ ", iUtilities.ConvertSecondsToTime( local_0 ) ), BMT_Info );
+			}
+			else
+			{
+				iMultiplay.ServerBroadcastMessage( none, String.Join( "mp_bomb_detonation_time+ ", iUtilities.ConvertSecondsToTime( local_0 ) ), BMT_Event );
+			}
+			
+			local_0 = ( local_0 - 1.0 );
+			Global.SetFloat( "g_time_to_detonation", local_0 );
+			
+			if ( local_0 <= -1.0 )
+			{
+				return;
+			}
+		}
+	}
+}
+
+task local_function_6()
+{
+	int local_0;
+	bool local_1;
+	bool local_2 = false;
+	bool local_3 = false;
+	bool local_4 = false;
+	int local_5;
+	int local_6;
+	int local_7;
+	int local_8;
+	int local_9;
+	hsim gArenaCentre = Sim.Cast( Global.Handle( "g_arena_centre" ) );
+	hsim simBomb;
+	hsim sim2KmAntimatterExplosion;
+	hisim local_13;
+	list localList;
+	hfaction antiPlayer = iFaction.Find( "AntiPlayer" );
+	int itemCount_0;
+	int itemCount_1;
+	int local_18;
+	int ii;
+	float random = Math.Random( 5.0, 8.0 );
+	float local_21;
+	float gTimeToDetonation;
+	float gArenaRadius = Global.Float( "g_arena_radius" );
+	int local_24;
+	string local_25;
+	htask local_26;
+	
+	local_1 = false;
+	local_25 = Text.Field( "sn_police_21", FT_Text );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			itemCount_0 = List.ItemCount( iMultiplay.ServerPlayerList() );
+			
+			if ( itemCount_0 > 0 )
+			{
+				if ( !local_2 )
+				{
+					if ( !local_3 )
+					{
+						local_21 = iGame.GameTime();
+						local_3 = true;
+					}
+					else
+					{
+						if ( ((iGame.GameTime() - local_21) >= (random - 2.0)) && !local_4 )
+						{
+							iMultiplay.ServerBroadcastMessage( none, "mp_bomb_about_to_spawn", BMT_Event );
+							local_4 = true;
+						}
+						
+						if ( local_4 && ((iGame.GameTime() - local_21) >= random) )
+						{
+							if ( Global.Exists( "g_antimater_explosion" ) )
+							{
+								Global.Destroy( "g_antimater_explosion" );
+							}
+							
+							local_2 = true;
+							local_3 = false;
+							local_4 = false;
+							Global.CreateFloat( "g_time_to_detonation", 2, 120.0 );
+							simBomb = Sim.Create( "ini:/sims/ships/multiplayer/utils/bomb", Text.Field( "mp_bomb_name", FT_Text ) );
+							Sim.SetMass( simBomb, 0.0 );
+							iSim.SetSensorVisibility( iSim.Cast( simBomb ), true );
+							iSim.SetIndestructable( iSim.Cast( simBomb ), true );
+							Global.CreateHandle( "g_bomb", 2, simBomb );
+							iSim.SetMissionCritical( iSim.Cast( simBomb ), true );
+							Sim.PlaceNear( simBomb, gArenaCentre, 6000.0 );
+							iMultiplay.SetTransmitFlag( simBomb, true );
+							iMultiplay.SetUpdateFlag( simBomb, true );
+							iMultiplay.ServerBroadcastMessage( none, "mp_bomb_bomb_spawned", BMT_Event );
+							local_26 = start local_function_3();
+						}
+					}
+				}
+				else
+				{
+					gTimeToDetonation = Global.Float( "g_time_to_detonation" );
+					
+					if ( gTimeToDetonation > 0.0 )
+					{
+						localList = List.FromSet( iSim.ShipsInRadius( iSim.Cast( gArenaCentre ), gArenaRadius ) );
+						itemCount_1 = List.ItemCount( localList );
+						
+						if ( !Global.Exists( "g_ship_with_bomb" ) )
+						{
+							for ( ii = 0; ii < itemCount_1; ++ii )
+							{
+								local_13 = iSim.Cast( List.GetNth( localList, ii ) );
+								
+								if ( !Object.PropertyExists( local_13, "poo" ) )
+								{
+									if ( !Global.Exists( "g_ship_with_bomb" ) )
+									{
+										if ( Sim.DistanceBetween( local_13, simBomb ) <= 300.0 )
+										{
+											Global.CreateHandle( "g_ship_with_bomb", 2, local_13 );
+											Sim.AddChildRelativeTo( local_13, simBomb, 0.0, Object.FloatProperty( local_13, "radius" ) - 40.0, 0.0 );
+											Sim.SetMass( simBomb, 0.010 );
+											iSim.SetFaction( local_13, antiPlayer );
+											iMultiplay.ServerSendUserMessage( local_13, 28, "" );
+											iMultiplay.ServerSendUserMessage( local_13, 26, "" );
+											iMultiplay.ServerBroadcastMessage( none, String.Join( Object.StringProperty( local_13, "name" ), String.Join( "+", "mp_bomb_picked_up" ) ), BMT_Event );
+										}
+									}
+								}
+							}
+						}
+						else if ( Sim.Cast( Global.Handle( "g_ship_with_bomb" ) ) == false )
+						{
+							Global.Destroy( "g_ship_with_bomb" );
+						}
+					}
+					else atomic
+					{
+						sim2KmAntimatterExplosion = Sim.Create( "ini:/sims/explosions/2km_antimatter_explosion", "Big Bang" );
+						Global.CreateHandle( "g_antimater_explosion", 2, sim2KmAntimatterExplosion );
+						iSim.SetIndestructable( iSim.Cast( simBomb ), false );
+						iMultiplay.ServerSendUserMessage( simBomb, 30, "" );
+						Sim.PlaceAt( sim2KmAntimatterExplosion, simBomb );
+						Sim.Destroy( simBomb );
+						iSim.Kill( iSim.Cast( Global.Handle( "g_ship_with_bomb" ) ) );
+						Global.Destroy( "g_ship_with_bomb" );
+						Global.Destroy( "g_bomb" );
+						local_2 = false;
+						random = Math.Random( 5.0, 8.0 );
+						Task.Halt( local_26 );
+					}
+				}
+			}
+		}
+	}
+}
+
+ServerExit()
+{
+	Text.Remove( "csv:/text/multiplayer/ideathmatch" );
+	Text.Remove( "csv:/text/multiplayer/ibombtag" );
+	Text.Remove( "csv:/text/ship_names" );
+	Text.Remove( "csv:/text/geog/carls_world" );
+	
+	if ( Global.Exists( "g_arena_centre" ) )
+	{
+		Global.Destroy( "g_arena_centre" );
+		Global.Destroy( "g_arena_radius" );
+		Global.Destroy( "g_bots_handle" );
+	}
+	
+	iFactionScript.Initialise();
+}
+
+ServerMain()
+{
+	int local_0;
+	int local_1;
+	int local_2;
+	int local_3;
+	int local_4;
+	int local_5;
+	int local_6;
+	int local_7;
+	int local_8;
+	int local_9;
+	string local_10;
+	string local_11;
+	int local_12;
+	int local_13;
+	hsim local_14;
+	int local_15;
+	int local_16;
+	hgroup group_0;
+	string local_18;
+	hinifile inifile;
+	hgroup group_1;
+	hgroup group_2;
+	htask local_22;
+	hfaction player;
+	hfaction antiPlayer;
+	hfaction powerUp;
+	
+	iMultiplay.SetGameType( "BT" );
+	iMultiplay.ServerSetSortMode( SSM_Frags );
+	Text.Add( "csv:/text/multiplayer/ideathmatch" );
+	Text.Add( "csv:/text/multiplayer/ibombtag" );
+	Text.Add( "csv:/text/ship_names" );
+	Text.Add( "csv:/text/geog/carls_world" );
+	Text.Add( "csv:/text/multiplayer/ideathmatch_addendum" );
+	
+	if ( Global.Exists( "g_arena_centre" ) )
+	{
+		Global.Destroy( "g_arena_centre" );
+		Global.Destroy( "g_arena_radius" );
+		Global.Destroy( "g_bots_handle" );
+	}
+	
+	iFactionScript.Initialise();
+	
+	if ( !iFaction.Find( "Player" ) )
+	{
+		player = iFaction.Create( "Player", "XXX", A_Player );
+	}
+	
+	if ( !iFaction.Find( "AntiPlayer" ) )
+	{
+		antiPlayer = iFaction.Create( "AntiPlayer", "XXX", A_Independent );
+	}
+	
+	if ( !iFaction.Find( "PowerUp" ) )
+	{
+		powerUp = iFaction.Create( "PowerUp", Text.Field( "hud_type_power_up", FT_Text ), A_Angels );
+	}
+	
+	player = iFaction.Find( "Player" );
+	antiPlayer = iFaction.Find( "AntiPlayer" );
+	powerUp = iFaction.Find( "PowerUp" );
+	iFaction.SetFeeling( player, antiPlayer, -1.0 );
+	iFaction.SetFeeling( antiPlayer, player, -1.0 );
+	iFaction.SetFeeling( player, powerUp, 1.0 );
+	iFaction.SetFeeling( antiPlayer, powerUp, 1.0 );
+	local_14 = iMPUtils.FindSystemCentre();
+	inifile = INIFile.Create( "ini:/multiplayer/maps/generic_02" );
+	group_1 = iMap.GetGeography( inifile, local_14 );
+	group_2 = iMap.GetSpawnPoints( inifile, local_14 );
+	INIFile.Destroy( inifile );
+	Global.CreateHandle( "mp_respawn_group", 2, group_2 );
+	Global.CreateHandle( "g_arena_centre", 2, local_14 );
+	local_22 = start local_function_4( local_14, 55000.0, 60000.0 );
+	Global.CreateFloat( "g_arena_radius", 2, 55000.0 );
+	
+	if ( iMultiplay.AIBotsCount() > 0 )
+	{
+		group_0 = Group.Cast( iBotPak.CreateBotShips( "ini:/multiplayer/packages/bt", iMultiplay.AIBotsCount(), iMultiplay.AIBotsSkillLevel(), player, none, "BotNamesA" ) );
+		Global.CreateString( "g_ini_name", 2, "ini:/multiplayer/packages/bt" );
+		Global.CreateHandle( "g_bots_handle", 2, group_0 );
+		local_function_5( group_0, none );
+	}
+	
+	start local_function_6();
+	start iMPUtils.CheckTimeLimit();
+	start iMPUtils.WeaponPowerUpGeneratorTask( Group.NthGroup( group_2, 2 ) );
+}
+
+ClientGUI()
+{
+	if ( !Global.Exists( "g_mp_score_title_key" ) )
+	{
+		Global.CreateString( "g_mp_score_title_key", 2, "mp_bomb_score" );
+	}
+	
+	iMultiplayGUI.MultiplayScoreScreen();
+}
+
+ClientRespawn( hship ship_ )
+{
+	iMultiplay.ClientAddRespawnEffect( ship_ );
+}
+
+ClientPlayerEnter( hobject param_0_ )
+{
+	iMultiplay.SetShipLimits( iShip.Cast( param_0_ ) );
+	iMultiplay.LinkShipWeapons( iShip.Cast( param_0_ ) );
+	iMultiplay.ClientAddRespawnEffect( iShip.Cast( param_0_ ) );
+}
+
+ClientPlayerLeave()
+{
+}
+
+task local_function_12( hsim param_0_, float param_1_, float param_2_ )
+{
+	hsim playerShip;
+	bool local_1 = false;
+	
+	schedule
+	{
+		every 2.0:
+		{
+			playerShip = Sim.Cast( iShip.FindPlayerShip() );
+			
+			if ( playerShip != false )
+			{
+				if ( Sim.DistanceBetween( param_0_, playerShip ) > param_1_ )
+				{
+					if ( !local_1 )
+					{
+						local_1 = true;
+						iGame.CreateFog( 0.010 );
+						iHUD.PlayAudioCue( AC_Klaxon );
+						iMultiplay.ClientSay( playerShip, "mp_frag_player_falling" );
+					}
+					
+					iHUD.Print( "mp_frag_player_falling" );
+				}
+				
+				if ( Sim.DistanceBetween( param_0_, playerShip ) <= param_1_ )
+				{
+					if ( local_1 )
+					{
+						local_1 = false;
+						iGame.DestroyFog( 0.010 );
+					}
+				}
+			}
+		}
+	}
+}
+
+task local_function_10( float param_0_ )
+{
+	hship ship;
+	hmapentity mapEntity;
+	int local_2;
+	string local_3;
+	string name;
+	hship playerShip;
+	list localList;
+	hgroup mpRespawnGroup = Group.Cast( Global.Handle( "mp_respawn_group" ) );
+	
+	Task.Sleep( Task.Current(), param_0_ );
+	playerShip = iShip.FindPlayerShip();
+	localList = List.SortByStringProperty( List.FromSet( iMapEntity.SystemHabitats() ), "name" );
+	mapEntity = iMapEntity.Cast( List.Head( localList ) );
+	local_3 = iMultiplay.ClientOptionsShip();
+	name = iMultiplay.ClientOptionsName();
+	ship = iShip.Create( local_3, name );
+	iShip.InstallPlayerPilot( ship );
+	iMPUtils.SpawnPlayer( ship, mpRespawnGroup );
+	iMultiplay.SetPlayerShip( ship, name, playerShip );
+	iMultiplay.SetShipLimits( ship );
+	iMultiplay.LinkShipWeapons( ship );
+	iDirector.SetFocus( ship );
+	iDirector.End();
+	Input.ResumeBindings();
+	Sim.Destroy( playerShip );
+	iSim.SetFaction( ship, iFaction.Find( "Player" ) );
+	iMultiplay.ClientAddRespawnEffect( ship );
+}
+
+task local_function_8( hship ship_ )
+{
+	hgroup mpRespawnGroup = Group.Cast( Global.Handle( "mp_respawn_group" ) );
+	float constant = 6.0;
+	
+	Task.Sleep( Task.Current(), constant );
+	iBotPak.AssignGameType( ship_, GT_BombTag );
+	iMPUtils.SpawnPlayer( ship_, mpRespawnGroup );
+}
+
+local_function_5( hgroup group_, hship ship_0_ )
+{
+	hgroup gBotsHandle;
+	hship ship_1;
+	int simCount;
+	int ii;
+	
+	if ( ship_0_ != false )
+	{
+		ship_1 = iShip.Cast( iBotPak.CreateBotShips( Global.String( "g_ini_name" ), 1, 0.0, none, ship_0_, "BotNamesA" ) );
+		local_function_7( ship_0_, ship_1 );
+		iMultiplay.SetShipLimits( ship_1 );
+		gBotsHandle = Group.Cast( Global.Handle( "g_bots_handle" ) );
+		Group.AddSim( gBotsHandle, ship_1 );
+		Global.SetHandle( "g_bots_handle", gBotsHandle );
+		Task.Detach( start local_function_8( ship_1 ) );
+		return;
+	}
+	
+	gBotsHandle = Group.Cast( group_ );
+	
+	if ( gBotsHandle != false )
+	{
+		simCount = Group.SimCount( gBotsHandle );
+		
+		for ( ii = 0; ii < simCount; ++ii )
+		{
+			ship_1 = iShip.Cast( Group.NthSim( gBotsHandle, ii ) );
+			Object.SetStringProperty( ship_1, "death_script", "iBombTag.BotDeath" );
+			iMultiplay.SetShipLimits( ship_1 );
+			Task.Detach( start local_function_8( ship_1 ) );
+		}
+		
+		return;
+	}
+	
+	Object.SetStringProperty( group_, "death_script", "iBombTag.BotDeath" );
+	iMultiplay.SetShipLimits( ship_1 );
+	gBotsHandle = Group.Cast( Global.Handle( "g_bots_handle" ) );
+	Group.AddSim( gBotsHandle, ship_1 );
+	Global.SetHandle( "g_bots_handle", gBotsHandle );
+	Task.Detach( start local_function_8( iShip.Cast( group_ ) ) );
+}
+
+task BotDeath( hsim param_0_ )
+{
+	string name = Object.StringProperty( param_0_, "name" );
+	hship ship = iShip.Cast( iShip.LastAttacker( iShip.Cast( param_0_ ) ) );
+	string local_2;
+	string local_3;
+	string local_4;
+	int local_5;
+	htask local_6;
+	
+	local_function_0( iShip.Cast( param_0_ ) );
+	
+	debug
+	{
+		if ( Object.PropertyExists( ship, "is_bot" ) )
+		{
+			atomic
+			{
+				Debug.PrintString( "iDeathMatch.ServerPlayerKilled: Vessel made a kill: " );
+				Debug.PrintString( Object.StringProperty( ship, "name" ) );
+				Debug.PrintString( " and now has " );
+				Debug.PrintString( String.FromInt( Object.IntProperty( ship, "frag_count" ) ) );
+				Debug.PrintString( " frags\n" );
+			}
+		}
+	}
+	
+	if ( Sim.Cast( Global.Handle( "g_bomb" ) ) == Sim.Cast( Set.FirstElement( Sim.Children( param_0_ ) ) ) )
+	{
+		Sim.DetachChild( param_0_, Sim.Cast( Set.FirstElement( Sim.Children( param_0_ ) ) ) );
+		Sim.SetMass( Sim.Cast( Set.FirstElement( Sim.Children( param_0_ ) ) ), 0.0 );
+		iMultiplay.ServerSendUserMessage( param_0_, 27, "" );
+		iMultiplay.ServerSendUserMessage( param_0_, 29, "" );
+		Global.Destroy( "g_ship_with_bomb" );
+		local_function_1( ship, true );
+	}
+	else
+	{
+		local_function_1( ship, false );
+	}
+	
+	iMPUtils.SpawnKilledPlayerPowerUps( param_0_ );
+	iSim.SetFaction( iSim.Cast( param_0_ ), iFaction.Find( "Player" ) );
+	local_function_5( none, iShip.Cast( param_0_ ) );
+	iSim.Kill( iSim.Cast( param_0_ ) );
+	
+	if ( ship != false )
+	{
+		local_4 = iMPUtils.MakeDeathMessage( ship, param_0_ );
+		local_6 = start local_function_2( param_0_, local_4 );
+		Task.Detach( local_6 );
+	}
+}
+
+ClientPlayerSay()
+{
+	if ( !Global.Exists( "mp_team_say_flag" ) )
+	{
+		Global.CreateBool( "mp_team_say_flag", 2, false );
+	}
+	else
+	{
+		Global.SetBool( "mp_team_say_flag", false );
+	}
+	
+	iMultiplay.ClientOpenHUDTauntBox( "" );
+}
+
+ClientPlayerTeamSay()
+{
+	if ( !Global.Exists( "mp_team_say_flag" ) )
+	{
+		Global.CreateBool( "mp_team_say_flag", 2, true );
+	}
+	else
+	{
+		Global.SetBool( "mp_team_say_flag", true );
+	}
+	
+	iMultiplay.ClientOpenHUDTauntBox( "" );
+}
+
+ClientTauntReturn( string param_0_ )
+{
+	if ( String.Left( param_0_, 1 ) == "!" )
+	{
+	}
+	else if ( Global.Bool( "mp_team_say_flag" ) == 1 )
+	{
+		iMultiplay.ClientBroadcastTeamMessage( iShip.FindPlayerShip(), param_0_, BMT_Conversation );
+	}
+	else
+	{
+		iMultiplay.ClientBroadcastTeamMessage( iShip.FindPlayerShip(), param_0_, BMT_Conversation );
+	}
+	
+	iMPUtils.ClientTauntReturn( param_0_ );
+}
+
+ClientDefaultTaunt1()
+{
+	string local_0 = iMultiplay.ClientOptionsDefaultTaunt( 0 );
+	
+	iMultiplay.ClientBroadcastTeamMessage( iShip.FindPlayerShip(), local_0, BMT_Conversation );
+}
+
+ClientDefaultTaunt2()
+{
+	string local_0 = iMultiplay.ClientOptionsDefaultTaunt( 1 );
+	
+	iMultiplay.ClientBroadcastTeamMessage( iShip.FindPlayerShip(), local_0, BMT_Conversation );
+}
+
+ClientDefaultTaunt3()
+{
+	string local_0 = iMultiplay.ClientOptionsDefaultTaunt( 2 );
+	
+	iMultiplay.ClientBroadcastTeamMessage( iShip.FindPlayerShip(), local_0, BMT_Conversation );
+}
+
+ClientDefaultTaunt4()
+{
+	string local_0 = iMultiplay.ClientOptionsDefaultTaunt( 3 );
+	
+	iMultiplay.ClientBroadcastTeamMessage( iShip.FindPlayerShip(), local_0, BMT_Conversation );
+}
+
+task local_function_9( hisim param_0_, hship ship_ )
+{
+	if ( param_0_ != false )
+	{
+		iConversation.Begin();
+		iConversation.Say( param_0_, "", "mp_frag_player_stuffed_you" );
+		iConversation.End();
+	}
+}
+
+ClientPlayerKilled()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	hisim local_1 = iShip.LastAttacker( playerShip );
+	htask local_2 = start local_function_9( local_1, playerShip );
+	
+	Task.Detach( local_2 );
+	iSim.SetFaction( playerShip, iFaction.Find( "Player" ) );
+	iDirector.Begin();
+	iDirector.SetFocus( iShip.FindPlayerShip() );
+	iDirector.SetSecondaryFocus( local_1 );
+	iDirector.SetCamera( CAM_InverseTwoShot );
+	start local_function_10( 6.0 );
+}
+
+ClientOpponentKilled()
+{
+}
+
+ClientScores()
+{
+	if ( !( GUI.CurrentScreenClassname() == "icMultiplayScreenInGame" ) )
+	{
+		GUI.PopScreensTo( "icSpaceFlightScreen" );
+		GUI.OverlayScreen( "icPDAOverlayManager" );
+		GUI.OverlayScreen( "icMultiplayScreenInGame" );
+	}
+}
+
+ClientDoScores()
+{
+	iMultiplay.ClientSendUserMessage( iShip.FindPlayerShip(), 16, "" );
+}
+
+ClientEndGame( int param_0_, bool param_1_ )
+{
+	iMultiplay.NetworkReset();
+	iMultiplay.ClientSetRequestedToCycle( param_1_ );
+	GUI.PopScreensTo( "icSpaceFlightScreen" );
+	GUI.OverlayScreen( "icPDAOverlayManager" );
+	GUI.OverlayScreen( "icMultiplayScreen" );
+}
+
+ClientDoUndock()
+{
+	iMultiplay.ClientSendUserMessage( iShip.FindPlayerShip(), 15, "" );
+	iShip.UndockSelf( iShip.FindPlayerShip() );
+}
+
+task local_function_11( hisim param_0_, hisim param_1_ )
+{
+	if ( Sim.Parent( param_0_ ) == false )
+	{
+		do
+		{
+			Task.Sleep( Task.Current(), 0.20 );
+		}
+		while ( iSim.IsRespawning( param_1_ ) == 1 );
+		
+		Sim.AddChildRelativeTo( param_1_, param_0_, 0.0, Object.FloatProperty( param_1_, "radius" ) - 40.0, 0.0 );
+		Sim.SetMass( param_0_, 0.010 );
+		
+		if ( iShip.Cast( param_1_ ) == iShip.FindPlayerShip() )
+		{
+			Object.AddBoolProperty( param_1_, "mp_has_bomb", true );
+		}
+		
+		if ( param_0_ == false )
+		{
+			Debug.Error( "bomb not found" );
+		}
+		
+		if ( param_1_ == false )
+		{
+			Debug.Error( "bomb ship not found" );
+			return;
+		}
+	}
+}
+
+ClientOnUserMessage( hsim param_0_, int param_1_, int param_2_ )
+{
+	hship ship;
+	hsim local_1 = Sim.FindByName( Text.Field( "mp_bomb_name", FT_Text ) );
+	string local_2;
+	int local_3;
+	htask local_4;
+	
+	debug
+	{
+		if ( local_1 == false )
+		{
+			Debug.Error( "Unable to find bomb!!" );
+		}
+	}
+	
+	switch ( param_1_ )
+	{
+		case 26:
+			local_4 = start local_function_11( iSim.Cast( local_1 ), iSim.Cast( param_0_ ) );
+			Task.Detach( local_4 );
+			return;
+		
+		case 27:
+			if ( Sim.Parent( local_1 ) == param_0_ )
+			{
+				Sim.DetachChild( param_0_, local_1 );
+				Sim.SetMass( local_1, 0.0 );
+				iSim.SetFaction( iSim.Cast( param_0_ ), iFaction.Find( "Player" ) );
+				Object.RemoveProperty( param_0_, "mp_has_bomb" );
+			}
+			
+			return;
+		
+		case 28:
+			iSim.SetFaction( iSim.Cast( param_0_ ), iFaction.Find( "AntiPlayer" ) );
+			return;
+		
+		case 29:
+			iSim.SetFaction( iSim.Cast( param_0_ ), iFaction.Find( "Player" ) );
+			return;
+		
+		case 15:
+			if ( ship != iShip.FindPlayerShip() )
+			{
+				ship = iShip.Cast( param_0_ );
+				iShip.UndockSelf( ship );
+			}
+			
+			return;
+		
+		case 30:
+			iSim.SetIndestructable( iSim.Cast( local_1 ), false );
+			return;
+		
+		case 31:
+			local_4 = start local_function_11( iSim.Cast( local_1 ), iSim.Cast( param_0_ ) );
+			Task.Detach( local_4 );
+			return;
+	}
+}
+
+ClientExit()
+{
+	Text.Remove( "csv:/text/subtargets" );
+	Text.Remove( "csv:/text/multiplayer/ideathmatch_addendum" );
+	Text.Remove( "csv:/text/geog/carls_world" );
+	Text.Remove( "csv:/text/ship_names" );
+	Text.Remove( "csv:/text/multiplayer/ibombtag" );
+	Text.Remove( "csv:/text/multiplayer/ideathmatch" );
+	iFactionScript.Initialise();
+	Input.PurgeBindings();
+}
+
+ClientMain()
+{
+	int local_0;
+	int local_1;
+	int local_2;
+	int local_3;
+	int local_4;
+	int local_5;
+	hsim local_6;
+	int local_7;
+	int local_8;
+	int local_9;
+	int local_10;
+	int local_11;
+	string local_12;
+	string local_13;
+	string local_14;
+	htask local_15;
+	hfaction player;
+	hfaction antiPlayer;
+	hfaction powerUp;
+	hfaction botFaction;
+	hgroup group_0;
+	hgroup group_1;
+	hinifile inifile;
+	
+	Text.Add( "csv:/text/multiplayer/ideathmatch" );
+	Text.Add( "csv:/text/multiplayer/ibombtag" );
+	Text.Add( "csv:/text/ship_names" );
+	Text.Add( "csv:/text/geog/carls_world" );
+	Text.Add( "csv:/text/multiplayer/ideathmatch_addendum" );
+	Text.Add( "csv:/text/subtargets" );
+	iMultiplay.ClientSetTeamGame( false );
+	iMultiplay.ClientOptionsLoad();
+	iHUD.SetMenuNodeEnabled( "hud_menu_eng", false );
+	iHUD.SetMenuNodeEnabled( "hud_menu_comms", false );
+	iHUD.SetMenuNodeEnabled( "hud_menu_score", false );
+	iHUD.SetMenuNodeEnabled( "hud_menu_map", false );
+	iHUD.SetMenuNodeEnabled( "hud_menu_objectives", false );
+	iHUD.SetMenuNodeEnabled( "hud_menu_cmd", false );
+	iHUD.SetMenuNodeEnabled( "hud_menu_remote_link", false );
+	iHUD.SetMenuNodeEnabled( "hud_menu_cancel_link", false );
+	iHUD.SetMenuNodeEnabled( "hud_menu_toggle_aim_assist", false );
+	Input.BindKey( "iBombTag.ClientPlayerSay", "ScriptKeys.MultiplayerSay" );
+	Input.BindKey( "iBombTag.ClientPlayerTeamSay", "ScriptKeys.MultiplayerTeamSay" );
+	Input.BindKey( "iBombTag.ClientDefaultTaunt1", "ScriptKeys.MultiplayerAutoTaunt1" );
+	Input.BindKey( "iBombTag.ClientDefaultTaunt2", "ScriptKeys.MultiplayerAutoTaunt2" );
+	Input.BindKey( "iBombTag.ClientDefaultTaunt3", "ScriptKeys.MultiplayerAutoTaunt3" );
+	Input.BindKey( "iBombTag.ClientDefaultTaunt4", "ScriptKeys.MultiplayerAutoTaunt4" );
+	Input.BindKey( "iMPUtils.ClientSendDebugInfo", "ScriptKeys.MultiplayerDebug" );
+	Input.BindKey( "iBombTag.ClientDoUndock", "icPlayerPilot.Undock" );
+	Input.BindKey( "iBombTag.ClientDoScores", "Multiplayer.Score" );
+	iFactionScript.Initialise();
+	
+	if ( !iFaction.Find( "Player" ) )
+	{
+		player = iFaction.Create( "Player", "XXX", A_Player );
+	}
+	
+	if ( !iFaction.Find( "AntiPlayer" ) )
+	{
+		antiPlayer = iFaction.Create( "AntiPlayer", "XXX", A_Independent );
+	}
+	
+	if ( !iFaction.Find( "PowerUp" ) )
+	{
+		powerUp = iFaction.Create( "PowerUp", Text.Field( "hud_type_power_up", FT_Text ), A_Angels );
+	}
+	
+	if ( !iFaction.Find( "BotFaction" ) )
+	{
+		botFaction = iFaction.Create( "BotFaction", "BOT", A_Exile );
+	}
+	
+	player = iFaction.Find( "Player" );
+	antiPlayer = iFaction.Find( "AntiPlayer" );
+	powerUp = iFaction.Find( "PowerUp" );
+	botFaction = iFaction.Find( "BotFaction" );
+	iFaction.SetFeeling( player, antiPlayer, -1.0 );
+	iFaction.SetFeeling( antiPlayer, player, -1.0 );
+	iFaction.SetFeeling( player, powerUp, 1.0 );
+	iFaction.SetFeeling( antiPlayer, powerUp, 1.0 );
+	iFaction.SetFeeling( player, botFaction, -1.0 );
+	iFaction.SetFeeling( botFaction, player, -1.0 );
+	iFaction.SetFeeling( botFaction, botFaction, -1.0 );
+	iFaction.SetFeeling( antiPlayer, botFaction, -1.0 );
+	iFaction.SetFeeling( botFaction, antiPlayer, -1.0 );
+	Sim.Preload( "ini:/sims/power_ups/speed_power_down_x2" );
+	Sim.Preload( "ini:/sims/power_ups/bomb_power_up" );
+	Sim.Preload( "ini:/sims/power_ups/speed_power_up_x2" );
+	Sim.Preload( "ini:/sims/power_ups/health" );
+	local_6 = iMPUtils.FindSystemCentre();
+	inifile = INIFile.Create( "ini:/multiplayer/maps/generic_02" );
+	group_0 = iMap.GetGeography( inifile, local_6 );
+	group_1 = iMap.GetSpawnPoints( inifile, local_6 );
+	INIFile.Destroy( inifile );
+	Global.CreateHandle( "mp_respawn_group", 2, group_1 );
+	iDirector.Begin();
+	start local_function_10( 0.10 );
+	local_15 = start local_function_12( local_6, 55000.0, 60000.0 );
+	Task.Detach( local_15 );
+}
+

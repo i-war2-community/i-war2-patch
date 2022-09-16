@@ -1,0 +1,179 @@
+package csvchecker;
+
+uses Debug,
+     GUI,
+     String,
+     Set,
+     List,
+     Global,
+     Input,
+     Task,
+     Text,
+     actonecsvs,
+     actthreecsvs,
+     acttwocsvs,
+     actzerocsvs,
+     iConversation,
+     iEmail,
+     iFaction,
+     Group,
+     Sim,
+     iSim,
+     MapEnumerations,
+     iMapEntity,
+     INIFile,
+     iBody,
+     iHabitat,
+     iShip,
+     iUtilities,
+     misccsvs;
+
+provides Main,
+         SendAllEmails,
+         SetStringRepeat;
+
+prototype SendAllEmails();
+prototype SetStringRepeat();
+prototype task local_function_0();
+prototype Main();
+
+SendAllEmails()
+{
+	Text.Add( "csv:/text/email" );
+	iEmail.SendEmail( "a0_master_lucrecia_mail_sender", "a0_master_story0.30_mail_subject", "html:/text/act_0/act0_master_lucreciamail_1", true );
+	iEmail.SendEmail( "a1_m02_email_sender", "a1_m02_email_subject", "html:/text/act_1/act1_mission02_email", true );
+	iEmail.SendEmail( "a1_m03_email_sender", "a1_m03_email_subject", "html:/text/act_1/act1_mission03_email", true );
+	iEmail.SendEmail( "a1_m04_email_sender", "a1_m04_email_subject", "html:/text/act_1/act1_mission04_email", true );
+	iEmail.SendEmail( "a1_m05_email_sender", "a1_m05_email_subject", "html:/text/act_1/act1_mission05_email", true );
+	iEmail.SendEmail( "a1_m06_email_sender", "a1_m06_email_subject", "html:/text/act_1/act1_mission06_email", true );
+	iEmail.SendEmail( "a1_m07_email_sender", "a1_m07_email_subject", "html:/text/act_1/act1_mission07_email", true );
+	iEmail.SendEmail( "a1_m08_email_sender", "a1_m08_email_subject", "html:/text/act_1/act1_mission08_email", true );
+	iEmail.SendEmail( "a1_m03_email_sender", "a1_m09_email_subject", "html:/text/act_1/act1_mission09_email", true );
+	iEmail.SendEmail( "a1_m10_email_sender", "a1_m10_email_subject", "html:/text/act_1/act1_mission10_email", true );
+	iEmail.SendEmail( "a1_master_stepsons_mail_sender", "a1_master_story1.40_mail_subject", "html:/text/act_1/act1_master_stepsonsmail_1", true );
+	iEmail.SendEmail( "a1_master_stepsons_mail_sender", "a1_master_story1.60_mail_subject", "html:/text/act_1/act1_master_stepsonsmail_2", true );
+	iEmail.SendEmail( "a1_master_stepsons_mail_sender", "a1_master_story1.70_mail_subject", "html:/text/act_1/act1_master_stepsonsmail_3", true );
+	iEmail.SendEmail( "a1_master_maurice_mail_sender", "a1_master_story1.80_maurice_mail_subject", "html:/text/act_1/act1_master_mauricemail_1", true );
+	iEmail.SendEmail( "a1_master_stepsons_mail_sender", "a1_master_story1.90_stepson_mail_subject", "html:/text/act_1/act1_master_stepsonsmail_4", true );
+	iEmail.SendEmail( "a1_master_maurice_mail_sender", "a1_master_story1.90_maurice_mail_subject", "html:/text/act_1/act1_master_mauricemail_2", true );
+	iEmail.SendEmail( "a1_master_league_mail_sender", "a1_master_story1.100_mail_subject", "html:/text/act_1/act1_master_leaguemail_1", true );
+	iEmail.SendEmail( "a1_master_league_mail_sender", "a1_master_story1.110_mail_subject", "html:/text/act_1/act1_master_leaguemail_2", true );
+	iEmail.SendEmail( "a1_sender_the_stepsons", "a1_subject_greetings", "html:/text/act_1/act1_stepson_mail_1", false );
+	iEmail.SendEmail( "a1_sender_the_stepsons", "a1_subject_doing_well", "html:/text/act_1/act1_stepson_mail_2", false );
+	iEmail.SendEmail( "a1_sender_the_stepsons", "a1_subject_we_are_impressed", "html:/text/act_1/act1_stepson_mail_3", false );
+	iEmail.SendEmail( "a1_m08_email_sender", "a1_master_subject_haven", "html:/text/act_1/act1_master_leaguemail_2", true );
+	iEmail.SendEmail( "a2_m08_email_sender", "a2_m08_email_subject", "html:/text/act_2/act2_mission08_email", true );
+	iEmail.SendEmail( "a2_m09_email_sender", "a2_m09_email_subject", "html:/text/act_2/act2_mission09_email", true );
+	iEmail.SendEmail( "a2_m10_email_sender", "a2_m10_email_subject", "html:/text/act_2/act2_mission10_email", true );
+	iEmail.SendEmail( "a2_m11_email_sender", "a2_m11_email_subject", "html:/text/act_2/act2_mission11_email", true );
+	iEmail.SendEmail( "a2_m12_email_sender", "a2_m12_email_subject", "html:/text/act_2/act2_mission12_email", true );
+	iEmail.SendEmail( "a2_m13_email_sender", "a2_m13_email_subject", "html:/text/act_2/act2_mission13_email", true );
+	iEmail.SendEmail( "a2_master_league_mail_sender", "a2_m15_email_subject", "html:/text/act_2/act2_mission15_email", true );
+	iEmail.SendEmail( "a1_m06_email_sender", "a1_m06_email_subject", "html:/text/act_2/act2_mission18_email", true );
+	iEmail.SendEmail( "a2_m20_email_sender", "a2_m20_email_subject", "html:/text/act_2/act2_mission20_email", true );
+	iEmail.SendEmail( "a2_m23_email_sender", "a2_m23_email_subject", "html:/text/act_2/act2_mission23_email", true );
+	iEmail.SendEmail( "a2_m24_email_sender", "a2_m24_email_subject", "html:/text/act_2/act2_mission24_email", true );
+	iEmail.SendEmail( "a2_m25_email_sender", "a2_m25_email_subject", "html:/text/act_2/act2_mission25_email", true );
+	iEmail.SendEmail( "a2_master_league_mail_sender", "a2_master_story2.10_mail_subject", "html:/text/act_2/act2_master_leaguemail_2_1", true );
+	iEmail.SendEmail( "a2_master_league_mail_sender", "a2_master_story2.170_mail_subject", "html:/text/act_2/act2_master_leaguemail_2_170", true );
+	iEmail.SendEmail( "a2_master_league_mail_sender", "a2_master_story2.190_mail_subject", "html:/text/act_2/act2_master_leaguemail_2_190", true );
+	iEmail.SendEmail( "a2_master_league_mail_sender", "a2_master_story2.200b_mail_subject", "html:/text/act_2/act2_master_leaguemail_2_200b", true );
+	iEmail.SendEmail( "a2_master_kong_mail_sender", "a2_master_story2.200_mail_subject", "html:/text/act_2/act2_master_kongmail_2_200", true );
+	iEmail.SendEmail( "a2_master_league_mail_sender", "a2_master_story2.180_mail_subject", "html:/text/act_2/act2_master_leaguemail_2_180", true );
+	iEmail.SendEmail( "a2_master_league_mail_sender", "a2_master_story2.210_mail_subject", "html:/text/act_2/act2_master_leaguemail_2_210", true );
+	iEmail.SendEmail( "a2_master_anon_sender", "a2_master_story2.260_mail_subject", "html:/text/act_2/act2_master_leaguemail_2_260", true );
+	iEmail.SendEmail( "a2_master_league_mail_sender", "a2_master_story2.270_mail_subject", "html:/text/act_2/act2_master_leaguemail_2_270", true );
+	iEmail.SendEmail( "a2_master_league_mail_sender", "a2_master_story2.280_mail_subject", "html:/text/act_2/act2_master_leaguemail_2_280", true );
+	iEmail.SendEmail( "a2_master_league_boffin_mail_sender", "a2_master_story2.231_mail_subject", "html:/text/act_2/act2_master_leaguemail_2_231", true );
+	iEmail.SendEmail( "a2_master_league_boffin_mail_sender", "a2_master_story2.230_mail_subject", "html:/text/act_2/act2_master_leaguemail_2_230", true );
+	iEmail.SendEmail( "a2_master_league_mail_sender", "a2_master_story2.160_mail_subject", "html:/text/act_2/act2_master_leaguemail_2_160", true );
+	iEmail.SendEmail( "a2_master_league_mail_sender", "a2_master_story2.150_mail_subject", "html:/text/act_2/act2_master_leaguemail_2_150", true );
+	iEmail.SendEmail( "a2_master_league_mail_sender", "a2_master_story2.290_mail_subject", "html:/text/act_2/act2_master_leaguemail_2_290", true );
+	iEmail.SendEmail( "a2_master_league_mail_sender", "a2_master_story2.140_mail_subject", "html:/text/act_2/act2_master_leaguemail_2_14", true );
+	iEmail.SendEmail( "a2_master_mca_mail_sender", "a2_master_story2.140b_mail_subject", "html:/text/act_2/act2_master_mcamail_2_14", true );
+	iEmail.SendEmail( "a2_master_hoffer_mail_sender", "a2_master_story2.300_mail_subject", "html:/text/act_2/act2_master_hoffermail_2_300", true );
+	iEmail.SendEmail( "a2_master_league_mail_sender", "a2_master_story2.310_mail_subject", "html:/text/act_2/act2_master_leaguemail_2_310", true );
+	iEmail.SendEmail( "a2_master_hoffer_mail_sender", "a2_master_story2.320_mail_subject", "html:/text/act_2/act2_master_leaguemail_2_320_b", true );
+	iEmail.SendEmail( "a2_master_league_mail_sender", "a2_master_story2.330_mail_subject", "html:/text/act_2/act2_master_leaguemail_2_330", true );
+	iEmail.SendEmail( "a2_master_oman_sender", "a2_master_story2.12_mail_subject", "html:/text/act_2/act2_master_omanmail_2_2", true );
+	iEmail.SendEmail( "a2_master_ambassador_mail_sender", "a2_master_ambassador_mail_subject", "html:/text/act_2/act2_master_ambassador", true );
+	iEmail.SendEmail( "a3_m01_email_sender", "a3_m01_email_subject", "html:/text/act_3/act3_mission01_email", true );
+	iEmail.SendEmail( "a3_m02_email_sender", "a3_m02_email_subject", "html:/text/act_3/act3_mission02_email", true );
+	iEmail.SendEmail( "a3_m03_email_sender", "a3_m03_email_subject", "html:/text/act_3/act3_mission03_email", true );
+	iEmail.SendEmail( "a3_m04_email_sender", "a3_m04_email_subject", "html:/text/act_3/act3_mission04_email", true );
+	iEmail.SendEmail( "a3_m05_email_sender", "a3_m05_email_subject", "html:/text/act_3/act3_mission05_email", true );
+	iEmail.SendEmail( "a3_m05_email_sender", "a3_m05_email_subject_02", "html:/text/act_3/act3_mission05_email_02", true );
+	iEmail.SendEmail( "a3_m05_email_sender", "a3_master_story3.140_mail_subject", "html:/text/act_3/act3_mission06_email", true );
+	iEmail.SendEmail( "a3_m09_email_sender", "a3_m09_email_subject", "html:/text/act_3/act3_mission09_email", true );
+	iEmail.SendEmail( "a3_master_hoffer_mail_sender", "a3_master_story3.10_mail_subject", "html:/text/act_3/act3_master_hoffermail_3_10", true );
+	iEmail.SendEmail( "a3_master_hoffer_mail_sender", "a3_master_story3.20_mail_subject", "html:/text/act_3/act3_master_hoffermail_3_20", true );
+	iEmail.SendEmail( "a3_master_hoffer_mail_sender", "a3_master_story3.30_mail_subject", "html:/text/act_3/act3_master_hoffermail_3_30", true );
+	iEmail.SendEmail( "a3_master_hoffer_mail_sender", "a3_master_story3.40_mail_subject", "html:/text/act_3/act3_master_hoffermail_3_40", true );
+	iEmail.SendEmail( "a3_master_hoffer_mail_sender", "a3_master_story3.50_mail_subject", "html:/text/act_3/act3_master_hoffermail_3_50", true );
+	iEmail.SendEmail( "a3_master_hoffer_mail_sender", "a3_master_story3.70_mail_subject", "html:/text/act_3/act3_master_hoffermail_3_70", true );
+	iEmail.SendEmail( "a3_master_hoffer_mail_sender", "a3_master_story3.75_mail_subject", "html:/text/act_3/act3_master_hoffermail_3_75", true );
+	iEmail.SendEmail( "a3_master_hoffer_mail_sender", "a3_master_story3.80_mail_subject", "html:/text/act_3/act3_master_hoffermail_3_80", true );
+	iEmail.SendEmail( "a3_master_hoffer_mail_sender", "a3_master_story3.90_mail_subject", "html:/text/act_3/act3_master_hoffermail_3_90", true );
+	iEmail.SendEmail( "a3_master_hoffer_mail_sender", "a3_master_story3.140_mail_subject", "html:/text/act_3/act3_master_hoffermail_3_140", true );
+}
+
+SetStringRepeat()
+{
+	debug Debug.PrintString( "cscchecker.SetStringRepeat\n" );
+	Global.SetBool( "g_repeat_last_string", true );
+}
+
+task local_function_0()
+{
+	int convoResponse;
+	
+	debug Debug.PrintString( "csvchecker.MainTask: creating a ship for the player.\n" );
+	iUtilities.CreatePlayer( "ini:/sims/ships/player/comsec_prefitted", iMapEntity.FindByName( "Hoffer's Gap" ) );
+	debug Debug.PrintString( "csvchecker.MainTask run\n" );
+	Input.BindKey( "csvchecker.SetStringRepeat", "ScriptKeys.repeatcsvchecker" );
+	iConversation.Begin();
+	iConversation.AddResponse( "act zero", "I'd like to see the act zero csvs, please" );
+	iConversation.AddResponse( "act one", "I'd like to see the act one csvs, please" );
+	iConversation.AddResponse( "act two", "I'd like to see the act two csvs, please" );
+	iConversation.AddResponse( "act three", "I'd like to see the act three csvs, please" );
+	iConversation.AddResponse( "Miscellaneous", "I'd like to see the miscellaneous csvs, please" );
+	iConversation.AddResponse( "Emails", "I'd like to read all the emails, please" );
+	convoResponse = iConversation.Ask( none, "particle_employee", "which section of game dialogue would you like to test?" );
+	iConversation.End();
+	iConversation.OneLiner( none, "particle_employee", "Don't forget, you can repeat a line with shift+f" );
+	
+	switch ( convoResponse )
+	{
+		case 1:
+			actzerocsvs.Main();
+			return;
+		
+		case 2:
+			actonecsvs.Main();
+			return;
+		
+		case 3:
+			acttwocsvs.Main();
+			return;
+		
+		case 4:
+			actthreecsvs.Main();
+			return;
+		
+		case 5:
+			misccsvs.Main();
+			return;
+		
+		case 6:
+			SendAllEmails();
+			iConversation.OneLiner( none, "particle_employee", "Entering player base to read emails..." );
+			GUI.SetScreen( "icSPPlayerBaseScreen" );
+	}
+}
+
+Main()
+{
+	debug Debug.PrintString( "csvchecker.Main bin' called." );
+	Task.Detach( start local_function_0() );
+}
+

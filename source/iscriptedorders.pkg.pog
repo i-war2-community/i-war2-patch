@@ -1,0 +1,5594 @@
+package iScriptedOrders;
+
+uses Debug,
+     Set,
+     List,
+     String,
+     Global,
+     Sim,
+     Group,
+     Math,
+     Object,
+     Subsim,
+     Task,
+     iSim,
+     iDockport,
+     MapEnumerations,
+     iMapEntity,
+     iLagrangePoint,
+     iShip,
+     iAI,
+     iHabitat,
+     iBody,
+     iComms,
+     iEscort,
+     iFaction,
+     iFormation,
+     iPilotSetup,
+     INIFile,
+     iUtilities,
+     iCargo,
+     CargoTypes,
+     iCargoScript,
+     iShipCreation;
+
+provides CreateNewOrders,
+         Haulage,
+         Trade,
+         Supply,
+         Tanker,
+         LocalPatrol,
+         SystemPatrol,
+         FreelanceMine,
+         OfficialVisitor,
+         PoliceRaid,
+         Loiter,
+         SpeedTrap,
+         Cabbie,
+         HotRodder,
+         Tourist,
+         Flitter,
+         Piracy,
+         Scout,
+         FactoryMine,
+         Maneuvre,
+         Inspection,
+         StationConstruction,
+         StationRepair,
+         Wander,
+         Scavanger,
+         StationAssault,
+         LocalWander,
+         Pilgrimage,
+         Unpredictable,
+         AggressiveLoiter,
+         Naughty,
+         Recovery,
+         TravelTo,
+         TravelBetween,
+         MonkeyAbout,
+         LagrangeHandler,
+         LoiterNearSim,
+         FollowRoute;
+
+prototype bool local_function_0( hgroup group_ );
+prototype list local_function_13( hgroup group_ );
+prototype task LagrangeHandler( hgroup ships_, string destination_ );
+prototype hsim local_function_6( hhabitat habitat_, string param_1_ );
+prototype task local_function_16( hgroup group_, hsim param_1_ );
+prototype task local_function_1( hship ship_, hsim param_1_, hhabitat habitat_ );
+prototype local_function_2( hship ship_0_, hhabitat habitat_ );
+prototype local_function_17( hsim param_0_, int param_1_, hhabitat habitat_ );
+prototype local_function_3( hgroup group_ );
+prototype local_function_7( hgroup group_, hhabitat habitat_, IeHabitatType ieHabitatType_, hsim param_3_ );
+prototype local_function_4( hship ship_0_, hship ship_1_ );
+prototype local_function_5( hship ship_0_, hhabitat habitat_ );
+prototype local_function_8( hgroup group_, hhabitat habitat_, IeHabitatType ieHabitatType_, hsim param_3_ );
+prototype task local_function_9( hgroup group_0_, hhabitat habitat_, htask param_2_ );
+prototype hmapentity local_function_18( hmapentity mapentity_ );
+prototype local_function_10( hgroup group_ );
+prototype task Haulage( hgroup ships_, hmapentity local_station_ );
+prototype task Trade( hgroup ships_ );
+prototype task Tanker( hgroup ships_ );
+prototype task Supply( hgroup ships_ );
+prototype task LocalPatrol( hgroup ships_ );
+prototype task SystemPatrol( hgroup ships_ );
+prototype task FreelanceMine( hgroup ships_ );
+prototype task FactoryMine( hgroup ships_ );
+prototype hfaction local_function_11( hfaction faction_0_ );
+prototype task Scout( hgroup ships_ );
+prototype task OfficialVisitor( hgroup ships_ );
+prototype hship local_function_12( hship ship_, string param_1_ );
+prototype task Piracy( hgroup ships_ );
+prototype task HotRodder( hgroup ships_ );
+prototype task LocalWander( hgroup ships_ );
+prototype task Pilgrimage( hgroup ships_ );
+prototype task Tourist( hgroup ships_ );
+prototype task Cabbie( hgroup ships_ );
+prototype bool local_function_14( hship ship_ );
+prototype task SpeedTrap( hgroup ships_ );
+prototype task Flitter( hgroup ships_ );
+prototype task Recovery( hgroup ships_, hship hulk_ );
+prototype task Wander( hgroup ships_ );
+prototype task Loiter( hgroup ships_ );
+prototype hship local_function_15( hship ship_0_, float param_1_ );
+prototype task AggressiveLoiter( hgroup ships_ );
+prototype task PoliceRaid( hgroup ships_ );
+prototype task Inspection( hgroup ships_ );
+prototype task StationRepair( hgroup ships_ );
+prototype task Unpredictable( hgroup ships_ );
+prototype task Maneuvre( hgroup ships_ );
+prototype task StationConstruction( hgroup ships_ );
+prototype task Naughty( hgroup ships_ );
+prototype task Scavanger( hgroup ships_ );
+prototype task StationAssault( hgroup ships_ );
+prototype task TravelTo( hship ship_, hmapentity location_operator_ );
+prototype task TravelBetween( hship ship_, hmapentity location_operator_ );
+prototype task MonkeyAbout( hship ship_, hmapentity location_operator_ );
+prototype CreateNewOrders( hgroup ships_ );
+prototype task LoiterNearSim( hship ship_, hsim loiter_target_ );
+prototype task FollowRoute( hship ship_, hgroup route_, float completion_ratio_, float time_step_, bool allow_avoidance_, bool loop_, int index_ );
+
+bool local_function_0( hgroup group_ )
+{
+	int simCount;
+	int ii;
+	hship ship;
+	
+	atomic
+	{
+		simCount = Group.SimCount( group_ );
+		
+		for ( ii = 0; ii < simCount; ++ii )
+		{
+			ship = iShip.Cast( Group.NthSim( group_, ii ) );
+			
+			if ( ship != false )
+			{
+				if ( iUtilities.PlayerInRange( ship ) )
+				{
+					return false;
+				}
+				
+				if ( iShip.IsInLDS( ship ) )
+				{
+					return false;
+				}
+				else if ( iShip.IsLDSScrambled( ship ) )
+				{
+					return false;
+				}
+			}
+		}
+	}
+	
+	return true;
+}
+
+list local_function_13( hgroup group_ )
+{
+	list localList;
+	int simCount = Group.SimCount( group_ );
+	int ii;
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		List.AddTail( localList, Group.NthSim( group_, ii ) );
+	}
+	
+	return localList;
+}
+
+task LagrangeHandler( hgroup ships_, string destination_ )
+{
+	hship groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+	set lagrangePoints = iMapEntity.SystemLagrangePoints();
+	bool local_2 = true;
+	list localList;
+	hlagrangepoint lagrangePoint;
+	int simCount = Group.SimCount( ships_ );
+	
+	debug Debug.PrintString( "iScriptedOrders.Lagrangeh: Stating lagrange handler\n" );
+	iUtilities.GroupSetCullable( ships_, false );
+	
+	if ( destination_ == "Random" )
+	{
+		lagrangePoint = iLagrangePoint.Random( lagrangePoints );
+		
+		if ( lagrangePoint == false )
+		{
+			debug Debug.Error( "Unable to find random Lagrange" );
+		}
+	}
+	else
+	{
+		if ( (destination_ == "Dainn I L-Point") || (destination_ == "Dainn II L-Point") )
+		{
+			lagrangePoint = iLagrangePoint.Cast( iMapEntity.FindByNameInSystem( destination_, "map:/geog/badlands/firefrost" ) );
+		}
+		else
+		{
+			lagrangePoint = iLagrangePoint.FindByName( destination_ );
+		}
+		
+		if ( lagrangePoint == false )
+		{
+			debug atomic
+			{
+				Debug.PrintString( String.Join( "Unable to find requested Lagrange: ", destination_ ) );
+				Debug.PrintString( " using random\n" );
+				lagrangePoint = iLagrangePoint.Random( lagrangePoints );
+			}
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.Lagrangeh: telling vessel " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " to move off to lagrange " );
+		Debug.PrintString( iMapEntity.Name( lagrangePoint ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	iAI.GiveApproachOrder( groupLeader, lagrangePoint );
+	
+	schedule
+	{
+		every 5.0:
+		{
+			debug Debug.PrintString( "iScriptedOrders.Lagrange: Checking to see if we've reached our destination\n" );
+			
+			if ( Sim.Group( groupLeader ) == ships_ )
+			{
+				if ( iAI.IsOrderComplete( groupLeader ) )
+				{
+					localList = List.FromSet( iLagrangePoint.LocalDestinations( lagrangePoint ) );
+					iAI.GiveApproachOrder( groupLeader, iMapEntity.Cast( List.GetNth( localList, Math.RandomInt( 0, List.ItemCount( localList ) - 1 ) ) ) );
+				}
+				
+				if ( local_function_0( ships_ ) )
+				{
+					break;
+				}
+			}
+			else if ( Group.SimCount( ships_ ) != 0 )
+			{
+				groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+				iFormation.LineAbreast( ships_, 40.0, false );
+				iAI.GiveApproachOrder( groupLeader, lagrangePoint );
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+	
+	iUtilities.GroupSetCullable( ships_, true );
+	Group.Destroy( ships_, false );
+}
+
+hsim local_function_6( hhabitat habitat_, string param_1_ )
+{
+	hsim local_0;
+	int ii;
+	
+	for ( ii = 0; ii < Global.Int( "g_parking_slots" ); ++ii )
+	{
+		local_0 = Sim.FindByName( String.Join( String.Join( iMapEntity.Name( habitat_ ), param_1_ ), String.FromInt( ii ) ) );
+		
+		if ( Object.IntProperty( local_0, "occupied" ) == 0 )
+		{
+			Object.SetIntProperty( local_0, "occupied", 1 );
+			return local_0;
+		}
+	}
+	
+	return none;
+}
+
+task local_function_16( hgroup group_, hsim param_1_ )
+{
+	hship ship = iShip.Cast( Group.NthSim( group_, 0 ) );
+	
+	iAI.GiveFormateOrder( ship, param_1_, 0.0, 0.0, -30.0 );
+	iFormation.LineAhead( group_, 20.0, false );
+	
+	schedule
+	{
+		every 30.0:
+		{
+			if ( iAI.IsOrderComplete( group_ ) )
+			{
+				break;
+			}
+		}
+	}
+	
+	Sim.Destroy( param_1_ );
+	Group.Destroy( group_, true );
+}
+
+task local_function_1( hship ship_, hsim param_1_, hhabitat habitat_ )
+{
+	if ( iHabitat.Spew( habitat_, param_1_ ) == 0 )
+	{
+		debug Debug.Error( "Unable to spew pod!!" );
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( String.Join( "Spewing pod for pickup: ", Object.StringProperty( param_1_, "name" ) ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 1.0 );
+	}
+	while ( !iSim.IsDocked( iSim.Cast( param_1_ ) ) );
+	
+	debug atomic
+	{
+		Debug.PrintString( String.Join( "Pod ready for pickup: ", Object.StringProperty( param_1_, "name" ) ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	iShip.Undock( iShip.Cast( param_1_ ), habitat_ );
+	iPilotSetup.GenericCargoPod( iShip.Cast( param_1_ ) );
+	iAI.GiveDockOrder( param_1_, ship_ );
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 1.0 );
+	}
+	while ( !iAI.IsOrderComplete( param_1_ ) );
+	
+	iShip.RemovePilot( iShip.Cast( param_1_ ) );
+	Global.SetInt( String.Join( "g_running_spews_for_", Object.StringProperty( habitat_, "name" ) ), Global.Int( String.Join( "g_running_spews_for_", Object.StringProperty( habitat_, "name" ) ) ) - 1 );
+}
+
+local_function_2( hship ship_0_, hhabitat habitat_ )
+{
+	hsubsim subsim;
+	hgroup group;
+	hship ship_1;
+	int random = Math.RandomInt( 2, 8 );
+	int ii;
+	
+	Object.AddIntProperty( ship_0_, "number_small_pods", random );
+	Object.AddIntProperty( ship_0_, "type_cargo", 2 );
+	Sim.AvatarAddChannel( ship_0_, "door", 1.0 );
+	group = iShipCreation.CreateMegapodCargo( ship_0_, random, 2 );
+	
+	for ( ii = 0; ii < random; ++ii )
+	{
+		ship_1 = iShip.Cast( Group.NthSim( group, ii ) );
+		
+		do
+		{
+			Task.Sleep( Task.Current(), 1.0 );
+		}
+		while ( iHabitat.HasSpewerSlotFree( habitat_ ) == 0 );
+		
+		subsim = Subsim.Create( "ini:/subsims/dockports/cargo_port" );
+		Sim.AddSubsim( ship_0_, subsim );
+		Subsim.Place( subsim, 0.0, 0.0, 10.0 );
+		
+		debug
+		{
+			if ( subsim == false )
+			{
+				Debug.Error( "weres me dockport gone" );
+			}
+		}
+		
+		Task.Detach( start local_function_1( ship_0_, ship_1, habitat_ ) );
+		
+		do
+		{
+			Task.Sleep( Task.Current(), 1.0 );
+		}
+		while ( !iSim.IsDockedTo( ship_1, ship_0_ ) && (iShip.Cast( ship_1 ) != false) );
+		
+		iShipCreation.StackCargo( ship_0_, ship_1 );
+	}
+	
+	Sim.AvatarAddChannel( ship_0_, "door", 0.0 );
+	Group.Destroy( group, false );
+}
+
+local_function_17( hsim param_0_, int param_1_, hhabitat habitat_ )
+{
+	list localList = List.FromSet( Sim.Children( param_0_ ) );
+	hship ship;
+	int itemCount = List.ItemCount( localList );
+	int ii;
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		ship = iShip.Cast( List.GetNth( localList, ii ) );
+		local_function_2( ship, habitat_ );
+	}
+}
+
+local_function_3( hgroup group_ )
+{
+	int simCount = Group.SimCount( group_ );
+	int ii;
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		iAI.PurgeOrders( Group.NthSim( group_, ii ) );
+	}
+}
+
+local_function_7( hgroup group_, hhabitat habitat_, IeHabitatType ieHabitatType_, hsim param_3_ )
+{
+	list localList;
+	hship ship_0;
+	hship ship_1;
+	int simCount = Group.SimCount( group_ );
+	int itemCount;
+	int ii;
+	int jj;
+	
+	do
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iScriptedOrders: " );
+			Debug.PrintString( Object.StringProperty( Group.Leader( group_ ), "name" ) );
+			Debug.PrintString( " is waiting for spewer to be free. \n" );
+		}
+		
+		Task.Sleep( Task.Current(), 1.0 );
+	}
+	while ( Global.Exists( "g_spewer_in_use" ) == 1 );
+	
+	Global.CreateBool( "g_spewer_in_use", 2, true );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders: Empty freighter group led by " );
+		Debug.PrintString( Object.StringProperty( Group.Leader( group_ ), "name" ) );
+		Debug.PrintString( " is loading up from spewer" );
+		Debug.PrintString( "\n" );
+	}
+	
+	local_function_3( group_ );
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		ship_0 = iShip.Cast( Group.NthSim( group_, ii ) );
+		iAI.GiveReservedDockOrder( ship_0, habitat_ );
+		
+		do
+		{
+			Task.Sleep( Task.Current(), 1.0 );
+			
+			if ( Sim.Cast( ship_0 ) == false )
+			{
+				Global.Destroy( "g_spewer_in_use" );
+				return;
+			}
+		}
+		while ( !iSim.IsDockedTo( iSim.Cast( ship_0 ), iSim.Cast( habitat_ ) ) );
+		
+		debug Debug.PrintString( "iScriptedOrders.load_vessels_from_spewer: docked freighter to loading port.... loading...\n" );
+		
+		if ( Object.PropertyExists( ship_0, "mega_freighter" ) == 0 )
+		{
+			localList = iShipCreation.ReturnHaulageCargo( ship_0, ieHabitatType_ );
+			itemCount = List.ItemCount( localList );
+			Global.CreateInt( String.Join( "g_running_spews_for_", Object.StringProperty( habitat_, "name" ) ), 2, itemCount );
+			
+			for ( jj = 0; jj < itemCount; ++jj )
+			{
+				do
+				{
+					Task.Sleep( Task.Current(), 1.0 );
+				}
+				while ( iHabitat.HasSpewerSlotFree( habitat_ ) == 0 );
+				
+				Task.Detach( start local_function_1( ship_0, Sim.Cast( List.GetNth( localList, jj ) ), habitat_ ) );
+			}
+		}
+		else
+		{
+		}
+		
+		do
+		{
+			Task.Sleep( Task.Current(), 1.0 );
+		}
+		while ( Global.Int( String.Join( "g_running_spews_for_", Object.StringProperty( habitat_, "name" ) ) ) != 0 );
+		
+		Global.Destroy( String.Join( "g_running_spews_for_", Object.StringProperty( habitat_, "name" ) ) );
+		iShip.Undock( ship_0, habitat_ );
+		
+		if ( ii == 0 )
+		{
+			iAI.GiveFormateOrder( ship_0, habitat_, Math.Random( 3000.0, 4000.0 ), Math.Random( 3000.0, 4000.0 ), Math.Random( 3000.0, 4000.0 ) );
+		}
+		else
+		{
+			iAI.GiveFormateOrder( ship_0, ship_1, 0.0, -70.0, 0.0 );
+		}
+		
+		ship_1 = ship_0;
+	}
+	
+	Global.Destroy( "g_spewer_in_use" );
+}
+
+local_function_4( hship ship_0_, hship ship_1_ )
+{
+	atomic
+	{
+		Sim.DetachChild( ship_0_, ship_1_ );
+		Sim.SetCollision( ship_1_, false );
+		Sim.SetAngularVelocityEuler( ship_1_, Math.Random( 3.0, 10.0 ), Math.Random( 3.0, 10.0 ), Math.Random( 3.0, 10.0 ) );
+		Sim.SetVelocityLocalToSim( ship_1_, Math.Random( 3.0, 10.0 ), Math.Random( 3.0, 10.0 ), Math.Random( 450.0, 550.0 ) );
+	}
+	
+	Task.Sleep( Task.Current(), 1.50 );
+	Sim.SetCollision( ship_1_, true );
+}
+
+local_function_5( hship ship_0_, hhabitat habitat_ )
+{
+	hgroup group;
+	hship ship_1;
+	int typeCargo = Object.IntProperty( ship_0_, "type_cargo" );
+	int numberSmallPods = Object.IntProperty( ship_0_, "number_small_pods" );
+	int ii;
+	
+	group = iShipCreation.CreateMegapodCargo( ship_0_, numberSmallPods, typeCargo );
+	iShipCreation.StackCargo( ship_0_, group );
+	Sim.AvatarAddChannel( ship_0_, "door", 1.0 );
+	Task.Sleep( Task.Current(), 1.0 );
+	
+	for ( ii = 0; ii < numberSmallPods; ++ii )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iScriptedOrders.unload_at_spewer: Processing cargo " );
+			Debug.PrintString( Object.StringProperty( ship_0_, "name" ) );
+			Debug.PrintString( "\n" );
+		}
+		
+		do
+		{
+			Task.Sleep( Task.Current(), 0.50 );
+		}
+		while ( iHabitat.HasSpewerSlotFree( habitat_ ) == 0 );
+		
+		ship_1 = iShip.Cast( Group.NthSim( group, ii ) );
+		local_function_4( ship_0_, ship_1 );
+		Object.SetIntProperty( ship_0_, "number_small_pods", Object.IntProperty( ship_0_, "number_small_pods" ) - 1 );
+		
+		debug atomic
+		{
+			Debug.PrintString( "iScriptedOrders.unload_at_spewer: Undocking cargo " );
+			Debug.PrintString( Object.StringProperty( ship_1, "name" ) );
+			Debug.PrintString( " from " );
+			Debug.PrintString( Object.StringProperty( ship_0_, "name" ) );
+			Debug.PrintString( "\n" );
+		}
+		
+		iPilotSetup.GenericCargoPod( ship_1 );
+		
+		atomic
+		{
+			iAI.GiveReservedDockOrder( ship_1, habitat_ );
+		}
+	}
+	
+	Sim.AvatarSetChannel( ship_0_, "door", 0.0 );
+	Group.Destroy( group, false );
+}
+
+local_function_8( hgroup group_, hhabitat habitat_, IeHabitatType ieHabitatType_, hsim param_3_ )
+{
+	list localList;
+	hship ship_0;
+	hship ship_1;
+	hship ship_2;
+	int simCount = Group.SimCount( group_ );
+	int itemCount;
+	int ii;
+	int jj;
+	
+	do
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iScriptedOrders: " );
+			Debug.PrintString( Object.StringProperty( Group.Leader( group_ ), "name" ) );
+			Debug.PrintString( " is waiting for spewer to be free. \n" );
+		}
+		
+		Task.Sleep( Task.Current(), 1.0 );
+	}
+	while ( Global.Exists( "g_spewer_in_use" ) == 1 );
+	
+	Global.CreateBool( "g_spewer_in_use", 2, true );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders: Full freighter group led by " );
+		Debug.PrintString( Object.StringProperty( Group.Leader( group_ ), "name" ) );
+		Debug.PrintString( " is emptying at spewer" );
+		Debug.PrintString( "\n" );
+	}
+	
+	local_function_3( group_ );
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		ship_0 = iShip.Cast( Group.NthSim( group_, ii ) );
+		iAI.GiveReservedDockOrder( ship_0, habitat_ );
+		
+		do
+		{
+			Task.Sleep( Task.Current(), 1.0 );
+			
+			if ( Sim.Cast( ship_0 ) == false )
+			{
+				Global.Destroy( "g_spewer_in_use" );
+				return;
+			}
+		}
+		while ( !iSim.IsDockedTo( iSim.Cast( ship_0 ), iSim.Cast( habitat_ ) ) );
+		
+		debug Debug.PrintString( "iScriptedOrders.unload_vessels_at_spewer: docked freighter to loading port.... unloading...\n" );
+		localList = List.FromSet( Sim.Children( ship_0 ) );
+		itemCount = List.ItemCount( localList );
+		
+		for ( jj = 0; jj < itemCount; ++jj )
+		{
+			ship_2 = iShip.Cast( List.GetNth( localList, jj ) );
+			
+			if ( Object.PropertyExists( ship_0, "mega_freighter" ) == 0 )
+			{
+				debug atomic
+				{
+					Debug.PrintString( "iScriptedOrders.unload_at_spewer: Processing cargo " );
+					Debug.PrintString( Object.StringProperty( ship_2, "name" ) );
+					Debug.PrintString( "\n" );
+				}
+				
+				do
+				{
+					Task.Sleep( Task.Current(), 0.50 );
+				}
+				while ( iHabitat.HasSpewerSlotFree( habitat_ ) == 0 );
+				
+				iShip.Undock( ship_2, ship_0 );
+				
+				debug atomic
+				{
+					Debug.PrintString( "iScriptedOrders.unload_at_spewer: Undocking cargo " );
+					Debug.PrintString( Object.StringProperty( ship_2, "name" ) );
+					Debug.PrintString( " from " );
+					Debug.PrintString( Object.StringProperty( ship_0, "name" ) );
+					Debug.PrintString( "\n" );
+				}
+				
+				iPilotSetup.GenericCargoPod( ship_2 );
+				
+				atomic
+				{
+					iAI.GiveReservedDockOrder( ship_2, habitat_ );
+				}
+			}
+			else
+			{
+				local_function_5( ship_2, habitat_ );
+			}
+		}
+		
+		Task.Sleep( Task.Current(), 5.0 );
+		iShip.Undock( ship_0, habitat_ );
+		
+		if ( ii == 0 )
+		{
+			iAI.GiveFormateOrder( ship_0, habitat_, Math.Random( 3000.0, 4000.0 ), Math.Random( 3000.0, 4000.0 ), Math.Random( 3000.0, 4000.0 ) );
+		}
+		else
+		{
+			iAI.GiveFormateOrder( ship_0, ship_1, 0.0, -70.0, 0.0 );
+		}
+		
+		ship_1 = ship_0;
+	}
+	
+	Global.Destroy( "g_spewer_in_use" );
+}
+
+task local_function_9( hgroup group_0_, hhabitat habitat_, htask param_2_ )
+{
+	int local_0;
+	hsim local_1;
+	hship groupLeader = iShip.Cast( Group.Leader( group_0_ ) );
+	set localSet = Sim.Children( groupLeader );
+	hgroup group_1 = Group.Create();
+	bool local_5 = false;
+	int local_6;
+	int local_7;
+	int local_8;
+	int simCount = Group.SimCount( group_0_ );
+	int local_10 = 0;
+	
+	debug Debug.PrintString( "iScriptedOrders.trafficontrol: Stating traffic Controler routine\n" );
+	
+	if ( Group.SimCount( group_0_ ) == 0 )
+	{
+		debug Debug.Error( "iScriptedOrders.location_traffic_control : I've been passed an empty group of ships" );
+		
+		debug atomic
+		{
+			Debug.PrintString( " iScriptedOrders.location_traffic_control : I've been passed an emtpy group of ships, for location" );
+			Debug.PrintString( iMapEntity.Name( habitat_ ) );
+			Debug.PrintString( "\n" );
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.traffcontrol: telling vessel " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " to join freight yard " );
+		Debug.PrintString( "\n" );
+	}
+	
+	if ( Set.IsEmpty( localSet ) )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iScriptedOrders.traffcontrol: Empty vessel " );
+			Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+			Debug.PrintString( " parking up to recieve cargo\n" );
+		}
+		
+		schedule
+		{
+			every 2.0:
+			{
+				local_1 = local_function_6( habitat_, " Load Slot " );
+				
+				if ( local_1 != false )
+				{
+					iFormation.LineAhead( group_0_, 80.0, false );
+					iAI.GiveFormateOrder( groupLeader, local_1, 0.0, 0.0, 0.0 );
+					break;
+				}
+				else debug Debug.PrintString( "iScriptedOrders.location_traffic_control : unable to find free loading parking slot\n" );
+			}
+		}
+		
+		schedule
+		{
+			every 2.0:
+			{
+				if ( Sim.DistanceBetween( groupLeader, local_1 ) < 2000.0 )
+				{
+					break;
+				}
+			}
+		}
+		
+		local_10 = 20;
+		
+		schedule
+		{
+			every 2.0:
+			{
+				local_10 = ( local_10 - 2 );
+				
+				if ( local_10 <= 0 )
+				{
+					break;
+				}
+				
+				if ( iAI.IsOrderComplete( group_0_ ) )
+				{
+					break;
+				}
+			}
+		}
+		
+		debug atomic
+		{
+			Debug.PrintString( String.Join( "Empty vessel has reached load slot and is loading: ", Object.StringProperty( groupLeader, "name" ) ) );
+			Debug.PrintString( "\n" );
+		}
+		
+		local_function_7( group_0_, iHabitat.Cast( habitat_ ), iHabitat.Type( iHabitat.Cast( habitat_ ) ), local_1 );
+		Object.SetIntProperty( local_1, "occupied", 0 );
+	}
+	else
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iScriptedOrders.traffcontrol: Full vessel " );
+			Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+			Debug.PrintString( " parking up to deposit cargo. \n" );
+		}
+		
+		schedule
+		{
+			every 2.0:
+			{
+				local_1 = local_function_6( habitat_, " Unload Slot " );
+				
+				if ( local_1 != false )
+				{
+					iFormation.LineAhead( group_0_, 80.0, false );
+					iAI.GiveFormateOrder( groupLeader, local_1, 0.0, 0.0, 0.0 );
+					break;
+				}
+				else debug Debug.PrintString( "iScriptedOrders.location_traffic_control : unable to find free unload parking slot\n" );
+			}
+		}
+		
+		schedule
+		{
+			every 2.0:
+			{
+				if ( Sim.DistanceBetween( groupLeader, local_1 ) < 2000.0 )
+				{
+					break;
+				}
+			}
+		}
+		
+		local_10 = 20;
+		
+		schedule
+		{
+			every 2.0:
+			{
+				local_10 = ( local_10 - 2 );
+				
+				if ( local_10 <= 0 )
+				{
+					break;
+				}
+				
+				if ( iAI.IsOrderComplete( group_0_ ) )
+				{
+					break;
+				}
+			}
+		}
+		
+		debug atomic
+		{
+			Debug.PrintString( String.Join( "Full vessel has reached unload slot and is loading: ", Object.StringProperty( groupLeader, "name" ) ) );
+			Debug.PrintString( " \n" );
+		}
+		
+		local_function_8( group_0_, iHabitat.Cast( habitat_ ), iHabitat.Type( iHabitat.Cast( habitat_ ) ), local_1 );
+		Task.Sleep( Task.Current(), 5.0 );
+		debug Debug.PrintString( "Finished LALALALAL\n" );
+		Object.SetIntProperty( local_1, "occupied", 0 );
+	}
+	
+	iFormation.LineAhead( group_0_, 30.0, false );
+	Task.Resume( param_2_ );
+}
+
+hmapentity local_function_18( hmapentity mapentity_ )
+{
+	hbody body;
+	set localSet_0;
+	set localSet_1;
+	
+	debug Debug.PrintString( " iScriptedOrders.Haulage : Location picked for haualage destinations is not orbital !\n" );
+	body = iBody.Cast( iMapEntity.Parent( mapentity_ ) );
+	
+	if ( body == false )
+	{
+		debug Debug.Error( "iScriptedOrders.Haulage - Damn and blast! Tried to get get parent of a location, and it's not a body! See pog log for parent name" );
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.orbital_check : The parent of " );
+		Debug.PrintString( iMapEntity.Name( iMapEntity.Cast( mapentity_ ) ) );
+		Debug.PrintString( "is not a body. Parents name is " );
+		Debug.PrintString( iMapEntity.Name( iMapEntity.Parent( mapentity_ ) ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	if ( iBody.Type( body ) != BT_Asteroid )
+	{
+		debug Debug.PrintString( " iScriptedOrders.Haulage : Location picked for haualage is not an asteroid, searching for beanstalk or transfer station\n" );
+		localSet_0 = iBody.HabitatsAroundBody( body );
+		Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_TransferStation ) );
+		Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_Beanstalk ) );
+		
+		if ( !Set.IsEmpty( localSet_1 ) )
+		{
+			mapentity_ = iHabitat.Random( localSet_1 );
+			return mapentity_;
+		}
+		else debug Debug.Error( String.Join( "iScriptedOrders.Haulage: found surface haulage location with no transfer station at ", iMapEntity.Name( body ) ) );
+	}
+	
+	return mapentity_;
+}
+
+local_function_10( hgroup group_ )
+{
+	bool local_0 = false;
+	hisim local_1;
+	int simCount = Group.SimCount( group_ );
+	int ii;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders:escort_handler: Handling " );
+		Debug.PrintInt( simCount );
+		Debug.PrintString( " ships\n" );
+		Debug.PrintString( "iScriptedOrders:escort_handler: Leader: " );
+		Debug.PrintString( Object.StringProperty( Group.NthSim( group_, 0 ), "name" ) );
+		Debug.PrintString( " \n" );
+	}
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		if ( iShip.Attacked( iShip.Cast( Group.NthSim( group_, ii ) ) ) )
+		{
+			local_0 = true;
+			local_1 = iShip.LastAttacker( iShip.Cast( Group.NthSim( group_, ii ) ) );
+		}
+	}
+	
+	if ( local_0 )
+	{
+		iAI.GiveAttackOrder( group_, local_1 );
+		return;
+	}
+	
+	Task.Detach( start LagrangeHandler( group_, "Random" ) );
+	return;
+}
+
+task Haulage( hgroup ships_, hmapentity local_station_ )
+{
+	bool cargoOrigin_0;
+	bool local_1 = true;
+	int cargoOrigin_1;
+	int local_3;
+	int local_4;
+	bool local_5 = false;
+	int simCount_0;
+	int simCount_1;
+	int random;
+	string local_9;
+	string name;
+	htask local_11;
+	hhabitat habitat_0;
+	hhabitat habitat_1;
+	int local_14;
+	set localSet_0 = iMapEntity.SystemHabitats();
+	set localSet_1;
+	set localSet_2 = Global.Set( "g_filtered_system_habitats" );
+	hship groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+	
+	debug Debug.PrintString( "iScriptedOrders.haulage: Entering Haulage scenario\n" );
+	
+	if ( !groupLeader )
+	{
+		debug Debug.PrintString( "iScriptedOrders.haulage: Invalid Lead freighter!\n" );
+		return;
+	}
+	
+	if ( !Global.Exists( "g_total_haulage_running" ) )
+	{
+		Global.CreateInt( "g_total_haulage_running", 2, Group.SimCount( ships_ ) );
+	}
+	else
+	{
+		Global.SetInt( "g_total_haulage_running", Global.Int( "g_total_haulage_running" ) + Group.SimCount( ships_ ) );
+	}
+	
+	simCount_0 = Group.SimCount( ships_ );
+	simCount_1 = Group.SimCount( ships_ );
+	debug Debug.PrintString( "iScriptedOrders.haulage: Haulage Orders Executing...\n" );
+	habitat_1 = iHabitat.Cast( local_station_ );
+	
+	if ( habitat_1 == false )
+	{
+		Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_WaterProcessingPlant ) );
+		Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_OrganicsProcessingPlant ) );
+		Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_InorganicsProcessingPlant ) );
+		Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_BiomassProcessingPlant ) );
+		Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_CommonMetalsProcessingPlant ) );
+		Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_RareMetalsProcessingPlant ) );
+		Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_ExoticMetalsProcessingPlant ) );
+		Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_RadioactivesProcessingPlant ) );
+		Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_FusionableGasesProcessingPlant ) );
+		Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_NeutroniumProcessingPlant ) );
+		habitat_1 = iHabitat.Nearest( localSet_1, Group.Leader( ships_ ) );
+	}
+	
+	local_14 = iHabitat.Type( habitat_1 );
+	
+	if ( !Object.PropertyExists( groupLeader, "cargo_origin" ) )
+	{
+		debug Debug.PrintString( "iScriptedOrders.Haulage: No Cargo found on Ship, Processing...\n" );
+		random = Math.RandomInt( 0, 1 );
+		
+		if ( (local_14 == HT_HeavyManufacturingPlant) || ((local_14 == HT_BiologicalManufacturingPlant) || ((local_14 == HT_WetwareManufacturingPlant) || ((local_14 == HT_HiTechManufacturingPlant) || ((local_14 == HT_ElectronicsManufacturingPlant) || ((local_14 == HT_WeaponsManufacturingPlant) || ((local_14 == HT_PharmaceuticalsManufacturingPlant) || ((local_14 == HT_PlasticsManufacturingPlant) || ((local_14 == HT_FusionReactorsManufacturingPlant) || ((local_14 == HT_EnergyCellsManufacturingPlant) || ((local_14 == HT_StationFabricationManufacturingPlant) || ((local_14 == HT_LuxuriesManufacturingPlant) || ((local_14 == HT_TerraformingStation) || ((local_14 == HT_TransferStation) || ((local_14 == HT_Beanstalk) || (local_14 == HT_BioBomber))))))))))))))) )
+		{
+			random = 0;
+		}
+		
+		Set.Union( localSet_2, iHabitat.FilterOnType( localSet_0, HT_WaterMine ) );
+		Set.Union( localSet_2, iHabitat.FilterOnType( localSet_0, HT_OrganicsMine ) );
+		Set.Union( localSet_2, iHabitat.FilterOnType( localSet_0, HT_InorganicsMine ) );
+		Set.Union( localSet_2, iHabitat.FilterOnType( localSet_0, HT_BiomassMine ) );
+		Set.Union( localSet_2, iHabitat.FilterOnType( localSet_0, HT_CommonMetalsMine ) );
+		Set.Union( localSet_2, iHabitat.FilterOnType( localSet_0, HT_RareMetalsMine ) );
+		Set.Union( localSet_2, iHabitat.FilterOnType( localSet_0, HT_ExoticMetalsMine ) );
+		Set.Union( localSet_2, iHabitat.FilterOnType( localSet_0, HT_RadioactivesMine ) );
+		Set.Union( localSet_2, iHabitat.FilterOnType( localSet_0, HT_FusionableGasesMine ) );
+		Set.Union( localSet_2, iHabitat.FilterOnType( localSet_0, HT_NeutroniumMine ) );
+		Set.Union( localSet_2, iHabitat.FilterOnType( localSet_0, HT_WaterProcessingPlant ) );
+		Set.Union( localSet_2, iHabitat.FilterOnType( localSet_0, HT_OrganicsProcessingPlant ) );
+		Set.Union( localSet_2, iHabitat.FilterOnType( localSet_0, HT_InorganicsProcessingPlant ) );
+		Set.Union( localSet_2, iHabitat.FilterOnType( localSet_0, HT_BiomassProcessingPlant ) );
+		Set.Union( localSet_2, iHabitat.FilterOnType( localSet_0, HT_CommonMetalsProcessingPlant ) );
+		Set.Union( localSet_2, iHabitat.FilterOnType( localSet_0, HT_RareMetalsProcessingPlant ) );
+		Set.Union( localSet_2, iHabitat.FilterOnType( localSet_0, HT_ExoticMetalsProcessingPlant ) );
+		Set.Union( localSet_2, iHabitat.FilterOnType( localSet_0, HT_RadioactivesProcessingPlant ) );
+		Set.Union( localSet_2, iHabitat.FilterOnType( localSet_0, HT_FusionableGasesProcessingPlant ) );
+		Set.Union( localSet_2, iHabitat.FilterOnType( localSet_0, HT_NeutroniumProcessingPlant ) );
+		
+		switch ( random )
+		{
+			case 0:
+				do
+				{
+					local_3 = iHabitat.Type( iHabitat.Random( localSet_2 ) );
+					debug Debug.PrintString( "iScriptedOrder.Haulage: looking for random destination in system.....\n" );
+				}
+				while ( local_3 == 0 );
+				
+				debug atomic
+				{
+					Debug.PrintString( "iScriptedOrders.Haulage: Decided to leave local station, using supplier " );
+					Debug.PrintString( iUtilities.FromLocationEnum( iHabitat.CastIntToHabitatType( local_3 ) ) );
+					Debug.PrintString( "\n" );
+				}
+				
+				cargoOrigin_0 = Object.AddIntProperty( groupLeader, "cargo_origin", local_3 );
+				
+				if ( cargoOrigin_0 == 0 )
+				{
+					debug Debug.PrintString( "iScriptedOrders: Unable to add cargo_origin property to vessel\n" );
+				}
+				
+				break;
+			
+			case 1:
+				local_3 = local_14;
+				
+				if ( iLagrangePoint.Cast( habitat_1 ) )
+				{
+					Task.Detach( local_11 = start LagrangeHandler( ships_, iMapEntity.Name( habitat_1 ) ) );
+					
+					do
+					{
+						Task.Sleep( Task.Current(), 1.0 );
+					}
+					while ( Task.IsRunning( local_11 ) );
+				}
+				else
+				{
+					debug atomic
+					{
+						Debug.PrintString( "iScriptedOrders.Haulage: Decided to arrive at local station " );
+						Debug.PrintString( iUtilities.FromLocationEnum( iHabitat.CastIntToHabitatType( local_3 ) ) );
+						Debug.PrintString( "\n" );
+					}
+					
+					cargoOrigin_0 = Object.AddIntProperty( groupLeader, "cargo_origin", local_3 );
+					
+					if ( cargoOrigin_0 == 0 )
+					{
+						debug Debug.PrintString( "iScriptedOrders: Unable to add cargo_origin property to vessel\n" );
+					}
+					
+					if ( iHabitat.HasSpewer( iHabitat.Cast( local_station_ ) ) )
+					{
+						Task.Detach( start local_function_9( ships_, habitat_1, Task.Current() ) );
+						Task.Suspend( Task.Current() );
+					}
+				}
+				
+				break;
+		}
+	}
+	else debug atomic
+	{
+		Debug.PrintString( "iScriptesOrders.Haulage: Ship already has cargo of origin " );
+		Debug.PrintString( iUtilities.FromLocationEnum( iHabitat.CastIntToHabitatType( Object.IntProperty( groupLeader, "cargo_origin" ) ) ) );
+		Debug.PrintInt( Object.IntProperty( groupLeader, "cargo_origin" ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	cargoOrigin_1 = Object.IntProperty( groupLeader, "cargo_origin" );
+	
+	if ( cargoOrigin_1 == 53 )
+	{
+		local_4 = 20;
+	}
+	
+	if ( cargoOrigin_1 == 2 )
+	{
+		local_4 = 11;
+	}
+	
+	if ( cargoOrigin_1 == 3 )
+	{
+		local_4 = 12;
+	}
+	
+	if ( cargoOrigin_1 == 4 )
+	{
+		local_4 = 13;
+	}
+	
+	if ( cargoOrigin_1 == 5 )
+	{
+		local_4 = 14;
+	}
+	
+	if ( cargoOrigin_1 == 6 )
+	{
+		local_4 = 15;
+	}
+	
+	if ( cargoOrigin_1 == 7 )
+	{
+		local_4 = 16;
+	}
+	
+	if ( cargoOrigin_1 == 8 )
+	{
+		local_4 = 17;
+	}
+	
+	if ( cargoOrigin_1 == 9 )
+	{
+		local_4 = 18;
+	}
+	
+	if ( cargoOrigin_1 == 10 )
+	{
+		local_4 = 19;
+	}
+	
+	if ( cargoOrigin_1 == 38 )
+	{
+		random = Math.RandomInt( 0, 3 );
+		
+		switch ( random )
+		{
+			case 0:
+				local_4 = 15;
+				break;
+			
+			case 1:
+				local_4 = 16;
+				break;
+			
+			case 2:
+				local_4 = 17;
+				break;
+			
+			case 3:
+				local_4 = 18;
+				break;
+		}
+	}
+	
+	if ( cargoOrigin_1 == 20 )
+	{
+		random = Math.RandomInt( 0, 6 );
+		
+		switch ( random )
+		{
+			case 0:
+				local_4 = 22;
+				break;
+			
+			case 1:
+				local_4 = 31;
+				break;
+			
+			case 2:
+				local_4 = 25;
+				break;
+			
+			case 3:
+				local_4 = 27;
+				break;
+			
+			case 4:
+				local_4 = 30;
+				break;
+			
+			case 5:
+				local_4 = 34;
+				break;
+			
+			case 6:
+				local_4 = 35;
+				break;
+		}
+	}
+	
+	if ( cargoOrigin_1 == 11 )
+	{
+		random = Math.RandomInt( 0, 10 );
+		
+		switch ( random )
+		{
+			case 0:
+				local_4 = 22;
+				break;
+			
+			case 1:
+				local_4 = 25;
+				break;
+			
+			case 2:
+				local_4 = 26;
+				break;
+			
+			case 3:
+				local_4 = 27;
+				break;
+			
+			case 4:
+				local_4 = 31;
+				break;
+			
+			case 5:
+				local_4 = 32;
+				break;
+			
+			case 6:
+				local_4 = 33;
+				break;
+			
+			case 7:
+				local_4 = 30;
+				break;
+			
+			case 8:
+				local_4 = 34;
+				break;
+			
+			case 9:
+				local_4 = 35;
+				break;
+			
+			case 10:
+				local_4 = 29;
+				break;
+		}
+	}
+	
+	if ( cargoOrigin_1 == 12 )
+	{
+		random = Math.RandomInt( 0, 13 );
+		
+		switch ( random )
+		{
+			case 0:
+				local_4 = 22;
+				break;
+			
+			case 1:
+				local_4 = 25;
+				break;
+			
+			case 2:
+				local_4 = 26;
+				break;
+			
+			case 3:
+				local_4 = 27;
+				break;
+			
+			case 4:
+				local_4 = 31;
+				break;
+			
+			case 5:
+				local_4 = 32;
+				break;
+			
+			case 6:
+				local_4 = 33;
+				break;
+			
+			case 7:
+				local_4 = 30;
+				break;
+			
+			case 8:
+				local_4 = 34;
+				break;
+			
+			case 9:
+				local_4 = 35;
+				break;
+			
+			case 10:
+				local_4 = 23;
+				break;
+			
+			case 11:
+				local_4 = 28;
+				break;
+			
+			case 12:
+				local_4 = 29;
+				break;
+			
+			case 13:
+				local_4 = 24;
+				break;
+		}
+	}
+	
+	if ( cargoOrigin_1 == 13 )
+	{
+		random = Math.RandomInt( 0, 10 );
+		
+		switch ( random )
+		{
+			case 0:
+				local_4 = 22;
+				break;
+			
+			case 1:
+				local_4 = 25;
+				break;
+			
+			case 2:
+				local_4 = 26;
+				break;
+			
+			case 3:
+				local_4 = 27;
+				break;
+			
+			case 4:
+				local_4 = 31;
+				break;
+			
+			case 5:
+				local_4 = 32;
+				break;
+			
+			case 6:
+				local_4 = 33;
+				break;
+			
+			case 7:
+				local_4 = 30;
+				break;
+			
+			case 8:
+				local_4 = 34;
+				break;
+			
+			case 9:
+				local_4 = 35;
+				break;
+			
+			case 10:
+				local_4 = 29;
+				break;
+		}
+	}
+	
+	if ( cargoOrigin_1 == 14 )
+	{
+		random = Math.RandomInt( 0, 11 );
+		
+		switch ( random )
+		{
+			case 0:
+				local_4 = 22;
+				break;
+			
+			case 1:
+				local_4 = 25;
+				break;
+			
+			case 2:
+				local_4 = 26;
+				break;
+			
+			case 3:
+				local_4 = 27;
+				break;
+			
+			case 4:
+				local_4 = 31;
+				break;
+			
+			case 5:
+				local_4 = 32;
+				break;
+			
+			case 6:
+				local_4 = 33;
+				break;
+			
+			case 7:
+				local_4 = 30;
+				break;
+			
+			case 8:
+				local_4 = 34;
+				break;
+			
+			case 9:
+				local_4 = 35;
+				break;
+			
+			case 10:
+				local_4 = 23;
+				break;
+			
+			case 11:
+				local_4 = 28;
+				break;
+		}
+	}
+	
+	if ( cargoOrigin_1 == 15 )
+	{
+		random = Math.RandomInt( 0, 8 );
+		
+		switch ( random )
+		{
+			case 0:
+				local_4 = 22;
+				break;
+			
+			case 1:
+				local_4 = 25;
+				break;
+			
+			case 2:
+				local_4 = 26;
+				break;
+			
+			case 3:
+				local_4 = 27;
+				break;
+			
+			case 4:
+				local_4 = 31;
+				break;
+			
+			case 5:
+				local_4 = 32;
+				break;
+			
+			case 6:
+				local_4 = 33;
+				break;
+			
+			case 7:
+				local_4 = 30;
+				break;
+			
+			case 8:
+				local_4 = 38;
+				break;
+		}
+	}
+	
+	if ( cargoOrigin_1 == 16 )
+	{
+		random = Math.RandomInt( 0, 8 );
+		
+		switch ( random )
+		{
+			case 0:
+				local_4 = 22;
+				break;
+			
+			case 1:
+				local_4 = 25;
+				break;
+			
+			case 2:
+				local_4 = 26;
+				break;
+			
+			case 3:
+				local_4 = 27;
+				break;
+			
+			case 4:
+				local_4 = 31;
+				break;
+			
+			case 5:
+				local_4 = 32;
+				break;
+			
+			case 6:
+				local_4 = 33;
+				break;
+			
+			case 7:
+				local_4 = 30;
+				break;
+			
+			case 8:
+				local_4 = 38;
+				break;
+		}
+	}
+	
+	if ( cargoOrigin_1 == 17 )
+	{
+		random = Math.RandomInt( 0, 8 );
+		
+		switch ( random )
+		{
+			case 0:
+				local_4 = 22;
+				break;
+			
+			case 1:
+				local_4 = 25;
+				break;
+			
+			case 2:
+				local_4 = 26;
+				break;
+			
+			case 3:
+				local_4 = 27;
+				break;
+			
+			case 4:
+				local_4 = 31;
+				break;
+			
+			case 5:
+				local_4 = 32;
+				break;
+			
+			case 6:
+				local_4 = 33;
+				break;
+			
+			case 7:
+				local_4 = 30;
+				break;
+			
+			case 8:
+				local_4 = 38;
+				break;
+		}
+	}
+	
+	if ( cargoOrigin_1 == 18 )
+	{
+		random = Math.RandomInt( 0, 8 );
+		
+		switch ( random )
+		{
+			case 0:
+				local_4 = 22;
+				break;
+			
+			case 1:
+				local_4 = 25;
+				break;
+			
+			case 2:
+				local_4 = 26;
+				break;
+			
+			case 3:
+				local_4 = 27;
+				break;
+			
+			case 4:
+				local_4 = 31;
+				break;
+			
+			case 5:
+				local_4 = 32;
+				break;
+			
+			case 6:
+				local_4 = 33;
+				break;
+			
+			case 7:
+				local_4 = 30;
+				break;
+			
+			case 8:
+				local_4 = 38;
+				break;
+		}
+	}
+	
+	if ( cargoOrigin_1 == 19 )
+	{
+		random = Math.RandomInt( 0, 7 );
+		
+		switch ( random )
+		{
+			case 0:
+				local_4 = 22;
+				break;
+			
+			case 1:
+				local_4 = 25;
+				break;
+			
+			case 2:
+				local_4 = 26;
+				break;
+			
+			case 3:
+				local_4 = 27;
+				break;
+			
+			case 4:
+				local_4 = 31;
+				break;
+			
+			case 5:
+				local_4 = 32;
+				break;
+			
+			case 6:
+				local_4 = 33;
+				break;
+			
+			case 7:
+				local_4 = 30;
+				break;
+		}
+	}
+	
+	if ( local_4 == 0 )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iScriptedOrders.Haualage - No cargo destination has been found! \n " );
+			Debug.PrintString( " iScriptedOrders.Haulage - Haulage scenario has been generated with station " );
+			Debug.PrintString( iUtilities.FromLocationEnum( iHabitat.CastIntToHabitatType( Object.IntProperty( groupLeader, "cargo_origin" ) ) ) );
+			Debug.PrintString( " \n" );
+		}
+		
+		do
+		{
+			local_4 = iHabitat.Type( iHabitat.Random( localSet_2 ) );
+			debug Debug.PrintString( "iScriptedOrders.Haulage: Searching for random destination.....\n" );
+		}
+		while ( local_4 == 0 );
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.Haulage: Decided to deliver stuff to " );
+		Debug.PrintString( iUtilities.FromLocationEnum( iHabitat.CastIntToHabitatType( local_4 ) ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	cargoOrigin_0 = Object.AddIntProperty( groupLeader, "cargo_destination", local_4 );
+	
+	if ( cargoOrigin_0 == 0 )
+	{
+		debug Debug.PrintString( "iScriptedOrders: Unable to add cargo_destination property to vessel\n" );
+	}
+	
+	if ( Set.IsEmpty( iHabitat.FilterOnType( localSet_0, iHabitat.CastIntToHabitatType( local_4 ) ) ) )
+	{
+		debug Debug.PrintString( "iScriptedOrders.Haulage: Unable to find selected destination - going to L-point\n" );
+		Task.Detach( start LagrangeHandler( ships_, "Random" ) );
+		return;
+	}
+	
+	for ( habitat_0 = iHabitat.Random( iHabitat.FilterOnType( localSet_0, iHabitat.CastIntToHabitatType( cargoOrigin_1 ) ) ); (habitat_0 == false) && iUtilities.PlayerInRangeOfGroup( ships_ ); habitat_0 = iHabitat.Random( iHabitat.FilterOnType( localSet_0, iHabitat.CastIntToHabitatType( cargoOrigin_1 ) ) ) )
+	{
+		debug Debug.PrintString( "iScriptedOrders.Haulage: unable to find random location of required origin... going to lagrange!!\n" );
+		Task.Detach( local_11 = start LagrangeHandler( ships_, "Random" ) );
+		
+		do
+		{
+			Task.Sleep( Task.Current(), 1.0 );
+		}
+		while ( Task.IsRunning( local_11 ) && iUtilities.PlayerInRangeOfGroup( ships_ ) );
+	}
+	
+	name = iMapEntity.Name( habitat_0 );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.Haulage: Using " );
+		Debug.PrintString( name );
+		Debug.PrintString( " as the supplier for this haulage.\n" );
+	}
+	
+	if ( cargoOrigin_1 == iHabitat.Type( habitat_1 ) )
+	{
+		for ( habitat_1 = iHabitat.Random( iHabitat.FilterOnType( localSet_0, iHabitat.CastIntToHabitatType( local_4 ) ) ); (habitat_1 == false) && iUtilities.PlayerInRangeOfGroup( ships_ ); habitat_1 = iHabitat.Random( iHabitat.FilterOnType( localSet_0, iHabitat.CastIntToHabitatType( local_4 ) ) ) )
+		{
+			debug Debug.PrintString( "iScriptedOrders.Haulage: unable to find random location of required destination... going to lagrange!!\n" );
+			Task.Detach( local_11 = start LagrangeHandler( ships_, "Random" ) );
+			
+			do
+			{
+				Task.Sleep( Task.Current(), 1.0 );
+			}
+			while ( Task.IsRunning( local_11 ) && iUtilities.PlayerInRangeOfGroup( ships_ ) );
+		}
+	}
+	else
+	{
+		habitat_1 = iHabitat.Nearest( localSet_0, groupLeader );
+	}
+	
+	iAI.GiveApproachOrder( groupLeader, habitat_1 );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders: Haulage ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " setting of for destination " );
+		Debug.PrintString( iMapEntity.Name( habitat_1 ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 30.0 );
+		
+		if ( Group.SimCount( ships_ ) != simCount_1 )
+		{
+			simCount_1 = Group.SimCount( ships_ );
+			
+			if ( simCount_1 != 0 )
+			{
+				groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+				iFormation.LineAhead( ships_, 40.0, false );
+				iAI.GiveApproachOrder( groupLeader, habitat_1 );
+			}
+			else
+			{
+				break;
+			}
+		}
+		
+		if ( local_function_0( ships_ ) )
+		{
+			local_1 = false;
+		}
+		else
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iScriptedOrders.Haulage: Checking vessel " );
+				Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+				Debug.PrintString( " for its order status\n" );
+			}
+			
+			if ( iAI.IsOrderComplete( groupLeader ) )
+			{
+				debug atomic
+				{
+					Debug.PrintString( "iScriptedOrders: Haulage ship " );
+					Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+					Debug.PrintString( " has reached destination " );
+					Debug.PrintString( iMapEntity.Name( habitat_1 ) );
+					Debug.PrintString( "\n" );
+				}
+				
+				if ( iHabitat.HasSpewer( iHabitat.Cast( local_station_ ) ) )
+				{
+					Task.Detach( start local_function_9( ships_, habitat_1, Task.Current() ) );
+					Task.Suspend( Task.Current() );
+				}
+				
+				if ( iMapEntity.Name( habitat_1 ) == name )
+				{
+					habitat_1 = iHabitat.Random( iHabitat.FilterOnType( localSet_0, iHabitat.CastIntToHabitatType( cargoOrigin_1 ) ) );
+					
+					debug atomic
+					{
+						Debug.PrintString( "iScriptedOrders: Haulage ship " );
+						Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+						Debug.PrintString( " setting of for destination " );
+						Debug.PrintString( iMapEntity.Name( habitat_1 ) );
+						Debug.PrintString( "\n" );
+					}
+					
+					iAI.GiveApproachOrder( groupLeader, habitat_1 );
+				}
+				else
+				{
+					habitat_1 = iHabitat.FindByName( name );
+					
+					debug atomic
+					{
+						Debug.PrintString( "iScriptedOrders: Haulage ship " );
+						Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+						Debug.PrintString( " setting of for destination " );
+						Debug.PrintString( iMapEntity.Name( habitat_1 ) );
+						Debug.PrintString( "\n" );
+					}
+					
+					iAI.GiveApproachOrder( groupLeader, habitat_1 );
+				}
+			}
+		}
+	}
+	while ( local_1 );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders: Haulage ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " Has Out lived its usefulness and is about to be killed\n" );
+	}
+	
+	Global.SetInt( "g_total_haulage_running", Global.Int( "g_total_haulage_running" ) - simCount_0 );
+	
+	if ( Group.GroupCount( ships_ ) != 0 )
+	{
+		local_function_10( Group.NthGroup( ships_, 0 ) );
+		Group.RemoveGroup( ships_, Group.NthGroup( ships_, 0 ) );
+	}
+	
+	Group.Destroy( ships_, false );
+}
+
+task Trade( hgroup ships_ )
+{
+	int random;
+	int local_1;
+	int simCount_0;
+	int simCount_1;
+	set localSet = Global.Set( "g_filtered_system_habitats" );
+	string local_5;
+	hhabitat habitat_0 = iHabitat.Nearest( localSet, Group.Leader( ships_ ) );
+	hhabitat habitat_1;
+	hship groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+	
+	if ( !groupLeader )
+	{
+		debug Debug.PrintString( "iScriptedOrders.trade: Invalid Lead trader!\n" );
+		return;
+	}
+	
+	if ( !Global.Exists( "g_total_trade_running" ) )
+	{
+		Global.CreateInt( "g_total_trade_running", 2, Group.SimCount( ships_ ) );
+	}
+	else
+	{
+		Global.SetInt( "g_total_trade_running", Global.Int( "g_total_trade_running" ) + Group.SimCount( ships_ ) );
+	}
+	
+	simCount_0 = Group.SimCount( ships_ );
+	simCount_1 = Group.SimCount( ships_ );
+	localSet = iUtilities.CleanInactiveMapEntities();
+	random = Math.RandomInt( 0, 1 );
+	
+	if ( (iHabitat.Type( habitat_0 ) == HT_TradingPost) || (iHabitat.Type( habitat_0 ) == HT_BlackMarket) )
+	{
+		random = 0;
+	}
+	
+	switch ( random )
+	{
+		case 0:
+			debug Debug.PrintString( "iScriptedOrders.Trade: Trade Vessel is leaving local station\n" );
+			habitat_1 = iHabitat.Random( localSet );
+			break;
+		
+		case 1:
+			debug Debug.PrintString( "iScriptedOrders.Trade: Trade Vessel is arriving at local station\n" );
+			habitat_1 = habitat_0;
+			break;
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.Trade: Trade ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " setting of for destination " );
+		Debug.PrintString( iMapEntity.Name( habitat_1 ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	iAI.GiveDockOrder( groupLeader, habitat_1 );
+	
+	schedule
+	{
+		every 5.0:
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iScriptedOrders.Trade: Checking vessel " );
+				Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+				Debug.PrintString( " for its order status\n" );
+			}
+			
+			if ( Group.SimCount( ships_ ) != simCount_1 )
+			{
+				simCount_1 = Group.SimCount( ships_ );
+				
+				if ( simCount_1 != 0 )
+				{
+					groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+					iFormation.LineAhead( ships_, 40.0, false );
+					iAI.GiveApproachOrder( groupLeader, habitat_0 );
+				}
+				else
+				{
+					break;
+				}
+			}
+			
+			if ( iAI.IsOrderComplete( groupLeader ) )
+			{
+				debug atomic
+				{
+					Debug.PrintString( "iScriptedOrders: Trade ship " );
+					Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+					Debug.PrintString( " Reached destination " );
+					Debug.PrintString( iMapEntity.Name( habitat_0 ) );
+					Debug.PrintString( "\n" );
+				}
+				
+				Task.Sleep( Task.Current(), 30.0 );
+				iShip.Undock( groupLeader, habitat_1 );
+				habitat_1 = iHabitat.Random( localSet );
+				iAI.GiveDockOrder( groupLeader, habitat_1 );
+				
+				debug atomic
+				{
+					Debug.PrintString( "iScriptedOrders: Trade ship " );
+					Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+					Debug.PrintString( " setting of for destination " );
+					Debug.PrintString( iMapEntity.Name( habitat_0 ) );
+					Debug.PrintString( "\n" );
+				}
+			}
+		}
+		
+		every 30.0:
+		{
+			if ( (Sim.Group( groupLeader ) != ships_) || local_function_0( ships_ ) )
+			{
+				debug Debug.PrintString( "iScriptedOrders.trade: player nolonger in range killing ships\n" );
+				break;
+			}
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders: Trade ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " Has Out lived its usefulness and is about to be killed\n" );
+	}
+	
+	Global.SetInt( "g_total_trade_running", Global.Int( "g_total_trade_running" ) - simCount_0 );
+	
+	if ( Group.GroupCount( ships_ ) != 0 )
+	{
+		local_function_10( Group.NthGroup( ships_, 0 ) );
+		Group.RemoveGroup( ships_, Group.NthGroup( ships_, 0 ) );
+	}
+	
+	Group.Destroy( ships_, false );
+}
+
+task Tanker( hgroup ships_ )
+{
+	int random;
+	int local_1;
+	int simCount = Group.SimCount( ships_ );
+	set localSet = Global.Set( "g_filtered_system_habitats" );
+	hhabitat habitat_0 = iHabitat.Nearest( localSet, Group.Leader( ships_ ) );
+	hhabitat habitat_1;
+	hship groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+	
+	if ( !groupLeader )
+	{
+		debug Debug.PrintString( "iScriptedOrders.Tanker: Invalid Lead trader!\n" );
+		return;
+	}
+	
+	random = Math.RandomInt( 0, 1 );
+	
+	switch ( random )
+	{
+		case 0:
+			debug Debug.PrintString( "iScriptedOrders.tanker: tanker Vessel is leaving local station\n" );
+			habitat_1 = iHabitat.Random( localSet );
+			break;
+		
+		case 1:
+			debug Debug.PrintString( "iScriptedOrders.tanker: tanker Vessel is arriving at local station\n" );
+			habitat_1 = habitat_0;
+			break;
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.tanker: tanker ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " setting of for destination " );
+		Debug.PrintString( iMapEntity.Name( habitat_1 ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	iAI.GiveDockOrder( groupLeader, habitat_1 );
+	
+	schedule
+	{
+		every 5.0:
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iScriptedOrders.tanker: Checking vessel " );
+				Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+				Debug.PrintString( " for its order status\n" );
+			}
+			
+			if ( Group.SimCount( ships_ ) != simCount )
+			{
+				simCount = Group.SimCount( ships_ );
+				
+				if ( simCount != 0 )
+				{
+					groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+					iFormation.LineAhead( ships_, 40.0, false );
+					iAI.GiveDockOrder( groupLeader, habitat_1 );
+				}
+				else
+				{
+					break;
+				}
+			}
+			
+			if ( iAI.IsOrderComplete( groupLeader ) )
+			{
+				debug atomic
+				{
+					Debug.PrintString( "iScriptedOrders: tanker ship " );
+					Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+					Debug.PrintString( " Reached destination " );
+					Debug.PrintString( iMapEntity.Name( habitat_0 ) );
+					Debug.PrintString( "\n" );
+				}
+				
+				Task.Sleep( Task.Current(), 20.0 );
+				iShip.Undock( groupLeader, habitat_1 );
+				habitat_1 = iHabitat.Random( localSet );
+				iAI.GiveDockOrder( groupLeader, habitat_1 );
+				
+				debug atomic
+				{
+					Debug.PrintString( "iScriptedOrders: tanker ship " );
+					Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+					Debug.PrintString( " setting of for destination " );
+					Debug.PrintString( iMapEntity.Name( habitat_0 ) );
+					Debug.PrintString( "\n" );
+				}
+			}
+		}
+		
+		every 30.0:
+		{
+			if ( (Sim.Group( groupLeader ) != ships_) || !iUtilities.PlayerInRangeOfGroup( ships_ ) )
+			{
+				debug Debug.PrintString( "iScriptedOrders.tanker: player went out of range......\n" );
+				break;
+			}
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders: tanker ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " Has Out lived its usefulness and is about to be killed\n" );
+	}
+	
+	if ( Group.GroupCount( ships_ ) != 0 )
+	{
+		local_function_10( Group.NthGroup( ships_, 0 ) );
+		Group.RemoveGroup( ships_, Group.NthGroup( ships_, 0 ) );
+	}
+	
+	Group.Destroy( ships_, false );
+}
+
+task Supply( hgroup ships_ )
+{
+	int random;
+	int local_1;
+	int local_2;
+	int simCount_0;
+	int simCount_1;
+	int local_5;
+	int cargoOrigin = Object.IntProperty( Group.Leader( ships_ ), "cargo_origin" );
+	string name_0 = iMapEntity.SystemName();
+	string local_8;
+	string name_1;
+	set localSet = Global.Set( "g_filtered_system_habitats" );
+	string local_11;
+	hhabitat habitat = iHabitat.Nearest( localSet, Group.Leader( ships_ ) );
+	hship groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+	
+	if ( !groupLeader )
+	{
+		debug Debug.PrintString( "iScriptedOrders.supply: Invalid Lead supplier!\n" );
+		return;
+	}
+	
+	if ( !Global.Exists( "g_total_supply_running" ) )
+	{
+		Global.CreateInt( "g_total_supply_running", 2, Group.SimCount( ships_ ) );
+	}
+	else
+	{
+		Global.SetInt( "g_total_supply_running", Global.Int( "g_total_supply_running" ) + Group.SimCount( ships_ ) );
+	}
+	
+	simCount_0 = Group.SimCount( ships_ );
+	simCount_1 = Group.SimCount( ships_ );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.supply: Running Supply Orders " );
+		Debug.PrintString( "\n" );
+	}
+	
+	switch ( Math.RandomInt( 0, 1 ) )
+	{
+		case 0:
+			Object.SetIntProperty( Group.Leader( ships_ ), "cargo_origin", -1 );
+			break;
+		
+		case 1:
+			Object.SetIntProperty( Group.Leader( ships_ ), "cargo_origin", -2 );
+			break;
+	}
+	
+	if ( cargoOrigin == -1 )
+	{
+		random = Math.RandomInt( 0, 1 );
+		
+		if ( iHabitat.Type( habitat ) == HT_SupplyDepot )
+		{
+			random = 0;
+		}
+		
+		switch ( random )
+		{
+			case 0:
+				debug Debug.PrintString( "iScriptedOrders: Supply Vessel is leaving (Using SupplyGen) local station\n" );
+				name_1 = iMapEntity.Name( iHabitat.Random( localSet ) );
+				debug Debug.PrintString( name_1 );
+				debug Debug.PrintString( " \n" );
+				break;
+			
+			case 1:
+				debug Debug.PrintString( "iScriptedOrders: Supply Vessel is arriving at (Using Supply Gen) local station\n" );
+				name_1 = iMapEntity.Name( habitat );
+				debug Debug.PrintString( name_1 );
+				debug Debug.PrintString( " \n" );
+				
+				if ( local_function_6( habitat, " Load Slot " ) == false )
+				{
+					debug Debug.PrintString( "iScriptedOrders.Supply: local station no parking slots - jumping out\n" );
+					Task.Detach( start LagrangeHandler( ships_, "Random" ) );
+					return;
+				}
+				
+				if ( iHabitat.HasSpewer( iHabitat.Cast( habitat ) ) )
+				{
+					Task.Detach( start local_function_9( ships_, habitat, Task.Current() ) );
+					Task.Suspend( Task.Current() );
+				}
+				
+				break;
+		}
+	}
+	
+	if ( cargoOrigin == -2 )
+	{
+		random = Math.RandomInt( 0, 1 );
+		debug Debug.PrintString( "iScriptedTraffic: Military supply destination creation\n" );
+		
+		switch ( random )
+		{
+			case 0:
+				debug Debug.PrintString( "iScriptedOrders: Supply Vessel (Using Military Gen) is  leaving local station\n" );
+				name_1 = iMapEntity.Name( iHabitat.Random( localSet ) );
+				break;
+			
+			case 1:
+				debug Debug.PrintString( "iScriptedOrders: Supply Vessel (Using Military Gen) is arriving at local station\n" );
+				name_1 = iMapEntity.Name( habitat );
+				
+				if ( iHabitat.HasSpewer( iHabitat.Cast( habitat ) ) )
+				{
+					Task.Detach( start local_function_9( ships_, habitat, Task.Current() ) );
+					Task.Suspend( Task.Current() );
+				}
+				
+				break;
+		}
+	}
+	
+	if ( name_1 == "" )
+	{
+		debug Debug.PrintString( "O DEAR, SOMETHING BOBBINS HAS HAPPENED\n" );
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders: Supply ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " setting of for destination " );
+		Debug.PrintString( name_1 );
+		Debug.PrintString( "\n" );
+	}
+	
+	if ( !iHabitat.FindByName( name_1 ) )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iScriptedOrders.Supply: O Dear, supply vessel " );
+			Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+			Debug.PrintString( " Cannot find a destination, cleaning up\n" );
+		}
+		
+		iUtilities.GroupSetCullable( ships_, true );
+		Group.Destroy( ships_, false );
+		return;
+	}
+	
+	iAI.GiveApproachOrder( groupLeader, iHabitat.FindByName( name_1 ) );
+	
+	schedule
+	{
+		every 5.0:
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iScriptedOrders.Supply: Checking vessel " );
+				Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+				Debug.PrintString( " for its order status\n" );
+			}
+			
+			if ( Group.SimCount( ships_ ) != simCount_1 )
+			{
+				simCount_1 = Group.SimCount( ships_ );
+				
+				if ( simCount_1 != 0 )
+				{
+					groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+					iFormation.LineAhead( ships_, 40.0, false );
+					iAI.GiveApproachOrder( groupLeader, habitat );
+				}
+				else
+				{
+					break;
+				}
+			}
+			
+			if ( iAI.IsOrderComplete( groupLeader ) )
+			{
+				debug atomic
+				{
+					Debug.PrintString( "iScriptedOrders: Supply ship " );
+					Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+					Debug.PrintString( " Reached destination " );
+					Debug.PrintString( name_1 );
+					Debug.PrintString( "\n" );
+				}
+				
+				Task.Sleep( Task.Current(), 30.0 );
+				name_1 = iMapEntity.Name( iHabitat.Random( localSet ) );
+				iAI.GiveApproachOrder( groupLeader, iHabitat.FindByName( name_1 ) );
+				
+				debug atomic
+				{
+					Debug.PrintString( "iScriptedOrders: Supply ship " );
+					Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+					Debug.PrintString( " setting of for destination " );
+					Debug.PrintString( name_1 );
+					Debug.PrintString( "\n" );
+				}
+			}
+		}
+		
+		every 30.0:
+		{
+			if ( (Sim.Group( groupLeader ) != ships_) || local_function_0( ships_ ) )
+			{
+				debug Debug.PrintString( "iScriptedOrders.supply: player went out of range\n" );
+				break;
+			}
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders: Supply ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " Has Out lived its usefulness and is about to be killed\n" );
+	}
+	
+	Global.SetInt( "g_total_supply_running", Global.Int( "g_total_supply_running" ) - simCount_0 );
+	
+	if ( Group.GroupCount( ships_ ) != 0 )
+	{
+		local_function_10( Group.NthGroup( ships_, 0 ) );
+		Group.RemoveGroup( ships_, Group.NthGroup( ships_, 0 ) );
+	}
+	
+	Group.Destroy( ships_, false );
+}
+
+task LocalPatrol( hgroup ships_ )
+{
+	int local_0;
+	int constant = 8;
+	int simCount = Group.SimCount( ships_ );
+	bool local_3;
+	hgroup group_1 = Group.Create();
+	int local_5;
+	int local_6;
+	set localSet = Global.Set( "g_filtered_system_habitats" );
+	hhabitat habitat = iHabitat.Nearest( localSet, Group.Leader( ships_ ) );
+	int local_9;
+	hship groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+	float local_11 = iAI.InnerMarkerRadius( habitat, iSim.Cast( Group.Leader( ships_ ) ) );
+	float random_0 = Math.Random( local_11 + 200.0, local_11 + 800.0 );
+	float random_1 = 0.0;
+	hship playerShip = iShip.FindPlayerShip();
+	int local_15 = 24;
+	
+	if ( !groupLeader )
+	{
+		debug Debug.PrintString( "iScriptedOrders.localpatrol: Invalid Lead patroler!\n" );
+		return;
+	}
+	
+	debug Debug.PrintString( "iScriptedOrders: Starting Local Patrol Orders\n" );
+	Object.AddHandleProperty( groupLeader, "traffic_handler_task", Task.Current() );
+	Group.AddSim( group_1, Sim.Create( "ini:/sims/nav/waypoint", "Waypoint 1" ) );
+	Group.AddSim( group_1, Sim.Create( "ini:/sims/nav/waypoint", "Waypoint 2" ) );
+	Group.AddSim( group_1, Sim.Create( "ini:/sims/nav/waypoint", "Waypoint 3" ) );
+	Group.AddSim( group_1, Sim.Create( "ini:/sims/nav/waypoint", "Waypoint 4" ) );
+	Group.AddSim( group_1, Sim.Create( "ini:/sims/nav/waypoint", "Waypoint 5" ) );
+	Group.AddSim( group_1, Sim.Create( "ini:/sims/nav/waypoint", "Waypoint 6" ) );
+	Group.AddSim( group_1, Sim.Create( "ini:/sims/nav/waypoint", "Waypoint 7" ) );
+	Group.AddSim( group_1, Sim.Create( "ini:/sims/nav/waypoint", "Waypoint 8" ) );
+	Sim.PlaceRelativeTo( Sim.Cast( Group.NthSim( group_1, 0 ) ), habitat, random_0, 0.0, random_1 );
+	Sim.PlaceRelativeTo( Sim.Cast( Group.NthSim( group_1, 1 ) ), habitat, random_0, random_0 - 100.0, random_1 );
+	Sim.PlaceRelativeTo( Sim.Cast( Group.NthSim( group_1, 2 ) ), habitat, 0.0, random_0, random_1 );
+	Sim.PlaceRelativeTo( Sim.Cast( Group.NthSim( group_1, 3 ) ), habitat, -random_0, random_0 - 100.0, random_1 );
+	Sim.PlaceRelativeTo( Sim.Cast( Group.NthSim( group_1, 4 ) ), habitat, -random_0, 0.0, random_1 );
+	Sim.PlaceRelativeTo( Sim.Cast( Group.NthSim( group_1, 5 ) ), habitat, -random_0, -random_0 + 100.0, random_1 );
+	Sim.PlaceRelativeTo( Sim.Cast( Group.NthSim( group_1, 6 ) ), habitat, 0.0, -random_0, random_1 );
+	Sim.PlaceRelativeTo( Sim.Cast( Group.NthSim( group_1, 7 ) ), habitat, random_0, -random_0 + 100.0, random_1 );
+	local_0 = 0;
+	iAI.GiveEscortOrder( groupLeader, Group.NthSim( group_1, local_0 ), 0.0, 0.0, 0.0, 8000.0 );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders: LocalPatrol ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " setting of for destination " );
+		Debug.PrintString( Object.StringProperty( Group.NthSim( group_1, 0 ), "name" ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	if ( Object.PropertyExists( groupLeader, "no_run_off" ) )
+	{
+		local_3 = false;
+	}
+	else
+	{
+		local_3 = true;
+	}
+	
+	schedule
+	{
+		every 5.0:
+		{
+			if ( Group.SimCount( ships_ ) != simCount )
+			{
+				simCount = Group.SimCount( ships_ );
+				
+				if ( simCount != 0 )
+				{
+					groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+					iFormation.Goose( ships_, 40.0, false );
+					iAI.GiveEscortOrder( groupLeader, Group.NthSim( group_1, local_0 ), 0.0, 0.0, 0.0, 8000.0 );
+				}
+				else
+				{
+					break;
+				}
+			}
+			
+			if ( local_3 )
+			{
+				local_15 = ( local_15 + -1 );
+			}
+			
+			if ( local_15 < 0 )
+			{
+				iAI.GiveFleeOrder( groupLeader, playerShip );
+			}
+			
+			if ( (Sim.Group( groupLeader ) != ships_) || !iUtilities.PlayerInRangeOfGroup( ships_ ) )
+			{
+				debug Debug.PrintString( "iScriptedOrders.Localpatrol: player out of range......\n" );
+				break;
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iScriptedOrders.LocalPatrol: Checking vessel " );
+				Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+				Debug.PrintString( " for its order status\n" );
+			}
+			
+			if ( Sim.DistanceBetween( groupLeader, Group.NthSim( group_1, local_0 ) ) <= 300.0 )
+			{
+				if ( local_0 < 8 )
+				{
+					local_0 = ( local_0 + 1 );
+				}
+				else
+				{
+					debug atomic
+					{
+						Debug.PrintString( "iScriptedOrders: LocalPatrol ship " );
+						Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+						Debug.PrintString( " its first pass of waypoints.\n" );
+					}
+					
+					Group.Destroy( group_1, true );
+					random_1 = Math.Random( 100.0, 300.0 );
+					Group.AddSim( group_1, Sim.Create( "ini:/sims/nav/waypoint", "Waypoint 1" ) );
+					Group.AddSim( group_1, Sim.Create( "ini:/sims/nav/waypoint", "Waypoint 2" ) );
+					Group.AddSim( group_1, Sim.Create( "ini:/sims/nav/waypoint", "Waypoint 3" ) );
+					Group.AddSim( group_1, Sim.Create( "ini:/sims/nav/waypoint", "Waypoint 4" ) );
+					Group.AddSim( group_1, Sim.Create( "ini:/sims/nav/waypoint", "Waypoint 5" ) );
+					Group.AddSim( group_1, Sim.Create( "ini:/sims/nav/waypoint", "Waypoint 6" ) );
+					Group.AddSim( group_1, Sim.Create( "ini:/sims/nav/waypoint", "Waypoint 7" ) );
+					Group.AddSim( group_1, Sim.Create( "ini:/sims/nav/waypoint", "Waypoint 8" ) );
+					Sim.PlaceRelativeTo( Group.NthSim( group_1, 0 ), habitat, random_0, 0.0, random_1 );
+					Sim.PlaceRelativeTo( Group.NthSim( group_1, 1 ), habitat, random_0, random_0 - 100.0, random_1 );
+					Sim.PlaceRelativeTo( Group.NthSim( group_1, 2 ), habitat, 0.0, random_0, random_1 );
+					Sim.PlaceRelativeTo( Group.NthSim( group_1, 3 ), habitat, -random_0, random_0 - 100.0, random_1 );
+					Sim.PlaceRelativeTo( Group.NthSim( group_1, 4 ), habitat, -random_0, 0.0, random_1 );
+					Sim.PlaceRelativeTo( Group.NthSim( group_1, 5 ), habitat, -random_0, -random_0 + 100.0, random_1 );
+					Sim.PlaceRelativeTo( Group.NthSim( group_1, 6 ), habitat, 0.0, -random_0, random_1 );
+					Sim.PlaceRelativeTo( Group.NthSim( group_1, 7 ), habitat, random_0, -random_0 + 100.0, random_1 );
+					local_0 = 0;
+					iAI.GiveEscortOrder( groupLeader, Group.NthSim( group_1, local_0 ), 0.0, 0.0, 0.0, 8000.0 );
+					
+					debug atomic
+					{
+						Debug.PrintString( "iScriptedOrders: LocalPatrol ship " );
+						Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+						Debug.PrintString( " setting of for destination " );
+						Debug.PrintString( Object.StringProperty( Group.NthSim( group_1, local_0 ), "name" ) );
+						Debug.PrintString( "\n" );
+					}
+				}
+				
+				debug Debug.PrintString( "iScriptedOrders: Waypoint Reached\n" );
+				iAI.GiveEscortOrder( groupLeader, Group.NthSim( group_1, local_0 ), 0.0, 0.0, 0.0, 8000.0 );
+				
+				debug atomic
+				{
+					Debug.PrintString( "iScriptedOrders: LocalPatrol ship " );
+					Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+					Debug.PrintString( " setting of for destination " );
+					Debug.PrintString( Object.StringProperty( Group.NthSim( group_1, local_0 ), "name" ) );
+					Debug.PrintString( "\n" );
+				}
+			}
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders: LocalPatrol ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " Has Out lived its usefulness and is about to be killed\n" );
+	}
+	
+	if ( Group.GroupCount( ships_ ) != 0 )
+	{
+		local_function_10( Group.NthGroup( ships_, 0 ) );
+		Group.RemoveGroup( ships_, Group.NthGroup( ships_, 0 ) );
+	}
+	
+	Group.Destroy( ships_, false );
+	Group.Destroy( group_1, true );
+}
+
+task SystemPatrol( hgroup ships_ )
+{
+	int ii;
+	int simCount = Group.SimCount( ships_ );
+	set localSet = Global.Set( "g_filtered_system_habitats" );
+	list localList;
+	hhabitat habitat_0 = iHabitat.Nearest( localSet, Group.Leader( ships_ ) );
+	hhabitat habitat_1;
+	hship groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+	hship playerShip = iShip.FindPlayerShip();
+	int local_8 = 30;
+	
+	debug Debug.PrintString( "iScriptedOrders.SystemPatrol : Starting a system patrol task\n" );
+	
+	if ( !groupLeader )
+	{
+		debug Debug.PrintString( "iScriptedOrders.syspatrol: Invalid Lead patroler!\n" );
+		return;
+	}
+	
+	Object.AddHandleProperty( groupLeader, "traffic_handler_task", Task.Current() );
+	localList = List.FromSet( localSet );
+	
+	if ( List.IsEmpty( localList ) )
+	{
+		debug Debug.PrintString( "iScriptedOrders.SystemPatrol: Habitats list is empty!\n" );
+		Task.Detach( start LagrangeHandler( ships_, "Random" ) );
+		return;
+	}
+	
+	do
+	{
+		if ( iHabitat.Cast( List.GetNth( localList, 1 ) ) == false )
+		{
+			debug Debug.PrintString( "iScriptedOrders.SystemPatrol : location in filtered habitats is not a habitat!\n" );
+		}
+		
+		if ( iHabitat.Allegiance( iHabitat.Cast( List.GetNth( localList, ii ) ) ) != iHabitat.Allegiance( habitat_0 ) )
+		{
+			List.RemoveNth( localList, ii );
+		}
+		else
+		{
+			ii = ( ii + 1 );
+		}
+	}
+	while ( ii < List.ItemCount( localList ) );
+	
+	for ( ii = 0; ii < List.ItemCount( localList ); ++ii )
+	{
+		if ( iMapEntity.Name( iMapEntity.Cast( List.GetNth( localList, ii ) ) ) == iMapEntity.Name( habitat_0 ) )
+		{
+			debug Debug.PrintString( "iScriptedOrders: Found Starting Patrol Station. Removing from list.........\n" );
+			List.RemoveNth( localList, ii );
+			ii = List.ItemCount( localList );
+		}
+	}
+	
+	localList = List.FromSet( localSet );
+	debug Debug.PrintString( "iScriptedOrders: Starting to create System Patrol Orders\n" );
+	
+	if ( List.ItemCount( localList ) <= 1 )
+	{
+		debug Debug.PrintString( "iScriptedOrders: ERROR - unable to find habitats of same alligience to visit.... Exiting task\n" );
+		return;
+	}
+	
+	habitat_1 = iHabitat.Cast( List.GetNth( localList, 0 ) );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders:  SystemPatrol ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " setting of for destination " );
+		Debug.PrintString( iMapEntity.Name( habitat_1 ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	ii = 0;
+	iAI.GiveEscortOrder( groupLeader, habitat_1, 0.0, 0.0, 0.0, 8000.0 );
+	
+	schedule
+	{
+		every 10.0:
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iScriptedOrders.SystemPatrol: Checking vessel " );
+				Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+				Debug.PrintString( " for its order status\n" );
+			}
+			
+			if ( Group.SimCount( ships_ ) != simCount )
+			{
+				simCount = Group.SimCount( ships_ );
+				
+				if ( simCount != 0 )
+				{
+					groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+					iFormation.Goose( ships_, 40.0, false );
+					iAI.GiveEscortOrder( groupLeader, habitat_1, 0.0, 0.0, 0.0, 8000.0 );
+				}
+				else
+				{
+					break;
+				}
+			}
+			
+			if ( Sim.DistanceBetween( groupLeader, habitat_1 ) <= 1000.0 )
+			{
+				if ( ii <= List.ItemCount( localList ) )
+				{
+					ii = ( ii + 1 );
+				}
+				else
+				{
+					ii = 0;
+				}
+				
+				habitat_1 = iHabitat.Cast( List.GetNth( localList, ii ) );
+				iAI.GiveEscortOrder( groupLeader, habitat_1, 0.0, 0.0, 0.0, 8000.0 );
+			}
+			
+			local_8 = ( local_8 + -1 );
+			
+			if ( local_8 < 0 )
+			{
+				iAI.GiveFleeOrder( groupLeader, playerShip );
+			}
+		}
+		
+		every 30.0:
+		{
+			if ( (Sim.Group( groupLeader ) != ships_) || !iUtilities.PlayerInRangeOfGroup( ships_ ) )
+			{
+				break;
+			}
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders: SystemPatrol ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " Has Out lived its usefulness and is about to be killed\n" );
+	}
+	
+	if ( Group.GroupCount( ships_ ) != 0 )
+	{
+		local_function_10( Group.NthGroup( ships_, 0 ) );
+		Group.RemoveGroup( ships_, Group.NthGroup( ships_, 0 ) );
+	}
+	
+	Group.Destroy( ships_, false );
+}
+
+task FreelanceMine( hgroup ships_ )
+{
+	bool local_0;
+	int local_1;
+	int simCount = Group.SimCount( ships_ );
+	set localSet = Global.Set( "g_filtered_system_habitats" );
+	list localList;
+	hhabitat habitat = iHabitat.Nearest( localSet, Group.Leader( ships_ ) );
+	hsim local_6;
+	hship groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+	hship playerShip = iShip.FindPlayerShip();
+	float local_9 = iAI.InnerMarkerRadius( habitat, iSim.Cast( Group.Leader( ships_ ) ) );
+	int local_10;
+	int itemCount;
+	
+	if ( !groupLeader )
+	{
+		debug Debug.PrintString( "iScriptedOrders.freeminer: Invalid Lead miner!\n" );
+		return;
+	}
+	
+	localList = List.FromSet( iSim.SimsInRadius( playerShip, 20000.0, 1024 ) );
+	itemCount = List.ItemCount( localList );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.freeminer: miner: " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " reporting " );
+		Debug.PrintInt( itemCount );
+		Debug.PrintString( " mine locations in area\n" );
+	}
+	
+	if ( itemCount == 0 )
+	{
+		Task.Detach( start LagrangeHandler( ships_, "Random" ) );
+		return;
+	}
+	
+	local_6 = Sim.Cast( List.GetNth( localList, Math.RandomInt( 0, itemCount - 1 ) ) );
+	local_0 = false;
+	iAI.GiveApproachOrder( groupLeader, local_6 );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.freeminer: FreelanceMiner ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " setting off for destination " );
+		Debug.PrintString( Object.StringProperty( local_6, "name" ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	schedule
+	{
+		every 10.0:
+		{
+			if ( Group.SimCount( ships_ ) != simCount )
+			{
+				simCount = Group.SimCount( ships_ );
+				
+				if ( simCount != 0 )
+				{
+					groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+					iFormation.LineAbreast( ships_, 40.0, false );
+					iAI.GiveApproachOrder( groupLeader, local_6 );
+				}
+				else
+				{
+					break;
+				}
+			}
+			
+			if ( iAI.IsOrderComplete( groupLeader ) )
+			{
+				debug Debug.PrintString( "iScriptedOrders.freeminer: Reached Asteroid\n" );
+				Task.Sleep( Task.Current(), 5.0 );
+				localList = List.FromSet( iSim.SimsInRadius( playerShip, 10000.0, 1024 ) );
+				itemCount = List.ItemCount( localList );
+				
+				if ( itemCount == 0 )
+				{
+					Task.Detach( start LagrangeHandler( ships_, "Random" ) );
+					return;
+				}
+				
+				local_6 = Sim.Cast( List.GetNth( localList, Math.RandomInt( 0, itemCount - 1 ) ) );
+				iAI.GiveApproachOrder( groupLeader, local_6 );
+				
+				debug atomic
+				{
+					Debug.PrintString( "iScriptedOrders.freeminer: FreelanceMiner ship " );
+					Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+					Debug.PrintString( " setting off for destination " );
+					Debug.PrintString( Object.StringProperty( local_6, "name" ) );
+					Debug.PrintString( "\n" );
+				}
+			}
+		}
+		
+		every 30.0:
+		{
+			if ( (Sim.Group( groupLeader ) != ships_) || !iUtilities.PlayerInRangeOfGroup( ships_ ) )
+			{
+				break;
+			}
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.freeminer: FreelanceMiner ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " Has Out lived its usefulness and is about to be killed\n" );
+	}
+	
+	if ( Group.GroupCount( ships_ ) != 0 )
+	{
+		local_function_10( Group.NthGroup( ships_, 0 ) );
+		Group.RemoveGroup( ships_, Group.NthGroup( ships_, 0 ) );
+	}
+	
+	Group.Destroy( ships_, false );
+}
+
+task FactoryMine( hgroup ships_ )
+{
+	int random;
+	int local_1;
+	int simCount = Group.SimCount( ships_ );
+	set localSet_0 = Global.Set( "g_filtered_system_habitats" );
+	set localSet_1;
+	hhabitat habitat = iHabitat.Nearest( localSet_0, Group.Leader( ships_ ) );
+	hbody body;
+	hship groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+	float local_8 = iAI.InnerMarkerRadius( habitat, iSim.Cast( Group.Leader( ships_ ) ) );
+	int local_9;
+	
+	debug Debug.PrintString( "iScriptedOrders.factorymine: Been passed FactoryMine orders (INCOMPLETE)\n" );
+	
+	if ( !groupLeader )
+	{
+		debug Debug.PrintString( "iScriptedOrders.factorymine: Invalid Lead miner!\n" );
+		Task.Detach( start LagrangeHandler( ships_, "Random" ) );
+		return;
+	}
+	
+	Set.Union( localSet_1, iBody.FilterOnType( iMapEntity.SystemBodies(), BT_Asteroid ) );
+	Set.Union( localSet_1, iBody.FilterOnType( iMapEntity.SystemBodies(), BT_AsteroidBelt ) );
+	body = iBody.Nearest( localSet_1, Sim.Cast( groupLeader ) );
+	
+	if ( body == false )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iScriptedOrders.factorymine: ARRgggghh - theres nothing for me (" );
+			Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+			Debug.PrintString( ") to mine\n" );
+		}
+	}
+	
+	random = Math.RandomInt( 0, 1 );
+	
+	if ( random == 0 )
+	{
+		iAI.GiveApproachOrder( groupLeader, body );
+		
+		debug atomic
+		{
+			Debug.PrintString( "iScriptedOrders.factorymine: factorymine ship " );
+			Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+			Debug.PrintString( " setting of for destination " );
+			Debug.PrintString( Object.StringProperty( body, "name" ) );
+			Debug.PrintString( "\n" );
+		}
+	}
+	else
+	{
+		iAI.GiveApproachOrder( groupLeader, habitat );
+		
+		debug atomic
+		{
+			Debug.PrintString( "iScriptedOrders.factorymine: factorymine ship " );
+			Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+			Debug.PrintString( " setting of for destination " );
+			Debug.PrintString( Object.StringProperty( body, "name" ) );
+			Debug.PrintString( "\n" );
+		}
+	}
+	
+	schedule
+	{
+		every 10.0:
+		{
+			if ( Group.SimCount( ships_ ) != simCount )
+			{
+				simCount = Group.SimCount( ships_ );
+				
+				if ( simCount != 0 )
+				{
+					groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+					iFormation.LineAbreast( ships_, 40.0, false );
+					iAI.GiveApproachOrder( groupLeader, habitat );
+				}
+				else
+				{
+					break;
+				}
+			}
+			
+			if ( random == 0 )
+			{
+				if ( iAI.IsOrderComplete( groupLeader ) )
+				{
+					debug Debug.PrintString( "iScriptedOrders.factorymine: Reached Asteroid\n" );
+					Task.Sleep( Task.Current(), 60.0 );
+					random = 1;
+					iAI.GiveFormateOrder( groupLeader, habitat, 0.0, 0.0, 0.0 );
+					
+					debug atomic
+					{
+						Debug.PrintString( "iScriptedOrders.factorymine: factorymine ship " );
+						Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+						Debug.PrintString( " setting of for destination " );
+						Debug.PrintString( Object.StringProperty( body, "name" ) );
+						Debug.PrintString( "\n" );
+					}
+				}
+			}
+			else if ( iAI.IsOrderComplete( groupLeader ) )
+			{
+				debug Debug.PrintString( "iScriptedOrders.factorymine: Reached base\n" );
+				Task.Sleep( Task.Current(), 60.0 );
+				random = 0;
+				iAI.GiveFormateOrder( groupLeader, body, 0.0, 0.0, 0.0 );
+				
+				debug atomic
+				{
+					Debug.PrintString( "iScriptedOrders.factorymine: factorymine ship " );
+					Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+					Debug.PrintString( " setting of for destination " );
+					Debug.PrintString( Object.StringProperty( body, "name" ) );
+					Debug.PrintString( "\n" );
+				}
+			}
+		}
+		
+		every 30.0:
+		{
+			if ( (Sim.Group( groupLeader ) != ships_) || !iUtilities.PlayerInRangeOfGroup( ships_ ) )
+			{
+				break;
+			}
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.factorymine: factorymine ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " Has Out lived its usefulness and is about to be killed\n" );
+	}
+	
+	if ( Group.GroupCount( ships_ ) != 0 )
+	{
+		local_function_10( Group.NthGroup( ships_, 0 ) );
+		Group.RemoveGroup( ships_, Group.NthGroup( ships_, 0 ) );
+	}
+	
+	Group.Destroy( ships_, false );
+}
+
+hfaction local_function_11( hfaction faction_0_ )
+{
+	int ii;
+	list localList = iFaction.All();
+	hfaction faction_1;
+	
+	for ( ii = 0; ii < List.ItemCount( localList ); ++ii )
+	{
+		faction_1 = iFaction.Cast( List.GetNth( localList, ii ) );
+		
+		if ( iFaction.Feeling( faction_1, faction_0_ ) < 0.0 )
+		{
+			return faction_1;
+		}
+	}
+	
+	return none;
+}
+
+task Scout( hgroup ships_ )
+{
+	int local_0;
+	bool local_1;
+	int simCount = Group.SimCount( ships_ );
+	int local_3;
+	list localList = iFaction.All();
+	set localSet_0 = Global.Set( "g_filtered_system_habitats" );
+	set localSet_1;
+	hship groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+	hfaction faction_0 = iSim.Faction( groupLeader );
+	hfaction faction_1;
+	hfaction faction_2;
+	hhabitat habitat_0;
+	hhabitat habitat_1 = iHabitat.Nearest( localSet_0, groupLeader );
+	
+	if ( habitat_1 == false )
+	{
+		debug Debug.PrintString( "iScriptedOrders.Scount: Local habitat was none.. \n" );
+		Task.Detach( start LagrangeHandler( ships_, "Random" ) );
+		return;
+	}
+	
+	Object.AddHandleProperty( groupLeader, "traffic_handler_task", Task.Current() );
+	debug Debug.PrintString( "iScriptedOrders.Scout: Starting.... \n" );
+	faction_1 = iFaction.Cast( List.GetNth( localList, iHabitat.Allegiance( habitat_1 ) ) );
+	
+	if ( iFaction.Feeling( faction_0, faction_1 ) >= 0.0 )
+	{
+		debug Debug.PrintString( "iScriptedOrders.scout: found match on local station with ship faction\n" );
+		faction_2 = local_function_11( faction_0 );
+		
+		if ( faction_2 == false )
+		{
+			debug Debug.PrintString( "iScriptedOrders.Scout: unable to find opposing faction ending task\n" );
+			Group.Destroy( ships_, true );
+			return;
+		}
+		
+		localSet_1 = iUtilities.FilterOnFriendlyHabitats( localSet_0, iFaction.Allegiance( faction_2 ) );
+		habitat_0 = iHabitat.Cast( Set.FirstElement( localSet_1 ) );
+	}
+	else
+	{
+		debug Debug.PrintString( "iScriptedOrders.Scout: Local station faction selected as opposing faction\n" );
+		faction_2 = faction_1;
+		habitat_0 = habitat_1;
+		habitat_1 = iHabitat.Cast( Set.FirstElement( iUtilities.FilterOnFriendlyHabitats( localSet_0, iFaction.Allegiance( faction_0 ) ) ) );
+	}
+	
+	iAI.GiveApproachOrder( groupLeader, habitat_0 );
+	
+	schedule
+	{
+		every 10.0:
+		{
+			if ( Group.SimCount( ships_ ) != simCount )
+			{
+				simCount = Group.SimCount( ships_ );
+				
+				if ( simCount != 0 )
+				{
+					groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+					iFormation.LineAbreast( ships_, 40.0, false );
+					iAI.GiveApproachOrder( groupLeader, habitat_0 );
+				}
+				else
+				{
+					break;
+				}
+			}
+			
+			if ( local_1 == 0 )
+			{
+				if ( iAI.IsOrderComplete( groupLeader ) )
+				{
+					debug Debug.PrintString( "iScriptedOrders.Scout: Reached Scouting position\n" );
+					Task.Sleep( Task.Current(), 6.0 );
+					iAI.GiveDockOrder( groupLeader, habitat_1 );
+					local_1 = true;
+					
+					debug atomic
+					{
+						Debug.PrintString( "iScriptedOrders.Scout: Scout ship " );
+						Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+						Debug.PrintString( " setting of for destination " );
+						Debug.PrintString( Object.StringProperty( habitat_0, "name" ) );
+						Debug.PrintString( "\n" );
+					}
+				}
+			}
+			else if ( iAI.IsOrderComplete( groupLeader ) )
+			{
+				debug Debug.PrintString( "iScriptedOrders.Scout: Reached base\n" );
+				Task.Sleep( Task.Current(), 30.0 );
+			}
+		}
+		
+		every 30.0:
+		{
+			if ( (Sim.Group( groupLeader ) != ships_) || !iUtilities.PlayerInRangeOfGroup( ships_ ) )
+			{
+				break;
+			}
+		}
+	}
+	
+	if ( Group.GroupCount( ships_ ) != 0 )
+	{
+		local_function_10( Group.NthGroup( ships_, 0 ) );
+		Group.RemoveGroup( ships_, Group.NthGroup( ships_, 0 ) );
+	}
+	
+	Group.Destroy( ships_, false );
+}
+
+task OfficialVisitor( hgroup ships_ )
+{
+	int local_0;
+	int random;
+	int simCount = Group.SimCount( ships_ );
+	set localSet_0 = Global.Set( "g_filtered_system_habitats" );
+	set localSet_1;
+	hhabitat habitat_0 = iHabitat.Nearest( localSet_0, Group.Leader( ships_ ) );
+	hhabitat habitat_1;
+	hhabitat habitat_2;
+	hship groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+	
+	if ( !groupLeader )
+	{
+		debug Debug.PrintString( "iScriptedOrders.officialvisitor: Invalid Lead visitor!\n" );
+		return;
+	}
+	
+	if ( (iHabitat.Type( habitat_0 ) == HT_FinancialCentre) || ((iHabitat.Type( habitat_0 ) == HT_RegionalHQ) || ((iHabitat.Type( habitat_0 ) == HT_PlanetaryAdministration) || ((iHabitat.Type( habitat_0 ) == HT_SystemAdministration) || ((iHabitat.Type( habitat_0 ) == HT_ClusterAdministration) || ((iHabitat.Type( habitat_0 ) == HT_RegionalDepartment) || ((iHabitat.Type( habitat_0 ) == HT_STCHQ) || (iHabitat.Type( habitat_0 ) == HT_CentralHQ))))))) )
+	{
+		habitat_2 = habitat_0;
+	}
+	else
+	{
+		Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_FinancialCentre ) );
+		Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_RegionalHQ ) );
+		Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_PlanetaryAdministration ) );
+		Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_SystemAdministration ) );
+		Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_ClusterAdministration ) );
+		Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_RegionalDepartment ) );
+		Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_STCHQ ) );
+		Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_CentralHQ ) );
+		habitat_2 = iHabitat.Random( localSet_0 );
+		
+		if ( habitat_2 == false )
+		{
+			debug Debug.PrintString( "iScriptedOrders: Official Visitor Error - there appears to be nowhere for me to make a home.\n" );
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders: Official Orders Passed with " );
+		Debug.PrintString( iMapEntity.Name( habitat_2 ) );
+		Debug.PrintString( " as vessel base\n" );
+	}
+	
+	habitat_1 = iHabitat.Random( localSet_0 );
+	random = Math.RandomInt( 0, 1 );
+	
+	if ( habitat_2 == habitat_0 )
+	{
+		random = 1;
+	}
+	
+	if ( random == 0 )
+	{
+		iAI.GiveDockOrder( groupLeader, habitat_0 );
+		
+		debug atomic
+		{
+			Debug.PrintString( "iScriptedOrders: Official Visitor ship " );
+			Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+			Debug.PrintString( " setting of for destination " );
+			Debug.PrintString( iMapEntity.Name( habitat_0 ) );
+			Debug.PrintString( "\n" );
+		}
+	}
+	else
+	{
+		iAI.GiveDockOrder( groupLeader, habitat_1 );
+		
+		debug atomic
+		{
+			Debug.PrintString( "iScriptedOrders: Official Visitor ship " );
+			Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+			Debug.PrintString( " setting of for destination " );
+			Debug.PrintString( iMapEntity.Name( habitat_1 ) );
+			Debug.PrintString( "\n" );
+		}
+	}
+	
+	schedule
+	{
+		every 10.0:
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iScriptedOrders.OfficialVisitor: Checking vessel " );
+				Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+				Debug.PrintString( " for its order status\n" );
+			}
+			
+			if ( Group.SimCount( ships_ ) != simCount )
+			{
+				simCount = Group.SimCount( ships_ );
+				
+				if ( simCount != 0 )
+				{
+					groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+					iFormation.LineAbreast( ships_, 40.0, false );
+					iAI.GiveDockOrder( groupLeader, habitat_1 );
+				}
+				else
+				{
+					break;
+				}
+			}
+			
+			if ( random == 0 )
+			{
+				if ( iAI.IsOrderComplete( groupLeader ) )
+				{
+					Task.Sleep( Task.Current(), 60.0 );
+				}
+			}
+			else if ( iAI.IsOrderComplete( groupLeader ) )
+			{
+				Task.Sleep( Task.Current(), 30.0 );
+				iShip.Undock( groupLeader, habitat_1 );
+				random = 0;
+				iAI.GiveApproachOrder( groupLeader, habitat_2 );
+			}
+		}
+		
+		every 30.0:
+		{
+			if ( (Sim.Group( groupLeader ) != ships_) || !iUtilities.PlayerInRangeOfGroup( ships_ ) )
+			{
+				break;
+			}
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders: OfficialVisitor ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " Has Out lived its usefulness and is about to be killed\n" );
+	}
+	
+	if ( Group.GroupCount( ships_ ) != 0 )
+	{
+		local_function_10( Group.NthGroup( ships_, 0 ) );
+		Group.RemoveGroup( ships_, Group.NthGroup( ships_, 0 ) );
+	}
+	
+	Group.Destroy( ships_, false );
+}
+
+hship local_function_12( hship ship_, string param_1_ )
+{
+	set localSet = Global.Set( "g_filtered_system_habitats" );
+	hhabitat habitat = iHabitat.Nearest( localSet, ship_ );
+	list localList = List.FromSet( iSim.SimsInRadius( habitat, 2000.0, 536838144 ) );
+	int ii;
+	
+	for ( ii = 0; ii < List.ItemCount( localList ); ++ii )
+	{
+		if ( Object.PropertyExists( Sim.Cast( List.GetNth( localList, ii ) ), param_1_ ) )
+		{
+			return iShip.Cast( List.GetNth( localList, ii ) );
+		}
+	}
+	
+	return none;
+}
+
+task Piracy( hgroup ships_ )
+{
+	bool local_0 = false;
+	int local_1;
+	int simCount = Group.SimCount( ships_ );
+	hship ship_0;
+	set localSet_0 = Global.Set( "g_filtered_system_habitats" );
+	set localSet_1;
+	hship ship_1;
+	hhabitat habitat;
+	hship groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+	
+	if ( !groupLeader )
+	{
+		debug Debug.PrintString( "iScriptedOrders.Piracy: Invalid Lead Pirate!\n" );
+		return;
+	}
+	
+	debug Debug.PrintString( "iScriptedOrders: Been passed Piracy orders\n" );
+	ship_1 = local_function_12( groupLeader, "cargo_origin" );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders: I've decided to pirate that juicy looking vessel: " );
+		Debug.PrintString( Object.StringProperty( ship_1, "name" ) );
+		Debug.PrintString( "\n " );
+	}
+	
+	Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_MercenaryBase ) );
+	Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_PirateBase ) );
+	Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_PirateCove ) );
+	Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_PirateOutpost ) );
+	Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_GangsterHideout ) );
+	Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_Hideout ) );
+	
+	if ( Set.ItemCount( localSet_1 ) == 0 )
+	{
+		debug Debug.PrintString( "iScriptedOrders: Bugger, this no pirate base for me to run to leaving......\n" );
+	}
+	
+	habitat = iHabitat.Random( localSet_1 );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders: Found Pirate Base location: " );
+		Debug.PrintString( iMapEntity.Name( habitat ) );
+		Debug.PrintString( "\n " );
+	}
+	
+	if ( ship_1 == false )
+	{
+		iAI.GiveFormateOrder( groupLeader, habitat, -20.0, 0.0, 0.0 );
+		local_0 = true;
+	}
+	else
+	{
+		iAI.GiveFormateOrder( groupLeader, ship_1, 0.0, 0.0, -40.0 );
+	}
+	
+	schedule
+	{
+		every 10.0:
+		{
+			if ( Group.SimCount( ships_ ) != simCount )
+			{
+				simCount = Group.SimCount( ships_ );
+				
+				if ( simCount != 0 )
+				{
+					groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+					iEscort.Goose( ships_, 40.0, 8000.0, false );
+					iAI.GiveFormateOrder( groupLeader, ship_1, 0.0, 0.0, -40.0 );
+				}
+				else
+				{
+					break;
+				}
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iScriptedOrders.Piracy: Checking vessel " );
+				Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+				Debug.PrintString( " for its order status\n" );
+			}
+			
+			if ( (iAI.IsOrderComplete( groupLeader ) || (Sim.DistanceBetween( groupLeader, ship_1 ) < 300.0)) && (local_0 == 0) )
+			{
+				iAI.GiveAttackOrder( groupLeader, ship_1 );
+				
+				do
+				{
+					ship_0 = local_function_12( groupLeader, "cargo" );
+					Task.Sleep( Task.Current(), 2.0 );
+				}
+				while ( ship_0 == false );
+				
+				iAI.RemoveOrder( groupLeader );
+				iAI.GiveDockOrder( groupLeader, ship_0 );
+				
+				do
+				{
+					Task.Sleep( Task.Current(), 5.0 );
+				}
+				while ( !iAI.IsOrderComplete( groupLeader ) );
+				
+				if ( habitat == false )
+				{
+					iAI.GiveApproachOrder( groupLeader, habitat );
+				}
+				else
+				{
+					Task.Detach( start LagrangeHandler( ships_, "Random" ) );
+				}
+				
+				debug Debug.PrintString( "iScriptedOrders: Finished piracy - leggin' it\n" );
+				local_0 = true;
+			}
+			else if ( local_0 == 1 )
+			{
+				if ( iAI.IsOrderComplete( groupLeader ) )
+				{
+					break;
+				}
+			}
+		}
+		
+		every 30.0:
+		{
+			if ( (Sim.Group( groupLeader ) != ships_) || !iUtilities.PlayerInRangeOfGroup( ships_ ) )
+			{
+				break;
+			}
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders: Pirate ship " );
+		Debug.PrintString( Object.StringProperty( Group.Leader( ships_ ), "name" ) );
+		Debug.PrintString( " Has Out lived its usefulness and is about to be killed\n" );
+	}
+	
+	if ( Group.GroupCount( ships_ ) != 0 )
+	{
+		local_function_10( Group.NthGroup( ships_, 0 ) );
+		Group.RemoveGroup( ships_, Group.NthGroup( ships_, 0 ) );
+	}
+	
+	Group.Destroy( ships_, false );
+}
+
+task HotRodder( hgroup ships_ )
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	int local_2;
+	int simCount = Group.SimCount( ships_ );
+	set localSet_0 = Global.Set( "g_filtered_system_habitats" );
+	set localSet_1;
+	hhabitat habitat_0 = iHabitat.Nearest( localSet_0, Group.Leader( ships_ ) );
+	hhabitat habitat_1;
+	hship playerShip = iShip.FindPlayerShip();
+	hship groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+	string local_10;
+	
+	if ( !groupLeader )
+	{
+		debug Debug.PrintString( "iScriptedOrders.hotrodder: Invalid Lead hotrodder!\n" );
+		Global.Destroy( "g_hot_rodder_running" );
+		return;
+	}
+	
+	if ( Object.IDModulus( groupLeader, 2 ) == 1 )
+	{
+		local_10 = "_male_1";
+	}
+	else
+	{
+		local_10 = "_female_1";
+	}
+	
+	debug Debug.PrintString( "iScriptedOrders.hotrodder: Been passed HotRodder orders\n" );
+	Object.SetIntProperty( groupLeader, "ignore_speed_limit", 1 );
+	Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_Habitat ) );
+	Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_CollectiveSettlement ) );
+	Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_Settlement ) );
+	Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_Homestead ) );
+	Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_Villa ) );
+	Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_BoxTown ) );
+	Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_HoffersGap ) );
+	Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_HoffersHeel ) );
+	habitat_1 = iHabitat.Random( localSet_1 );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.hotrodder: Found home location: " );
+		Debug.PrintString( iMapEntity.Name( habitat_1 ) );
+		Debug.PrintString( "\n " );
+	}
+	
+	iAI.GiveFormateOrder( groupLeader, playerShip, 60.0, 0.0, 0.0 );
+	
+	schedule
+	{
+		every 10.0:
+		{
+			if ( Group.SimCount( ships_ ) != simCount )
+			{
+				simCount = Group.SimCount( ships_ );
+				
+				if ( simCount != 0 )
+				{
+					groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+					iAI.GiveFormateOrder( groupLeader, playerShip, 60.0, 0.0, 0.0 );
+				}
+				else
+				{
+					break;
+				}
+			}
+			
+			if ( Sim.Group( groupLeader ) == ships_ )
+			{
+				if ( !iUtilities.PlayerInRangeOfGroup( ships_ ) )
+				{
+					break;
+				}
+			}
+			else
+			{
+				debug Debug.PrintString( "iScriptedOrders.Hotrodder: Ship nolonger exists, ending task\n" );
+				break;
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iScriptedOrders.HotRodder: Checking vessel " );
+				Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+				Debug.PrintString( " for its order status\n" );
+			}
+			
+			if ( (Sim.DistanceBetween( groupLeader, playerShip ) < 4000.0) && !local_1 )
+			{
+				local_1 = true;
+				iComms.Shout( groupLeader, "", String.Join( "stock_hotrodder_nice_ship", local_10 ) );
+				Task.Sleep( Task.Current(), 3.0 );
+			}
+			
+			if ( (iAI.IsOrderComplete( groupLeader ) || (Sim.DistanceBetween( playerShip, groupLeader ) <= 1500.0)) && (local_0 == 0) )
+			{
+				local_0 = true;
+				iComms.Shout( groupLeader, "", String.Join( "stock_hotrodder_ready", local_10 ) );
+				Task.Sleep( Task.Current(), 4.0 );
+				iComms.Shout( groupLeader, "", String.Join( "stock_hotrodder_go", local_10 ) );
+				iAI.PurgeOrders( groupLeader );
+				iAI.GiveApproachOrder( groupLeader, habitat_1 );
+				debug Debug.PrintString( "iScriptedOrders.hotrodder: Finished hotrodding - legging it\n" );
+			}
+			else if ( local_0 == 1 )
+			{
+				if ( iAI.IsOrderComplete( groupLeader ) )
+				{
+					break;
+				}
+			}
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.hotrodder: HotRodder ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " Has Out lived its usefulness and is about to be killed\n" );
+	}
+	
+	if ( Group.GroupCount( ships_ ) != 0 )
+	{
+		local_function_10( Group.NthGroup( ships_, 0 ) );
+		Group.RemoveGroup( ships_, Group.NthGroup( ships_, 0 ) );
+	}
+	
+	Group.Destroy( ships_, false );
+	Global.Destroy( "g_hot_rodder_running" );
+}
+
+task LocalWander( hgroup ships_ )
+{
+	debug Debug.PrintString( "iScriptedOrders.localwanderer: - Using Cabbie Scripted Orders\n" );
+	Task.Detach( start Cabbie( ships_ ) );
+}
+
+task Pilgrimage( hgroup ships_ )
+{
+	debug Debug.PrintString( "iScriptedOrders.Pilgrimage: - Using Cabbie Scripted Orders\n" );
+	Task.Detach( start Cabbie( ships_ ) );
+}
+
+task Tourist( hgroup ships_ )
+{
+	debug Debug.PrintString( "iScriptedOrders.Tourist: Using Cabbie scripted orders\n" );
+	Task.Detach( start Cabbie( ships_ ) );
+}
+
+task Cabbie( hgroup ships_ )
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	int totalSimCount = Group.TotalSimCount( ships_ );
+	hship groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+	set localSet;
+	hhabitat habitat_0;
+	hhabitat habitat_1;
+	bool local_7;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders: Cabbie - Cabbie task started. Cabbie is '" );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( "'\n" );
+	}
+	
+	localSet = Global.Set( "g_filtered_system_habitats" );
+	habitat_0 = iHabitat.Nearest( localSet, groupLeader );
+	Set.Remove( localSet, habitat_0 );
+	
+	if ( Set.ItemCount( localSet ) < 2 )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iScriptedOrders: Cabbie - < 2 habitats found. Cabbie " );
+			Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+			Debug.PrintString( " is terminating.\n" );
+		}
+		
+		iUtilities.GroupSetCullable( ships_, true );
+		Group.Destroy( ships_, false );
+		return;
+	}
+	
+	do
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iScriptedOrders: Cabbie - '" );
+			Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+			Debug.PrintString( "' heading for Habitat: '" );
+			Debug.PrintString( iMapEntity.Name( habitat_0 ) );
+			Debug.PrintString( "'\n" );
+		}
+		
+		iAI.GiveDockOrder( groupLeader, habitat_0 );
+		
+		switch ( Math.RandomInt( 0, 1 ) )
+		{
+			case 0:
+				local_7 = false;
+				break;
+			
+			case 1:
+				local_7 = true;
+				break;
+		}
+		
+		if ( local_7 )
+		{
+			Sim.AvatarAddChannel( Group.Leader( ships_ ), "for_hire", 1.0 );
+		}
+		
+		schedule
+		{
+			every 10.0:
+			{
+				if ( Group.TotalSimCount( ships_ ) != totalSimCount )
+				{
+					totalSimCount = Group.TotalSimCount( ships_ );
+					
+					if ( totalSimCount != 0 )
+					{
+						groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+						iFormation.LineAstern( ships_, 40.0, false );
+						iAI.GiveDockOrder( groupLeader, habitat_0 );
+					}
+					else
+					{
+						debug
+						{
+							Debug.PrintString( "iScriptedOrders.Cabbie: Cabbie " );
+							Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+							Debug.PrintString( " group is empty. Terminating task.\n" );
+						}
+						
+						Group.Destroy( ships_, false );
+						return;
+					}
+				}
+				
+				if ( iSim.IsDockedTo( groupLeader, habitat_0 ) )
+				{
+					break;
+				}
+			}
+			
+			every 30.0:
+			{
+				if ( Sim.Group( groupLeader ) == ships_ )
+				{
+					if ( !iUtilities.PlayerInRangeOfGroup( ships_ ) )
+					{
+						debug atomic
+						{
+							Debug.PrintString( "iScriptedOrders.Cabbie: Cabbie " );
+							Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+							Debug.PrintString( " Has Out lived its usefulness and is about to be killed\n" );
+						}
+						
+						if ( Group.GroupCount( ships_ ) != 0 )
+						{
+							local_function_10( Group.NthGroup( ships_, 0 ) );
+							Group.RemoveGroup( ships_, Group.NthGroup( ships_, 0 ) );
+						}
+						
+						Group.Destroy( ships_, true );
+						return;
+					}
+				}
+				else
+				{
+					debug Debug.PrintString( "iScriptedOrders.taxi: Ship gone, ending task\n" );
+					Group.Destroy( ships_, false );
+					return;
+				}
+			}
+		}
+		
+		debug atomic
+		{
+			Debug.PrintString( "iScriptedOrders: Cabbie - '" );
+			Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+			Debug.PrintString( "' arrived at '" );
+			Debug.PrintString( iMapEntity.Name( habitat_0 ) );
+			Debug.PrintString( "'\n" );
+		}
+		
+		Task.Sleep( Task.Current(), 15.0 );
+		
+		if ( local_7 )
+		{
+			local_7 = false;
+			Sim.AvatarRemoveChannel( Group.Leader( ships_ ), "for_hire" );
+		}
+		else
+		{
+			local_7 = true;
+			Sim.AvatarAddChannel( Group.Leader( ships_ ), "for_hire", 1.0 );
+		}
+		
+		iShip.Undock( groupLeader, habitat_0 );
+		habitat_1 = habitat_0;
+		Set.Remove( localSet, habitat_1 );
+		
+		if ( Math.RandomInt( 1, 10 ) >= 5 )
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iScriptedOrders: Cabbie - '" );
+				Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+				Debug.PrintString( "' picking random habitat.\n" );
+			}
+			
+			habitat_0 = iHabitat.Random( localSet );
+		}
+		else
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iScriptedOrders: Cabbie - '" );
+				Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+				Debug.PrintString( "' picking random habitat.\n" );
+			}
+			
+			habitat_0 = iHabitat.Nearest( localSet, groupLeader );
+		}
+		
+		Set.Add( localSet, habitat_1 );
+	}
+	while ( 1 );
+}
+
+bool local_function_14( hship ship_ )
+{
+	list localList = List.FromSet( iDockport.DockportsOfType( ship_, DT_Universal, DS_Free ) );
+	int itemCount = List.ItemCount( localList );
+	
+	if ( itemCount != 0 )
+	{
+		return true;
+	}
+	
+	return false;
+}
+
+task SpeedTrap( hgroup ships_ )
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	int local_2;
+	int simCount = Group.SimCount( ships_ );
+	set localSet_0 = Global.Set( "g_filtered_system_habitats" );
+	set localSet_1;
+	hhabitat habitat_0 = iHabitat.Nearest( localSet_0, Group.Leader( ships_ ) );
+	list localList = List.FromSet( iSim.SimsInRadius( habitat_0, 2000.0, 536838144 ) );
+	hship ship;
+	hhabitat habitat_1;
+	hship groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+	
+	if ( !groupLeader )
+	{
+		debug Debug.PrintString( "iScriptedOrders.Speedtrap: Invalid Lead speedtrapper!\n" );
+		return;
+	}
+	
+	List.RemoveMembers( localList, local_function_13( ships_ ) );
+	Object.AddHandleProperty( groupLeader, "traffic_handler_task", Task.Current() );
+	debug Debug.PrintString( "iScriptedOrders.Speedtrap: Been passed SpeedTrap orders\n" );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.Speedtrap: Speedtrap seaching through " );
+		Debug.PrintInt( List.ItemCount( localList ) );
+		Debug.PrintString( " ships for target\n" );
+	}
+	
+	if ( List.ItemCount( localList ) == 0 )
+	{
+		debug Debug.PrintString( "iScriptedOrders.Speedtrap: Bugger, SpeedTrap can't find anything to stop\n" );
+		Task.Detach( start LagrangeHandler( ships_, "Random" ) );
+		return;
+	}
+	
+	ship = iShip.Cast( List.GetNth( localList, Math.RandomInt( 0, List.ItemCount( localList ) - 1 ) ) );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.Speedtrap: I've decided to SpeedTrap that naughty vessel: " );
+		Debug.PrintString( Object.StringProperty( ship, "name" ) );
+		Debug.PrintString( "\n " );
+	}
+	
+	Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_PoliceBase ) );
+	Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_PoliceOutpost ) );
+	habitat_1 = iHabitat.Random( localSet_1 );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.Speedtrap: Found Police Base location: " );
+		Debug.PrintString( iMapEntity.Name( habitat_1 ) );
+		Debug.PrintString( "\n " );
+	}
+	
+	iAI.GiveDockOrder( groupLeader, ship );
+	
+	schedule
+	{
+		every 10.0:
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iScriptedOrders.Speedtrap: Checking vessel " );
+				Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+				Debug.PrintString( " for its order status\n" );
+			}
+			
+			if ( Group.SimCount( ships_ ) != simCount )
+			{
+				simCount = Group.SimCount( ships_ );
+				
+				if ( simCount != 0 )
+				{
+					groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+					iEscort.Goose( ships_, 40.0, 8000.0, false );
+					iAI.GiveDockOrder( groupLeader, habitat_0 );
+				}
+				else
+				{
+					break;
+				}
+			}
+			
+			if ( (Sim.DistanceBetween( groupLeader, ship ) < 8000.0) && (!local_1 && local_function_14( ship )) )
+			{
+				local_1 = true;
+				
+				if ( iSim.Type( Sim.Parent( ship ) ) != T_Station )
+				{
+					iShip.Disrupt( ship, 30.0, false );
+					
+					switch ( Math.RandomInt( 0, 1 ) )
+					{
+						case 0:
+							iComms.Shout( groupLeader, "", "stock_police_pull_over_male_1" );
+							break;
+						
+						case 1:
+							iComms.Shout( groupLeader, "", "stock_police_pull_over_female_1" );
+							break;
+					}
+				}
+				else
+				{
+					iAI.PurgeOrders( ships_ );
+					Task.Detach( start LagrangeHandler( ships_, "Random" ) );
+				}
+			}
+			
+			if ( iAI.IsOrderComplete( groupLeader ) && (local_0 == 0) )
+			{
+				Task.Sleep( Task.Current(), 10.0 );
+				iShip.Undock( groupLeader, ship );
+				iAI.GiveApproachOrder( groupLeader, habitat_1 );
+				debug Debug.PrintString( "iScriptedOrders.Speedtrap: (Police) Finished telling that naughty boy off - leggin' it\n" );
+				local_0 = true;
+			}
+			else if ( local_0 == 1 )
+			{
+				if ( iAI.IsOrderComplete( groupLeader ) )
+				{
+					break;
+				}
+			}
+		}
+		
+		every 30.0:
+		{
+			if ( (Sim.Group( groupLeader ) != ships_) || !iUtilities.PlayerInRangeOfGroup( ships_ ) )
+			{
+				break;
+			}
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.Speedtrap: SpeedTrap ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " Has Out lived its usefulness and is about to be killed\n" );
+	}
+	
+	if ( Group.GroupCount( ships_ ) != 0 )
+	{
+		local_function_10( Group.NthGroup( ships_, 0 ) );
+		Group.RemoveGroup( ships_, Group.NthGroup( ships_, 0 ) );
+	}
+	
+	Group.Destroy( ships_, false );
+}
+
+task Flitter( hgroup ships_ )
+{
+	int simCount = Group.SimCount( ships_ );
+	set localSet = Global.Set( "g_filtered_system_habitats" );
+	hhabitat habitat_0 = iHabitat.Nearest( localSet, Group.Leader( ships_ ) );
+	hhabitat habitat_1 = habitat_0;
+	float local_4 = iAI.InnerMarkerRadius( habitat_0, iSim.Cast( Group.Leader( ships_ ) ) );
+	hsim simWaypoint;
+	hship groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+	
+	if ( !groupLeader )
+	{
+		debug Debug.PrintString( "iScriptedOrders.Flitter: Invalid Lead Flitter!\n" );
+		return;
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders: Flitter orders passed to \n" );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " flitting round location " );
+		Debug.PrintString( iMapEntity.Name( habitat_0 ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "flitter destination" );
+	Sim.PlaceNear( simWaypoint, habitat_1, local_4 + Math.Random( 500.0, 800.0 ) );
+	iAI.GiveApproachOrder( groupLeader, simWaypoint );
+	
+	schedule
+	{
+		every 15.0:
+		{
+			if ( Group.SimCount( ships_ ) != simCount )
+			{
+				simCount = Group.SimCount( ships_ );
+				
+				if ( simCount != 0 )
+				{
+					groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+					iFormation.LineAbreast( ships_, 40.0, false );
+					iAI.GiveApproachOrder( groupLeader, simWaypoint );
+				}
+				else
+				{
+					break;
+				}
+			}
+			
+			if ( Sim.Group( groupLeader ) == ships_ )
+			{
+				if ( !iUtilities.PlayerInRangeOfGroup( ships_ ) )
+				{
+					break;
+				}
+			}
+			else
+			{
+				debug Debug.PrintString( "iScriptedOrders.Flitter: Flitter nolonger Exists, ending task\n" );
+				break;
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iScriptedOrders.Flitter: Checking ship " );
+				Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+				Debug.PrintString( " for its order status\n" );
+			}
+			
+			Sim.Destroy( simWaypoint );
+			simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "flitter destination" );
+			Sim.PlaceNear( simWaypoint, habitat_1, local_4 + Math.Random( 500.0, 800.0 ) );
+			iAI.GiveApproachOrder( groupLeader, simWaypoint );
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders: Flitter ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " Has Out lived its usefulness and is about to be killed\n" );
+	}
+	
+	if ( Group.GroupCount( ships_ ) != 0 )
+	{
+		local_function_10( Group.NthGroup( ships_, 0 ) );
+		Group.RemoveGroup( ships_, Group.NthGroup( ships_, 0 ) );
+	}
+	
+	Group.Destroy( ships_, false );
+	Sim.Destroy( simWaypoint );
+}
+
+task Recovery( hgroup ships_, hship hulk_ )
+{
+	bool local_0 = false;
+	int local_1;
+	int simCount = Group.SimCount( ships_ );
+	set localSet = Global.Set( "g_filtered_system_habitats" );
+	hhabitat habitat = iHabitat.Nearest( localSet, Group.Leader( ships_ ) );
+	hship groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+	string local_6;
+	
+	if ( !groupLeader )
+	{
+		debug Debug.PrintString( "iScriptedOrders.recovery: Invalid Lead hotrodder!\n" );
+		return;
+	}
+	
+	debug Debug.PrintString( "iScriptedOrders.recovery: Been passed Recovery orders\n" );
+	iAI.GiveDockOrder( groupLeader, hulk_ );
+	
+	schedule
+	{
+		every 10.0:
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iScriptedOrders.Recovery: Checking vessel " );
+				Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+				Debug.PrintString( " for its order status\n" );
+			}
+			
+			if ( Group.SimCount( ships_ ) != simCount )
+			{
+				simCount = Group.SimCount( ships_ );
+				
+				if ( simCount != 0 )
+				{
+					groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+					iFormation.LineAbreast( ships_, 40.0, false );
+					iAI.GiveDockOrder( groupLeader, hulk_ );
+				}
+				else
+				{
+					break;
+				}
+			}
+			
+			if ( iAI.IsOrderComplete( groupLeader ) && (local_0 == 0) )
+			{
+				if ( local_0 == 1 )
+				{
+					iShip.Undock( groupLeader, hulk_ );
+					break;
+				}
+				
+				iAI.GiveDockOrder( groupLeader, habitat );
+				debug Debug.PrintString( "iScriptedOrders: Finished recovering - legging it\n" );
+				local_0 = true;
+			}
+		}
+		
+		every 30.0:
+		{
+			if ( Sim.Group( groupLeader ) == ships_ )
+			{
+				if ( !iUtilities.PlayerInRangeOfGroup( ships_ ) )
+				{
+					break;
+				}
+			}
+			else
+			{
+				debug Debug.PrintString( "iScriptedOrders.recover: Ship nolonger exists, ending task\n" );
+				break;
+			}
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders: Recoverer ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " Has Out lived its usefulness and is about to be killed\n" );
+	}
+	
+	Sim.Destroy( hulk_ );
+	
+	if ( Group.GroupCount( ships_ ) != 0 )
+	{
+		local_function_10( Group.NthGroup( ships_, 0 ) );
+		Group.RemoveGroup( ships_, Group.NthGroup( ships_, 0 ) );
+	}
+	
+	Group.Destroy( ships_, false );
+}
+
+task Wander( hgroup ships_ )
+{
+	int random;
+	int local_1;
+	int simCount = Group.SimCount( ships_ );
+	string name_0 = iMapEntity.SystemName();
+	string name_1;
+	set localSet = Global.Set( "g_filtered_system_habitats" );
+	hhabitat habitat = iHabitat.Nearest( localSet, Group.Leader( ships_ ) );
+	hship groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+	
+	if ( !groupLeader )
+	{
+		debug Debug.PrintString( "iScriptedOrders.Wander: Invalid Lead Wanderer!\n" );
+		return;
+	}
+	
+	Object.AddHandleProperty( groupLeader, "traffic_handler_task", Task.Current() );
+	debug Debug.PrintString( "iScriptedOrders: Running Wander Orders (INCOMPLETE)\n" );
+	random = Math.RandomInt( 0, 1 );
+	
+	switch ( random )
+	{
+		case 0:
+			debug Debug.PrintString( "iScriptedOrders: Wander Vessel is leaving local station\n" );
+			name_1 = iMapEntity.Name( iHabitat.Random( localSet ) );
+			break;
+		
+		case 1:
+			debug Debug.PrintString( "iScriptedOrders: Wander Vessel is arriving at local station\n" );
+			name_1 = iMapEntity.Name( habitat );
+			break;
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders: Wander ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " setting of for destination " );
+		Debug.PrintString( name_1 );
+		Debug.PrintString( "\n" );
+	}
+	
+	iAI.GiveApproachOrder( groupLeader, iHabitat.FindByName( name_1 ) );
+	
+	schedule
+	{
+		every 15.0:
+		{
+			if ( Group.SimCount( ships_ ) != simCount )
+			{
+				simCount = Group.SimCount( ships_ );
+				
+				if ( simCount != 0 )
+				{
+					groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+					iFormation.LineAbreast( ships_, 40.0, false );
+					iAI.GiveApproachOrder( groupLeader, iHabitat.FindByName( name_1 ) );
+				}
+				else
+				{
+					break;
+				}
+			}
+			
+			if ( Sim.Group( groupLeader ) == ships_ )
+			{
+				if ( !iUtilities.PlayerInRangeOfGroup( ships_ ) )
+				{
+					break;
+				}
+			}
+			else
+			{
+				debug Debug.PrintString( "iScriptedOrders.Wander: Wanderer nolonger exists, ending task\n" );
+				break;
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iScriptedOrders.Wander: Checking vessel " );
+				Debug.PrintString( Object.StringProperty( Group.Leader( ships_ ), "name" ) );
+				Debug.PrintString( " for its order status\n" );
+			}
+			
+			if ( iAI.IsOrderComplete( groupLeader ) )
+			{
+				debug atomic
+				{
+					Debug.PrintString( "iScriptedOrders: Wander ship " );
+					Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+					Debug.PrintString( " Reached destination " );
+					Debug.PrintString( name_1 );
+					Debug.PrintString( "\n" );
+				}
+				
+				Task.Sleep( Task.Current(), 30.0 );
+				name_1 = iMapEntity.Name( iHabitat.Random( localSet ) );
+				iAI.GiveApproachOrder( groupLeader, iHabitat.FindByName( name_1 ) );
+				
+				debug atomic
+				{
+					Debug.PrintString( "iScriptedOrders: Wander ship " );
+					Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+					Debug.PrintString( " setting of for destination " );
+					Debug.PrintString( name_1 );
+					Debug.PrintString( "\n" );
+				}
+			}
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders: Wander ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " Has Out lived its usefulness and is about to be killed\n" );
+	}
+	
+	if ( Group.GroupCount( ships_ ) != 0 )
+	{
+		local_function_10( Group.NthGroup( ships_, 0 ) );
+		Group.RemoveGroup( ships_, Group.NthGroup( ships_, 0 ) );
+	}
+	
+	Group.Destroy( ships_, false );
+}
+
+task Loiter( hgroup ships_ )
+{
+	set localSet = Global.Set( "g_filtered_system_habitats" );
+	hhabitat habitat_0 = iHabitat.Nearest( localSet, Group.Leader( ships_ ) );
+	hhabitat habitat_1 = habitat_0;
+	hsim simWaypoint;
+	hship groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+	float local_5 = iAI.InnerMarkerRadius( habitat_0, iSim.Cast( Group.Leader( ships_ ) ) );
+	int simCount = Group.SimCount( ships_ );
+	hship playerShip = iShip.FindPlayerShip();
+	int local_8 = 18;
+	
+	if ( !groupLeader )
+	{
+		debug Debug.PrintString( "iScriptedOrders.loiterer: Invalid Lead loiterer!\n" );
+		return;
+	}
+	
+	Object.AddHandleProperty( groupLeader, "traffic_handler_task", Task.Current() );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.loiterer: loiterer orders passed to \n" );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " loitering round location " );
+		Debug.PrintString( iMapEntity.Name( habitat_0 ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "loiterer destination" );
+	Sim.PlaceNear( simWaypoint, habitat_1, local_5 + Math.Random( 500.0, 800.0 ) );
+	iAI.GiveEscortOrder( groupLeader, simWaypoint, 0.0, 0.0, 0.0, 8000.0 );
+	
+	schedule
+	{
+		every 10.0:
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iScriptedOrders.Loiter: Checking ship " );
+				Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+				Debug.PrintString( " for its order status\n" );
+			}
+			
+			if ( Group.SimCount( ships_ ) != simCount )
+			{
+				simCount = Group.SimCount( ships_ );
+				
+				if ( simCount != 0 )
+				{
+					groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+					iEscort.Goose( ships_, 40.0, 8000.0, false );
+					iAI.GiveEscortOrder( groupLeader, simWaypoint, 0.0, 0.0, 0.0, 8000.0 );
+				}
+				else
+				{
+					break;
+				}
+			}
+			
+			if ( Sim.DistanceBetween( groupLeader, simWaypoint ) <= 300.0 )
+			{
+				Sim.Destroy( simWaypoint );
+				simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "loiterer destination" );
+				Sim.PlaceNear( simWaypoint, habitat_1, local_5 + Math.Random( 500.0, 800.0 ) );
+				iAI.GiveEscortOrder( groupLeader, simWaypoint, 0.0, 0.0, 0.0, 8000.0 );
+			}
+			
+			local_8 = ( local_8 + -1 );
+			
+			if ( local_8 < 0 )
+			{
+				iAI.GiveFleeOrder( groupLeader, playerShip );
+			}
+		}
+		
+		every 30.0:
+		{
+			if ( (Sim.Group( groupLeader ) != ships_) || !iUtilities.PlayerInRangeOfGroup( ships_ ) )
+			{
+				break;
+			}
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.loiterer: loiterer ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " Has Out lived its usefulness and is about to be killed\n" );
+	}
+	
+	if ( Group.GroupCount( ships_ ) != 0 )
+	{
+		local_function_10( Group.NthGroup( ships_, 0 ) );
+		Group.RemoveGroup( ships_, Group.NthGroup( ships_, 0 ) );
+	}
+	
+	Group.Destroy( ships_, false );
+	Sim.Destroy( simWaypoint );
+}
+
+hship local_function_15( hship ship_0_, float param_1_ )
+{
+	list localList = List.FromSet( iSim.ShipsInRadius( ship_0_, param_1_ ) );
+	IeAllegiance ieAllegiance = iFaction.Allegiance( iSim.Faction( ship_0_ ) );
+	hship ship_1;
+	int ii;
+	int itemCount = List.ItemCount( localList );
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		ship_1 = iShip.Cast( List.GetNth( localList, ii ) );
+		
+		if ( ieAllegiance != iFaction.Allegiance( iSim.Faction( ship_1 ) ) )
+		{
+			return ship_1;
+		}
+	}
+	
+	return none;
+}
+
+task AggressiveLoiter( hgroup ships_ )
+{
+	set localSet = Global.Set( "g_filtered_system_habitats" );
+	hhabitat habitat_0 = iHabitat.Nearest( localSet, Group.Leader( ships_ ) );
+	hhabitat habitat_1 = habitat_0;
+	hsim simWaypoint;
+	hship groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+	hship ship;
+	int random;
+	int simCount = Group.SimCount( ships_ );
+	float local_8 = iAI.InnerMarkerRadius( habitat_0, iSim.Cast( Group.Leader( ships_ ) ) );
+	
+	if ( !groupLeader )
+	{
+		debug Debug.PrintString( "iScriptedOrders.AgressiveLoiterer: Invalid Lead loiterer!\n" );
+		return;
+	}
+	
+	Object.AddHandleProperty( groupLeader, "traffic_handler_task", Task.Current() );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.AgressiveLoiterer: loiterer orders passed to \n" );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " loitering round location " );
+		Debug.PrintString( iMapEntity.Name( habitat_0 ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	random = Math.RandomInt( 0, 1 );
+	
+	if ( random == 0 )
+	{
+		debug Debug.PrintString( "iScriptedOrders.AggressiceLoiter: giving inital orders of loiter\n" );
+		simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "loiterer destination" );
+		Sim.PlaceNear( simWaypoint, habitat_1, local_8 + Math.Random( 500.0, 800.0 ) );
+		iAI.GiveEscortOrder( groupLeader, simWaypoint, 0.0, 0.0, 0.0, 8000.0 );
+	}
+	else
+	{
+		debug Debug.PrintString( "iScriptedOrders.AggressiceLoiter: giving inital orders of aggressive behaviour\n" );
+		ship = local_function_15( groupLeader, 6000.0 );
+		
+		if ( ship == false )
+		{
+			debug Debug.PrintString( "iScriptedOrders.AggressiceLoiter: nobody in area to attack, doing nothing\n" );
+		}
+		else
+		{
+			iAI.GiveAttackOrder( groupLeader, ship );
+		}
+	}
+	
+	schedule
+	{
+		every 10.0:
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iScriptedOrders.AgressiveLoiterer: Checking ship " );
+				Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+				Debug.PrintString( " for its order status\n" );
+			}
+			
+			if ( Group.SimCount( ships_ ) != simCount )
+			{
+				simCount = Group.SimCount( ships_ );
+				
+				if ( simCount != 0 )
+				{
+					groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+					iEscort.Goose( ships_, 40.0, 8000.0, false );
+					iAI.GiveEscortOrder( groupLeader, simWaypoint, 0.0, 0.0, 0.0, 8000.0 );
+				}
+				else
+				{
+					break;
+				}
+			}
+			
+			if ( random != 0 )
+			{
+				if ( (Object.FloatProperty( ship, "hit_points" ) <= 20.0) || (iShip.Cast( ship ) == false) )
+				{
+					iAI.GiveApproachOrder( groupLeader, habitat_0 );
+				}
+			}
+			
+			if ( iAI.IsOrderComplete( groupLeader ) || (simWaypoint != false) )
+			{
+				if ( (Sim.Cast( simWaypoint ) != false) && (Sim.DistanceBetween( groupLeader, simWaypoint ) <= 300.0) )
+				{
+					Sim.Destroy( simWaypoint );
+				}
+				
+				random = Math.RandomInt( 0, 1 );
+				
+				if ( random == 0 )
+				{
+					debug Debug.PrintString( "iScriptedOrders.AggressiceLoiter: giving new orders of loiter\n" );
+					simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "loiterer destination" );
+					Sim.PlaceNear( simWaypoint, habitat_1, local_8 + Math.Random( 500.0, 800.0 ) );
+					iAI.GiveEscortOrder( groupLeader, simWaypoint, 0.0, 0.0, 0.0, 8000.0 );
+				}
+				else
+				{
+					debug Debug.PrintString( "iScriptedOrders.AggressiceLoiter: giving new orders of aggressive behaviour\n" );
+					ship = local_function_15( groupLeader, 6000.0 );
+					
+					if ( ship == false )
+					{
+						debug Debug.PrintString( "iScriptedOrders.AggressiceLoiter: nobody in area to attack, doing nothing\n" );
+					}
+					else
+					{
+						iAI.GiveAttackOrder( groupLeader, ship );
+					}
+				}
+			}
+		}
+		
+		every 30.0:
+		{
+			if ( (Sim.Group( groupLeader ) != ships_) || !iUtilities.PlayerInRangeOfGroup( ships_ ) )
+			{
+				break;
+			}
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.AgressiveLoiterer: loiterer ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " Has Out lived its usefulness and is about to be killed\n" );
+	}
+	
+	if ( Group.GroupCount( ships_ ) != 0 )
+	{
+		local_function_10( Group.NthGroup( ships_, 0 ) );
+		Group.RemoveGroup( ships_, Group.NthGroup( ships_, 0 ) );
+	}
+	
+	Group.Destroy( ships_, false );
+	Sim.Destroy( simWaypoint );
+}
+
+task PoliceRaid( hgroup ships_ )
+{
+	set localSet_0 = Global.Set( "g_filtered_system_habitats" );
+	set localSet_1 = iHabitat.FilterOnAllegiance( localSet_0, A_Police );
+	list localList = List.FromSet( Global.Set( "g_filtered_system_habitats" ) );
+	hhabitat habitat_0 = iHabitat.Nearest( localSet_0, Group.Leader( ships_ ) );
+	hhabitat habitat_1 = iHabitat.Cast( Set.FirstElement( localSet_1 ) );
+	int local_5;
+	hship groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+	int local_7;
+	int simCount = Group.SimCount( ships_ );
+	
+	debug Debug.PrintString( "iScriptedOrders.PoliceRaid : starting a police raid task\n" );
+	
+	if ( !groupLeader )
+	{
+		debug Debug.PrintString( "iScriptedOrders.PoliceRaiders: Invalid Lead Police Raider!\n" );
+		return;
+	}
+	
+	if ( !habitat_0 )
+	{
+		debug Debug.PrintString( "iScriptedOrders.PoliceRaiders: Local station was none!\n" );
+	}
+	
+	if ( iHabitat.Allegiance( habitat_0 ) == A_Police )
+	{
+		while ( iHabitat.Allegiance( iHabitat.Cast( List.GetNth( localList, local_7 ) ) ) == A_Police )
+		{
+			local_7 = ( local_7 + 1 );
+		}
+		
+		habitat_0 = iHabitat.Cast( List.GetNth( localList, local_7 ) );
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.PoliceRaid: Police Raid orders passed to \n" );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( "Raiding location " );
+		Debug.PrintString( iMapEntity.Name( habitat_0 ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	iAI.GiveDockOrder( groupLeader, habitat_0 );
+	
+	schedule
+	{
+		every 10.0:
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iScriptedOrders.PoliceRaider: Checking ship " );
+				Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+				Debug.PrintString( " for its order status\n" );
+			}
+			
+			if ( Group.SimCount( ships_ ) != simCount )
+			{
+				simCount = Group.SimCount( ships_ );
+				
+				if ( simCount != 0 )
+				{
+					groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+					iFormation.LineAbreast( ships_, 40.0, false );
+					iAI.GiveDockOrder( groupLeader, habitat_0 );
+				}
+				else
+				{
+					break;
+				}
+			}
+			
+			if ( iAI.IsOrderComplete( groupLeader ) )
+			{
+				Task.Sleep( Task.Current(), 10.0 );
+				iShip.Undock( groupLeader, habitat_0 );
+				iAI.GiveDockOrder( groupLeader, habitat_1 );
+			}
+		}
+		
+		every 30.0:
+		{
+			if ( (Sim.Group( groupLeader ) != ships_) || !iUtilities.PlayerInRangeOfGroup( ships_ ) )
+			{
+				break;
+			}
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.PoliceRaid: Police Raider ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " Has Out lived its usefulness and is about to be killed\n" );
+	}
+	
+	if ( Group.GroupCount( ships_ ) != 0 )
+	{
+		local_function_10( Group.NthGroup( ships_, 0 ) );
+		Group.RemoveGroup( ships_, Group.NthGroup( ships_, 0 ) );
+	}
+	
+	Group.Destroy( ships_, false );
+}
+
+task Inspection( hgroup ships_ )
+{
+	debug Debug.PrintString( "iScriptedOrders.Inspection: Using loiterer scripted orders.\n" );
+	Task.Detach( start Loiter( ships_ ) );
+	return;
+}
+
+task StationRepair( hgroup ships_ )
+{
+	debug Debug.PrintString( "iScriptedOrders.StationRepair: Using loiterer scripted orders.\n" );
+	Task.Detach( start Loiter( ships_ ) );
+	return;
+}
+
+task Unpredictable( hgroup ships_ )
+{
+	set localSet = Global.Set( "g_filtered_system_habitats" );
+	hhabitat habitat_0 = iHabitat.Nearest( localSet, Group.Leader( ships_ ) );
+	hhabitat habitat_1 = habitat_0;
+	hsim simWaypoint;
+	hship groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+	float local_5 = iAI.InnerMarkerRadius( habitat_0, iSim.Cast( Group.Leader( ships_ ) ) );
+	int simCount = Group.SimCount( ships_ );
+	
+	if ( !groupLeader )
+	{
+		debug Debug.PrintString( "iScriptedOrders.unpredictable: Invalid Lead bloke!\n" );
+		return;
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.unpredictable: orders passed to \n" );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " flitting round location " );
+		Debug.PrintString( iMapEntity.Name( habitat_0 ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "unpredictable destination" );
+	Sim.PlaceNear( simWaypoint, habitat_1, local_5 + Math.Random( 500.0, 800.0 ) );
+	iAI.GiveEscortOrder( groupLeader, simWaypoint, 0.0, 0.0, 0.0, 8000.0 );
+	
+	schedule
+	{
+		every 15.0:
+		{
+			if ( Group.SimCount( ships_ ) != simCount )
+			{
+				simCount = Group.SimCount( ships_ );
+				
+				if ( simCount != 0 )
+				{
+					groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+					iFormation.Goose( ships_, 40.0, false );
+					iAI.GiveEscortOrder( groupLeader, simWaypoint, 0.0, 0.0, 0.0, 8000.0 );
+				}
+				else
+				{
+					break;
+				}
+			}
+			
+			if ( (Sim.Group( groupLeader ) != ships_) || !iUtilities.PlayerInRangeOfGroup( ships_ ) )
+			{
+				break;
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iScriptedOrders.Unpredictable: Checking bloke " );
+				Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+				Debug.PrintString( " for its order status\n" );
+			}
+			
+			if ( Sim.DistanceBetween( groupLeader, simWaypoint ) <= 300.0 )
+			{
+				Sim.Destroy( simWaypoint );
+				simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "unpredictable destination" );
+				Sim.PlaceNear( simWaypoint, habitat_1, local_5 + Math.Random( 500.0, 800.0 ) );
+				iAI.GiveEscortOrder( groupLeader, simWaypoint, 0.0, 0.0, 0.0, 8000.0 );
+			}
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.unpredictable: ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " Has Out lived its usefulness and is about to be killed\n" );
+	}
+	
+	if ( Group.GroupCount( ships_ ) != 0 )
+	{
+		local_function_10( Group.NthGroup( ships_, 0 ) );
+		Group.RemoveGroup( ships_, Group.NthGroup( ships_, 0 ) );
+	}
+	
+	Group.Destroy( ships_, false );
+}
+
+task Maneuvre( hgroup ships_ )
+{
+	set localSet = Global.Set( "g_filtered_system_habitats" );
+	hhabitat habitat_0 = iHabitat.Nearest( localSet, Group.Leader( ships_ ) );
+	hhabitat habitat_1 = habitat_0;
+	hsim simWaypoint;
+	int random;
+	int simCount_0 = Group.SimCount( ships_ );
+	hship groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+	int simCount_1 = Group.SimCount( ships_ );
+	float local_8 = iAI.InnerMarkerRadius( habitat_0, iSim.Cast( Group.Leader( ships_ ) ) );
+	
+	if ( !groupLeader )
+	{
+		debug Debug.PrintString( "iScriptedOrders.Maneuvre: Invalid Lead vessel!\n" );
+		return;
+	}
+	
+	Object.AddHandleProperty( groupLeader, "traffic_handler_task", Task.Current() );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.Maneuvre: orders passed to \n" );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " maneuvring round location " );
+		Debug.PrintString( iMapEntity.Name( habitat_0 ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "maneuvre destination" );
+	Sim.PlaceNear( simWaypoint, habitat_1, local_8 + Math.Random( 900.0, 1400.0 ) );
+	iAI.GiveEscortOrder( groupLeader, simWaypoint, 0.0, 0.0, 0.0, 8000.0 );
+	
+	schedule
+	{
+		every 9.0:
+		{
+			if ( Group.SimCount( ships_ ) != simCount_1 )
+			{
+				simCount_1 = Group.SimCount( ships_ );
+				
+				if ( simCount_1 != 0 )
+				{
+					groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+					iEscort.Parade( ships_, 40.0, 8000.0, false );
+					iAI.GiveEscortOrder( groupLeader, simWaypoint, 0.0, 0.0, 0.0, 8000.0 );
+				}
+				else
+				{
+					break;
+				}
+			}
+			
+			if ( (Sim.Group( groupLeader ) != ships_) || !iUtilities.PlayerInRangeOfGroup( ships_ ) )
+			{
+				break;
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iScriptedOrders.Maneuver: Checking lead " );
+				Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+				Debug.PrintString( " for its order status\n" );
+			}
+			
+			if ( Sim.DistanceBetween( groupLeader, simWaypoint ) <= 600.0 )
+			{
+				Sim.Destroy( simWaypoint );
+				simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "maneuvre destination" );
+				Sim.PlaceNear( simWaypoint, habitat_1, local_8 + Math.Random( 900.0, 1400.0 ) );
+				random = Math.RandomInt( 0, 3 );
+				
+				switch ( random )
+				{
+					case 0:
+						iEscort.Goose( ships_, 30.0, 8000.0, false );
+						break;
+					
+					case 1:
+						iEscort.Claw( ships_, 30.0, 8000.0, false );
+						break;
+					
+					case 2:
+						iEscort.Parade( ships_, 30.0, 8000.0, false );
+						break;
+					
+					case 3:
+						iEscort.SkirmishLine( ships_, 30.0, 8000.0, false );
+						break;
+				}
+				
+				iAI.GiveEscortOrder( groupLeader, simWaypoint, 0.0, 0.0, 0.0, 8000.0 );
+			}
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.maneuvre: ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " Has Out lived its usefulness and is about to be killed\n" );
+	}
+	
+	if ( Group.GroupCount( ships_ ) != 0 )
+	{
+		local_function_10( Group.NthGroup( ships_, 0 ) );
+		Group.RemoveGroup( ships_, Group.NthGroup( ships_, 0 ) );
+	}
+	
+	Group.Destroy( ships_, false );
+}
+
+task StationConstruction( hgroup ships_ )
+{
+	debug Debug.PrintString( "iScriptedOrders.StationConstruction: Using loiterer scripted orders.\n" );
+	Task.Detach( start Loiter( ships_ ) );
+	return;
+}
+
+task Naughty( hgroup ships_ )
+{
+	set localSet = Global.Set( "g_filtered_system_habitats" );
+	hhabitat habitat_0 = iHabitat.Nearest( localSet, Group.Leader( ships_ ) );
+	hhabitat habitat_1 = habitat_0;
+	hsim simWaypoint;
+	hship groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+	hship ship;
+	int random;
+	float local_7 = iAI.InnerMarkerRadius( habitat_0, iSim.Cast( Group.Leader( ships_ ) ) );
+	int simCount = Group.SimCount( ships_ );
+	
+	if ( !groupLeader )
+	{
+		debug Debug.PrintString( "iScriptedOrders.naughty: Invalid Lead naughty person!\n" );
+		return;
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.Naughty: naughty person orders passed to \n" );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " loitering round location " );
+		Debug.PrintString( iMapEntity.Name( habitat_0 ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	random = Math.RandomInt( 0, 1 );
+	
+	if ( random == 0 )
+	{
+		debug Debug.PrintString( "iScriptedOrders.Naughty: giving inital orders of loiter\n" );
+		simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "loiterer destination" );
+		Sim.PlaceNear( simWaypoint, habitat_1, local_7 + Math.Random( 500.0, 800.0 ) );
+		iAI.GiveApproachOrder( groupLeader, simWaypoint );
+	}
+	else
+	{
+		debug Debug.PrintString( "iScriptedOrders.Naughty: giving inital orders of annoying behaviour\n" );
+		ship = iShip.Cast( Set.FirstElement( iSim.ShipsInRadius( groupLeader, 6000.0 ) ) );
+		
+		if ( ship == false )
+		{
+			debug Debug.PrintString( "iScriptedOrders.Naughty: nobody in area to annoy, doing nothing\n" );
+		}
+		else
+		{
+			iAI.GiveFormateOrder( groupLeader, ship, 0.0, 35.0, 0.0 );
+		}
+	}
+	
+	schedule
+	{
+		every 10.0:
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iScriptedOrders.Naughty: Checking vessel " );
+				Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+				Debug.PrintString( " for its order status\n" );
+			}
+			
+			if ( Group.SimCount( ships_ ) != simCount )
+			{
+				simCount = Group.SimCount( ships_ );
+				
+				if ( simCount != 0 )
+				{
+					groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+					iFormation.LineAbreast( ships_, 40.0, false );
+					iAI.GiveFormateOrder( groupLeader, ship, 0.0, 35.0, 0.0 );
+				}
+				else
+				{
+					break;
+				}
+			}
+			
+			if ( iAI.IsOrderComplete( groupLeader ) )
+			{
+				if ( Sim.Cast( simWaypoint ) != false )
+				{
+					Sim.Destroy( simWaypoint );
+				}
+				
+				random = Math.RandomInt( 0, 1 );
+				
+				if ( random == 0 )
+				{
+					debug Debug.PrintString( "iScriptedOrders.Naughty: giving new orders of loiter\n" );
+					simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "loiterer destination" );
+					Sim.PlaceNear( simWaypoint, habitat_1, local_7 + Math.Random( 500.0, 800.0 ) );
+					iAI.GiveApproachOrder( groupLeader, simWaypoint );
+				}
+				else
+				{
+					debug Debug.PrintString( "iScriptedOrders.Naughty: giving new orders of annoying behaviour\n" );
+					ship = iShip.Cast( Set.FirstElement( iSim.ShipsInRadius( groupLeader, 6000.0 ) ) );
+					
+					if ( ship == false )
+					{
+						debug Debug.PrintString( "iScriptedOrders.Naughty: nobody in area to annoy, doing nothing\n" );
+					}
+					else
+					{
+						iAI.GiveFormateOrder( groupLeader, ship, 0.0, 35.0, 0.0 );
+					}
+				}
+			}
+		}
+		
+		every 30.0:
+		{
+			if ( Sim.Group( groupLeader ) == ships_ )
+			{
+				if ( !iUtilities.PlayerInRangeOfGroup( ships_ ) )
+				{
+					break;
+				}
+			}
+			else
+			{
+				debug Debug.PrintString( "iScriptedOrders.Naughty: vessel nolonger Exists, ending task\n" );
+				break;
+			}
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.Naughty: ship " );
+		Debug.PrintString( Object.StringProperty( groupLeader, "name" ) );
+		Debug.PrintString( " Has Out lived its usefulness and is about to be killed\n" );
+	}
+	
+	if ( Group.GroupCount( ships_ ) != 0 )
+	{
+		local_function_10( Group.NthGroup( ships_, 0 ) );
+		Group.RemoveGroup( ships_, Group.NthGroup( ships_, 0 ) );
+	}
+	
+	Group.Destroy( ships_, false );
+	
+	if ( Sim.Cast( simWaypoint ) != false )
+	{
+		Sim.Destroy( simWaypoint );
+	}
+}
+
+task Scavanger( hgroup ships_ )
+{
+	debug Debug.PrintString( "iScriptedOrders.Scavenger: Using Tourist scripted orders.\n" );
+	Task.Detach( start Tourist( ships_ ) );
+	return;
+}
+
+task StationAssault( hgroup ships_ )
+{
+	set localSet = Global.Set( "g_filtered_system_habitats" );
+	hhabitat habitat = iHabitat.Nearest( localSet, Group.Leader( ships_ ) );
+	hship playerShip = iShip.FindPlayerShip();
+	int simCount = Group.SimCount( ships_ );
+	int local_4 = 0;
+	bool local_5 = false;
+	
+	iAI.GiveSpecificAttackOrder( ships_, habitat, 1 );
+	
+	schedule
+	{
+		every 10.0:
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iScriptedOrders: Checking base assault vessels led by " );
+				Debug.PrintString( Object.StringProperty( Group.Leader( ships_ ), "name" ) );
+				Debug.PrintString( " for its order status\n" );
+			}
+			
+			if ( (local_4 > 10) && !local_5 )
+			{
+				local_5 = true;
+				iAI.GiveFleeOrder( ships_, playerShip );
+			}
+			else if ( Sim.DistanceBetween( Group.Leader( ships_ ), habitat ) < 10000.0 )
+			{
+				local_4 = ( local_4 + 10 );
+			}
+		}
+		
+		every 30.0:
+		{
+			if ( !iUtilities.PlayerInRangeOfGroup( ships_ ) )
+			{
+				break;
+			}
+			else
+			{
+				debug Debug.PrintString( "iScriptedOrders.scavanger: scavanger nolonger Exists, ending task\n" );
+				break;
+			}
+		}
+	}
+}
+
+task TravelTo( hship ship_, hmapentity location_operator_ )
+{
+	set localSet_0 = Global.Set( "g_filtered_system_habitats" );
+	set localSet_1 = Sim.Children( ship_ );
+	hhabitat habitat = iHabitat.Nearest( localSet_0, ship_ );
+	hmapentity mapentity_1 = location_operator_;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.TravelBetween: vessel orders passed to \n" );
+		Debug.PrintString( Object.StringProperty( ship_, "name" ) );
+		Debug.PrintString( " travelling to location " );
+		Debug.PrintString( iMapEntity.Name( location_operator_ ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	iAI.GiveApproachOrder( ship_, mapentity_1 );
+	
+	schedule
+	{
+		every 30.0:
+		{
+			if ( !Sim.Cast( ship_ ) )
+			{
+				debug Debug.PrintString( "iScriptedOrders.monkeyabout: monkier nolonger Exists, ending task\n" );
+				break;
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iScriptedOrders.TravelBetween: Checking traveller " );
+				Debug.PrintString( Object.StringProperty( ship_, "name" ) );
+				Debug.PrintString( " for its order status\n" );
+			}
+			
+			if ( iAI.IsOrderComplete( ship_ ) )
+			{
+				Task.Sleep( Task.Current(), 30.0 );
+			}
+		}
+		
+		every 120.0:
+		{
+			if ( !iUtilities.PlayerInRange( ship_ ) )
+			{
+				break;
+			}
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.travelbetween: traveller ship " );
+		Debug.PrintString( Object.StringProperty( ship_, "name" ) );
+		Debug.PrintString( " Has Out lived its usefulness and is about to be killed\n" );
+	}
+	
+	Sim.Destroy( ship_ );
+	
+	if ( !Set.IsEmpty( localSet_1 ) )
+	{
+		iUtilities.KillListOfSims( List.FromSet( localSet_1 ) );
+	}
+}
+
+task TravelBetween( hship ship_, hmapentity location_operator_ )
+{
+	set localSet_0 = Global.Set( "g_filtered_system_habitats" );
+	set localSet_1 = Sim.Children( ship_ );
+	hhabitat habitat = iHabitat.Nearest( localSet_0, ship_ );
+	hmapentity mapentity_1 = location_operator_;
+	bool local_4 = true;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.TravelBetween: vessel orders passed to \n" );
+		Debug.PrintString( Object.StringProperty( ship_, "name" ) );
+		Debug.PrintString( " travelling to location " );
+		Debug.PrintString( iMapEntity.Name( location_operator_ ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	iAI.GiveApproachOrder( ship_, mapentity_1 );
+	
+	schedule
+	{
+		every 30.0:
+		{
+			if ( !Sim.Cast( ship_ ) )
+			{
+				debug Debug.PrintString( "iScriptedOrders.monkeyabout: monkier nolonger Exists, ending task\n" );
+				break;
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iScriptedOrders.TravelBetween: Checking traveller " );
+				Debug.PrintString( Object.StringProperty( ship_, "name" ) );
+				Debug.PrintString( " for its order status\n" );
+			}
+			
+			if ( iAI.IsOrderComplete( ship_ ) )
+			{
+				Task.Sleep( Task.Current(), 30.0 );
+				
+				if ( local_4 == 1 )
+				{
+					iAI.GiveApproachOrder( ship_, habitat );
+					local_4 = false;
+				}
+				else
+				{
+					iAI.GiveApproachOrder( ship_, mapentity_1 );
+					local_4 = true;
+				}
+			}
+		}
+		
+		every 120.0:
+		{
+			if ( !iUtilities.PlayerInRange( ship_ ) )
+			{
+				break;
+			}
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.travelbetween: traveller ship " );
+		Debug.PrintString( Object.StringProperty( ship_, "name" ) );
+		Debug.PrintString( " Has Out lived its usefulness and is about to be killed\n" );
+	}
+	
+	Sim.Destroy( ship_ );
+	
+	if ( !Set.IsEmpty( localSet_1 ) )
+	{
+		iUtilities.KillListOfSims( List.FromSet( localSet_1 ) );
+	}
+}
+
+task MonkeyAbout( hship ship_, hmapentity location_operator_ )
+{
+	set localSet_0 = Global.Set( "g_filtered_system_habitats" );
+	set localSet_1 = Sim.Children( ship_ );
+	hsim simWaypoint;
+	hmapentity mapentity_1 = location_operator_;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.MonkeyAbout: vessel orders passed to \n" );
+		Debug.PrintString( Object.StringProperty( ship_, "name" ) );
+		Debug.PrintString( " monkeying about location " );
+		Debug.PrintString( iMapEntity.Name( location_operator_ ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "monkey destination" );
+	Sim.PlaceNear( simWaypoint, mapentity_1, Math.Random( 500.0, 800.0 ) );
+	iAI.GiveApproachOrder( ship_, simWaypoint );
+	
+	schedule
+	{
+		every 30.0:
+		{
+			if ( !Sim.Cast( ship_ ) )
+			{
+				debug Debug.PrintString( "iScriptedOrders.monkeyabout: monkier nolonger Exists, ending task\n" );
+				break;
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iScriptedOrders.MonkeyAbout: Checking monkey " );
+				Debug.PrintString( Object.StringProperty( ship_, "name" ) );
+				Debug.PrintString( " for its order status\n" );
+			}
+			
+			if ( iAI.IsOrderComplete( ship_ ) )
+			{
+				Sim.Destroy( simWaypoint );
+				simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "monkey destination" );
+				Sim.PlaceNear( simWaypoint, mapentity_1, Math.Random( 500.0, 800.0 ) );
+				iAI.GiveApproachOrder( ship_, simWaypoint );
+			}
+		}
+		
+		every 120.0:
+		{
+			if ( !iUtilities.PlayerInRange( ship_ ) )
+			{
+				break;
+			}
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.Monkeyabout: monkier ship " );
+		Debug.PrintString( Object.StringProperty( ship_, "name" ) );
+		Debug.PrintString( " Has Out lived its usefulness and is about to be killed\n" );
+	}
+	
+	Sim.Destroy( ship_ );
+	Sim.Destroy( simWaypoint );
+	
+	if ( !Set.IsEmpty( localSet_1 ) )
+	{
+		iUtilities.KillListOfSims( List.FromSet( localSet_1 ) );
+	}
+}
+
+CreateNewOrders( hgroup ships_ )
+{
+	int local_0;
+	hship groupLeader;
+	string scenarioType;
+	string vesselClass;
+	
+	groupLeader = iShip.Cast( Group.Leader( ships_ ) );
+	scenarioType = Object.StringProperty( groupLeader, "scenario_type" );
+	vesselClass = Object.StringProperty( groupLeader, "vessel_class" );
+	
+	if ( scenarioType == "Freight" )
+	{
+		if ( (vesselClass == "All") || (vesselClass == "Heavy") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Heavy Freight\n" );
+		}
+		
+		if ( (vesselClass == "All") || (vesselClass == "Light") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Light Freight\n" );
+		}
+	}
+	
+	if ( scenarioType == "Security" )
+	{
+		if ( (vesselClass == "All") || (vesselClass == "Heavy") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Heavy Security\n" );
+		}
+		
+		if ( (vesselClass == "All") || (vesselClass == "Light") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Light Security\n" );
+		}
+	}
+	
+	if ( scenarioType == "Military" )
+	{
+		if ( (vesselClass == "All") || (vesselClass == "Heavy") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Heavy Military\n" );
+		}
+		
+		if ( (vesselClass == "All") || (vesselClass == "Light") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Light Military\n" );
+		}
+	}
+	
+	if ( scenarioType == "Mining" )
+	{
+		if ( (vesselClass == "All") || (vesselClass == "Heavy") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Heavy Mining\n" );
+		}
+		
+		if ( (vesselClass == "All") || (vesselClass == "Light") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Light Military\n" );
+		}
+	}
+	
+	if ( scenarioType == "Trade" )
+	{
+		if ( (vesselClass == "All") || (vesselClass == "Heavy") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Heavy Trade\n" );
+		}
+		
+		if ( (vesselClass == "All") || (vesselClass == "Light") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Light Trade\n" );
+		}
+	}
+	
+	if ( scenarioType == "Official" )
+	{
+		if ( (vesselClass == "All") || (vesselClass == "Heavy") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Heavy Official\n" );
+		}
+		
+		if ( (vesselClass == "All") || (vesselClass == "Light") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Light Official\n" );
+		}
+	}
+	
+	if ( scenarioType == "Civilian" )
+	{
+		if ( (vesselClass == "All") || (vesselClass == "Cabbie") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Civilian Cabbie\n" );
+		}
+		
+		if ( (vesselClass == "All") || (vesselClass == "Flitter") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Civilian Flitter\n" );
+		}
+		
+		if ( (vesselClass == "All") || (vesselClass == "HotRodder") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Civilian HotRodder\n" );
+		}
+		
+		if ( (vesselClass == "All") || (vesselClass == "Tourist") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Civilian Tourist\n" );
+		}
+	}
+	
+	if ( scenarioType == "Oddball" )
+	{
+		if ( (vesselClass == "All") || (vesselClass == "Religious") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Oddball Religious\n" );
+		}
+		
+		if ( (vesselClass == "All") || (vesselClass == "Looney") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Oddball Looney\n" );
+		}
+		
+		if ( (vesselClass == "All") || (vesselClass == "CheeseMaker") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Oddball CheeseMaker\n" );
+		}
+		
+		if ( (vesselClass == "All") || (vesselClass == "GhostShip") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Oddball GhostShip\n" );
+		}
+	}
+	
+	if ( scenarioType == "Scum" )
+	{
+		if ( (vesselClass == "All") || (vesselClass == "KnackardVessel") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Scum KnackardVessel\n" );
+		}
+		
+		if ( (vesselClass == "All") || (vesselClass == "Scavanger") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Scum Scavanger\n" );
+		}
+		
+		if ( (vesselClass == "All") || (vesselClass == "Hulk") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Scum Hulk\n" );
+		}
+		
+		if ( (vesselClass == "All") || (vesselClass == "Gypsy") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Scum G\n" );
+		}
+	}
+	
+	if ( scenarioType == "Underworld" )
+	{
+		if ( (vesselClass == "All") || (vesselClass == "Trade") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Underworld Trade\n" );
+		}
+		
+		if ( (vesselClass == "All") || (vesselClass == "Gangster") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Underworld Gangster\n" );
+		}
+		
+		if ( (vesselClass == "All") || (vesselClass == "Pirate") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Underworld Pirate\n" );
+		}
+		
+		if ( (vesselClass == "All") || (vesselClass == "Thug") )
+		{
+			debug Debug.PrintString( "iScriptedOrders: New Orders for Underworld Thug\n" );
+		}
+	}
+}
+
+task LoiterNearSim( hship ship_, hsim loiter_target_ )
+{
+	hsim simWaypoint;
+	hship ship_1 = iShip.Cast( ship_ );
+	bool local_2 = false;
+	float radius = Object.FloatProperty( loiter_target_, "radius" );
+	
+	if ( !ship_1 )
+	{
+		debug Debug.PrintString( "iScriptedOrders.loiterNearSim: Invalid loiterer!\n" );
+		return;
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iScriptedOrders.LoiterNearSim: loiterer orders passed to \n" );
+		Debug.PrintString( Object.StringProperty( ship_1, "name" ) );
+		Debug.PrintString( " loitering round location " );
+		Debug.PrintString( Object.StringProperty( loiter_target_, "name" ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "loiterer destination" );
+	Sim.PlaceNear( simWaypoint, loiter_target_, radius + Math.Random( 500.0, 800.0 ) );
+	iAI.GiveApproachOrder( ship_1, simWaypoint );
+	
+	do
+	{
+		if ( !Sim.Cast( ship_1 ) )
+		{
+			debug Debug.PrintString( "iScriptedOrders.loiterer: loiterer no longer Exists, ending task\n" );
+			return;
+		}
+		
+		debug atomic
+		{
+			Debug.PrintString( "iScriptedOrders.LoiterNearSim: Checking loiterer " );
+			Debug.PrintString( Object.StringProperty( ship_1, "name" ) );
+			Debug.PrintString( " for its order status\n" );
+		}
+		
+		if ( iAI.IsOrderComplete( ship_1 ) )
+		{
+			Sim.Destroy( simWaypoint );
+			simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "loiterer destination" );
+			Sim.PlaceNear( simWaypoint, loiter_target_, radius + Math.Random( 500.0, 800.0 ) );
+			iAI.GiveApproachOrder( ship_1, simWaypoint );
+		}
+		
+		if ( Sim.DistanceBetween( ship_1, loiter_target_ ) > 30000.0 )
+		{
+			iAI.RemoveOrder( ship_1 );
+			iAI.GiveApproachOrder( ship_1, simWaypoint );
+		}
+		
+		Task.Sleep( Task.Current(), Math.Random( 5.0, 30.0 ) );
+	}
+	while ( 1 );
+}
+
+task FollowRoute( hship ship_, hgroup route_, float completion_ratio_, float time_step_, bool allow_avoidance_, bool loop_, int index_ )
+{
+	hsim groupIter;
+	float local_1;
+	
+	debug Debug.PrintString( "FollowWaypoints: Ordering Ship: " );
+	debug Debug.PrintString( Object.StringProperty( ship_, "name" ) );
+	debug Debug.PrintString( " to follow route.\n" );
+	
+	if ( (completion_ratio_ <= 0.0) || (completion_ratio_ > 1.0) )
+	{
+		completion_ratio_ = 0.990;
+	}
+	
+	if ( time_step_ <= 0.0 )
+	{
+		time_step_ = 1.0;
+	}
+	
+	if ( (index_ < 0) || (index_ > Group.SimCount( route_ )) )
+	{
+		index_ = 0;
+	}
+	
+	do
+	{
+		if ( Group.SimCount( route_ ) < 2 )
+		{
+			debug Debug.PrintString( "FollowWaypoints: Less than 2 sims in route group. Exiting\n" );
+			return;
+		}
+		
+		if ( Sim.IsDead( ship_ ) )
+		{
+			debug Debug.PrintString( "FollowWaypoints: Route following ship " );
+			debug Debug.PrintString( Object.StringProperty( ship_, "name" ) );
+			debug Debug.PrintString( "is dead. Exiting.\n" );
+			return;
+		}
+		
+		groupIter = Group.NthSim( route_, index_ );
+		
+		if ( iSim.Cast( groupIter ) != false )
+		{
+			local_1 = ( Sim.DistanceBetween( ship_, groupIter ) * completion_ratio_ );
+			iAI.GiveApproachOrderAdvanced( ship_, groupIter, 0.0, 1.0, allow_avoidance_ );
+			debug Debug.PrintString( "FollowWaypoints: Ship" );
+			debug Debug.PrintString( Object.StringProperty( ship_, "name" ) );
+			debug Debug.PrintString( " approaching location " );
+			debug Debug.PrintInt( index_ );
+			debug Debug.PrintString( "\n" );
+			
+			do
+			{
+				Task.Sleep( Task.Current(), time_step_ );
+				
+				if ( Sim.IsDead( ship_ ) )
+				{
+					debug Debug.PrintString( "FollowWaypoints: Route following ship " );
+					debug Debug.PrintString( Object.StringProperty( ship_, "name" ) );
+					debug Debug.PrintString( "is dead. Exiting.\n" );
+					return;
+				}
+				
+				if ( Sim.IsDead( groupIter ) )
+				{
+					debug Debug.PrintString( "FollowWaypoints: Destination is dead. Skipping to next destination\n" );
+					iAI.PurgeOrders( ship_ );
+					break;
+				}
+			}
+			while ( (Sim.DistanceBetween( ship_, groupIter ) > local_1) && !iAI.IsOrderComplete( ship_ ) );
+			
+			index_ = ( index_ + 1 );
+		}
+		else
+		{
+			debug Debug.PrintString( "FollowWaypoints: Last route marker reached. Looping back to beginning\n" );
+			index_ = 0;
+		}
+	}
+	while ( (iSim.Cast( groupIter ) != false) || loop_ );
+	
+	debug Debug.PrintString( "FollowWaypoints: Completed. \n" );
+}
+

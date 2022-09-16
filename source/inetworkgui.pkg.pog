@@ -1,0 +1,1427 @@
+package iNetworkGUI;
+
+uses GUI,
+     Set,
+     List,
+     String,
+     Global,
+     INIFile,
+     Object,
+     Task,
+     Text,
+     iGUI,
+     iGame,
+     Group,
+     Sim,
+     MapEnumerations,
+     iFaction,
+     iMapEntity,
+     iSim,
+     iBody,
+     iHabitat,
+     iShip,
+     iMultiplay,
+     iMultiplayGUI;
+
+provides NetworkScreen,
+         OnNetworkLANScreen,
+         NetworkLANScreen,
+         OnNetworkInternetScreen,
+         NetworkInternetScreen,
+         NetworkServerScreen,
+         NetworkServerScreenAdvanced,
+         OnCDKey,
+         OnBackToMainMenuButton,
+         OnBackButton,
+         MainOnBackToMainMenuButton,
+         MainOnBackButton,
+         LANOnBackToMainMenuButton,
+         LANOnBackButton,
+         RemoveLANOverlays,
+         OnHostSession,
+         CDKeyScreen,
+         CDKeyScreen_OnBackButton,
+         CDKeyScreen_OnBackToMainMenuButton,
+         CDKeyScreen_OnEditBoxStarted,
+         CDKeyScreen_OnEditBoxFinish,
+         OnServerAdvancedOptions,
+         OnAdvancedLeft,
+         OnAdvancedRight,
+         OnAdvancedSelect,
+         OnAdvancedMouseDown,
+         OnAdvancedMouseUp,
+         OnAdvancedBackButton,
+         OnAdvancedBackToMainMenuButton,
+         ShowShip,
+         OnShipSelection,
+         AddServerEntryCallBack,
+         OnSessionRefresh,
+         OnSessionUpdateComplete,
+         PlayerOptions,
+         OnPlayerOptions,
+         OnPlayerOptionsBackButton,
+         OnPlayerOptionsBackToMainMenuButton,
+         OnServerScreenBackButton,
+         OnServerScreenBackToMainMenuButton,
+         OnServerScreenOK;
+
+prototype local_function_0();
+prototype MainOnBackButton();
+prototype OnBackButton();
+prototype LANOnBackButton();
+prototype RemoveLANOverlays();
+prototype MainOnBackToMainMenuButton();
+prototype OnBackToMainMenuButton();
+prototype LANOnBackToMainMenuButton();
+prototype local_function_3();
+prototype hwindow local_function_4( string param_0_, list localList_ );
+prototype OnSessionRefresh();
+prototype OnSessionUpdateComplete();
+prototype AddServerEntryCallBack( string param_0_, string param_1_, string param_2_, string param_3_, bool param_4_, bool param_5_ );
+prototype OnNetworkLANScreen();
+prototype NetworkLANScreen();
+prototype list local_function_1( bool param_0_ );
+prototype task local_function_2( hwindow window_0_, hwindow window_1_ );
+prototype ShowShip( string param_0_ );
+prototype OnShipSelection();
+prototype OnPlayerOptionsBackButton();
+prototype OnPlayerOptionsBackToMainMenuButton();
+prototype PlayerOptions();
+prototype OnPlayerOptions();
+prototype string local_function_5();
+prototype OnServerScreenBackButton();
+prototype OnServerScreenBackToMainMenuButton();
+prototype OnServerScreenOK();
+prototype NetworkServerScreen();
+prototype OnAdvancedBackButton();
+prototype OnAdvancedBackToMainMenuButton();
+prototype hwindow local_function_7( string param_0_, hwindow window_0_ );
+prototype NetworkServerScreenAdvanced();
+prototype int local_function_8();
+prototype local_function_9( hwindow window_ );
+prototype OnAdvancedLeft();
+prototype OnAdvancedRight();
+prototype OnAdvancedSelect();
+prototype OnAdvancedMouseDown();
+prototype OnAdvancedMouseUp();
+prototype OnHostSession();
+prototype OnServerAdvancedOptions();
+prototype local_function_6( hwindow window_0_, list localList_0_ );
+prototype NetworkInternetScreen();
+prototype OnNetworkInternetScreen();
+prototype NetworkScreen();
+prototype OnCDKey();
+prototype CDKeyScreen();
+prototype CDKeyScreen_OnBackButton();
+prototype CDKeyScreen_OnBackToMainMenuButton();
+prototype CDKeyScreen_OnEditBoxStarted();
+prototype CDKeyScreen_OnEditBoxFinish();
+
+local_function_0()
+{
+	iMultiplay.NetworkSetProtocol( 0 );
+}
+
+MainOnBackButton()
+{
+	int local_0;
+	
+	if ( Global.Exists( "NetworkSessionContinue" ) )
+	{
+		Global.SetBool( "NetworkSessionContinue", false );
+	}
+	
+	Global.Destroy( "mp_network_refresh_button" );
+	Global.Destroy( "mp_network_text_box" );
+	Global.Destroy( "mp_network_session_list_box" );
+	Global.Destroy( "Network_Internet_connect" );
+	Global.Destroy( "NetworkServerOptionsName" );
+	Global.Destroy( "NetworkServerOptionsTime" );
+	Global.Destroy( "NetworkServerOptionsScore" );
+	Global.Destroy( "NetworkServerOptionsPackages" );
+	Global.Destroy( "MoviePlaying" );
+	GUI.PopScreen();
+	GUI.PopScreen();
+}
+
+OnBackButton()
+{
+	GUI.RemoveLastOverlay();
+}
+
+LANOnBackButton()
+{
+	int local_0;
+	
+	iMultiplay.ClientSetRequestedToCycle( false );
+	
+	if ( Global.Exists( "NetworkSessionContinue" ) )
+	{
+		Global.SetBool( "NetworkSessionContinue", false );
+	}
+	
+	GUI.RemoveLastOverlay();
+}
+
+RemoveLANOverlays()
+{
+	if ( Global.Exists( "NetworkSessionContinue" ) )
+	{
+		Global.SetBool( "NetworkSessionContinue", false );
+	}
+	
+	GUI.RemoveLastOverlay();
+}
+
+MainOnBackToMainMenuButton()
+{
+	MainOnBackButton();
+}
+
+OnBackToMainMenuButton()
+{
+	OnBackButton();
+	GUI.PopScreen();
+	GUI.PopScreen();
+}
+
+LANOnBackToMainMenuButton()
+{
+	LANOnBackButton();
+	GUI.PopScreen();
+	GUI.PopScreen();
+}
+
+local_function_3()
+{
+	RemoveLANOverlays();
+	GUI.PopScreen();
+	GUI.PushScreen( "icSpaceFlightScreen" );
+}
+
+hwindow local_function_4( string param_0_, list localList_ )
+{
+	hwindow window = iGUI.CreateInverseRadioButton( 0, 0, none );
+	
+	GUI.SetWindowTitle( window, param_0_ );
+	List.AddTail( localList_, window );
+	return window;
+}
+
+OnSessionRefresh()
+{
+	hwindow mpNetworkSessionListBox;
+	hwindow mpNetworkRefreshButton;
+	string local_2;
+	
+	mpNetworkSessionListBox = GUI.Cast( Global.Handle( "mp_network_session_list_box" ) );
+	mpNetworkRefreshButton = GUI.Cast( Global.Handle( "mp_network_refresh_button" ) );
+	
+	if ( iMultiplay.ServerBrowserUpdateComplete() )
+	{
+		GUI.RemoveListBoxEntries( mpNetworkSessionListBox );
+		
+		if ( Global.Bool( "Network_Internet_connect" ) == 1 )
+		{
+			iMultiplay.ServerBrowserBeginInternet();
+		}
+		else
+		{
+			iMultiplay.ServerBrowserBeginLAN();
+		}
+		
+		local_2 = Text.Field( "mp_network_searching", FT_Text );
+		local_2 = String.Join( local_2, "..." );
+		GUI.SetWindowTitle( mpNetworkRefreshButton, local_2 );
+	}
+}
+
+OnSessionUpdateComplete()
+{
+	hwindow mpNetworkRefreshButton = GUI.Cast( Global.Handle( "mp_network_refresh_button" ) );
+	
+	GUI.SetWindowTitle( mpNetworkRefreshButton, Text.Field( "mp_network_refresh", FT_Text ) );
+}
+
+AddServerEntryCallBack( string param_0_, string param_1_, string param_2_, string param_3_, bool param_4_, bool param_5_ )
+{
+	hwindow mpNetworkSessionListBox;
+	hwindow window_0;
+	hwindow window_1;
+	int local_3;
+	int local_4;
+	int constant_0 = 12;
+	int local_6;
+	int local_7;
+	int constant_1 = 20;
+	int local_9;
+	int local_10;
+	int constant_2 = 23;
+	int gUIListboxEntryheight = Global.Int( "GUI_listbox_entryheight" );
+	int local_13;
+	string local_14 = Global.String( "type_font" );
+	int local_15 = String.ToInt( param_3_ );
+	
+	if ( (local_15 != iMultiplay.ProtocolVersion()) && !param_5_ )
+	{
+		return;
+	}
+	
+	if ( param_5_ )
+	{
+		param_0_ = String.Join( param_0_, " V" );
+		param_0_ = String.Join( param_0_, String.FromInt( local_15 ) );
+	}
+	
+	mpNetworkSessionListBox = GUI.Cast( Global.Handle( "mp_network_session_list_box" ) );
+	window_0 = GUI.CreateWindow( 0, 0, GUI.WindowCanvasWidth( mpNetworkSessionListBox ), gUIListboxEntryheight, none );
+	local_13 = ( GUI.WindowCanvasWidth( mpNetworkSessionListBox ) / 6 );
+	local_3 = ( 0 + constant_0 );
+	local_4 = ( (local_13 * 4) - constant_0 );
+	local_6 = ( (local_13 * 4) + constant_1 );
+	local_7 = ( local_13 - constant_1 );
+	local_9 = ( (local_13 * 4) + (local_13 + constant_2) );
+	local_10 = ( local_13 - constant_2 );
+	window_1 = iGUI.CreateAndInitialiseListBoxEntryComponentWindow( local_3, local_4, gUIListboxEntryheight, window_0, local_14, param_0_ );
+	
+	if ( param_4_ )
+	{
+		GUI.SetWindowStateColours( window_1, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0 );
+	}
+	
+	window_1 = iGUI.CreateAndInitialiseListBoxEntryComponentWindow( local_6, local_7, gUIListboxEntryheight, window_0, local_14, param_1_ );
+	
+	if ( param_4_ )
+	{
+		GUI.SetWindowStateColours( window_1, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0 );
+	}
+	
+	window_1 = iGUI.CreateAndInitialiseListBoxEntryComponentWindow( local_9, local_10, gUIListboxEntryheight, window_0, local_14, param_2_ );
+	
+	if ( param_4_ )
+	{
+		GUI.SetWindowStateColours( window_1, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0 );
+	}
+	
+	GUI.AddListBoxEntry( mpNetworkSessionListBox, window_0 );
+}
+
+OnNetworkLANScreen()
+{
+	Global.SetBool( "Network_Internet_connect", false );
+	GUI.OverlayScreen( "icMultiplayLANScreen" );
+}
+
+NetworkLANScreen()
+{
+	list localList_0;
+	list localList_1;
+	hwindow gUI_0;
+	hwindow gUI_1;
+	hwindow gUI_2;
+	int local_5;
+	int local_6;
+	string local_7;
+	int local_8;
+	htask local_9;
+	string local_10;
+	bool local_11;
+	
+	Global.Destroy( "NetworkSessionContinue" );
+	Global.CreateBool( "NetworkSessionContinue", 2, false );
+	iMultiplay.NetworkReset();
+	local_function_0();
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	
+	if ( Global.Bool( "Network_Internet_connect" ) == 1 )
+	{
+		local_11 = false;
+	}
+	else
+	{
+		local_11 = true;
+	}
+	
+	localList_1 = local_function_1( local_11 );
+	iMultiplay.ServerBrowserSetPogFunctions( "iNetworkGUI.AddServerEntryCallBack", "iNetworkGUI.OnSessionUpdateComplete" );
+	
+	if ( local_11 )
+	{
+		iMultiplay.ServerBrowserBeginLAN();
+	}
+	else
+	{
+		iMultiplay.ServerBrowserBeginInternet();
+	}
+	
+	gUI_0 = GUI.Cast( List.Head( localList_1 ) );
+	List.RemoveHead( localList_1 );
+	gUI_1 = GUI.Cast( List.Head( localList_1 ) );
+	List.RemoveHead( localList_1 );
+	gUI_2 = GUI.Cast( List.Head( localList_1 ) );
+	List.RemoveHead( localList_1 );
+	List.AddTail( localList_0, gUI_0 );
+	List.AddTail( localList_0, gUI_1 );
+	local_9 = start local_function_2( gUI_0, gUI_2 );
+	Task.Detach( local_9 );
+	GUI.SetFirstControlFocus( gUI_0 );
+	iGUI.SetCyclicControlFocusPath( localList_0 );
+	GUI.SetControlFocusCancelFunction( "iNetworkGUI.LANOnBackButton" );
+}
+
+list local_function_1( bool param_0_ )
+{
+	hwindow gUI;
+	hwindow window_0;
+	list localList;
+	hwindow window_1;
+	hwindow window_2;
+	hwindow window_3;
+	hwindow window_4;
+	int gUIAlignmentOffset = Global.Int( "GUI_alignment_offset" );
+	int local_8;
+	int local_9;
+	int local_10 = ( GUI.FrameHeight() - 290 );
+	int local_11;
+	int gUIScrollbarWidth = Global.Int( "GUI_scrollbar_width" );
+	int gUIFancyborderWidth;
+	int local_14;
+	int local_15;
+	int local_16;
+	int gUITableAlignmentoffset = Global.Int( "GUI_table_alignmentoffset" );
+	int local_18;
+	int gUIInversebuttonWidth = Global.Int( "GUI_inversebutton_width" );
+	int gUIInversebuttonHeight = Global.Int( "GUI_inversebutton_height" );
+	int constant_0 = 10;
+	int constant_1 = 5;
+	int local_23;
+	string local_24;
+	string local_25;
+	
+	if ( param_0_ )
+	{
+		local_25 = Text.Field( "mp_lan_game", FT_Text );
+	}
+	else
+	{
+		local_25 = Text.Field( "mp_internet_game", FT_Text );
+	}
+	
+	localList = iGUI.CreateGreyBoxStyleScreen( Text.Field( "pda_multiplayer", FT_Text ), "iNetworkGUI.LANOnBackButton", "iNetworkGUI.LANOnBackToMainMenuButton" );
+	gUI = GUI.Cast( List.Head( localList ) );
+	List.RemoveAll( localList );
+	local_8 = GUI.WindowCanvasHeight( gUI );
+	local_9 = GUI.WindowCanvasWidth( gUI );
+	local_11 = ( local_9 - (2 * Global.Int( "GUI_scrollbar_width" )) );
+	local_11 = ( local_11 / 6 );
+	window_0 = GUI.CreateWindow( 0, 0, local_9, local_10, gUI );
+	window_1 = iGUI.CreateTitledListBox( window_0, local_25, local_11 * 4, Text.Field( "mp_server_name", FT_Text ), local_11, Text.Field( "mp_network_players", FT_Text ), local_11, Text.Field( "mp_network_ping_time", FT_Text ) );
+	List.AddTail( localList, window_1 );
+	Global.CreateHandle( "mp_network_session_list_box", 2, window_1 );
+	window_4 = iGUI.CreateAndInitialiseInverseButton( gUI, constant_0, local_10, gUIInversebuttonWidth, Text.Field( "mp_network_refresh", FT_Text ), "iNetworkGUI.OnSessionRefresh" );
+	List.AddTail( localList, window_4 );
+	Global.CreateHandle( "mp_network_refresh_button", 2, window_4 );
+	
+	if ( iMultiplay.ServerBrowserUpdateComplete() )
+	{
+		local_24 = Text.Field( "mp_network_refresh", FT_Text );
+		GUI.SetWindowTitle( window_4, local_24 );
+	}
+	else
+	{
+		local_24 = Text.Field( "mp_network_searching", FT_Text );
+		local_24 = String.Join( local_24, "..." );
+		GUI.SetWindowTitle( window_4, local_24 );
+	}
+	
+	local_23 = ( local_10 + (gUIInversebuttonHeight + constant_1) );
+	window_0 = GUI.CreateWindow( 0, local_23, local_9, local_8 - local_23, gUI );
+	gUIFancyborderWidth = Global.Int( "GUI_fancyborder_width" );
+	local_14 = ( Global.Int( "GUI_fancyborder_alignmentoffset" ) + 5 );
+	local_15 = ( GUI.WindowCanvasWidth( window_0 ) - (gUIFancyborderWidth + Global.Int( "GUI_fancyborder_width" )) );
+	local_16 = ( GUI.WindowCanvasHeight( window_0 ) - (local_14 + (10 + Global.Int( "GUI_fancyborder_alignmentoffset" ))) );
+	window_3 = GUI.CreateWindow( gUIFancyborderWidth, local_14, local_15, local_16, window_0 );
+	GUI.CreateFancyBorder( window_3 );
+	window_2 = iGUI.CreateAndInitialiseTextWindow( gUITableAlignmentoffset, 0, local_15 - ((2 * gUIScrollbarWidth) + gUITableAlignmentoffset), local_16, window_3, "" );
+	List.AddTail( localList, window_2 );
+	Global.CreateHandle( "mp_network_text_box", 2, window_2 );
+	return localList;
+}
+
+task local_function_2( hwindow window_0_, hwindow window_1_ )
+{
+	int local_0 = -1;
+	int local_1 = -1;
+	int local_2;
+	int local_3;
+	string local_4;
+	string local_5;
+	int local_6;
+	string local_7;
+	string local_8;
+	int local_9;
+	int local_10 = iGame.SystemTime();
+	int local_11;
+	
+	Global.SetBool( "NetworkSessionContinue", true );
+	
+	while ( Global.Bool( "NetworkSessionContinue" ) == 1 )
+	{
+		local_3 = GUI.ListBoxFocusedEntry( window_0_ );
+		
+		if ( local_3 == -1 )
+		{
+			GUI.SetTextWindowString( window_1_, "" );
+		}
+		else if ( local_3 != local_1 )
+		{
+			GUI.SetTextWindowString( window_1_, iMultiplay.ServerBrowserDisplayItem( local_3 ) );
+		}
+		
+		local_1 = local_3;
+		local_2 = GUI.ListBoxSelectedIndex( window_0_ );
+		
+		if ( (local_2 != -1) && (local_2 != local_0) )
+		{
+			if ( iMultiplay.ServerBrowserPlayers( local_2 ) >= iMultiplay.ServerBrowserMaxPlayers( local_2 ) )
+			{
+				local_9 = -1;
+				GUI.SelectListBoxEntry( window_0_, -1 );
+				GUI.PlaySound( S_Error );
+			}
+			else
+			{
+				GUI.PlaySound( S_Confirm );
+				local_8 = iMultiplay.ServerBrowserAddress( local_2 );
+				local_9 = iMultiplay.ServerBrowserSessionIndex( local_2 );
+				
+				if ( local_9 == -1 )
+				{
+					iMultiplay.NetworkReset();
+					local_function_0();
+					GUI.CancelListBoxSelection( window_0_ );
+				}
+			}
+			
+			if ( local_9 != -1 )
+			{
+				iMultiplay.ClientSetLastAddress( local_8 );
+				iMultiplay.ClientSetLastSession( iMultiplay.ServerBrowserSessionName( local_2 ) );
+				local_0 = local_2;
+				Global.SetBool( "NetworkSessionContinue", false );
+				iGame.JoinNetworkGame( local_9 );
+				local_function_3();
+			}
+		}
+		
+		Task.Sleep( Task.Current(), 0.20 );
+	}
+	
+	Global.Destroy( "NetworkSessionContinue" );
+}
+
+ShowShip( string param_0_ )
+{
+	hinifile inifile;
+	string local_1;
+	string local_2;
+	string local_3;
+	
+	if ( !( param_0_ == "" ) )
+	{
+		local_3 = Global.String( "MoviePlaying" );
+		
+		if ( !( param_0_ == local_3 ) )
+		{
+			Global.SetString( "MoviePlaying", param_0_ );
+			inifile = INIFile.Create( param_0_ );
+			local_1 = String.UpperCase( INIFile.String( inifile, "GUI", "movie", "" ) );
+			local_2 = String.UpperCase( INIFile.String( inifile, "GUI", "text", "" ) );
+			INIFile.Destroy( inifile );
+			GUI.PlayBackgroundMovie( local_1, local_2 );
+		}
+	}
+}
+
+OnShipSelection()
+{
+	list localList = Global.List( "multiplayer_options_ship_list" );
+	int ii;
+	string local_2;
+	hwindow window = GUI.FocusedWindow();
+	
+	for ( ii = 0; ii < iMultiplayGUI.ValidShipCount(); ++ii )
+	{
+		if ( window == GUI.Cast( List.GetNth( localList, ii ) ) )
+		{
+			local_2 = iMultiplayGUI.ValidShipINI( ii );
+			GUI.SetRadioButtonChecked( window, true );
+		}
+	}
+	
+	ShowShip( local_2 );
+}
+
+OnPlayerOptionsBackButton()
+{
+	hwindow multiplayerOptionsNameBox;
+	list localList;
+	int ii;
+	string local_3;
+	
+	multiplayerOptionsNameBox = GUI.Cast( Global.Handle( "multiplayer_options_name_box" ) );
+	localList = Global.List( "multiplayer_options_ship_list" );
+	local_3 = GUI.EditBoxValue( multiplayerOptionsNameBox );
+	iMultiplay.ClientOptionsSetName( local_3 );
+	
+	for ( ii = 0; ii < iMultiplayGUI.ValidShipCount(); ++ii )
+	{
+		if ( GUI.RadioButtonValue( GUI.Cast( List.GetNth( localList, ii ) ) ) )
+		{
+			iMultiplay.ClientOptionsSetShip( iMultiplayGUI.ValidShipINI( ii ) );
+		}
+	}
+	
+	iMultiplay.ClientOptionsSave();
+	Global.Destroy( "multiplayer_options_name_box" );
+	Global.Destroy( "multiplayer_options_ship_list" );
+	GUI.StopBackgroundMovie();
+	Global.SetString( "MoviePlaying", "" );
+	OnBackButton();
+}
+
+OnPlayerOptionsBackToMainMenuButton()
+{
+	OnPlayerOptionsBackButton();
+	OnBackToMainMenuButton();
+}
+
+PlayerOptions()
+{
+	hwindow window_0;
+	hwindow window_1;
+	int ii;
+	int local_3;
+	list localList_0;
+	list localList_1;
+	int local_6;
+	int local_7;
+	hwindow window_2;
+	hwindow window_3;
+	int constant = 9;
+	string name;
+	int validShipCount = iMultiplayGUI.ValidShipCount();
+	
+	iMultiplay.ClientOptionsLoad();
+	name = iMultiplay.ClientOptionsName();
+	iMultiplay.GetServerPackageList();
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	window_0 = iGUI.CreateShadyBar();
+	iGUI.AddBackButtons( window_0, "iNetworkGUI.OnPlayerOptionsBackButton", "iNetworkGUI.OnPlayerOptionsBackToMainMenuButton" );
+	iGUI.AddTitle( window_0, Text.Field( "mp_options_title", FT_Text ) );
+	local_3 = ( Global.Int( "GUI_title_yoffset" ) + (Global.Int( "GUI_fancybutton_height" ) + 10) );
+	local_6 = ( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_alignmentoffset" ) );
+	window_3 = GUI.CreateWindow( 0, 0, Global.Int( "GUI_inversebutton_width" ), Global.Int( "GUI_inversebutton_height" ), none );
+	window_2 = GUI.CreateEditBox( constant, 0, Global.Int( "GUI_inversebutton_width" ) - constant, Global.Int( "GUI_inversebutton_height" ), window_3, false, name, false );
+	GUI.SetWindowFont( window_2, Global.String( "type_font" ) );
+	GUI.SetEditBoxMaxCharLength( window_2, 20 );
+	GUI.SetWindowStateColours( window_2, Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_selected_red" ), Global.Float( "GUI_selected_green" ), Global.Float( "GUI_selected_blue" ) );
+	List.AddTail( localList_0, window_3 );
+	iGUI.CreateWindowListInSplitter( window_0, localList_0, local_6, local_3, Text.Field( "mp_options_name", FT_Text ) );
+	local_3 = ( local_3 + (GUI.WindowCanvasHeight( window_2 ) + (Global.Int( "GUI_fancybutton_height" ) + 10)) );
+	Global.CreateHandle( "multiplayer_options_name_box", 2, window_2 );
+	List.RemoveAll( localList_0 );
+	List.AddTail( localList_0, window_2 );
+	
+	for ( ii = 0; ii < validShipCount; ++ii )
+	{
+		window_1 = local_function_4( iMultiplayGUI.ValidShipDisplayName( ii ), localList_1 );
+		List.AddTail( localList_0, window_1 );
+		iGUI.MakeInverseButtonIconic( window_1 );
+		GUI.SetInputOverrideFunctions( window_1, "", "", "", "", "iNetworkGUI.OnShipSelection", "iNetworkGUI.OnPlayerOptionsBackButton", "", "", "iNetworkGUI.OnShipSelection" );
+	}
+	
+	Global.CreateList( "multiplayer_options_ship_list", 2, localList_1 );
+	Global.CreateString( "MoviePlaying", 2, "" );
+	
+	for ( ii = 0; ii < validShipCount; ++ii )
+	{
+		if ( iMultiplayGUI.ValidShipINI( ii ) == iMultiplay.ClientOptionsShip() )
+		{
+			GUI.SetRadioButtonChecked( GUI.Cast( List.GetNth( localList_1, ii ) ), true );
+			ShowShip( iMultiplayGUI.ValidShipINI( ii ) );
+		}
+	}
+	
+	iGUI.CreateWindowListInSplitter( window_0, localList_1, local_6, local_3, Text.Field( "mp_options_ship_selection", FT_Text ) );
+	GUI.SetFirstControlFocus( window_2 );
+	iGUI.SetCyclicControlFocusPath( localList_0 );
+	GUI.SetControlFocusCancelFunction( "iNetworkGUI.OnPlayerOptionsBackButton" );
+}
+
+OnPlayerOptions()
+{
+	GUI.OverlayScreen( "icMultiplayOptionsScreen" );
+}
+
+string local_function_5()
+{
+	int local_0;
+	hwindow gUI;
+	list localList;
+	int ii;
+	string local_4;
+	string local_5;
+	int local_6;
+	int local_7 = -1;
+	string packageName;
+	string packageIni;
+	string local_10;
+	int local_11;
+	string mapName;
+	string local_13;
+	
+	localList = Global.List( "NetworkServerOptionsPackages" );
+	
+	for ( ii = 0; ii < List.ItemCount( localList ); ++ii )
+	{
+		if ( GUI.RadioButtonValue( GUI.Cast( List.GetNth( localList, ii ) ) ) )
+		{
+			local_7 = ii;
+		}
+	}
+	
+	if ( local_7 == -1 )
+	{
+		packageName = "ideathmatch";
+	}
+	else
+	{
+		packageName = Object.StringProperty( List.GetNth( localList, local_7 ), "package_name" );
+		packageIni = Object.StringProperty( List.GetNth( localList, local_7 ), "package_ini" );
+		mapName = Object.StringProperty( List.GetNth( localList, local_7 ), "map_name" );
+	}
+	
+	gUI = GUI.Cast( Global.Handle( "NetworkServerOptionsName" ) );
+	local_10 = GUI.EditBoxValue( gUI );
+	gUI = GUI.Cast( Global.Handle( "NetworkServerOptionsTime" ) );
+	local_4 = GUI.EditBoxValue( gUI );
+	local_6 = String.ToInt( local_4 );
+	local_6 = ( local_6 * 60 );
+	local_4 = String.FromInt( local_6 );
+	gUI = GUI.Cast( Global.Handle( "NetworkServerOptionsScore" ) );
+	local_5 = GUI.EditBoxValue( gUI );
+	iMultiplay.ClientOptionsSetServerName( local_10 );
+	iMultiplay.ClientOptionsSetServerPackage( packageIni );
+	iMultiplay.ClientOptionsSetServerFragLimit( String.ToInt( local_5 ) );
+	iMultiplay.ClientOptionsSetServerTimeLimit( local_6 );
+	iMultiplay.ClientOptionsSave();
+	local_13 = "-sp \"";
+	local_13 = String.Join( local_13, packageName );
+	local_13 = String.Join( local_13, "\" -sn \"" );
+	local_13 = String.Join( local_13, local_10 );
+	local_13 = String.Join( local_13, "\" -stl " );
+	local_13 = String.Join( local_13, local_4 );
+	local_13 = String.Join( local_13, " -sfl " );
+	local_13 = String.Join( local_13, local_5 );
+	local_13 = String.Join( local_13, " -sm \"" );
+	local_13 = String.Join( local_13, mapName );
+	local_13 = String.Join( local_13, "\"" );
+	
+	if ( iMultiplay.ClientOptionsServerAIBots() )
+	{
+		local_13 = String.Join( local_13, " -aib " );
+	}
+	
+	if ( iMultiplay.ClientOptionsServerAIBotsCount() )
+	{
+		local_13 = String.Join( local_13, " -ais " );
+		local_13 = String.Join( local_13, String.FromFloat( iMultiplay.ClientOptionsServerAIBotsSkill() ) );
+		local_13 = String.Join( local_13, " -aic " );
+		local_13 = String.Join( local_13, String.FromInt( iMultiplay.ClientOptionsServerAIBotsCount() ) );
+	}
+	
+	return local_13;
+}
+
+OnServerScreenBackButton()
+{
+	local_function_5();
+	GUI.RemoveLastOverlay();
+}
+
+OnServerScreenBackToMainMenuButton()
+{
+	OnServerScreenBackButton();
+	GUI.PopScreen();
+	GUI.PopScreen();
+}
+
+OnServerScreenOK()
+{
+	string local_0 = local_function_5();
+	int local_1;
+	
+	GUI.PlaySound( S_Confirm );
+	iMultiplay.ServerAppSpawn( local_0 );
+	iMultiplay.NetworkReset();
+	local_function_0();
+	local_1 = iMultiplay.ServerSessionIndexFromName( "", iMultiplay.ClientOptionsServerName() );
+	iMultiplay.ClientSetLastSession( iMultiplay.ClientOptionsServerName() );
+	iGame.JoinNetworkGame( local_1 );
+	local_function_3();
+}
+
+NetworkServerScreen()
+{
+	hwindow window_0;
+	int local_1;
+	int local_2;
+	int local_3;
+	int local_4;
+	int local_5;
+	int local_6;
+	list localList_0;
+	string local_8;
+	list localList_1;
+	int local_10;
+	hwindow window_1;
+	hwindow window_2;
+	hwindow window_3;
+	hwindow window_4;
+	int constant_0 = 9;
+	string name;
+	string local_17;
+	string local_18;
+	int constant_1 = 10;
+	int local_20 = ( Global.Int( "GUI_inversebutton_height" ) + (Global.Int( "GUI_fancybutton_height" ) + constant_1) );
+	int constant_2 = 4;
+	int local_22 = ( (2 * Global.Int( "GUI_fancyborder_width" )) + 13 );
+	hwindow window_5;
+	
+	iMultiplay.ClientOptionsLoad();
+	name = iMultiplay.ClientOptionsServerName();
+	local_17 = String.FromInt( iMultiplay.ClientOptionsServerTimeLimit() / 60 );
+	local_18 = String.FromInt( iMultiplay.ClientOptionsServerFragLimit() );
+	
+	if ( name == "" )
+	{
+		name = Text.Field( "mp_server_default_session_name", FT_Text );
+	}
+	
+	if ( local_17 == "" )
+	{
+		local_17 = "0";
+	}
+	
+	if ( local_18 == "" )
+	{
+		local_18 = "0";
+	}
+	
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	window_0 = iGUI.CreateShadyBar();
+	iGUI.AddBackButtons( window_0, "iNetworkGUI.OnServerScreenBackButton", "iNetworkGUI.OnServerScreenBackToMainMenuButton" );
+	iGUI.AddTitle( window_0, Text.Field( "mp_options_host_session", FT_Text ) );
+	local_6 = ( Global.Int( "GUI_title_yoffset" ) + (Global.Int( "GUI_fancybutton_height" ) + constant_1) );
+	local_3 = ( GUI.WindowCanvasHeight( window_0 ) - (8 + Global.Int( "GUI_backbutton_rise" )) );
+	local_10 = ( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_alignmentoffset" ) );
+	local_3 = ( local_3 - Global.Int( "GUI_fancybutton_height" ) );
+	window_3 = iGUI.CreateAndInitialiseFancyButton( window_0, local_3, Text.Field( "mp_server_start", FT_Text ), "iNetworkGUI.OnServerScreenOK" );
+	List.AddHead( localList_0, window_3 );
+	local_3 = ( local_3 - Global.Int( "GUI_fancybutton_height" ) );
+	window_4 = iGUI.CreateAndInitialiseFancyButton( window_0, local_3, Text.Field( "mp_server_advanced_button", FT_Text ), "iNetworkGUI.OnServerAdvancedOptions" );
+	List.AddHead( localList_0, window_4 );
+	local_3 = ( local_3 - local_20 );
+	window_2 = GUI.CreateWindow( 0, 0, Global.Int( "GUI_inversebutton_width" ), Global.Int( "GUI_inversebutton_height" ), none );
+	window_1 = GUI.CreateEditBox( constant_0, 0, Global.Int( "GUI_inversebutton_width" ) - constant_0, Global.Int( "GUI_inversebutton_height" ), window_2, false, local_18, true );
+	GUI.SetWindowFont( window_1, Global.String( "type_font" ) );
+	GUI.SetEditBoxMaxCharLength( window_1, 10 );
+	GUI.SetWindowStateColours( window_1, Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_selected_red" ), Global.Float( "GUI_selected_green" ), Global.Float( "GUI_selected_blue" ) );
+	List.RemoveAll( localList_1 );
+	List.AddTail( localList_1, window_2 );
+	iGUI.CreateWindowListInSplitter( window_0, localList_1, local_10, local_3, Text.Field( "mp_server_score_limit", FT_Text ) );
+	Global.CreateHandle( "NetworkServerOptionsScore", 2, window_1 );
+	List.AddHead( localList_0, window_1 );
+	local_3 = ( local_3 - local_20 );
+	window_2 = GUI.CreateWindow( 0, 0, Global.Int( "GUI_inversebutton_width" ), Global.Int( "GUI_inversebutton_height" ), none );
+	window_1 = GUI.CreateEditBox( constant_0, 0, Global.Int( "GUI_inversebutton_width" ) - constant_0, Global.Int( "GUI_inversebutton_height" ), window_2, false, local_17, true );
+	GUI.SetWindowFont( window_1, Global.String( "type_font" ) );
+	GUI.SetEditBoxMaxCharLength( window_1, 6 );
+	GUI.SetWindowStateColours( window_1, Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_selected_red" ), Global.Float( "GUI_selected_green" ), Global.Float( "GUI_selected_blue" ) );
+	List.RemoveAll( localList_1 );
+	List.AddTail( localList_1, window_2 );
+	iGUI.CreateWindowListInSplitter( window_0, localList_1, local_10, local_3, Text.Field( "mp_server_time_limit", FT_Text ) );
+	Global.CreateHandle( "NetworkServerOptionsTime", 2, window_1 );
+	List.AddHead( localList_0, window_1 );
+	local_3 = ( local_3 - local_20 );
+	window_2 = GUI.CreateWindow( 0, 0, Global.Int( "GUI_inversebutton_width" ), Global.Int( "GUI_inversebutton_height" ), none );
+	window_1 = GUI.CreateEditBox( constant_0, 0, Global.Int( "GUI_inversebutton_width" ) - constant_0, Global.Int( "GUI_inversebutton_height" ), window_2, false, name, false );
+	GUI.SetWindowFont( window_1, Global.String( "type_font" ) );
+	GUI.SetEditBoxMaxCharLength( window_1, 20 );
+	GUI.SetWindowStateColours( window_1, Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_selected_red" ), Global.Float( "GUI_selected_green" ), Global.Float( "GUI_selected_blue" ) );
+	List.RemoveAll( localList_1 );
+	List.AddTail( localList_1, window_2 );
+	iGUI.CreateWindowListInSplitter( window_0, localList_1, local_10, local_3, Text.Field( "mp_server_session_name", FT_Text ) );
+	Global.CreateHandle( "NetworkServerOptionsName", 2, window_1 );
+	List.AddHead( localList_0, window_1 );
+	local_2 = ( Global.Int( "GUI_alignment_offset" ) + constant_2 );
+	local_4 = ( Global.Int( "GUI_shader_width" ) + (constant_2 - (local_2 * 2)) );
+	local_5 = ( local_3 - (local_6 + constant_1) );
+	window_5 = GUI.CreateSplitterWindow( local_2, local_6, local_4, local_5, window_0, local_22, false );
+	local_function_6( window_5, localList_0 );
+	GUI.SetFirstControlFocus( GUI.Cast( List.Head( localList_0 ) ) );
+	iGUI.SetCyclicControlFocusPath( localList_0 );
+	GUI.SetControlFocusCancelFunction( "iNetworkGUI.OnServerScreenBackButton" );
+}
+
+OnAdvancedBackButton()
+{
+	hwindow networkServerAdvancedAICheckBox = GUI.Cast( Global.Handle( "NetworkServerAdvancedAICheckBox" ) );
+	hwindow networkServerAdvancedAISkillSlider = GUI.Cast( Global.Handle( "NetworkServerAdvancedAISkillSlider" ) );
+	hwindow networkServerAdvancedAICountBox = GUI.Cast( Global.Handle( "NetworkServerAdvancedAICountBox" ) );
+	
+	iMultiplay.ClientOptionsSetServerAIBots( GUI.CheckboxValue( networkServerAdvancedAICheckBox ) );
+	iMultiplay.ClientOptionsSetServerAIBotsSkill( GUI.SliderControlValue( networkServerAdvancedAISkillSlider ) );
+	iMultiplay.ClientOptionsSetServerAIBotsCount( String.ToInt( GUI.EditBoxValue( networkServerAdvancedAICountBox ) ) );
+	iMultiplay.ClientOptionsSave();
+	Global.Destroy( "NetworkServerAdvancedAICheckBox" );
+	Global.Destroy( "NetworkServerAdvancedAIFormattingWindow" );
+	Global.Destroy( "NetworkServerAdvancedAISkillSlider" );
+	Global.Destroy( "NetworkServerAdvancedAISkillFormattingWindow" );
+	Global.Destroy( "NetworkServerAdvancedAICountBox" );
+	Global.Destroy( "NetworkServerAdvancedAICountFormattingWindow" );
+	Global.Destroy( "NetworkServerAdvancedListBox" );
+	Global.Destroy( "NetworkServerAdvancedFocusedEntry" );
+	GUI.RemoveLastOverlay();
+}
+
+OnAdvancedBackToMainMenuButton()
+{
+	OnAdvancedBackButton();
+	GUI.PopScreen();
+	GUI.PopScreen();
+}
+
+hwindow local_function_7( string param_0_, hwindow window_0_ )
+{
+	int constant_0 = 20;
+	int constant_1 = 13;
+	hwindow window_1;
+	hwindow window_2;
+	int local_4 = GUI.WindowCanvasWidth( window_0_ );
+	int local_5 = ( local_4 / 2 );
+	
+	window_1 = GUI.CreateWindow( 0, 0, local_4, constant_0, none );
+	GUI.AddListBoxEntry( window_0_, window_1 );
+	window_2 = iGUI.CreateAndInitialiseStaticWindow( 0, 0, local_5 - constant_1, constant_0, window_1, Global.String( "GUI_title_font" ), Text.Field( param_0_, FT_Text ) );
+	GUI.SetWindowStateColours( window_2, Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_selected_red" ), Global.Float( "GUI_selected_green" ), Global.Float( "GUI_selected_blue" ) );
+	GUI.SetWindowTextFormatting( window_2, false, constant_1 );
+	return window_1;
+}
+
+NetworkServerScreenAdvanced()
+{
+	hwindow gUI;
+	list localList;
+	hwindow window_0;
+	hwindow window_1;
+	hwindow window_2;
+	hwindow window_3;
+	hwindow window_4;
+	string local_7;
+	bool local_8;
+	float local_9;
+	int clientOptionsServerAIBotsCount;
+	int local_11;
+	int local_12;
+	int constant_0 = 20;
+	int constant_1 = 13;
+	int constant_2 = 7;
+	int constant_3 = 30;
+	int local_17;
+	
+	local_7 = Text.Field( "mp_options_host_session", FT_Text );
+	local_7 = String.UpperCase( local_7 );
+	localList = iGUI.CreateGreyBoxStyleScreen( local_7, "iNetworkGUI.OnAdvancedBackButton", "iNetworkGUI.OnAdvancedBackToMainMenuButton" );
+	gUI = GUI.Cast( List.Head( localList ) );
+	List.RemoveHead( localList );
+	List.RemoveAll( localList );
+	window_0 = iGUI.CreateTitledListBox( gUI, Text.Field( "multiplayer_options_advanced", FT_Text ), 0, "", 0, "", 0, "" );
+	List.AddHead( localList, window_0 );
+	GUI.DisableHighlight( window_0 );
+	GUI.SetInputOverrideFunctions( window_0, "iNetworkGUI.OnAdvancedLeft", "", "iNetworkGUI.OnAdvancedRight", "", "iNetworkGUI.OnAdvancedSelect", "iNetworkGUI.OnAdvancedBackButton", "iNetworkGUI.OnAdvancedMouseDown", "iNetworkGUI.OnAdvancedMouseUp", "" );
+	iMultiplay.ClientOptionsLoad();
+	local_8 = iMultiplay.ClientOptionsServerAIBots();
+	local_9 = iMultiplay.ClientOptionsServerAIBotsSkill();
+	clientOptionsServerAIBotsCount = iMultiplay.ClientOptionsServerAIBotsCount();
+	local_11 = ( (GUI.WindowCanvasWidth( window_0 ) / 2) + (constant_1 - constant_2) );
+	local_17 = ( GUI.WindowCanvasWidth( window_0 ) - (local_11 + constant_1) );
+	Global.CreateInt( "NetworkServerAdvancedFocusedEntry", 2, -1 );
+	window_1 = local_function_7( "mp_server_advanced_ai_count", window_0 );
+	window_2 = GUI.CreateEditBox( local_11, 0, local_17, constant_0, window_1, false, String.FromInt( clientOptionsServerAIBotsCount ), true );
+	GUI.SetEditBoxMaxCharLength( window_2, 1 );
+	GUI.SetWindowFont( window_2, Global.String( "GUI_title_font" ) );
+	GUI.SetWindowStateColours( window_2, Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_selected_red" ), Global.Float( "GUI_selected_green" ), Global.Float( "GUI_selected_blue" ) );
+	List.AddHead( localList, window_1 );
+	Global.CreateHandle( "NetworkServerAdvancedAICountBox", 2, window_2 );
+	Global.CreateHandle( "NetworkServerAdvancedAIFormattingWindow", 2, window_1 );
+	window_1 = local_function_7( "mp_server_advanced_ai_skill", window_0 );
+	window_3 = GUI.CreateSliderControl( local_11, 0, local_17, constant_0, window_1, 0.20, 1.0, 0.20 );
+	GUI.SetSliderControlValue( window_3, local_9 );
+	List.AddHead( localList, window_1 );
+	Global.CreateHandle( "NetworkServerAdvancedAISkillSlider", 2, window_3 );
+	Global.CreateHandle( "NetworkServerAdvancedAISkillFormattingWindow", 2, window_1 );
+	window_1 = local_function_7( "mp_server_advanced_ai_setting", window_0 );
+	window_4 = GUI.CreateCheckbox( local_11, 0, constant_3, constant_0, window_1, local_8 );
+	List.AddHead( localList, window_1 );
+	Global.CreateHandle( "NetworkServerAdvancedAICheckBox", 2, window_4 );
+	Global.CreateHandle( "NetworkServerAdvancedAIFormattingWindow", 2, window_1 );
+	GUI.SetControlFocusCancelFunction( "iNetworkGUI.OnAdvancedBackButton" );
+	Global.CreateHandle( "NetworkServerAdvancedListBox", 2, window_0 );
+	GUI.SetFirstControlFocus( window_0 );
+}
+
+int local_function_8()
+{
+	int local_0;
+	hwindow networkServerAdvancedListBox = GUI.Cast( Global.Handle( "NetworkServerAdvancedListBox" ) );
+	
+	return GUI.ListBoxFocusedEntry( networkServerAdvancedListBox );
+}
+
+local_function_9( hwindow window_ )
+{
+	bool local_0 = GUI.CheckboxValue( window_ );
+	
+	if ( local_0 == 0 )
+	{
+		GUI.SelectWindow( window_ );
+		return;
+	}
+	
+	GUI.DeselectWindow( window_ );
+}
+
+OnAdvancedLeft()
+{
+	hwindow networkServerAdvancedAICountBox = GUI.Cast( Global.Handle( "NetworkServerAdvancedAICountBox" ) );
+	hwindow networkServerAdvancedAISkillSlider = GUI.Cast( Global.Handle( "NetworkServerAdvancedAISkillSlider" ) );
+	hwindow networkServerAdvancedAICheckBox = GUI.Cast( Global.Handle( "NetworkServerAdvancedAICheckBox" ) );
+	int local_3 = local_function_8();
+	int local_4;
+	int local_5;
+	
+	switch ( local_3 )
+	{
+		case 0:
+			local_5 = String.ToInt( GUI.EditBoxValue( networkServerAdvancedAICountBox ) );
+			
+			if ( local_5 > 0 )
+			{
+				local_5 = ( local_5 + -1 );
+				GUI.SetEditBoxValue( networkServerAdvancedAICountBox, String.FromInt( local_5 ) );
+			}
+			else
+			{
+				GUI.PlaySound( S_Error );
+			}
+			
+			return;
+		
+		case 1:
+			GUI.OnControlFocusLeft( networkServerAdvancedAISkillSlider );
+			return;
+		
+		case 2:
+			local_function_9( networkServerAdvancedAICheckBox );
+			return;
+	}
+}
+
+OnAdvancedRight()
+{
+	hwindow networkServerAdvancedAICountBox = GUI.Cast( Global.Handle( "NetworkServerAdvancedAICountBox" ) );
+	hwindow networkServerAdvancedAISkillSlider = GUI.Cast( Global.Handle( "NetworkServerAdvancedAISkillSlider" ) );
+	hwindow networkServerAdvancedAICheckBox = GUI.Cast( Global.Handle( "NetworkServerAdvancedAICheckBox" ) );
+	int local_3 = local_function_8();
+	int local_4;
+	int local_5;
+	
+	switch ( local_3 )
+	{
+		case 0:
+			local_4 = String.ToInt( GUI.EditBoxValue( networkServerAdvancedAICountBox ) );
+			
+			if ( local_4 < 9 )
+			{
+				local_4 = ( local_4 + 1 );
+				GUI.SetEditBoxValue( networkServerAdvancedAICountBox, String.FromInt( local_4 ) );
+			}
+			else
+			{
+				GUI.PlaySound( S_Error );
+			}
+			
+			return;
+		
+		case 1:
+			GUI.OnControlFocusRight( networkServerAdvancedAISkillSlider );
+			return;
+		
+		case 2:
+			local_function_9( networkServerAdvancedAICheckBox );
+			return;
+	}
+}
+
+OnAdvancedSelect()
+{
+	hwindow networkServerAdvancedAICountBox = GUI.Cast( Global.Handle( "NetworkServerAdvancedAICountBox" ) );
+	hwindow networkServerAdvancedAISkillSlider = GUI.Cast( Global.Handle( "NetworkServerAdvancedAISkillSlider" ) );
+	hwindow networkServerAdvancedAICheckBox = GUI.Cast( Global.Handle( "NetworkServerAdvancedAICheckBox" ) );
+	int local_3 = local_function_8();
+	int local_4;
+	
+	switch ( local_3 )
+	{
+		case 0:
+			GUI.OnControlFocusSelect( networkServerAdvancedAICountBox );
+			return;
+		
+		case 1:
+			GUI.PlaySound( S_Error );
+			return;
+		
+		case 2:
+			local_function_9( networkServerAdvancedAICheckBox );
+			return;
+	}
+}
+
+OnAdvancedMouseDown()
+{
+	Global.CreateInt( "NetworkServerAdvancedFocusedEntry", 2, local_function_8() );
+}
+
+OnAdvancedMouseUp()
+{
+	if ( local_function_8() == Global.Int( "NetworkServerAdvancedFocusedEntry" ) )
+	{
+		OnAdvancedSelect();
+	}
+}
+
+OnHostSession()
+{
+	if ( !iMultiplay.IsServerAppSpawned() )
+	{
+		GUI.OverlayScreen( "icMultiplayServerScreen" );
+	}
+}
+
+OnServerAdvancedOptions()
+{
+	local_function_5();
+	GUI.OverlayScreen( "icMultiplayServerScreenEx" );
+}
+
+local_function_6( hwindow window_0_, list localList_0_ )
+{
+	hwindow window_1;
+	hwindow window_2;
+	string local_2 = Global.String( "GUI_subtitle_font" );
+	int gUIInversebuttonHeight = Global.Int( "GUI_inversebutton_height" );
+	int constant_0 = 3;
+	int gUIInversebuttonWidth = Global.Int( "GUI_inversebutton_width" );
+	int ii;
+	bool local_7;
+	int local_8;
+	int gUIScrollbarWidth = Global.Int( "GUI_scrollbar_width" );
+	hwindow window_3;
+	hwindow window_4;
+	list localList_1;
+	bool local_13 = false;
+	bool local_14 = false;
+	string local_15;
+	string local_16;
+	string local_17;
+	string local_18;
+	string local_19;
+	hinifile inifile;
+	int constant_1 = 19;
+	int constant_2 = 21;
+	int local_23;
+	
+	local_8 = iMultiplay.GetServerPackageList();
+	local_15 = iMultiplay.ClientOptionsServerPackage();
+	window_1 = GUI.SplitterWindowTopWindow( window_0_ );
+	window_2 = iGUI.CreateAndInitialiseStaticWindow( 0, 0, GUI.WindowCanvasWidth( window_1 ), GUI.WindowCanvasHeight( window_1 ), window_1, local_2, Text.Field( "mp_server_game_type", FT_Text ) );
+	GUI.SetWindowTextFormatting( window_2, false, 9 );
+	window_1 = GUI.SplitterWindowBottomWindow( window_0_ );
+	
+	if ( (local_8 * (gUIInversebuttonHeight + constant_0)) > GUI.WindowCanvasHeight( window_1 ) )
+	{
+		local_7 = true;
+		gUIInversebuttonWidth = ( gUIInversebuttonWidth - (gUIScrollbarWidth + 4) );
+	}
+	else
+	{
+		local_7 = false;
+	}
+	
+	window_3 = GUI.CreateListBox( 0, 0, gUIInversebuttonWidth, GUI.WindowCanvasHeight( window_1 ), window_1, true, false );
+	List.AddHead( localList_0_, window_3 );
+	
+	if ( local_7 )
+	{
+		GUI.CreateVerticalScrollbar( GUI.WindowCanvasWidth( window_1 ) - gUIScrollbarWidth, 0, gUIScrollbarWidth, GUI.WindowCanvasHeight( window_1 ), window_1, window_3, Global.Float( "GUI_scrollbar_buttonratio" ), "" );
+	}
+	
+	if ( local_7 )
+	{
+		local_23 = constant_1;
+	}
+	else
+	{
+		local_23 = constant_2;
+	}
+	
+	for ( ii = 0; ii < local_8; ++ii )
+	{
+		local_17 = iMultiplay.ServerPackageListItem( ii );
+		inifile = INIFile.Create( local_17 );
+		local_19 = String.UpperCase( INIFile.String( inifile, "Default", "Name", "" ) );
+		local_16 = String.UpperCase( INIFile.String( inifile, "Default", "PackageName", "" ) );
+		local_18 = INIFile.String( inifile, "Default", "Map", "" );
+		INIFile.Destroy( inifile );
+		
+		if ( String.Length( local_19 ) >= local_23 )
+		{
+			local_19 = String.Left( local_19, local_23 );
+			local_19 = String.Join( local_19, "..." );
+		}
+		
+		if ( (local_17 == local_15) && (local_14 == 0) )
+		{
+			local_13 = true;
+			local_14 = true;
+		}
+		
+		window_4 = iGUI.CreateAndInitialiseRectangularInverseRadioButton( none, 0, 0, gUIInversebuttonWidth, local_19, local_13 );
+		iGUI.MakeRectangularInverseButtonIconic( window_4 );
+		Object.AddStringProperty( window_4, "package_name", local_16 );
+		Object.AddStringProperty( window_4, "map_name", local_18 );
+		Object.AddStringProperty( window_4, "package_ini", local_17 );
+		local_13 = false;
+		GUI.SetInputOverrideFunctions( window_4, "", "", "", "", "", "iNetworkGUI.OnBackButton", "", "", "" );
+		GUI.AddListBoxEntry( window_3, window_4 );
+		List.AddTail( localList_1, window_4 );
+	}
+	
+	Global.CreateList( "NetworkServerOptionsPackages", 2, localList_1 );
+}
+
+NetworkInternetScreen()
+{
+}
+
+OnNetworkInternetScreen()
+{
+	Global.SetBool( "Network_Internet_connect", true );
+	GUI.OverlayScreen( "icMultiplayLANScreen" );
+}
+
+NetworkScreen()
+{
+	hwindow window_0;
+	hwindow window_1;
+	hwindow window_2;
+	hwindow window_3;
+	hwindow window_4;
+	hwindow window_5;
+	list localList;
+	int local_7;
+	int local_8;
+	string local_9;
+	int local_10;
+	bool local_11 = Global.Exists( "WrongDiskScreen_LocalisedTextEnabled" );
+	
+	iGUI.SetGUIGlobals();
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	
+	if ( !Global.Exists( "Network_Internet_connect" ) )
+	{
+		Global.CreateBool( "Network_Internet_connect", 2, false );
+	}
+	
+	if ( iMultiplay.NetworkIsLobbySession() && (iMultiplay.ClientRejectedCount() < 1) )
+	{
+		iGame.JoinNetworkGameFromLobby();
+		local_function_3();
+		return;
+	}
+	
+	if ( !( iGame.SessionName() == "" ) && (iMultiplay.ClientRejectedCount() < 1) )
+	{
+		iMultiplay.ClientSetLastAddress( iGame.ServerAddress() );
+		iMultiplay.ClientSetLastSession( iGame.SessionName() );
+		local_function_0();
+		local_10 = iMultiplay.ServerSessionIndexFromName( iGame.ServerAddress(), iGame.SessionName() );
+		
+		if ( local_10 != -1 )
+		{
+			iGame.JoinNetworkGame( local_10 );
+			local_function_3();
+			return;
+		}
+		else
+		{
+			iGame.SetSessionName( "" );
+		}
+	}
+	
+	if ( iMultiplay.ClientRequestedToCycle() )
+	{
+		iMultiplay.NetworkReset();
+		local_function_0();
+		local_10 = iMultiplay.ServerSessionIndexFromName( iMultiplay.ClientLastAddress(), iMultiplay.ClientLastSession() );
+		
+		if ( local_10 != -1 )
+		{
+			iGame.JoinNetworkGame( local_10 );
+			local_function_3();
+			return;
+		}
+	}
+	
+	window_0 = iGUI.CreateShadyBar();
+	iGUI.AddBackButtons( window_0, "iNetworkGUI.MainOnBackButton", "iNetworkGUI.MainOnBackToMainMenuButton" );
+	iGUI.AddTitle( window_0, Text.Field( "pda_multiplayer", FT_Text ) );
+	local_9 = Text.Field( "mp_lan_game", FT_Text );
+	local_9 = String.UpperCase( local_9 );
+	window_1 = iGUI.CreateAndInitialiseParentlessInverseButton( "iNetworkGUI.OnNetworkLANScreen", local_9, localList );
+	
+	if ( local_11 )
+	{
+		local_9 = Text.Field( "mp_internet_game", FT_Text );
+		local_9 = String.UpperCase( local_9 );
+		window_2 = iGUI.CreateAndInitialiseParentlessInverseButton( "iNetworkGUI.OnNetworkInternetScreen", local_9, localList );
+	}
+	
+	local_9 = Text.Field( "mp_options_title", FT_Text );
+	local_9 = String.UpperCase( local_9 );
+	window_3 = iGUI.CreateAndInitialiseParentlessInverseButton( "iNetworkGui.OnPlayerOptions", local_9, localList );
+	
+	if ( iMultiplay.IsServerAppSpawned() )
+	{
+		local_9 = Text.Field( "mp_options_hosting_session", FT_Text );
+	}
+	else
+	{
+		local_9 = Text.Field( "mp_options_host_session", FT_Text );
+	}
+	
+	local_9 = String.UpperCase( local_9 );
+	window_4 = iGUI.CreateAndInitialiseParentlessInverseButton( "iNetworkGui.OnHostSession", local_9, localList );
+	local_7 = ( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_alignmentoffset" ) );
+	local_8 = ( Global.Int( "GUI_title_yoffset" ) + (Global.Int( "GUI_fancybutton_height" ) + 20) );
+	window_5 = iGUI.CreateWindowListInFancyBorder( window_0, localList, local_7, local_8 );
+	GUI.SetFirstControlFocus( window_1 );
+	iGUI.SetCyclicControlFocusPath( localList );
+	GUI.SetControlFocusCancelFunction( "iNetworkGUI.MainOnBackButton" );
+}
+
+OnCDKey()
+{
+	GUI.OverlayScreen( "icCDKeyScreen" );
+}
+
+CDKeyScreen()
+{
+	hwindow window_0;
+	int local_1;
+	int local_2;
+	list localList;
+	int local_4;
+	hwindow window_1;
+	hwindow window_2;
+	hwindow window_3;
+	int constant_0 = 9;
+	string local_9 = iGame.CDKey();
+	int local_10;
+	int local_11;
+	int constant_1;
+	
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	window_0 = iGUI.CreateShadyBar();
+	iGUI.AddBackButtons( window_0, "iNetworkGUI.CDKeyScreen_OnBackButton", "iNetworkGUI.CDKeyScreen_OnBackToMainMenuButton" );
+	iGUI.AddTitle( window_0, Text.Field( "mp_cd_key_enter", FT_Text ) );
+	local_2 = ( Global.Int( "GUI_title_yoffset" ) + (Global.Int( "GUI_fancybutton_height" ) + 10) );
+	local_4 = ( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_alignmentoffset" ) );
+	window_3 = GUI.CreateWindow( 0, 0, Global.Int( "GUI_inversebutton_width" ), Global.Int( "GUI_inversebutton_height" ), none );
+	window_1 = GUI.CreateEditBox( constant_0, 0, Global.Int( "GUI_inversebutton_width" ) - constant_0, Global.Int( "GUI_inversebutton_height" ), window_3, false, local_9, false );
+	GUI.SetWindowFont( window_1, Global.String( "type_font" ) );
+	GUI.SetEditBoxMaxCharLength( window_1, 20 );
+	GUI.SetEditBoxOverrides( window_1, "iNetworkGUI.CDKeyScreen_OnEditBoxStarted", "iNetworkGUI.CDKeyScreen_OnBackButton", "iNetworkGUI.CDKeyScreen_OnEditBoxFinish" );
+	GUI.SetWindowStateColours( window_1, Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_selected_red" ), Global.Float( "GUI_selected_green" ), Global.Float( "GUI_selected_blue" ) );
+	List.AddTail( localList, window_3 );
+	iGUI.CreateWindowListInSplitter( window_0, localList, local_4, local_2, Text.Field( "mp_cd_key_enter", FT_Text ) );
+	local_2 = ( local_2 + (GUI.WindowCanvasHeight( window_1 ) + (Global.Int( "GUI_fancybutton_height" ) + 10)) );
+	Global.CreateHandle( "multiplayer_cdkey_editbox", 2, window_1 );
+	List.RemoveAll( localList );
+	List.AddTail( localList, window_1 );
+	local_10 = ( local_4 + (Global.Int( "GUI_fancyborder_width" ) + Global.Int( "GUI_inversebutton_textoffset" )) );
+	local_11 = ( GUI.WindowCanvasWidth( window_0 ) - local_10 );
+	constant_1 = 15;
+	window_2 = iGUI.CreateAndInitialiseStaticWindow( local_10, local_2, local_11, constant_1, window_0, Global.String( "GUI_subtitle_font" ), "" );
+	GUI.SetWindowTextFormatting( window_2, false, 0 );
+	GUI.SetWindowStateColours( window_2, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0 );
+	Global.CreateHandle( "multiplayer_cdkey_static", 2, window_2 );
+	GUI.SetFirstControlFocus( window_1 );
+	iGUI.SetCyclicControlFocusPath( localList );
+	GUI.SetControlFocusCancelFunction( "iNetworkGUI.CDKeyScreen_OnBackButton" );
+}
+
+CDKeyScreen_OnBackButton()
+{
+	Global.Destroy( "multiplayer_cdkey_editbox" );
+	Global.Destroy( "multiplayer_cdkey_static" );
+	GUI.RemoveOverlaysAfter( "icNetworkScreen" );
+}
+
+CDKeyScreen_OnBackToMainMenuButton()
+{
+	CDKeyScreen_OnBackButton();
+	OnBackToMainMenuButton();
+}
+
+CDKeyScreen_OnEditBoxStarted()
+{
+	hwindow multiplayerCdkeyStatic = GUI.Cast( Global.Handle( "multiplayer_cdkey_static" ) );
+	
+	GUI.SetWindowTitle( multiplayerCdkeyStatic, "" );
+}
+
+CDKeyScreen_OnEditBoxFinish()
+{
+	hwindow multiplayerCdkeyStatic = GUI.Cast( Global.Handle( "multiplayer_cdkey_static" ) );
+	hwindow multiplayerCdkeyEditbox = GUI.Cast( Global.Handle( "multiplayer_cdkey_editbox" ) );
+	string local_2 = GUI.EditBoxValue( multiplayerCdkeyEditbox );
+	string local_3;
+	
+	if ( iMultiplay.ServerBrowserValidateKey( local_2 ) )
+	{
+		iGame.SetCDKey( local_2 );
+		GUI.QueueSound( S_Confirm );
+		CDKeyScreen_OnBackButton();
+		OnNetworkInternetScreen();
+		return;
+	}
+	
+	local_3 = Text.Field( "mp_cd_key_invalid", FT_Text );
+	local_3 = String.UpperCase( local_3 );
+	GUI.SetWindowTitle( multiplayerCdkeyStatic, local_3 );
+	GUI.QueueSound( S_Error );
+}
+

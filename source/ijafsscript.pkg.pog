@@ -1,0 +1,1873 @@
+package iJafsScript;
+
+uses Debug,
+     Set,
+     List,
+     String,
+     Global,
+     Sim,
+     Group,
+     Math,
+     Object,
+     Subsim,
+     Task,
+     iSim,
+     iDockport,
+     iBody,
+     iHabitat,
+     iShip,
+     iLagrangePoint,
+     iAI,
+     iCargo,
+     iComms,
+     iConversation,
+     iCutsceneUtilities,
+     iDirector,
+     iEscort,
+     MapEnumerations,
+     iFaction,
+     iHUD,
+     GUI,
+     CargoTypes,
+     iInventory,
+     iMapEntity,
+     iScore,
+     INIFile,
+     iUtilities,
+     iWingmen;
+
+provides CallJafs,
+         JafsFunctionalityAvailable,
+         JafsEnabled,
+         EnableJafs,
+         DisableJafs,
+         JafsActive,
+         FlagJafsActive,
+         FlagJafsInactive,
+         PodTagToggle,
+         TagPod,
+         UntagPod,
+         CollectPods,
+         JafsComment,
+         GetTagGroup,
+         CheatJafs,
+         TagPodsInFOV,
+         AutoTagValuablePods,
+         DisablePodDockport,
+         EnablePodDockport;
+
+prototype JafsComment( hship ship_ );
+prototype task local_function_2( hship ship_ );
+prototype task local_function_10( hship ship_0_, hgroup group_0_, list localList_ );
+prototype CollectPods( bool collect_all_ );
+prototype list local_function_9( hship ship_ );
+prototype task local_function_11();
+prototype CallJafs();
+prototype bool JafsEnabled();
+prototype EnableJafs();
+prototype DisableJafs();
+prototype PodTagToggle();
+prototype TagPod( hgroup tag_group_, hisim pod_ );
+prototype UntagPod( hgroup tag_group_, hisim pod_ );
+prototype hgroup GetTagGroup();
+prototype TagPodsInFOV();
+prototype bool JafsActive();
+prototype FlagJafsActive();
+prototype FlagJafsInactive();
+prototype task local_function_13( hship ship_, hisim param_1_ );
+prototype hisim local_function_3( hship ship_, hgroup group_ );
+prototype bool local_function_5( hship ship_0_, hship ship_1_, hgroup group_, float param_3_ );
+prototype list local_function_15( hgroup group_ );
+prototype CheatJafs();
+prototype task local_function_12();
+prototype bool JafsFunctionalityAvailable();
+prototype bool local_function_4( hship ship_0_, hship ship_1_, int param_2_ );
+prototype local_function_6( hship ship_, string param_1_, int param_2_, int param_3_, bool param_4_ );
+prototype local_function_1( hship ship_, string param_1_, int param_2_, bool param_3_ );
+prototype task local_function_14( hship ship_, string param_1_, int param_2_ );
+prototype bool DisablePodDockport( hisim pod_ );
+prototype hdockport EnablePodDockport( hisim pod_ );
+prototype bool local_function_8( hisim param_0_, hgroup group_, float param_2_ );
+prototype task local_function_0( hship ship_, hmapentity mapentity_ );
+prototype AutoTagValuablePods();
+prototype local_function_7();
+
+JafsComment( hship ship_ )
+{
+	if ( Global.Int( "g_jafs_comment" ) == 1 )
+	{
+		iConversation.Begin();
+		iConversation.Say( ship_, "name_jafs", "jafs_comment_1" );
+		iConversation.Say( ship_, "name_jafs", "jafs_comment_2" );
+		iConversation.Say( ship_, "name_jafs", "jafs_comment_3" );
+		iConversation.End();
+	}
+	
+	Global.SetInt( "g_jafs_comment", 0 );
+}
+
+task local_function_2( hship ship_ )
+{
+	hship playerShip = iShip.FindPlayerShip();
+	hgroup group = GetTagGroup();
+	hmapentity lucreciasBase = iMapEntity.FindByNameInSystem( "Lucrecia's Base", Global.String( "g_player_base_system" ) );
+	hisim local_3;
+	
+	debug Debug.PrintString( "iJafsScript.jafs_goes_home: Jafs ordered to return to player base\n" );
+	
+	if ( Sim.IsDead( ship_ ) )
+	{
+		FlagJafsInactive();
+		debug Debug.PrintString( "iJafsScript.jafs_goes_home: TERMINATED - Jafs is NULL, possibly destroyed\n" );
+		return;
+	}
+	
+	iAI.PurgeOrders( ship_ );
+	iAI.GiveApproachOrder( ship_, lucreciasBase );
+	
+	schedule
+	{
+		every 5.0:
+		{
+			if ( Sim.IsDead( ship_ ) )
+			{
+				FlagJafsInactive();
+				debug Debug.PrintString( "iJafsScript.jafs_goes_home: TERMINATED - Jafs is NULL, possibly destroyed\n" );
+				return;
+			}
+			
+			if ( Sim.DistanceBetween( ship_, lucreciasBase ) < 10000.0 )
+			{
+				debug Debug.PrintString( "iJafsScript.jafs_goes_home: Jafs arrived at player base \n" );
+				break;
+			}
+			
+			if ( Sim.DistanceBetween( ship_, playerShip ) > 300000.0 )
+			{
+				debug Debug.PrintString( "iJafsScript.jafs_goes_home: Player out of range. \n" );
+				break;
+			}
+		}
+	}
+	
+	if ( (Sim.DistanceBetween( ship_, playerShip ) < 20000.0) && !iDirector.IsBusy() )
+	{
+		iDirector.Begin();
+		iDirector.FadeOut( 0.0, 0.0, 0.0, 0.0 );
+		
+		atomic
+		{
+			local_3 = iSim.Cast( iUtilities.CreateWaypointRelativeTo( lucreciasBase, 0.0, 0.0, 2000.0 ) );
+			iAI.ClearAutopilot();
+			iUtilities.GroupSetLocalVelocity( iWingmen.Group(), 0.0, 0.0, 0.0, false, false );
+			
+			if ( iUtilities.NearToGroup( local_3, iWingmen.Group(), 1000.0, false ) )
+			{
+				Sim.PlaceRelativeTo( playerShip, lucreciasBase, 1000.0, 500.0, 2000.0 );
+				Sim.PointAt( playerShip, lucreciasBase );
+				iEscort.Goose( iWingmen.Group(), 0.0, 1.0, true );
+			}
+		}
+		
+		iCutsceneUtilities.HandleAbort( start local_function_0( ship_, lucreciasBase ) );
+	}
+	
+	atomic
+	{
+		CollectPods( false );
+		Sim.Destroy( ship_ );
+		FlagJafsInactive();
+	}
+	
+	debug Debug.PrintString( "iJafsScript.jafs_goes_home: COMPLETED\n" );
+}
+
+task local_function_10( hship ship_0_, hgroup group_0_, list localList_ )
+{
+	hship ship_1;
+	hship playerShip = iShip.FindPlayerShip();
+	hgroup group_1 = Group.NthGroup( group_0_, 0 );
+	hsim simWaypoint;
+	hfaction player = iFaction.Find( "Player" );
+	float constant = 5000.0;
+	bool local_6;
+	bool local_7 = false;
+	bool local_8 = false;
+	bool local_9 = true;
+	bool local_10 = true;
+	int ii;
+	int local_12;
+	int random;
+	int local_14;
+	hdockport dockport_0;
+	hdockport dockport_1;
+	
+	if ( Group.SimCount( group_0_ ) == 0 )
+	{
+		local_function_1( ship_0_, "jafs_nothing_for_me_to_pickup", 0, false );
+		debug Debug.PrintString( "iJafsScript.jafs_loads_pods: No pods to pick up. Jafs going home in a huff,\n" );
+		Task.Detach( start local_function_2( ship_0_ ) );
+		return;
+	}
+	
+	debug Debug.PrintString( "iJafsScript.SummonJafs: Jafs arrived at pod waypoint.\n" );
+	
+	if ( Global.Int( "g_jafs_comment" ) > 0 )
+	{
+		JafsComment( ship_0_ );
+	}
+	
+	debug Debug.PrintString( "iJafsScript.jafs_loads_pods: STARTED\n" );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iJafsScript.jafs_loads_pods: Group Of Tagged pods contains " );
+		Debug.PrintInt( Group.SimCount( group_0_ ) );
+		Debug.PrintString( " \n" );
+	}
+	
+	local_8 = false;
+	ii = 1;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iJafsScript.jafs_loads_pods: Number of free dockports on jafs: " );
+		Debug.PrintInt( List.ItemCount( localList_ ) );
+		Debug.PrintString( " \n" );
+	}
+	
+	local_14 = 0;
+	ii = Group.TotalSimCount( group_0_ );
+	
+	do
+	{
+		ship_1 = iShip.Cast( local_function_3( ship_0_, group_0_ ) );
+		
+		debug atomic
+		{
+			Debug.PrintString( "iJafsScript.jafs_loads_pods: Checking pod" );
+			Debug.PrintInt( ii );
+			Debug.PrintString( "\n" );
+		}
+		
+		if ( Sim.IsDead( ship_0_ ) )
+		{
+			debug Debug.PrintString( "iJafsScript.jafs_loads_pods: ERROR: Jafs is dead. Exiting.\n" );
+			FlagJafsInactive();
+			return;
+		}
+		
+		if ( Sim.IsDead( ship_1 ) )
+		{
+			debug Debug.PrintString( "iJafsScript.jafs_loads_pods: WARNING: Pod is dead. Ignoring.\n" );
+			continue;
+		}
+		
+		if ( iSim.IsDocked( ship_1 ) && !iSim.IsDockedTo( ship_1, ship_0_ ) )
+		{
+			debug Debug.PrintString( "iJafsScript.jafs_loads_pods: WARNING: Pod is docked. Ignoring.\n" );
+			iHUD.Print( "hud_untagging_docked_pod" );
+			UntagPod( group_0_, ship_1 );
+			continue;
+		}
+		
+		if ( Sim.DistanceBetween( ship_0_, ship_1 ) > constant )
+		{
+			debug Debug.PrintString( "iJafsScript.jafs_loads_pods: Pod is outside the loading range. Waiting for current loading pods to dock.\n" );
+			local_8 = true;
+			
+			do
+			{
+				if ( iAI.IsOrderComplete( group_0_ ) )
+				{
+					debug Debug.PrintString( "iJafsScript.jafs_loads_pods: Current pods finished loading.\n" );
+					local_8 = false;
+				}
+				
+				if ( local_function_4( ship_0_, playerShip, 5 ) )
+				{
+					debug Debug.PrintString( "iJafsScript.jafs_loads_pods: TERMINATED - Jafs has been attacked." );
+					return;
+				}
+				
+				if ( !local_function_5( playerShip, ship_0_, group_0_, 300000.0 ) )
+				{
+					debug Debug.PrintString( "iJafsScript.jafs_loads_pods : player out of sensor range, starting CollectPods\n" );
+					CollectPods( true );
+					Sim.Destroy( ship_0_ );
+					FlagJafsInactive();
+					debug Debug.PrintString( "iJafsScript.jafs_loads_pods: TERMINATED - Player out of range.\n" );
+					return;
+				}
+				
+				if ( (Group.TotalSimCount( group_0_ ) < ii) && !local_7 )
+				{
+					local_7 = true;
+					local_function_1( ship_0_, "jafs_oops_thats_one_less", 1, true );
+				}
+				
+				Task.Sleep( Task.Current(), 1.0 );
+			}
+			while ( (local_8 == 1) && (Sim.IsAlive( ship_0_ ) && (Sim.IsAlive( ship_1 ) && !iSim.IsDocked( ship_1 ))) );
+			
+			if ( Sim.IsDead( ship_0_ ) )
+			{
+				debug Debug.PrintString( "iJafsScript.jafs_loads_pods: ERROR: Jafs is dead. Exiting.\n" );
+				FlagJafsInactive();
+				return;
+			}
+			
+			if ( Sim.IsDead( ship_1 ) )
+			{
+				debug Debug.PrintString( "iJafsScript.jafs_loads_pods: WARNING: Pod is dead. Ignoring.\n" );
+				continue;
+			}
+			
+			if ( iSim.IsDocked( ship_1 ) && !iSim.IsDockedTo( ship_1, ship_0_ ) )
+			{
+				debug Debug.PrintString( "iJafsScript.jafs_loads_pods: WARNING: Pod is docked. Ignoring.\n" );
+				iHUD.Print( "hud_untagging_docked_pod" );
+				UntagPod( group_0_, ship_1 );
+				continue;
+			}
+			
+			debug Debug.PrintString( "iJafsScript.jafs_loads_pods: Jafs approaching pod.\n" );
+			simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "Jafs Pod Waypoint" );
+			iUtilities.SimPlaceBetweenExact( simWaypoint, ship_1, ship_0_, 1000.0 );
+			iAI.GiveApproachOrderAdvanced( ship_0_, ship_1, 500.0, 200.0, true );
+			
+			do
+			{
+				Task.Sleep( Task.Current(), 2.0 );
+				
+				if ( local_function_4( ship_0_, playerShip, 5 ) )
+				{
+					Sim.Destroy( simWaypoint );
+					debug Debug.PrintString( "iJafsScript.jafs_loads_pods: TERMINATED - Jafs has been attacked." );
+					return;
+				}
+				
+				if ( !local_function_5( playerShip, ship_0_, group_0_, 300000.0 ) )
+				{
+					debug Debug.PrintString( "iJafsScript.jafs_loads_pods : player out of sensor range, starting CollectPods\n" );
+					CollectPods( true );
+					Sim.Destroy( ship_0_ );
+					Sim.Destroy( simWaypoint );
+					FlagJafsInactive();
+					debug Debug.PrintString( "iJafsScript.jafs_loads_pods: TERMINATED - Player out of range.\n" );
+					return;
+				}
+				
+				if ( (Group.TotalSimCount( group_0_ ) < ii) && !local_7 )
+				{
+					local_7 = true;
+					local_function_1( ship_0_, "jafs_oops_thats_one_less", 1, true );
+				}
+			}
+			while ( !iAI.IsOrderComplete( ship_0_ ) && (Sim.IsAlive( ship_1 ) && !iSim.IsDocked( ship_1 )) );
+		}
+		
+		Sim.Destroy( simWaypoint );
+		debug Debug.PrintString( "iJafsScript.jafs_loads_pods: Pod in range. Loading.\n" );
+		
+		if ( local_9 )
+		{
+			local_9 = false;
+			local_function_6( ship_0_, "jafs_load_up_starting_", 4, 1, true );
+			Task.Sleep( Task.Current(), 2.0 );
+		}
+		
+		local_8 == 1;
+		
+		atomic
+		{
+			iShip.InstallAIPilot( ship_1, 30.0, 30.0, 0.10, "", "", "", "" );
+			iShip.SetFreeWithoutPilot( ship_1, false );
+			iShip.Heal( ship_1 );
+			iSim.SetIndestructable( ship_1, true );
+			dockport_0 = iDockport.Cast( List.GetNth( localList_, local_14 ) );
+			
+			debug atomic
+			{
+				Debug.PrintString( "iJafsScript.jafs_loads_pods: Pod docking to dockport no: " );
+				Debug.PrintInt( local_14 );
+				Debug.PrintString( " \n" );
+			}
+			
+			local_14 = ( local_14 + 1 );
+			dockport_1 = EnablePodDockport( ship_1 );
+			iDockport.Enable( iDockport.Cast( dockport_0 ) );
+			iAI.GiveDockOrderWithDockport( dockport_1, dockport_0 );
+			Group.AddSim( group_1, ship_1 );
+		}
+		
+		Object.AddIntProperty( ship_1, "loading", 0 );
+		iSim.SetMissionCritical( ship_1, false );
+		iSim.SetFaction( ship_1, player );
+		Task.Sleep( Task.Current(), 2.0 );
+		
+		if ( Sim.DistanceBetween( ship_0_, playerShip ) < 50000.0 )
+		{
+			random = Math.RandomInt( 0, 100 );
+			
+			if ( random < 30 )
+			{
+				local_12 = iCargo.Value( iCargo.Find( Object.IntProperty( ship_1, "cargo" ) ) );
+				
+				if ( local_12 <= 1 )
+				{
+					local_function_6( ship_0_, "jafs_load_up_poor_", 4, 0, true );
+				}
+				else if ( (local_12 > 1) && (local_12 < 7) )
+				{
+					local_function_6( ship_0_, "jafs_load_up_medium_", 4, 0, true );
+				}
+				else
+				{
+					local_function_6( ship_0_, "jafs_load_up_good_", 4, 0, true );
+				}
+			}
+			else if ( local_10 )
+			{
+				switch ( Object.IntProperty( ship_1, "cargo" ) )
+				{
+					case 27:
+					case 28:
+					case 29:
+					case 30:
+					case 31:
+					case 32:
+					case 33:
+					case 34:
+					case 35:
+					case 36:
+					case 37:
+					case 38:
+					case 39:
+					case 40:
+					case 41:
+					case 42:
+					case 43:
+					case 44:
+					case 45:
+					case 46:
+					case 47:
+					case 48:
+					case 49:
+						local_function_1( ship_0_, "jafs_load_up_animals_1", 1, true );
+						local_10 = false;
+				}
+			}
+		}
+		
+		Task.Sleep( Task.Current(), 5.0 );
+	}
+	while ( (Group.SimCount( group_0_ ) > 0) && (Group.SimCount( group_1 ) < 12) );
+	
+	schedule
+	{
+		every 10.0:
+		{
+			debug Debug.PrintString( "iJafsScript.jafs_loads_pods: Checking for pods docked... \n" );
+			
+			if ( Sim.IsDead( ship_0_ ) )
+			{
+				FlagJafsInactive();
+				debug Debug.PrintString( "iJafsScript.jafs_loads_pods: TERMINATED - Jafs is NULL, possibly destroyed\n" );
+				return;
+			}
+			
+			if ( local_function_4( ship_0_, playerShip, 3 ) )
+			{
+				debug Debug.PrintString( "iJafsScript.jafs_loads_pods: TERMINATED - Jafs has been attacked." );
+				return;
+			}
+			
+			local_6 = true;
+			
+			for ( ii = 0; ii < Group.SimCount( group_1 ); ++ii )
+			{
+				ship_1 = iShip.Cast( Group.NthSim( group_1, ii ) );
+				
+				if ( (Group.TotalSimCount( group_0_ ) < ii) && !local_7 )
+				{
+					local_7 = true;
+					local_function_1( ship_0_, "jafs_oops_thats_one_less", 1, true );
+				}
+				
+				if ( !iSim.IsDockedTo( ship_1, ship_0_ ) )
+				{
+					local_6 = false;
+				}
+				else debug atomic
+				{
+					Debug.PrintString( "iJafsScript.jafs_loads_pods: Pod" );
+					Debug.PrintInt( ii );
+					Debug.PrintString( " docked.\n" );
+				}
+			}
+			
+			if ( local_6 == 1 )
+			{
+				debug Debug.PrintString( "iJafsScript.jafs_loads_pods: All Pods Docked.\n" );
+				break;
+			}
+		}
+		
+		every 10.0:
+		{
+			if ( Sim.IsDead( ship_0_ ) )
+			{
+				iAI.RemoveOrder( ship_1 );
+				FlagJafsInactive();
+				debug Debug.PrintString( "iJafsScript.jafs_loads_pods: TERMINATED - Jafs is NULL, possibly destroyed.\n" );
+				return;
+			}
+			
+			if ( !local_function_5( playerShip, ship_0_, group_0_, 300000.0 ) )
+			{
+				debug Debug.PrintString( "iJafsScript.JaffsPicksUpTaggedPods : player out of sensor range, starting CollectPods\n" );
+				CollectPods( true );
+				Sim.Destroy( ship_0_ );
+				FlagJafsInactive();
+				debug Debug.PrintString( "iJafsScript.SummonJafs: Flagged Jafs as INACTIVE\n" );
+				debug Debug.PrintString( "iJafsScript.jafs_loads_pods: TERMINATED - Player out of range.\n" );
+				return;
+			}
+		}
+	}
+	
+	if ( Sim.IsDead( ship_0_ ) )
+	{
+		FlagJafsInactive();
+		debug Debug.PrintString( "iJafsScript.jafs_loads_pods: TERMINATED - Jafs is NULL, possibly destroyed\n" );
+		return;
+	}
+	
+	debug Debug.PrintString( "iJafsScript.jafs_loads_pods: COMPLETED\n" );
+	local_function_1( ship_0_, "jafs_im_heading_home", 1, true );
+	Task.Detach( start local_function_2( ship_0_ ) );
+}
+
+CollectPods( bool collect_all_ )
+{
+	hgroup group_0 = GetTagGroup();
+	hgroup group_1;
+	int local_2;
+	int local_3;
+	hship groupLeader;
+	int local_5;
+	int local_6;
+	hgroup group_2 = Group.Create();
+	
+	debug Debug.PrintString( "iJafsScript.CollectPods: STARTED\n" );
+	group_1 = Group.NthGroup( group_0, 0 );
+	
+	if ( collect_all_ == 1 )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iJafsScript.CollectPods: Transferring " );
+			Debug.PrintInt( Group.SimCount( group_0 ) );
+			Debug.PrintString( " pods to the collect pods group.\n" );
+		}
+		
+		atomic
+		{
+			do
+			{
+				groupLeader = iShip.Cast( Group.Leader( group_0 ) );
+				Group.AddSim( group_1, groupLeader );
+				Task.Sleep( Task.Current(), 0.010 );
+			}
+			while ( Group.SimCount( group_0 ) > 0 );
+		}
+	}
+	
+	if ( Group.SimCount( group_1 ) == 0 )
+	{
+		debug Debug.PrintString( "iJafsScript.CollectPods: No pods in collected pods group. Exiting.\n" );
+		return;
+	}
+	else debug atomic
+	{
+		Debug.PrintString( "iJafsScript.CollectPods: " );
+		Debug.PrintInt( Group.SimCount( group_1 ) );
+		Debug.PrintString( " pods to collect.\n" );
+	}
+	
+	local_2 = 0;
+	
+	do
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iJafsScript.CollectPods: Checking pod " );
+			Debug.PrintInt( local_2 );
+			Debug.PrintString( "\n" );
+		}
+		
+		groupLeader = iShip.Cast( Group.Leader( group_1 ) );
+		
+		if ( Object.PropertyExists( groupLeader, "cargo" ) && (Object.IntProperty( groupLeader, "cargo" ) != 0) )
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iJafsScript.CollectPods: Adding " );
+				Debug.PrintString( iCargo.Name( iCargo.Find( Object.IntProperty( groupLeader, "cargo" ) ) ) );
+				Debug.PrintString( " to inventory.\n" );
+			}
+			
+			iInventory.Add( Object.IntProperty( groupLeader, "cargo" ), 1 );
+			iScore.AddPiracy( Object.IntProperty( groupLeader, "cargo" ), 1 );
+			local_6 = iCargo.Value( iCargo.Find( Object.IntProperty( groupLeader, "cargo" ) ) );
+			Global.SetInt( "g_piracy_rating", Global.Int( "g_piracy_rating" ) + local_6 );
+			
+			debug atomic
+			{
+				Debug.PrintString( "iJafsScript.CollectPods: Pod of value " );
+				Debug.PrintInt( local_6 );
+				Debug.PrintString( " collected.\n" );
+			}
+		}
+		else debug Debug.PrintString( "iJafsScript.CollectPods: Object property 'cargo' not found. Assuming empty pod. Skipping." );
+		
+		Group.AddSim( group_2, groupLeader );
+		local_2 = ( local_2 + 1 );
+	}
+	while ( Group.SimCount( group_1 ) > 0 );
+	
+	Group.Destroy( group_2, true );
+	debug Debug.PrintString( "iJafsScript.CollectPods: COMPLETED\n" );
+}
+
+list local_function_9( hship ship_ )
+{
+	list localList;
+	hsubsim subsim;
+	float local_2 = 13.10;
+	
+	subsim = Subsim.Create( "ini:/subsims/dockports/cargo_port" );
+	Sim.AddSubsim( ship_, subsim );
+	Subsim.Place( subsim, -27.0, local_2, 41.0 );
+	Subsim.OrientateEuler( subsim, 90.0, -90.0, 0.0 );
+	iDockport.Disable( iDockport.Cast( subsim ) );
+	List.AddTail( localList, subsim );
+	subsim = Subsim.Create( "ini:/subsims/dockports/cargo_port" );
+	Sim.AddSubsim( ship_, subsim );
+	Subsim.Place( subsim, 27.0, local_2, 41.0 );
+	Subsim.OrientateEuler( subsim, -90.0, -90.0, -90.0 );
+	iDockport.Disable( iDockport.Cast( subsim ) );
+	List.AddTail( localList, subsim );
+	subsim = Subsim.Create( "ini:/subsims/dockports/cargo_port" );
+	Sim.AddSubsim( ship_, subsim );
+	Subsim.Place( subsim, -27.0, local_2, -13.0 );
+	Subsim.OrientateEuler( subsim, 90.0, -90.0, 90.0 );
+	iDockport.Disable( iDockport.Cast( subsim ) );
+	List.AddTail( localList, subsim );
+	subsim = Subsim.Create( "ini:/subsims/dockports/cargo_port" );
+	Sim.AddSubsim( ship_, subsim );
+	Subsim.Place( subsim, 27.0, local_2, -13.0 );
+	Subsim.OrientateEuler( subsim, -90.0, -90.0, 0.0 );
+	iDockport.Disable( iDockport.Cast( subsim ) );
+	List.AddTail( localList, subsim );
+	subsim = Subsim.Create( "ini:/subsims/dockports/cargo_port" );
+	Sim.AddSubsim( ship_, subsim );
+	Subsim.Place( subsim, -27.0, local_2, -67.0 );
+	Subsim.OrientateEuler( subsim, 90.0, -90.0, 180.0 );
+	iDockport.Disable( iDockport.Cast( subsim ) );
+	List.AddTail( localList, subsim );
+	subsim = Subsim.Create( "ini:/subsims/dockports/cargo_port" );
+	Sim.AddSubsim( ship_, subsim );
+	Subsim.Place( subsim, 27.0, local_2, -67.0 );
+	Subsim.OrientateEuler( subsim, -90.0, -90.0, 0.0 );
+	iDockport.Disable( iDockport.Cast( subsim ) );
+	List.AddTail( localList, subsim );
+	local_2 = 63.199997;
+	subsim = Subsim.Create( "ini:/subsims/dockports/cargo_port" );
+	Sim.AddSubsim( ship_, subsim );
+	Subsim.Place( subsim, -27.0, local_2, 41.0 );
+	Subsim.OrientateEuler( subsim, 90.0, -90.0, 0.0 );
+	iDockport.Disable( iDockport.Cast( subsim ) );
+	List.AddTail( localList, subsim );
+	subsim = Subsim.Create( "ini:/subsims/dockports/cargo_port" );
+	Sim.AddSubsim( ship_, subsim );
+	Subsim.Place( subsim, 27.0, local_2, 41.0 );
+	Subsim.OrientateEuler( subsim, -90.0, -90.0, -90.0 );
+	iDockport.Disable( iDockport.Cast( subsim ) );
+	List.AddTail( localList, subsim );
+	subsim = Subsim.Create( "ini:/subsims/dockports/cargo_port" );
+	Sim.AddSubsim( ship_, subsim );
+	Subsim.Place( subsim, -27.0, local_2, -13.0 );
+	Subsim.OrientateEuler( subsim, 90.0, -90.0, 90.0 );
+	iDockport.Disable( iDockport.Cast( subsim ) );
+	List.AddTail( localList, subsim );
+	subsim = Subsim.Create( "ini:/subsims/dockports/cargo_port" );
+	Sim.AddSubsim( ship_, subsim );
+	Subsim.Place( subsim, 27.0, local_2, -13.0 );
+	Subsim.OrientateEuler( subsim, -90.0, -90.0, 0.0 );
+	iDockport.Disable( iDockport.Cast( subsim ) );
+	List.AddTail( localList, subsim );
+	subsim = Subsim.Create( "ini:/subsims/dockports/cargo_port" );
+	Sim.AddSubsim( ship_, subsim );
+	Subsim.Place( subsim, -27.0, local_2, -67.0 );
+	Subsim.OrientateEuler( subsim, 90.0, -90.0, 180.0 );
+	iDockport.Disable( iDockport.Cast( subsim ) );
+	List.AddTail( localList, subsim );
+	subsim = Subsim.Create( "ini:/subsims/dockports/cargo_port" );
+	Sim.AddSubsim( ship_, subsim );
+	Subsim.Place( subsim, 27.0, local_2, -67.0 );
+	Subsim.OrientateEuler( subsim, -90.0, -90.0, 0.0 );
+	iDockport.Disable( iDockport.Cast( subsim ) );
+	List.AddTail( localList, subsim );
+	return localList;
+}
+
+task local_function_11()
+{
+	hship ship_0;
+	hship playerShip = iShip.FindPlayerShip();
+	hsim simWaypoint;
+	hgroup group = GetTagGroup();
+	hfaction player = iFaction.Find( "Player" );
+	int local_5;
+	hisim lucreciasBase;
+	string local_7;
+	list localList;
+	hship ship_1;
+	
+	debug Debug.PrintString( "iJafsScript.SummonJafs: STARTED\n" );
+	FlagJafsActive();
+	
+	if ( !Set.IsEmpty( iSim.PlayerHostilesInRadius( 100000.0, 1073713152 ) ) )
+	{
+		local_function_6( none, "Jafs_bottles_out_", 3, 0, false );
+		iHUD.Print( "hud_cant_summon_jafs_enemies_near" );
+		debug Debug.PrintString( "iJafsScript.SummonJafs: TERMINATED - Enemy ships in range.\n" );
+		FlagJafsInactive();
+		return;
+	}
+	
+	if ( Group.SimCount( group ) == 0 )
+	{
+		AutoTagValuablePods();
+	}
+	
+	atomic
+	{
+		local_function_7();
+	}
+	
+	if ( Group.SimCount( group ) == 0 )
+	{
+		local_function_1( none, "jafs_nothing_for_me_to_pickup", 0, false );
+		iHUD.Print( "hud_tag_error_no_pods_in_fov" );
+		FlagJafsInactive();
+		debug Debug.PrintString( "iJafsScript.SummonJafs: TERMINATED - No tagged Pods available.\n" );
+		return;
+	}
+	
+	lucreciasBase = iSim.Cast( iMapEntity.FindByNameInSystem( "Lucrecia's Base", Global.String( "g_player_base_system" ) ) );
+	
+	if ( (Sim.DistanceBetween( lucreciasBase, playerShip ) < 30000.0) && local_function_8( lucreciasBase, group, 30000.0 ) )
+	{
+		local_function_6( none, "jafs_dialogue_after_you_", 4, 0, false );
+		FlagJafsInactive();
+		debug Debug.PrintString( "iJafsScript.SummonJafs: TERMINATED - Player too close to player base \n" );
+		return;
+	}
+	
+	iHUD.Print( "hud_jafs_summoned" );
+	FlagJafsActive();
+	debug Debug.PrintString( "iJafsScript.SummonJafs: Flagged Jafs as ACTIVE.\n" );
+	local_function_1( ship_0, "jafs_on_my_way", 1, false );
+	local_7 = "ini:/sims/ships/player/snrv_jafs_capsule_nodockports";
+	
+	if ( Global.Exists( "g_current_act" ) )
+	{
+		if ( Global.Int( "g_current_act" ) == 1 )
+		{
+			local_7 = "ini:/sims/ships/player/snrv_jafs_nodockports";
+		}
+	}
+	
+	ship_0 = iShip.Create( local_7, "name_jafs" );
+	localList = local_function_9( ship_0 );
+	iShip.InstallAIPilot( ship_0, 30.0, 30.0, 0.10, "iJafsScript.JafsScared", "", "", "" );
+	iSim.SetFaction( ship_0, player );
+	Object.SetIntProperty( ship_0, "ignore_speed_limit", 1 );
+	Object.AddIntProperty( ship_0, "attacked_count", 0 );
+	iSim.SetIndestructable( ship_0, true );
+	Sim.SetCullable( ship_0, false );
+	Sim.PlaceNear( ship_0, playerShip, 300000.0 );
+	debug Debug.PrintString( "iJafsScript.SummonJafs: Jafs Created\n" );
+	simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "Jafs Pod Waypoint" );
+	ship_1 = iShip.Cast( local_function_3( ship_0, group ) );
+	
+	debug
+	{
+		if ( ship_1 == false )
+		{
+			debug Debug.PrintString( "iJafsScript.SummonJafs: Warning - Nearest pod is null! \n" );
+		}
+	}
+	
+	iUtilities.SimPlaceBetweenExact( simWaypoint, ship_1, ship_0, 1000.0 );
+	Sim.PointAt( ship_0, simWaypoint );
+	Sim.SetVelocity( ship_0, 0.0, 0.0, 1000.0 );
+	debug Debug.PrintString( "iJafsScript.SummonJafs: Waypoint Set for Jafs\n" );
+	iAI.GiveApproachOrderAdvanced( ship_0, simWaypoint, 500.0, 200.0, true );
+	debug Debug.PrintString( "iJafsScript.SummonJafs: Jafs ordered to approach pod waypoint\n" );
+	
+	schedule
+	{
+		every 5.0:
+		{
+			if ( Sim.IsDead( ship_0 ) )
+			{
+				Sim.Destroy( simWaypoint );
+				FlagJafsInactive();
+				debug Debug.PrintString( "iJafsScript.SummonJafs: TERMINATED - Jafs is NULL, possibly destroyed\n" );
+				return;
+			}
+			
+			if ( local_function_4( ship_0, playerShip, 5 ) )
+			{
+				Sim.Destroy( simWaypoint );
+				debug Debug.PrintString( "iJafsScript.SummonJafs: TERMINATED - Jafs has been attacked." );
+				return;
+			}
+			
+			if ( iAI.IsOrderComplete( ship_0 ) )
+			{
+				break;
+			}
+		}
+		
+		every 10.0:
+		{
+			if ( Sim.IsDead( ship_0 ) )
+			{
+				FlagJafsInactive();
+				debug Debug.PrintString( "iJafsScript.SummonJafs: TERMINATED - Jafs is NULL, possibly destroyed\n" );
+				return;
+			}
+			
+			if ( !local_function_5( playerShip, ship_0, group, 300000.0 ) )
+			{
+				debug Debug.PrintString( "iJafsScript.SummonJafs: TERMINATED - Player out of range.\n" );
+				CollectPods( true );
+				Sim.Destroy( ship_0 );
+				FlagJafsInactive();
+				return;
+			}
+		}
+	}
+	
+	if ( Sim.IsDead( ship_0 ) )
+	{
+		FlagJafsInactive();
+		debug Debug.PrintString( "iJafsScript.SummonJafs: TERMINATED - Jafs is NULL, possibly destroyed\n" );
+		return;
+	}
+	
+	Task.Detach( start local_function_10( ship_0, group, localList ) );
+	debug Debug.PrintString( "iJafsScript.SummonJafs: COMPLETED \n" );
+}
+
+CallJafs()
+{
+	atomic
+	{
+		if ( !JafsFunctionalityAvailable() )
+		{
+			debug Debug.PrintString( "iJafsScript.CallJafs: Jafs functionality disabled. Can't summon Jafs\n" );
+			return;
+		}
+		
+		if ( !JafsEnabled() )
+		{
+			debug Debug.PrintString( "iJafsScript.CallJafs: Jafs has been disabled by a script. Can't summon Jafs.\n" );
+			iHUD.Print( "hud_jafs_unavailable" );
+			iHUD.PlayAudioCue( AC_InvalidInput );
+			return;
+		}
+		
+		if ( JafsActive() )
+		{
+			local_function_6( none, "jafs_dialogue_im_busy_", 4, 0, false );
+			debug Debug.PrintString( "iJafsScript.SummonJafs: TERMINATED - Jafs already active.\n" );
+			return;
+		}
+	}
+	
+	debug Debug.PrintString( "iJafsScript.CallJafs: Jafs is available. Attempting to summon Jafs\n" );
+	Task.Detach( start local_function_11() );
+}
+
+bool JafsEnabled()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	
+	if ( playerShip == false )
+	{
+		debug Debug.PrintString( "iJafsScript.JafsEnabled: Can't find player ship.\n" );
+		return false;
+	}
+	
+	if ( Object.PropertyExists( playerShip, "jafs_disabled" ) )
+	{
+		return false;
+	}
+	
+	return true;
+}
+
+EnableJafs()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	
+	if ( playerShip == false )
+	{
+		debug Debug.PrintString( "iJafsScript.EnableJafs: Can't find player ship. Can't try to enable Jafs.\n" );
+		return;
+	}
+	
+	if ( Object.PropertyExists( playerShip, "jafs_disabled" ) )
+	{
+		Object.RemoveProperty( playerShip, "jafs_disabled" );
+		debug Debug.PrintString( "iJafsScript.EnableJafs: Jafs enabled.\n" );
+		return;
+	}
+	
+	debug Debug.PrintString( "iJafsScript.EnableJafs: Jafs already enabled.\n" );
+}
+
+DisableJafs()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	
+	if ( playerShip == false )
+	{
+		debug Debug.PrintString( "iJafsScript.DisableJafs: Can't disable Jafs - Player ship not found.\n" );
+		return;
+	}
+	
+	if ( !Object.PropertyExists( playerShip, "jafs_disabled" ) )
+	{
+		Object.AddIntProperty( playerShip, "jafs_disabled", 1 );
+		debug Debug.PrintString( "iJafsScript.EnableJafs: Jafs disabled.\n" );
+		return;
+	}
+	
+	debug Debug.PrintString( "iJafsScript.EnableJafs: Jafs already disabled.\n" );
+}
+
+PodTagToggle()
+{
+	hgroup group = GetTagGroup();
+	hship playerShip = iShip.FindPlayerShip();
+	hship ship;
+	
+	if ( !JafsFunctionalityAvailable() )
+	{
+		debug Debug.PrintString( "iJafsScript.PodTagToggle: Jafs functionality disabled. Pod Tagging not available.\n" );
+		return;
+	}
+	
+	debug Debug.PrintString( "iJafsScript.PodTagToggle: Attempting to tag / untag pod." );
+	
+	if ( playerShip == false )
+	{
+		debug Debug.PrintString( "iJafsScript.PodTagToggle: Can't tag / untag - Can't find player ship. \n" );
+		return;
+	}
+	
+	ship = iShip.Cast( iShip.CurrentTarget( playerShip ) );
+	
+	if ( !ship )
+	{
+		debug Debug.PrintString( "iJafsScript.PodTagToggle: Can't tag / untag - Target is null.\n" );
+		return;
+	}
+	
+	if ( iSim.Type( ship ) != T_CargoPod )
+	{
+		debug Debug.PrintString( "iJafsScript.PodTagToggle: Can't tag / untag - Not a cargo pod.\n" );
+		return;
+	}
+	
+	if ( !Object.PropertyExists( ship, "cargo" ) )
+	{
+		debug Debug.PrintString( "iJafsScript.PodTagToggle: Can't tag / untag - Cargo property doesn't exits.\n" );
+		iHUD.Print( "hud_tag_error_no_cargo_in_pod" );
+		iHUD.PlayAudioCue( AC_InvalidInput );
+		return;
+	}
+	else if ( Object.IntProperty( ship, "cargo" ) == 0 )
+	{
+		debug Debug.PrintString( "iJafsScript.PodTagToggle: Can't tag / untag - No cargo in pod.\n" );
+		iHUD.Print( "hud_tag_error_no_cargo_in_pod" );
+		iHUD.PlayAudioCue( AC_InvalidInput );
+		return;
+	}
+	
+	if ( iAI.HasOrder( ship ) )
+	{
+		debug Debug.PrintString( "iJafsScript.PodTagToggle: Can't tag / untag - Pod is loading.\n" );
+		iHUD.Print( "hud_tag_error_pod_is_loading" );
+		iHUD.PlayAudioCue( AC_InvalidInput );
+		return;
+	}
+	
+	if ( iSim.IsDocked( ship ) )
+	{
+		debug Debug.PrintString( "iJafsScript.PodTagToggle: Can't tag / untag - Pod is docked.\n" );
+		iHUD.Print( "hud_tag_error_pod_is_docked" );
+		iHUD.PlayAudioCue( AC_InvalidInput );
+		return;
+	}
+	
+	if ( Sim.Group( ship ) != group )
+	{
+		TagPod( group, ship );
+		return;
+	}
+	
+	UntagPod( group, ship );
+}
+
+TagPod( hgroup tag_group_, hisim pod_ )
+{
+	hdockport dockport;
+	int local_1;
+	
+	if ( Group.SimCount( tag_group_ ) > 11 )
+	{
+		debug Debug.PrintString( "iJafsScript.TagPod: Can't tag - no free tags. \n" );
+		iHUD.Print( "hud_tag_error_no_free_tags" );
+		iHUD.PlayAudioCue( AC_InvalidInput );
+		return;
+	}
+	
+	dockport = iDockport.Cast( Set.FirstElement( iDockport.DockportsOfType( pod_, DT_Cargo, DS_Free ) ) );
+	
+	if ( iDockport.IsDisabled( dockport ) )
+	{
+		debug Debug.PrintString( "iJafsScript.TagPod: Can't tag - Dockport disabled. \n" );
+		iHUD.Print( "E_NoDockportAvailable" );
+		iHUD.PlayAudioCue( AC_InvalidInput );
+		return;
+	}
+	
+	if ( !DisablePodDockport( pod_ ) )
+	{
+		debug Debug.PrintString( "iJafsScript.TagPod: Can't tag - No dockport. \n" );
+		iHUD.Print( "E_NoDockportAvailable" );
+		iHUD.PlayAudioCue( AC_InvalidInput );
+		return;
+	}
+	
+	Group.AddSim( tag_group_, pod_ );
+	iSim.SetMissionCritical( pod_, true );
+	Sim.SetCullable( pod_, false );
+	iHUD.Print( "hud_pod_tagged" );
+	iHUD.PlayAudioCue( AC_ValidInput );
+	debug Debug.PrintString( "iJafsScript.TagPod: Pod Successfully Tagged. \n" );
+}
+
+UntagPod( hgroup tag_group_, hisim pod_ )
+{
+	if ( Object.PropertyExists( pod_, "loading" ) )
+	{
+		debug Debug.PrintString( "iJafsScript.TagPod: Cannot untag pod, as it is being loaded. \n" );
+		iHUD.Print( "hud_tag_error_pod_is_loading" );
+		iHUD.PlayAudioCue( AC_InvalidInput );
+	}
+	
+	Group.RemoveSim( tag_group_, pod_ );
+	iSim.SetMissionCritical( pod_, false );
+	Sim.SetCullable( pod_, true );
+	EnablePodDockport( pod_ );
+	iHUD.Print( "hud_pod_untagged" );
+	iHUD.PlayAudioCue( AC_ValidInput );
+	debug Debug.PrintString( "iJafsScript.TagPod: Pod Successfully Un-Tagged. \n" );
+}
+
+hgroup GetTagGroup()
+{
+	hgroup taggedPodsGroup;
+	hgroup group;
+	hship playerShip = iShip.FindPlayerShip();
+	
+	if ( playerShip == false )
+	{
+		debug Debug.PrintString( "iJafsScript.GetTagGroup: Can't find player ship. Can't get tagged pods group. \n" );
+		return none;
+	}
+	
+	if ( !Object.PropertyExists( playerShip, "tagged_pods_group" ) )
+	{
+		debug Debug.PrintString( "iJafsScript.GetTagGroup: Initialising group of tagged pods and subgroup of loaded pods. \n" );
+		taggedPodsGroup = Group.Create();
+		group = Group.Create();
+		Group.AddGroup( taggedPodsGroup, group );
+		Object.AddHandleProperty( playerShip, "tagged_pods_group", taggedPodsGroup );
+	}
+	else
+	{
+		taggedPodsGroup = Group.Cast( Object.HandleProperty( playerShip, "tagged_pods_group" ) );
+		group = Group.NthGroup( taggedPodsGroup, 0 );
+		debug Debug.PrintString( "iJafsScript.GetTagGroup: Returning group of tagged pods containing " );
+		debug Debug.PrintInt( Group.SimCount( taggedPodsGroup ) );
+		debug Debug.PrintString( " pods. \n" );
+		debug Debug.PrintString( "iJafsScript.GetTagGroup: Returning subgroup of loaded pods containing " );
+		debug Debug.PrintInt( Group.SimCount( group ) );
+		debug Debug.PrintString( " pods. \n" );
+	}
+	
+	return taggedPodsGroup;
+}
+
+TagPodsInFOV()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	hgroup group = GetTagGroup();
+	hship ship_0;
+	hship ship_1;
+	float constant_0 = 45.0;
+	float constant_1 = 10000.0;
+	float local_6;
+	float distance;
+	list localList_0;
+	list localList_1;
+	int ii;
+	int local_11;
+	
+	if ( playerShip == false )
+	{
+		debug Debug.PrintString( "iJafsScript.TagPodsInFOV(): Can't find player ship - EXITING.\n" );
+		return;
+	}
+	
+	if ( group == false )
+	{
+		debug Debug.PrintString( "iJafsScript.TagPodsInFOV(): Can't get tagged pods group - EXITING.\n" );
+		return;
+	}
+	
+	localList_0 = List.FromSet( iSim.SimsInRadius( playerShip, 10000.0, 2048 ) );
+	
+	if ( List.ItemCount( localList_0 ) == 0 )
+	{
+		debug Debug.PrintString( "iJafsScript.TagPodsInFOV(): No pods in range. EXITING.\n" );
+		return;
+	}
+	
+	debug Debug.PrintString( "iJafsScript.TagPodsInFOV(): Pods in range == " );
+	debug Debug.PrintInt( List.ItemCount( localList_0 ) );
+	debug Debug.PrintString( ". Filtering...\n" );
+	
+	for ( ii = 0; ii < List.ItemCount( localList_0 ); ++ii )
+	{
+		debug Debug.PrintString( "iJafsScript.TagPodsInFOV(): Checking pod no." );
+		debug Debug.PrintInt( ii );
+		debug Debug.PrintString( "\n" );
+		ship_0 = iShip.Cast( List.GetNth( localList_0, ii ) );
+		
+		if ( Sim.IsDead( ship_0 ) || (ship_0 == false) )
+		{
+			debug Debug.PrintString( "iJafsScript.TagPodsInFOV(): Ignoring dead / null pod.\n" );
+		}
+		else if ( !Sim.IsInFOV( playerShip, ship_0, constant_0 ) )
+		{
+			debug Debug.PrintString( "iJafsScript.TagPodsInFOV(): Ignoring pod outside FOV.\n" );
+		}
+		else if ( !Object.PropertyExists( ship_0, "cargo" ) )
+		{
+			debug Debug.PrintString( "iJafsScript.TagPodsInFOV(): Ignoring pod without cargo property.\n" );
+		}
+		else if ( Object.IntProperty( ship_0, "cargo" ) == 0 )
+		{
+			debug Debug.PrintString( "iJafsScript.TagPodsInFOV(): Ignoring pod with no cargo.\n" );
+		}
+		else if ( iAI.HasOrder( ship_0 ) )
+		{
+			debug Debug.PrintString( "iJafsScript.TagPodsInFOV(): Ignoring loading pod.\n" );
+		}
+		else if ( iSim.IsDocked( ship_0 ) )
+		{
+			debug Debug.PrintString( "iJafsScript.TagPodsInFOV(): Ignoring docked Pod.\n" );
+		}
+		else
+		{
+			debug Debug.PrintString( "iJafsScript.TagPodsInFOV(): Found Valid Pod\n" );
+			List.AddTail( localList_1, ship_0 );
+		}
+	}
+	
+	ii = List.ItemCount( localList_1 );
+	
+	if ( ii == 0 )
+	{
+		debug Debug.PrintString( "iJafsScript.TagPodsInFOV(): No pods to tag. EXITING.\n" );
+		return;
+	}
+	
+	debug Debug.PrintString( "iJafsScript.TagPodsInFOV: Valid pods found = " );
+	debug Debug.PrintInt( ii );
+	debug Debug.PrintString( "\n" );
+	
+	if ( ii == 1 )
+	{
+		debug Debug.PrintString( "iJafsScript.TagPodsInFOV: Tagging single pod.\n" );
+		TagPod( group, iShip.Cast( List.GetNth( localList_1, 0 ) ) );
+		debug Debug.PrintString( "iJafsScript.TagPodsInFOV: Finished tagging pods.\n" );
+		return;
+	}
+	
+	debug Debug.PrintString( "iJafsScript.TagPodsInFOV: Tagging closest valid pods..\n" );
+	
+	do
+	{
+		ship_1 = iShip.Cast( List.Head( localList_1 ) );
+		
+		for ( ii = 0; ii < List.ItemCount( localList_1 ); ++ii )
+		{
+			debug Debug.PrintString( "iJafsScript.get_closest_pod: Checking Pod " );
+			debug Debug.PrintInt( ii );
+			debug Debug.PrintString( "\n" );
+			ship_0 = iShip.Cast( List.GetNth( localList_1, ii ) );
+			
+			if ( Sim.IsAlive( ship_0 ) )
+			{
+				distance = Sim.DistanceBetween( playerShip, ship_0 );
+				
+				if ( distance < local_6 )
+				{
+					ship_1 = ship_0;
+					local_6 = distance;
+					local_11 = ii;
+				}
+			}
+			else debug Debug.PrintString( "iJafsScript.get_closest_pod: WARNING - sim is dead!" );
+		}
+		
+		debug Debug.PrintString( "iJafsScript.get_closest_pod: Closest pod is No." );
+		debug Debug.PrintInt( local_11 );
+		debug Debug.PrintString( "\n" );
+		List.Remove( localList_1, ship_1 );
+		TagPod( group, ship_1 );
+	}
+	while ( (Group.SimCount( group ) < 12) && (List.ItemCount( localList_1 ) != 0) );
+	
+	debug Debug.PrintString( "iJafsScript.TagPodsInFOV: Finished tagging pods.\n" );
+}
+
+bool JafsActive()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	
+	if ( playerShip == false )
+	{
+		debug Debug.PrintString( "iJafsScript.JafsActive: Can't find player ship - EXITING.\n" );
+		return false;
+	}
+	
+	if ( Object.PropertyExists( playerShip, "jafs_active" ) )
+	{
+		debug Debug.PrintString( "iJafsScript.JafsActive: Jafs is active.\n" );
+		return true;
+	}
+	
+	debug Debug.PrintString( "iJafsScript.JafsActive: Jafs not active.\n" );
+	return false;
+}
+
+FlagJafsActive()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	
+	if ( playerShip == false )
+	{
+		debug Debug.PrintString( "iJafsScript.FlagJafsActive: Can't find player ship - EXITING.\n" );
+		return;
+	}
+	
+	if ( Object.PropertyExists( playerShip, "jafs_active" ) )
+	{
+		debug Debug.PrintString( "iJafsScript.FlagJafsActive: WARNING - Jafs is already active.\n" );
+		return;
+	}
+	
+	debug Debug.PrintString( "iJafsScript.FlagJafsActive: Flagging Jafs as active.\n" );
+	Object.AddIntProperty( playerShip, "jafs_active", 0 );
+}
+
+FlagJafsInactive()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	
+	if ( playerShip == false )
+	{
+		debug Debug.PrintString( "iJafsScript.FlagJafsInactive: Can't find player ship - EXITING.\n" );
+		return;
+	}
+	
+	if ( Object.PropertyExists( playerShip, "jafs_active" ) )
+	{
+		debug Debug.PrintString( "iJafsScript.FlagJafsInactive: Flagging Jafs as inactive.\n" );
+		Object.RemoveProperty( playerShip, "jafs_active" );
+		return;
+	}
+	
+	debug Debug.PrintString( "iJafsScript.FlagJafsInactive: WARNING - Jafs is already inactive.\n" );
+}
+
+task local_function_13( hship ship_, hisim param_1_ )
+{
+	hship playerShip = iShip.FindPlayerShip();
+	hgroup group_0 = GetTagGroup();
+	hgroup group_1 = Group.NthGroup( group_0, 0 );
+	string local_3;
+	hship groupLeader;
+	
+	if ( Sim.IsDead( ship_ ) )
+	{
+		debug Debug.PrintString( "iJafsScript.jafs_runs_away: Jafs is dead - EXITING" );
+		FlagJafsInactive();
+		return;
+	}
+	
+	if ( param_1_ == iSim.Cast( playerShip ) )
+	{
+		debug Debug.PrintString( "iJafsScript.jafs_runs_away: Jafs is running away because the player attacked him." );
+		local_function_6( ship_, "jafs_runs_from_cal_", 3, 1, false );
+	}
+	else
+	{
+		debug Debug.PrintString( "iJafsScript.jafs_runs_away: Jafs is running away due to enemy ships." );
+		local_function_6( ship_, "jafs_runs_from_them_", 3, 1, false );
+	}
+	
+	iAI.PurgeOrders( ship_ );
+	iAI.PurgeOrders( group_0 );
+	iAI.PurgeOrders( group_1 );
+	
+	if ( Group.SimCount( group_1 ) > 0 )
+	{
+		do
+		{
+			groupLeader = iShip.Cast( Group.Leader( group_1 ) );
+			Group.RemoveSim( group_1, groupLeader );
+			Object.RemoveProperty( groupLeader, "loading" );
+			iShip.UndockSelf( groupLeader );
+			Task.Sleep( Task.Current(), 0.50 );
+		}
+		while ( Group.SimCount( group_1 ) > 0 );
+	}
+	
+	Task.Detach( start local_function_2( ship_ ) );
+}
+
+hisim local_function_3( hship ship_, hgroup group_ )
+{
+	hisim local_0;
+	hisim groupLeader;
+	float distance_0;
+	float distance_1;
+	int ii;
+	int local_5;
+	
+	atomic
+	{
+		if ( Group.SimCount( group_ ) == 0 )
+		{
+			debug Debug.PrintString( "iJafsScript.get_closest_pod: ERROR! No sims in group! \n" );
+			return none;
+		}
+		
+		if ( Group.SimCount( group_ ) == 1 )
+		{
+			debug Debug.PrintString( "iJafsScript.get_closest_pod: Only one sim in group. Returning leader \n" );
+			return iSim.Cast( Group.Leader( group_ ) );
+		}
+		
+		groupLeader = iSim.Cast( Group.Leader( group_ ) );
+		distance_0 = Sim.DistanceBetween( ship_, groupLeader );
+		
+		for ( ii = ( Group.SimCount( group_ ) - 1 ); ii >= 0; --ii )
+		{
+			debug Debug.PrintString( "iJafsScript.get_closest_pod: Checking Pod " );
+			debug Debug.PrintInt( ii );
+			debug Debug.PrintString( ".  " );
+			local_0 = iSim.Cast( Group.NthSim( group_, ii ) );
+			
+			if ( Sim.IsAlive( local_0 ) )
+			{
+				distance_1 = Sim.DistanceBetween( ship_, local_0 );
+				debug Debug.PrintString( "Distance =  " );
+				debug Debug.PrintFloat( distance_1 );
+				debug Debug.PrintString( " \n" );
+				
+				if ( distance_1 < distance_0 )
+				{
+					groupLeader = local_0;
+					distance_0 = distance_1;
+					local_5 = ii;
+				}
+			}
+			else debug Debug.PrintString( "iJafsScript.get_closest_pod: WARNING - sim is dead!" );
+		}
+		
+		debug Debug.PrintString( "iJafsScript.get_closest_pod: Closest pod is No." );
+		debug Debug.PrintInt( local_5 );
+		debug Debug.PrintString( ".  " );
+		debug Debug.PrintString( "Distance =  " );
+		debug Debug.PrintFloat( distance_0 );
+		debug Debug.PrintString( " \n" );
+	}
+	
+	return groupLeader;
+}
+
+bool local_function_5( hship ship_0_, hship ship_1_, hgroup group_, float param_3_ )
+{
+	hisim local_0;
+	int ii;
+	
+	if ( Sim.DistanceBetween( ship_0_, ship_1_ ) < param_3_ )
+	{
+		debug Debug.PrintString( "iJafsScript.jafs_in_range: Jafs is in range.\n" );
+		return true;
+	}
+	
+	if ( Group.SimCount( group_ ) > 0 )
+	{
+		for ( ii = 0; ii < Group.SimCount( group_ ); ++ii )
+		{
+			local_0 = iSim.Cast( Group.NthSim( group_, ii ) );
+			
+			if ( Sim.IsAlive( local_0 ) )
+			{
+				if ( Sim.DistanceBetween( ship_0_, local_0 ) < param_3_ )
+				{
+					debug Debug.PrintString( "iJafsScript.jafs_in_range: A pod is in range.\n" );
+					return true;
+				}
+			}
+		}
+	}
+	
+	debug Debug.PrintString( "iJafsScript.jafs_in_range: Jafs and pods out of range.\n" );
+	return false;
+}
+
+list local_function_15( hgroup group_ )
+{
+	int ii;
+	list localList;
+	
+	for ( ii = Group.SimCount( group_ ); ii > 0; --ii )
+	{
+		List.AddTail( localList, Group.NthSim( group_, ii - 1 ) );
+	}
+	
+	return localList;
+}
+
+CheatJafs()
+{
+	start local_function_12();
+}
+
+task local_function_12()
+{
+	hgroup group = GetTagGroup();
+	int local_1;
+	int local_2;
+	int local_3;
+	
+	if ( !Debug.DeveloperMode() )
+	{
+		debug Debug.PrintString( "iJafsScript.CheatJafs: Not in developer mode. Disabled.\n" );
+		return;
+	}
+	
+	if ( JafsActive() )
+	{
+		local_function_6( none, "jafs_dialogue_im_busy_", 4, 0, false );
+		debug Debug.PrintString( "iJafsScript.CheatJafs: Unable to Cheat. Jafs is already active.\n" );
+	}
+	
+	debug Debug.PrintString( "iJafsScript.CheatJafs: You cheat!\n" );
+	
+	if ( Group.SimCount( group ) == 0 )
+	{
+		debug Debug.PrintString( "iJafsScript.CheatJafs: Tagging nearest pods in FOV.\n" );
+		AutoTagValuablePods();
+	}
+	
+	debug Debug.PrintString( "iJafsScript.CheatJafs: Collecting Tagged Pods.\n" );
+	CollectPods( true );
+}
+
+bool JafsFunctionalityAvailable()
+{
+	if ( Global.Int( "g_current_act" ) == -1 )
+	{
+		Global.CreateBool( "g_jafs_menu_option_enabled", 2, true );
+		debug Debug.PrintString( "iJafsScript.JafsFunctionalityAvailable: No act running. Assuming Jafs functionality enabled.\n" );
+	}
+	
+	if ( Global.Exists( "g_jafs_menu_option_enabled" ) )
+	{
+		return true;
+	}
+	
+	return false;
+}
+
+bool local_function_4( hship ship_0_, hship ship_1_, int param_2_ )
+{
+	int attackedCount;
+	string local_1;
+	hisim local_2;
+	
+	if ( !iSim.Attacked( ship_0_ ) )
+	{
+		return false;
+	}
+	
+	attackedCount = Object.IntProperty( ship_0_, "attacked_count" );
+	attackedCount = ( attackedCount + 1 );
+	Object.SetIntProperty( ship_0_, "attacked_count", attackedCount );
+	debug Debug.PrintString( "iJafsScript.jafs_attacked: Jafs has been attacked. Attack count is now " );
+	debug Debug.PrintInt( attackedCount );
+	debug Debug.PrintString( "\n" );
+	
+	if ( attackedCount >= param_2_ )
+	{
+		Task.Detach( start local_function_13( ship_0_, local_2 ) );
+		return true;
+	}
+	
+	local_2 = iSim.LastAttacker( ship_0_ );
+	
+	if ( (local_2 == iSim.Cast( ship_1_ )) || (iSim.Faction( local_2 ) == iFaction.Find( "player" )) )
+	{
+		local_function_6( ship_0_, "jafs_gerroff_", 3, 1, false );
+	}
+	
+	return false;
+}
+
+local_function_6( hship ship_, string param_1_, int param_2_, int param_3_, bool param_4_ )
+{
+	int random = Math.RandomInt( 1, param_2_ );
+	string local_1 = String.Join( param_1_, String.FromInt( random ) );
+	
+	local_function_1( ship_, local_1, param_3_, param_4_ );
+}
+
+local_function_1( hship ship_, string param_1_, int param_2_, bool param_3_ )
+{
+	if ( param_3_ )
+	{
+		if ( Sim.DistanceBetween( ship_, iShip.FindPlayerShip() ) > 11000.0 )
+		{
+			return;
+		}
+	}
+	
+	Task.Detach( start local_function_14( ship_, param_1_, param_2_ ) );
+}
+
+task local_function_14( hship ship_, string param_1_, int param_2_ )
+{
+	if ( iComms.IsBusy() && (param_2_ == 0) )
+	{
+		return;
+	}
+	
+	iComms.Shout( ship_, "name_jafs", param_1_ );
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 0.10 );
+	}
+	while ( iComms.IsSaying( ship_, "name_jafs", param_1_ ) );
+}
+
+bool DisablePodDockport( hisim pod_ )
+{
+	hdockport dockport = iDockport.Cast( Set.FirstElement( iDockport.DockportsOfType( pod_, DT_Cargo, DS_Free ) ) );
+	
+	if ( !dockport )
+	{
+		debug Debug.PrintString( "iJafsScript.disable_pod_port: Can't find dockport to lock off.\n" );
+		return false;
+	}
+	
+	debug Debug.PrintString( "iJafsScript.disable_pod_port: Dockport disabled.\n" );
+	iDockport.Disable( dockport );
+	return true;
+}
+
+hdockport EnablePodDockport( hisim pod_ )
+{
+	hdockport dockport;
+	
+	if ( iSim.IsDocked( pod_ ) )
+	{
+		debug Debug.PrintString( "iJafsScript.EnablePodDockport: Can't enable dockport - pod is docked. \n" );
+		return dockport;
+	}
+	
+	dockport = iDockport.Cast( Set.FirstElement( iDockport.DockportsOfType( pod_, DT_All, DS_Any ) ) );
+	
+	if ( !dockport )
+	{
+		debug Debug.PrintString( "iJafsScript.EnablePodDockport: Can't find dockport to enable. \n" );
+		return dockport;
+	}
+	
+	debug Debug.PrintString( "iJafsScript.EnablePodDockport: Enabled pod dockport. \n" );
+	iDockport.Enable( dockport );
+	return dockport;
+}
+
+bool local_function_8( hisim param_0_, hgroup group_, float param_2_ )
+{
+	int ii;
+	
+	for ( ii = 0; ii < Group.SimCount( group_ ); ++ii )
+	{
+		if ( Sim.DistanceBetween( param_0_, Group.NthSim( group_, ii ) ) > param_2_ )
+		{
+			return false;
+		}
+	}
+	
+	return true;
+}
+
+task local_function_0( hship ship_, hmapentity mapentity_ )
+{
+	hsim local_0;
+	int local_1;
+	int local_2;
+	hisim local_3;
+	int local_4;
+	float radius;
+	
+	atomic
+	{
+		Sim.SetVelocity( ship_, 0.0, 0.0, 0.0 );
+		Sim.SetAngularVelocityEuler( ship_, 0.0, 0.0, 0.0 );
+		iShip.DisruptLDSDrive( ship_, 1.0 );
+		iAI.PurgeOrders( ship_ );
+	}
+	
+	local_0 = iDirector.CreateDolly();
+	Sim.SetCollision( local_0, false );
+	local_3 = iSim.Cast( iUtilities.CreateWaypointAt( mapentity_ ) );
+	Sim.PlaceRelativeToInside( local_3, mapentity_, 0.0, 0.0, 1700.0 );
+	Sim.PlaceRelativeTo( ship_, mapentity_, 0.0, 0.0, 2900.0 );
+	Sim.PointAt( ship_, mapentity_ );
+	radius = Object.FloatProperty( ship_, "radius" );
+	Sim.SetCollision( ship_, false );
+	Sim.PlaceRelativeToInside( local_0, ship_, radius, radius / 2.0, -( radius * 2.50 ) );
+	Object.SetVectorProperty( ship_, "speed", 0.0, 0.0, 300.0 );
+	Object.SetVectorProperty( ship_, "acceleration", 0.0, 0.0, 50.0 );
+	iDirector.SetDollyCamera( local_0 );
+	iDirector.SetFocus( ship_ );
+	iDirector.FadeIn( 0.0, 0.0, 0.0, 0.0 );
+	Task.Sleep( Task.Current(), 1.0 );
+	Sim.AvatarAddChannel( mapentity_, "door", 0.0 );
+	Sim.AvatarSetChannel( mapentity_, "door", 1.0 );
+	Task.Sleep( Task.Current(), 1.0 );
+	iAI.GiveApproachOrderAdvanced( ship_, local_3, 10.0, 10.0, false );
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 0.10 );
+	}
+	while ( Sim.DistanceBetween( ship_, local_3 ) > 50.0 );
+	
+	iAI.PurgeOrders( ship_ );
+	Sim.AvatarSetChannel( mapentity_, "door", 0.0 );
+	Task.Sleep( Task.Current(), 4.0 );
+	iDirector.End();
+}
+
+AutoTagValuablePods()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	hgroup group = GetTagGroup();
+	hship ship;
+	int local_3;
+	float constant_0 = 45.0;
+	float constant_1 = 20000.0;
+	int local_6;
+	int local_7;
+	list localList_0;
+	list localList_1;
+	int ii;
+	int local_11;
+	int local_12;
+	int itemCount;
+	
+	if ( playerShip == false )
+	{
+		debug Debug.PrintString( "iJafsScript.AutoTagValuablePods(): Can't find player ship - EXITING.\n" );
+		return;
+	}
+	
+	if ( group == false )
+	{
+		debug Debug.PrintString( "iJafsScript.AutoTagValuablePods(): Can't get tagged pods group - EXITING.\n" );
+		return;
+	}
+	
+	localList_0 = List.FromSet( iSim.SimsInRadius( playerShip, constant_1, 2048 ) );
+	
+	if ( List.ItemCount( localList_0 ) == 0 )
+	{
+		debug Debug.PrintString( "iJafsScript.AutoTagValuablePods(): No pods in range. EXITING.\n" );
+		return;
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iJafsScript.AutoTagValuablePods(): Pods in range == " );
+		Debug.PrintInt( List.ItemCount( localList_0 ) );
+		Debug.PrintString( ". Filtering...\n" );
+	}
+	
+	atomic
+	{
+		for ( ii = 0; ii < List.ItemCount( localList_0 ); ++ii )
+		{
+			debug Debug.PrintString( "iJafsScript.AutoTagValuablePods(): Checking pod No." );
+			debug Debug.PrintInt( ii );
+			debug Debug.PrintString( " \n" );
+			ship = iShip.Cast( List.GetNth( localList_0, ii ) );
+			
+			if ( Sim.IsDead( ship ) || (ship == false) )
+			{
+				debug Debug.PrintString( "iJafsScript.AutoTagValuablePods(): Ignoring dead / null pod. \n" );
+			}
+			else if ( !Object.PropertyExists( ship, "cargo" ) )
+			{
+				debug Debug.PrintString( "iJafsScript.AutoTagValuablePods(): Ignoring pod without cargo property. \n" );
+			}
+			else if ( Object.IntProperty( ship, "cargo" ) == 0 )
+			{
+				debug Debug.PrintString( "iJafsScript.AutoTagValuablePods(): Ignoring pod with no cargo. \n" );
+			}
+			else if ( iAI.HasOrder( ship ) )
+			{
+				debug Debug.PrintString( "iJafsScript.AutoTagValuablePods(): Ignoring loading pod. \n" );
+			}
+			else if ( iSim.IsDocked( ship ) )
+			{
+				debug Debug.PrintString( "iJafsScript.AutoTagValuablePods(): Ignoring docked Pod. \n" );
+			}
+			else
+			{
+				debug Debug.PrintString( "iJafsScript.AutoTagValuablePods(): Found Valid Pod. \n" );
+				Object.AddIntProperty( ship, "value", 9 - iCargo.Value( iCargo.Find( Object.IntProperty( ship, "cargo" ) ) ) );
+				List.AddTail( localList_1, ship );
+			}
+		}
+	}
+	
+	ii = List.ItemCount( localList_1 );
+	
+	if ( ii == 0 )
+	{
+		debug Debug.PrintString( "iJafsScript.AutoTagValuablePods(): No pods to tag. EXITING.\n" );
+		return;
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iJafsScript.AutoTagValuablePods: Valid pods found = " );
+		Debug.PrintInt( ii );
+		Debug.PrintString( " \n" );
+	}
+	
+	if ( ii == 1 )
+	{
+		debug Debug.PrintString( "iJafsScript.AutoTagValuablePods: Tagging single pod. \n" );
+		TagPod( group, iShip.Cast( List.GetNth( localList_1, 0 ) ) );
+		debug Debug.PrintString( "iJafsScript.AutoTagValuablePods: Finished tagging pods. \n" );
+		return;
+	}
+	
+	debug Debug.PrintString( "iJafsScript.AutoTagValuablePods: Tagging most valuable valid pods..\n" );
+	localList_0 = List.SortByIntProperty( localList_1, "value" );
+	itemCount = List.ItemCount( localList_0 );
+	
+	if ( itemCount > 12 )
+	{
+		itemCount = 12;
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iJafsScript.AutoTagValuablePods: Collecting " );
+		Debug.PrintInt( itemCount - local_12 );
+		Debug.PrintString( " pods. \n" );
+	}
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		ship = iShip.Cast( List.GetNth( localList_0, ii ) );
+		
+		debug atomic
+		{
+			Debug.PrintString( "iJafsScript.AutoTagValuablePods: Tagging Pod No. " );
+			Debug.PrintInt( ii );
+			Debug.PrintString( " (" );
+			Debug.PrintString( Object.StringProperty( ship, "name" ) );
+			Debug.PrintString( ") of value  " );
+			Debug.PrintInt( 9 - Object.IntProperty( ship, "value" ) );
+			Debug.PrintString( " \n" );
+		}
+		
+		TagPod( group, ship );
+	}
+	
+	debug Debug.PrintString( "iJafsScript.TagPodsInFOV: Finished tagging pods.\n" );
+}
+
+local_function_7()
+{
+	int ii;
+	int local_1;
+	hgroup group = GetTagGroup();
+	hisim local_3;
+	
+	for ( ii = ( Group.SimCount( group ) - 1 ); ii >= 0; --ii )
+	{
+		local_3 = iSim.Cast( Group.NthSim( group, ii ) );
+		
+		if ( !( iSim.WorldName( local_3 ) == iSim.ActiveWorld() ) )
+		{
+			Group.RemoveSim( group, local_3 );
+			Sim.SetCullable( local_3, true );
+			Sim.Destroy( local_3 );
+			local_1 = ( local_1 + 1 );
+		}
+	}
+	
+	debug
+	{
+		Debug.PrintString( "iJafsScript.filter_out_of_system_pods: Removed " );
+		Debug.PrintInt( local_1 );
+		Debug.PrintString( " out of system pods..\n" );
+	}
+}
+

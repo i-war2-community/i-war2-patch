@@ -1,0 +1,140 @@
+package iselfpreservation;
+
+uses Debug,
+     Set,
+     List,
+     String,
+     Global,
+     INIFile,
+     Math,
+     Object,
+     Group,
+     Sim,
+     Task,
+     iFaction,
+     iSim,
+     iShip,
+     Subsim,
+     iDockport,
+     iLagrangePoint,
+     iAI,
+     iComms,
+     MapEnumerations,
+     iMapEntity,
+     iBody,
+     iHabitat,
+     iUtilities;
+
+provides Surrender;
+
+prototype hinifile local_function_0();
+prototype task Surrender( hship ship_0_, hship ship_1_ );
+
+hinifile local_function_0()
+{
+	return INIFile.Cast( Global.Handle( "g_stock_utterance_ini" ) );
+}
+
+task Surrender( hship ship_0_, hship ship_1_ )
+{
+	int random;
+	int local_1;
+	set localSet_0 = iMapEntity.SystemHabitats();
+	set localSet_1;
+	hhabitat habitat;
+	hinifile inifile;
+	string local_6;
+	hship playerShip;
+	list localList = List.FromSet( Sim.Children( ship_0_ ) );
+	
+	iAI.PurgeOrders( ship_0_ );
+	inifile = local_function_0();
+	
+	if ( Object.IDModulus( ship_0_, 2 ) == 1 )
+	{
+		local_6 = "_male_1";
+	}
+	else
+	{
+		local_6 = "_female_1";
+	}
+	
+	debug Debug.PrintString( "ship surrenders!\n" );
+	
+	if ( 0 == Object.PropertyExists( ship_0_, "has_surrendered" ) )
+	{
+		debug Debug.PrintString( "adding has_surrendered property to ship.\n" );
+		Object.AddIntProperty( ship_0_, "has_surrendered", 1 );
+	}
+	
+	if ( !List.IsEmpty( localList ) )
+	{
+		local_1 = INIFile.Int( inifile, "stock_surrender_cargo", "num_entries", 1 );
+		random = Math.RandomInt( 1, local_1 );
+		playerShip = iShip.FindPlayerShip();
+		
+		if ( (ship_1_ == playerShip) && (Sim.DistanceBetween( playerShip, ship_0_ ) < 50000.0) )
+		{
+			iComms.Shout( ship_0_, "", String.Join( String.Join( "stock_surrender_cargo_", String.FromInt( random ) ), local_6 ) );
+		}
+		
+		Task.Detach( start iUtilities.JettisonCargo( localList, ship_0_ ) );
+	}
+	else
+	{
+		local_1 = INIFile.Int( inifile, "stock_surrender_no_cargo", "num_entries", 1 );
+		random = Math.RandomInt( 1, local_1 );
+		playerShip = iShip.FindPlayerShip();
+		
+		if ( (ship_1_ == playerShip) && (Sim.DistanceBetween( playerShip, ship_0_ ) < 50000.0) )
+		{
+			iComms.Shout( ship_0_, "", String.Join( String.Join( "stock_surrender_no_cargo_", String.FromInt( random ) ), local_6 ) );
+		}
+	}
+	
+	Task.Sleep( Task.Current(), 19.0 );
+	localSet_1 = iHabitat.FilterOnType( localSet_0, HT_PoliceBase );
+	Set.Union( localSet_1, iHabitat.FilterOnType( localSet_0, HT_PoliceOutpost ) );
+	
+	if ( Set.ItemCount( localSet_1 ) == 0 )
+	{
+		debug Debug.PrintString( "iFlee.CivilianCallForHelp: Unable to find Police Facility to find backup from!\n" );
+		return;
+	}
+	
+	habitat = iHabitat.Nearest( localSet_1, ship_0_ );
+	iAI.GiveApproachOrder( ship_0_, iMapEntity.WaypointForEntity( habitat ) );
+	Global.CreateInt( String.Join( "g_", Object.StringProperty( ship_0_, "name" ) ), 1, 2 );
+	
+	if ( Math.RandomInt( 1, 6 ) == 5 )
+	{
+		local_1 = INIFile.Int( inifile, "stock_complain", "num_entries", 1 );
+		random = Math.RandomInt( 1, local_1 );
+		
+		if ( (ship_1_ == playerShip) && (Sim.DistanceBetween( playerShip, ship_0_ ) < 50000.0) )
+		{
+			iComms.Shout( ship_0_, "", String.Join( String.Join( "stock_complain_", String.FromInt( random ) ), local_6 ) );
+		}
+	}
+	
+	schedule
+	{
+		every 30.0:
+		{
+			if ( iAI.IsOrderComplete( ship_0_ ) )
+			{
+				debug Debug.PrintString( "iSelfPreservation.surrender: arrived at police station.......... killing\n" );
+				break;
+			}
+		}
+		
+		every 120.0:
+		{
+			if ( !iUtilities.PlayerInRange( Sim.Cast( ship_0_ ) ) )
+			{
+				break;
+			}
+		}
+	}
+}
+

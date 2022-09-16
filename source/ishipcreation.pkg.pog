@@ -1,0 +1,3405 @@
+package iShipCreation;
+
+uses Debug,
+     Set,
+     List,
+     String,
+     Global,
+     Sim,
+     Group,
+     INIFile,
+     Math,
+     Object,
+     iCargo,
+     iMapEntity,
+     iBody,
+     iHabitat,
+     CargoTypes,
+     iCargoScript,
+     iSim,
+     Subsim,
+     iDockport,
+     MapEnumerations,
+     iFaction,
+     iFormation,
+     iShip,
+     iPilotSetup,
+     iUtilities;
+
+provides GetShip,
+         PutShipsInFormation,
+         GetTraffic,
+         CreateHaulageCargo,
+         CreateCharacterGroup,
+         CreateTradeCargo,
+         CreateSupplyCargo,
+         ShipName,
+         CreateCharacterShips,
+         CreateCargoPods,
+         ReturnHaulageCargo,
+         ReturnTradeCargo,
+         ReturnSupplyCargo,
+         CreateMegapodCargo,
+         StackCargo;
+
+enum ePilotType
+{
+	PT_None = 0x00000000,
+	PT_Player = 0x00000001,
+	PT_AI = 0x00000002
+};
+
+enum eFormationType
+{
+	FT_Wedge = 0x00000000,
+	FT_Goose = 0x00000001,
+	FT_LineAbreast = 0x00000002,
+	FT_LineAhead = 0x00000003,
+	FT_Parade = 0x00000004,
+	FT_SkirmishLine = 0x00000005,
+	FT_V = 0x00000006,
+	FT_Cross = 0x00000007,
+	FT_Loose = 0x00000008,
+	FT_Impi = 0x00000009,
+	FT_Outrider = 0x0000000A,
+	FT_LineAstern = 0x0000000B,
+	FT_Box = 0x0000000C,
+	FT_Claw = 0x0000000D,
+	FT_Wall = 0x0000000E
+};
+
+enum eShipType
+{
+	ST_FreightLight = 0x00000000,
+	ST_FreightHeavy = 0x00000001,
+	ST_FreightAll = 0x00000002,
+	ST_FreightSuperHeavy = 0x00000003,
+	ST_FreightCourier = 0x00000004,
+	ST_CombatFighter = 0x00000005,
+	ST_CombatLight = 0x00000006,
+	ST_CombatHeavy = 0x00000007,
+	ST_CombatCaptial = 0x00000008,
+	ST_CombatAll = 0x00000009,
+	ST_Medical = 0x0000000A,
+	ST_Interface = 0x0000000B,
+	ST_PassengerLight = 0x0000000C,
+	ST_PassengerHeavy = 0x0000000D,
+	ST_PassengerAll = 0x0000000E,
+	ST_MiningLight = 0x0000000F,
+	ST_MiningHeavy = 0x00000010,
+	ST_MiningAll = 0x00000011,
+	ST_TankerLight = 0x00000012,
+	ST_TankerHeavy = 0x00000013,
+	ST_TankerAll = 0x00000014,
+	ST_GeneralPurpose = 0x00000015,
+	ST_Flitter = 0x00000016,
+	ST_Recovery = 0x00000017,
+	ST_DemoShips = 0x00000018,
+	ST_Taxi = 0x00000019
+};
+
+prototype string ShipName( string name_type_, int name_number_ );
+prototype local_function_0( hship ship_0_, hship ship_1_, int param_2_ );
+prototype StackCargo( hship pod_, hobject cargo_ );
+prototype hgroup CreateMegapodCargo( hship pod_, int number_pods_, int cargo_type_ );
+prototype string GetShip( IeAllegiance faction_, eShipType ship_type_ );
+prototype hgroup CreateCharacterGroup( eShipType type_, string pilot_type_, int number_, hfaction faction_, string name_pointer_ );
+prototype local_function_1( hship ship_0_, int param_1_ );
+prototype CreateSupplyCargo( hship supply_vessel_, int supply_type_ );
+prototype CreateTradeCargo( hship trade_vessel_, string trade_type_ );
+prototype CreateHaulageCargo( hship cargo_vessel_, IeHabitatType location_type_ );
+prototype list ReturnSupplyCargo( hship supply_vessel_, int supply_type_ );
+prototype list ReturnTradeCargo( hship trade_vessel_, string trade_type_ );
+prototype list ReturnHaulageCargo( hship cargo_vessel_, IeHabitatType location_type_ );
+prototype hgroup GetTraffic( eShipType traffic_type_, IeAllegiance allegiance_, int number_req_ );
+prototype bool PutShipsInFormation( hgroup ship_list_, eFormationType formation_type_, float spacing_offset_, bool first_time_ );
+prototype hgroup CreateCharacterShips( eShipType carrier_type_, string carrier_ship_name_pointer_, string pilot_name_pointer_, string carrier_pilot_type_, int carrier_number_, eShipType escort_type_, string escort_ship_name_pointer_, string escort_pilot_type_, int escort_number_, hfaction faction_ );
+prototype hgroup CreateCargoPods( eCargoType cargo_type_, int number_ );
+
+string ShipName( string name_type_, int name_number_ )
+{
+	hinifile gShipNamesIni = INIFile.Cast( Global.Handle( "g_ship_names_ini" ) );
+	int local_1;
+	int local_2 = INIFile.Int( gShipNamesIni, name_type_, "NumberOfEntries", -1 );
+	string local_3;
+	string local_4;
+	
+	if ( local_2 == -1 )
+	{
+		debug
+		{
+			Debug.PrintString( "iShipCreation.ShipName: ERROR! Unable to read the number of entries of category '" );
+			Debug.PrintString( name_type_ );
+			Debug.PrintString( "' from ini file.  Using general category\n" );
+		}
+		
+		name_type_ = "General";
+		local_2 = INIFile.Int( gShipNamesIni, name_type_, "NumberOfEntries", -1 );
+	}
+	else if ( local_2 == 0 )
+	{
+		debug
+		{
+			Debug.PrintString( "iShipCreation.ShipName: No names in valid category '" );
+			Debug.PrintString( name_type_ );
+			Debug.PrintString( "'.  Using general category instead\n" );
+		}
+		
+		name_type_ = "General";
+		local_2 = INIFile.Int( gShipNamesIni, name_type_, "NumberOfEntries", -1 );
+	}
+	
+	if ( name_number_ == -1 )
+	{
+		local_4 = String.Join( "index_", name_type_ );
+		
+		if ( 0 == Global.Exists( local_4 ) )
+		{
+			name_number_ = Math.RandomInt( 0, local_2 );
+			Global.CreateInt( local_4, 2, name_number_ );
+		}
+		else
+		{
+			name_number_ = Global.Int( local_4 );
+		}
+		
+		local_3 = String.Join( INIFile.String( gShipNamesIni, name_type_, "Prefix", "none" ), String.FromInt( name_number_ ) );
+		
+		if ( local_2 > 15 )
+		{
+			name_number_ = ( name_number_ + Math.RandomInt( 1, 3 ) );
+		}
+		else
+		{
+			name_number_ = ( name_number_ + 1 );
+		}
+		
+		if ( name_number_ >= local_2 )
+		{
+			name_number_ = ( name_number_ - local_2 );
+		}
+		
+		Global.SetInt( local_4, name_number_ );
+	}
+	else
+	{
+		if ( name_number_ > local_2 )
+		{
+			debug
+			{
+				Debug.PrintString( "iShipCreation.ShipName: The name number given does not exist in category '" );
+				Debug.PrintString( name_type_ );
+				Debug.PrintString( "' using random\n" );
+			}
+			
+			name_number_ = Math.RandomInt( 0, local_2 );
+		}
+		
+		local_3 = String.Join( INIFile.String( gShipNamesIni, name_type_, "Prefix", "none" ), String.FromInt( name_number_ ) );
+	}
+	
+	return local_3;
+}
+
+local_function_0( hship ship_0_, hship ship_1_, int param_2_ )
+{
+	Sim.SetCollision( ship_1_, false );
+	
+	switch ( param_2_ )
+	{
+		case 0:
+			Sim.AddChildRelativeTo( ship_0_, ship_1_, -30.0, -30.0, 50.0 );
+			return;
+		
+		case 1:
+			Sim.AddChildRelativeTo( ship_0_, ship_1_, 30.0, 30.0, 50.0 );
+			return;
+		
+		case 2:
+			Sim.AddChildRelativeTo( ship_0_, ship_1_, -30.0, 30.0, 50.0 );
+			return;
+		
+		case 3:
+			Sim.AddChildRelativeTo( ship_0_, ship_1_, 30.0, -30.0, 50.0 );
+			return;
+		
+		case 4:
+			Sim.AddChildRelativeTo( ship_0_, ship_1_, -30.0, -30.0, 0.0 );
+			return;
+		
+		case 5:
+			Sim.AddChildRelativeTo( ship_0_, ship_1_, 30.0, 30.0, 0.0 );
+			return;
+		
+		case 6:
+			Sim.AddChildRelativeTo( ship_0_, ship_1_, -30.0, 30.0, 0.0 );
+			return;
+		
+		case 7:
+			Sim.AddChildRelativeTo( ship_0_, ship_1_, 30.0, -30.0, 0.0 );
+			return;
+	}
+}
+
+StackCargo( hship pod_, hobject cargo_ )
+{
+	hgroup group = Group.Cast( cargo_ );
+	hship ship_1 = iShip.Cast( cargo_ );
+	int stackingSlot;
+	int simCount;
+	int ii;
+	
+	if ( !Object.PropertyExists( pod_, "stacking_slot" ) )
+	{
+		Object.AddIntProperty( pod_, "stacking_slot", 0 );
+		stackingSlot = 0;
+	}
+	else
+	{
+		stackingSlot = Object.IntProperty( pod_, "stacking_slot" );
+	}
+	
+	if ( ship_1 != false )
+	{
+		local_function_0( pod_, ship_1, stackingSlot );
+		return;
+	}
+	
+	simCount = Group.SimCount( group );
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		stackingSlot = ( stackingSlot + 1 );
+		local_function_0( pod_, iShip.Cast( Group.NthSim( group, ii ) ), stackingSlot );
+	}
+}
+
+hgroup CreateMegapodCargo( hship pod_, int number_pods_, int cargo_type_ )
+{
+	hgroup group = Group.Create();
+	hhabitat habitat;
+	int local_2;
+	string local_3;
+	hship ship_1;
+	int ii;
+	
+	Object.SetIntProperty( ship_1, "number_small_pods", number_pods_ );
+	Object.SetIntProperty( ship_1, "type_cargo", cargo_type_ );
+	
+	for ( ii = 0; ii < number_pods_; ++ii )
+	{
+		switch ( Math.RandomInt( 0, 2 ) )
+		{
+			case 0:
+				local_3 = "ini:/sims/ships/utility/cargo_pod";
+				break;
+			
+			case 1:
+				local_3 = "ini:/sims/ships/utility/freightpod";
+				break;
+			
+			case 2:
+				local_3 = "ini:/sims/ships/utility/containerpod";
+				break;
+		}
+		
+		ship_1 = iShip.Create( local_3, "name_cargo_pod" );
+		Object.AddIntProperty( ship_1, "cargo_faction", 1 );
+		
+		switch ( cargo_type_ )
+		{
+			case -2:
+				local_2 = iCargoScript.MilitarySupplyCargoGenerator();
+				break;
+			
+			case -1:
+				local_2 = iCargoScript.SupplyCargoGenerator();
+				break;
+			
+			case 1:
+				switch ( Math.RandomInt( 0, 3 ) )
+				{
+					case 0:
+						local_2 = iCargoScript.CheapCargoGenerator();
+						break;
+					
+					case 1:
+						local_2 = iCargoScript.MediumCargoGenerator();
+						break;
+					
+					case 2:
+						local_2 = iCargoScript.HighCargoGenerator();
+						break;
+					
+					case 3:
+						local_2 = iCargoScript.VeryHighCargoGenerator();
+						break;
+				}
+				
+				break;
+			
+			case 2:
+				habitat = iHabitat.Nearest( Global.Set( "g_filtered_system_habitats" ), pod_ );
+				local_2 = iCargoScript.FindCargoForLocation( iHabitat.Type( habitat ) );
+				break;
+			
+			default:
+				local_2 = iCargoScript.MediumCargoGenerator();
+				break;
+		}
+		
+		if ( (local_2 == 482) || ((local_2 == 471) || ((local_2 == 472) || ((local_2 == 549) || ((local_2 == 230) || ((local_2 == 514) || ((local_2 == 530) || (local_2 == 531))))))) )
+		{
+			Object.SetStringProperty( ship_1, "death_script", "iDeathScript.Antimatter" );
+		}
+		
+		if ( local_2 == 0 )
+		{
+			switch ( Math.RandomInt( 0, 3 ) )
+			{
+				case 0:
+					local_2 = iCargoScript.CheapCargoGenerator();
+					break;
+				
+				case 1:
+					local_2 = iCargoScript.MediumCargoGenerator();
+					break;
+				
+				case 2:
+					local_2 = iCargoScript.HighCargoGenerator();
+					break;
+				
+				case 3:
+					local_2 = iCargoScript.VeryHighCargoGenerator();
+					break;
+			}
+		}
+		
+		Object.SetIntProperty( ship_1, "cargo", local_2 );
+		iUtilities.RenameSim( ship_1, iCargo.Name( iCargo.Find( local_2 ) ) );
+		Group.AddSim( group, ship_1 );
+	}
+	
+	return group;
+}
+
+string GetShip( IeAllegiance faction_, eShipType ship_type_ )
+{
+	switch ( ship_type_ )
+	{
+		case ST_FreightLight:
+			switch ( faction_ )
+			{
+				case A_Neutral:
+				case A_Independent:
+				case A_Exile:
+				case A_Military:
+				case A_Underworld:
+				case A_Government:
+				case A_Transient:
+				case A_Society:
+				case A_Invalid:
+				case A_Stepson:
+				case A_Kong:
+				case A_MAASCorporation:
+				case A_CarvaCartel:
+				case A_Junkers:
+				case A_Police:
+				case A_NOMEXCorporation:
+				case A_NSOLaplace:
+				case A_Marauders:
+				case A_Angels:
+				case A_TheOman:
+				case A_MCA:
+				case A_Player:
+				case A_League:
+				case A_TrimannShipping:
+				case A_RhondusGasMining:
+				case A_AshantiInvestment:
+				case A_CrosspointMinerals:
+				case A_HeliosMining:
+				case A_JardinTerraforming:
+				case A_ChonBodifule:
+				case A_OrionProducts:
+				case A_VonShellingIndustries:
+				case A_MegalithCorp:
+				case A_HibatshPMC:
+				case A_DesterCorporation:
+				case A_WhindWeaponsSystems:
+				case A_AdvancedSecurityCorp:
+				case A_Network54:
+				case A_Infonet:
+				case A_StellarNet:
+				case A_WordsworthTechnology:
+				case A_NetcomSA:
+				case A_CoventryEngineeringResearch:
+				case A_NINEXWetware:
+				case A_UniversalConsumerProducts:
+				case A_HighlifeProducts:
+				case A_LowOrbitRecovery:
+				case A_KIMOShipping:
+				case A_DatagonTechnologies:
+				case A_MicoriaCommunications:
+				case A_LOMAXEngines:
+				case A_LOMAXTechnologies:
+				case A_NumikoProducts:
+				case A_TheThirdWay:
+					return "ini:/sims/ships/utility/snrv";
+				
+				default:
+					debug Debug.Error( "GetShip: Illegal faction" );
+			}
+			
+			break;
+		
+		case ST_FreightHeavy:
+			switch ( faction_ )
+			{
+				case A_Neutral:
+				case A_Independent:
+				case A_Exile:
+				case A_Military:
+				case A_Underworld:
+				case A_Government:
+				case A_Transient:
+				case A_Society:
+				case A_Invalid:
+				case A_Stepson:
+				case A_Kong:
+				case A_MAASCorporation:
+				case A_CarvaCartel:
+				case A_Junkers:
+				case A_Police:
+				case A_NOMEXCorporation:
+				case A_NSOLaplace:
+				case A_Marauders:
+				case A_Angels:
+				case A_TheOman:
+				case A_MCA:
+				case A_Player:
+				case A_League:
+				case A_TrimannShipping:
+				case A_RhondusGasMining:
+				case A_AshantiInvestment:
+				case A_CrosspointMinerals:
+				case A_HeliosMining:
+				case A_JardinTerraforming:
+				case A_ChonBodifule:
+				case A_OrionProducts:
+				case A_VonShellingIndustries:
+				case A_MegalithCorp:
+				case A_HibatshPMC:
+				case A_DesterCorporation:
+				case A_WhindWeaponsSystems:
+				case A_AdvancedSecurityCorp:
+				case A_Network54:
+				case A_Infonet:
+				case A_StellarNet:
+				case A_WordsworthTechnology:
+				case A_NetcomSA:
+				case A_CoventryEngineeringResearch:
+				case A_NINEXWetware:
+				case A_UniversalConsumerProducts:
+				case A_HighlifeProducts:
+				case A_LowOrbitRecovery:
+				case A_KIMOShipping:
+				case A_DatagonTechnologies:
+				case A_MicoriaCommunications:
+				case A_LOMAXEngines:
+				case A_LOMAXTechnologies:
+				case A_NumikoProducts:
+				case A_TheThirdWay:
+					switch ( Math.RandomInt( 1, 3 ) )
+					{
+						case 1:
+							return "ini:/sims/ships/utility/containercarrier";
+						
+						case 2:
+							return "ini:/sims/ships/utility/freighter";
+						
+						case 3:
+							return "ini:/sims/ships/utility/temp_freighter";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				default:
+					debug Debug.Error( "GetShip: Unhandled allegiance" );
+			}
+			
+			break;
+		
+		case ST_FreightAll:
+			switch ( faction_ )
+			{
+				case A_Neutral:
+				case A_Independent:
+				case A_Exile:
+				case A_Military:
+				case A_Underworld:
+				case A_Government:
+				case A_Transient:
+				case A_Society:
+				case A_Invalid:
+				case A_Stepson:
+				case A_Kong:
+				case A_MAASCorporation:
+				case A_CarvaCartel:
+				case A_Junkers:
+				case A_Police:
+				case A_NOMEXCorporation:
+				case A_NSOLaplace:
+				case A_Marauders:
+				case A_Angels:
+				case A_TheOman:
+				case A_MCA:
+				case A_Player:
+				case A_League:
+				case A_TrimannShipping:
+				case A_RhondusGasMining:
+				case A_AshantiInvestment:
+				case A_CrosspointMinerals:
+				case A_HeliosMining:
+				case A_JardinTerraforming:
+				case A_ChonBodifule:
+				case A_OrionProducts:
+				case A_VonShellingIndustries:
+				case A_MegalithCorp:
+				case A_HibatshPMC:
+				case A_DesterCorporation:
+				case A_WhindWeaponsSystems:
+				case A_AdvancedSecurityCorp:
+				case A_Network54:
+				case A_Infonet:
+				case A_StellarNet:
+				case A_WordsworthTechnology:
+				case A_NetcomSA:
+				case A_CoventryEngineeringResearch:
+				case A_NINEXWetware:
+				case A_UniversalConsumerProducts:
+				case A_HighlifeProducts:
+				case A_LowOrbitRecovery:
+				case A_KIMOShipping:
+				case A_DatagonTechnologies:
+				case A_MicoriaCommunications:
+				case A_LOMAXEngines:
+				case A_LOMAXTechnologies:
+				case A_NumikoProducts:
+				case A_TheThirdWay:
+					switch ( Math.RandomInt( 1, 3 ) )
+					{
+						case 1:
+							return "ini:/sims/ships/utility/containercarrier";
+						
+						case 2:
+							return "ini:/sims/ships/utility/freighter";
+						
+						case 3:
+							return "ini:/sims/ships/utility/temp_freighter";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				default:
+					debug Debug.Error( "GetShip: Unhandled allegiance" );
+			}
+			
+			break;
+		
+		case ST_FreightSuperHeavy:
+			switch ( faction_ )
+			{
+				case A_Neutral:
+				case A_Independent:
+				case A_Exile:
+				case A_Underworld:
+				case A_Transient:
+				case A_Society:
+				case A_Invalid:
+				case A_Stepson:
+				case A_Kong:
+				case A_CarvaCartel:
+				case A_Junkers:
+				case A_Police:
+				case A_NSOLaplace:
+				case A_Marauders:
+				case A_Angels:
+				case A_TheOman:
+				case A_MCA:
+				case A_Player:
+				case A_League:
+					return "ini:/sims/ships/utility/freighter";
+				
+				case A_Military:
+				case A_Government:
+				case A_MAASCorporation:
+				case A_NOMEXCorporation:
+				case A_TrimannShipping:
+				case A_RhondusGasMining:
+				case A_AshantiInvestment:
+				case A_CrosspointMinerals:
+				case A_HeliosMining:
+				case A_JardinTerraforming:
+				case A_ChonBodifule:
+				case A_OrionProducts:
+				case A_VonShellingIndustries:
+				case A_MegalithCorp:
+				case A_HibatshPMC:
+				case A_DesterCorporation:
+				case A_WhindWeaponsSystems:
+				case A_AdvancedSecurityCorp:
+				case A_Network54:
+				case A_Infonet:
+				case A_StellarNet:
+				case A_WordsworthTechnology:
+				case A_NetcomSA:
+				case A_CoventryEngineeringResearch:
+				case A_NINEXWetware:
+				case A_UniversalConsumerProducts:
+				case A_HighlifeProducts:
+				case A_LowOrbitRecovery:
+				case A_KIMOShipping:
+				case A_DatagonTechnologies:
+				case A_MicoriaCommunications:
+				case A_LOMAXEngines:
+				case A_LOMAXTechnologies:
+				case A_NumikoProducts:
+				case A_TheThirdWay:
+					return "ini:/sims/ships/utility/megatransporter";
+				
+				default:
+					debug Debug.Error( "GetShip: Unhandled allegiance" );
+			}
+			
+			break;
+		
+		case ST_FreightCourier:
+			switch ( faction_ )
+			{
+				case A_Government:
+				case A_Military:
+					switch ( Math.RandomInt( 1, 4 ) )
+					{
+						case 1:
+						case 2:
+							return "ini:/sims/ships/navy/advanced_patcom_mk1";
+						
+						case 3:
+							return "ini:/sims/ships/navy/old_corvette";
+						
+						case 4:
+							return "ini:/sims/ships/navy/heavy_corvette_mk1";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				case A_Independent:
+				case A_Exile:
+				case A_Transient:
+				case A_Society:
+				case A_Invalid:
+				case A_Underworld:
+				case A_Stepson:
+				case A_Kong:
+				case A_Marauders:
+				case A_Angels:
+				case A_TheOman:
+				case A_MCA:
+				case A_League:
+				case A_CarvaCartel:
+				case A_Junkers:
+				case A_Player:
+					return "ini:/sims/ships/independent/tug_armed";
+				
+				case A_Police:
+					return "ini:/sims/ships/cops/interceptor";
+				
+				case A_Neutral:
+				case A_MAASCorporation:
+				case A_NOMEXCorporation:
+				case A_NSOLaplace:
+				case A_TrimannShipping:
+				case A_RhondusGasMining:
+				case A_AshantiInvestment:
+				case A_CrosspointMinerals:
+				case A_HeliosMining:
+				case A_JardinTerraforming:
+				case A_ChonBodifule:
+				case A_OrionProducts:
+				case A_VonShellingIndustries:
+				case A_MegalithCorp:
+				case A_HibatshPMC:
+				case A_DesterCorporation:
+				case A_WhindWeaponsSystems:
+				case A_AdvancedSecurityCorp:
+				case A_Network54:
+				case A_Infonet:
+				case A_StellarNet:
+				case A_WordsworthTechnology:
+				case A_NetcomSA:
+				case A_CoventryEngineeringResearch:
+				case A_NINEXWetware:
+				case A_UniversalConsumerProducts:
+				case A_HighlifeProducts:
+				case A_LowOrbitRecovery:
+				case A_KIMOShipping:
+				case A_DatagonTechnologies:
+				case A_MicoriaCommunications:
+				case A_LOMAXEngines:
+				case A_LOMAXTechnologies:
+				case A_NumikoProducts:
+				case A_TheThirdWay:
+					return "ini:/sims/ships/navy/old_corvette";
+				
+				default:
+					debug Debug.Error( "GetShip: Unhandled allegiance" );
+			}
+			
+			break;
+		
+		case ST_CombatFighter:
+			switch ( faction_ )
+			{
+				case A_Military:
+				case A_Government:
+					return "ini:/sims/ships/navy/fighter";
+				
+				case A_Underworld:
+				case A_Transient:
+				case A_Society:
+				case A_Invalid:
+				case A_Stepson:
+				case A_Kong:
+				case A_Independent:
+				case A_Junkers:
+				case A_Exile:
+				case A_Angels:
+				case A_TheOman:
+				case A_MCA:
+				case A_Player:
+				case A_League:
+					return "ini:/sims/ships/independent/f-fighter";
+				
+				case A_Police:
+					switch ( Math.RandomInt( 1, 4 ) )
+					{
+						case 1:
+						case 2:
+						case 3:
+							return "ini:/sims/ships/cops/fighter_mk2";
+						
+						case 4:
+							return "ini:/sims/ships/cops/fighter_mk3";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				case A_Marauders:
+					return "ini:/sims/ships/marauder/fighter";
+				
+				case A_Neutral:
+				case A_MAASCorporation:
+				case A_CarvaCartel:
+				case A_NOMEXCorporation:
+				case A_NSOLaplace:
+				case A_TrimannShipping:
+				case A_RhondusGasMining:
+				case A_AshantiInvestment:
+				case A_CrosspointMinerals:
+				case A_HeliosMining:
+				case A_JardinTerraforming:
+				case A_ChonBodifule:
+				case A_OrionProducts:
+				case A_VonShellingIndustries:
+				case A_MegalithCorp:
+				case A_HibatshPMC:
+				case A_DesterCorporation:
+				case A_WhindWeaponsSystems:
+				case A_AdvancedSecurityCorp:
+				case A_Network54:
+				case A_Infonet:
+				case A_StellarNet:
+				case A_WordsworthTechnology:
+				case A_NetcomSA:
+				case A_CoventryEngineeringResearch:
+				case A_NINEXWetware:
+				case A_UniversalConsumerProducts:
+				case A_HighlifeProducts:
+				case A_LowOrbitRecovery:
+				case A_KIMOShipping:
+				case A_DatagonTechnologies:
+				case A_MicoriaCommunications:
+				case A_LOMAXEngines:
+				case A_LOMAXTechnologies:
+				case A_NumikoProducts:
+				case A_TheThirdWay:
+					switch ( Math.RandomInt( 0, 1 ) )
+					{
+						case 0:
+							return "ini:/sims/ships/cops/fighter_mk2";
+						
+						case 1:
+							return "ini:/sims/ships/corporate/interceptor";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				default:
+					debug Debug.Error( "GetShip: Unhandled allegiance" );
+			}
+			
+			break;
+		
+		case ST_CombatLight:
+			switch ( faction_ )
+			{
+				case A_Military:
+				case A_Government:
+				case A_MCA:
+					switch ( Math.RandomInt( 0, 1 ) )
+					{
+						case 0:
+							return "ini:/sims/ships/navy/old_corvette";
+						
+						case 1:
+							return "ini:/sims/ships/navy/advanced_patcom_mk1";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				case A_Independent:
+				case A_Exile:
+				case A_Underworld:
+				case A_Transient:
+				case A_Society:
+				case A_Invalid:
+				case A_Stepson:
+				case A_Kong:
+				case A_CarvaCartel:
+				case A_Junkers:
+				case A_Angels:
+				case A_TheOman:
+				case A_Player:
+				case A_League:
+					return "ini:/sims/ships/independent/tug_armed";
+				
+				case A_Police:
+					return "ini:/sims/ships/cops/interceptor";
+				
+				case A_Marauders:
+					return "ini:/sims/ships/marauder/marauder_cutter";
+				
+				case A_Neutral:
+				case A_MAASCorporation:
+					switch ( Math.RandomInt( 0, 1 ) )
+					{
+						case 0:
+							return "ini:/sims/ships/corporate/large_corp_interceptor";
+						
+						case 1:
+							return "ini:/sims/ships/navy/heavy_corvette_mk1";
+					}
+				
+				case A_NSOLaplace:
+				case A_NOMEXCorporation:
+				case A_TrimannShipping:
+				case A_RhondusGasMining:
+				case A_AshantiInvestment:
+				case A_CrosspointMinerals:
+				case A_HeliosMining:
+				case A_JardinTerraforming:
+				case A_ChonBodifule:
+				case A_OrionProducts:
+				case A_VonShellingIndustries:
+				case A_MegalithCorp:
+				case A_HibatshPMC:
+				case A_DesterCorporation:
+				case A_WhindWeaponsSystems:
+				case A_AdvancedSecurityCorp:
+				case A_Network54:
+				case A_Infonet:
+				case A_StellarNet:
+				case A_WordsworthTechnology:
+				case A_NetcomSA:
+				case A_CoventryEngineeringResearch:
+				case A_NINEXWetware:
+				case A_UniversalConsumerProducts:
+				case A_HighlifeProducts:
+				case A_LowOrbitRecovery:
+				case A_KIMOShipping:
+				case A_DatagonTechnologies:
+				case A_MicoriaCommunications:
+				case A_LOMAXEngines:
+				case A_LOMAXTechnologies:
+				case A_NumikoProducts:
+				case A_TheThirdWay:
+					return "ini:/sims/ships/corporate/interceptor";
+				
+				default:
+					debug Debug.Error( "GetShip: Unhandled allegiance" );
+			}
+			
+			break;
+		
+		case ST_CombatHeavy:
+			switch ( faction_ )
+			{
+				case A_Military:
+				case A_Government:
+					switch ( Math.RandomInt( 0, 2 ) )
+					{
+						case 0:
+							return "ini:/sims/ships/navy/old_corvette";
+						
+						case 1:
+							return "ini:/sims/ships/navy/advanced_patcom_mk3";
+						
+						case 2:
+							return "ini:/sims/ships/navy/heavy_corvette_mk1";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				case A_Underworld:
+				case A_Transient:
+				case A_Society:
+				case A_Invalid:
+				case A_Stepson:
+				case A_Kong:
+				case A_Marauders:
+				case A_Angels:
+				case A_TheOman:
+				case A_MCA:
+				case A_Player:
+				case A_League:
+				case A_Independent:
+				case A_Exile:
+				case A_CarvaCartel:
+				case A_Junkers:
+					return "ini:/sims/ships/independent/cutter";
+				
+				case A_Police:
+					return "ini:/sims/ships/cops/interceptor_mk2";
+				
+				case A_Neutral:
+				case A_NSOLaplace:
+				case A_MAASCorporation:
+				case A_NOMEXCorporation:
+				case A_TrimannShipping:
+				case A_RhondusGasMining:
+				case A_AshantiInvestment:
+				case A_CrosspointMinerals:
+				case A_HeliosMining:
+				case A_JardinTerraforming:
+				case A_ChonBodifule:
+				case A_OrionProducts:
+				case A_VonShellingIndustries:
+				case A_MegalithCorp:
+				case A_HibatshPMC:
+				case A_DesterCorporation:
+				case A_WhindWeaponsSystems:
+				case A_AdvancedSecurityCorp:
+				case A_Network54:
+				case A_Infonet:
+				case A_StellarNet:
+				case A_WordsworthTechnology:
+				case A_NetcomSA:
+				case A_CoventryEngineeringResearch:
+				case A_NINEXWetware:
+				case A_UniversalConsumerProducts:
+				case A_HighlifeProducts:
+				case A_LowOrbitRecovery:
+				case A_KIMOShipping:
+				case A_DatagonTechnologies:
+				case A_MicoriaCommunications:
+				case A_LOMAXEngines:
+				case A_LOMAXTechnologies:
+				case A_NumikoProducts:
+				case A_TheThirdWay:
+					switch ( Math.RandomInt( 0, 1 ) )
+					{
+						case 0:
+							return "ini:/sims/ships/corporate/corp_cruiser_turrets";
+						
+						case 1:
+							return "ini:/sims/ships/corporate/corp_heavy_cruiser";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				default:
+					debug Debug.Error( "GetShip: Unhandled allegiance" );
+			}
+			
+			break;
+		
+		case ST_CombatCaptial:
+			switch ( faction_ )
+			{
+				case A_Neutral:
+				case A_Independent:
+				case A_Government:
+				case A_Exile:
+				case A_Military:
+					switch ( Math.RandomInt( 0, 2 ) )
+					{
+						case 0:
+							return "ini:/sims/ships/navy/capital_carrier";
+						
+						case 1:
+							return "ini:/sims/ships/navy/old_cruiser";
+						
+						case 2:
+							return "ini:/sims/ships/navy/old_destroyer";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				case A_Underworld:
+				case A_Transient:
+				case A_Society:
+				case A_Invalid:
+				case A_Stepson:
+				case A_Kong:
+				case A_MAASCorporation:
+				case A_CarvaCartel:
+				case A_Junkers:
+				case A_Police:
+				case A_NOMEXCorporation:
+				case A_NSOLaplace:
+				case A_Marauders:
+				case A_Angels:
+				case A_TheOman:
+				case A_MCA:
+				case A_Player:
+				case A_League:
+				case A_TrimannShipping:
+				case A_RhondusGasMining:
+				case A_AshantiInvestment:
+				case A_CrosspointMinerals:
+				case A_HeliosMining:
+				case A_JardinTerraforming:
+				case A_ChonBodifule:
+				case A_OrionProducts:
+				case A_VonShellingIndustries:
+				case A_MegalithCorp:
+				case A_HibatshPMC:
+				case A_DesterCorporation:
+				case A_WhindWeaponsSystems:
+				case A_AdvancedSecurityCorp:
+				case A_Network54:
+				case A_Infonet:
+				case A_StellarNet:
+				case A_WordsworthTechnology:
+				case A_NetcomSA:
+				case A_CoventryEngineeringResearch:
+				case A_NINEXWetware:
+				case A_UniversalConsumerProducts:
+				case A_HighlifeProducts:
+				case A_LowOrbitRecovery:
+				case A_KIMOShipping:
+				case A_DatagonTechnologies:
+				case A_MicoriaCommunications:
+				case A_LOMAXEngines:
+				case A_LOMAXTechnologies:
+				case A_NumikoProducts:
+				case A_TheThirdWay:
+					switch ( Math.RandomInt( 0, 2 ) )
+					{
+						case 0:
+							return "ini:/sims/ships/corporate/corp_cruiser_turrets";
+						
+						case 1:
+							return "ini:/sims/ships/navy/heavy_cruiser";
+						
+						case 2:
+							return "ini:/sims/ships/navy/heavy_destroyer_turret";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				default:
+					debug Debug.Error( "GetShip: Unhandled allegiance" );
+			}
+			
+			break;
+		
+		case ST_CombatAll:
+			switch ( faction_ )
+			{
+				case A_Independent:
+				case A_Exile:
+				case A_Underworld:
+				case A_Transient:
+				case A_Society:
+				case A_Invalid:
+				case A_Stepson:
+				case A_Kong:
+				case A_MAASCorporation:
+				case A_CarvaCartel:
+				case A_Junkers:
+				case A_Angels:
+				case A_TheOman:
+				case A_MCA:
+				case A_Player:
+				case A_League:
+					switch ( Math.RandomInt( 1, 3 ) )
+					{
+						case 1:
+							return "ini:/sims/ships/independent/puffin_armed";
+						
+						case 2:
+							return "ini:/sims/ships/independent/tug_armed";
+						
+						case 3:
+							return "ini:/sims/ships/independent/cutter";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				case A_Military:
+					switch ( Math.RandomInt( 1, 5 ) )
+					{
+						case 1:
+							return "ini:/sims/ships/navy/old_corvette";
+						
+						case 2:
+							return "ini:/sims/ships/navy/fighter";
+						
+						case 3:
+							return "ini:/sims/ships/navy/patcom";
+						
+						case 4:
+							return "ini:/sims/ships/navy/heavy_corvette_mk2";
+						
+						case 5:
+							return "ini:/sims/ships/navy/advanced_patcom_mk2";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				case A_Government:
+				case A_Police:
+					switch ( Math.RandomInt( 1, 3 ) )
+					{
+						case 1:
+							return "ini:/sims/ships/cops/interceptor";
+						
+						case 2:
+							return "ini:/sims/ships/cops/interceptor_mk2";
+						
+						case 3:
+							return "ini:/sims/ships/navy/patcom";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				case A_Marauders:
+					return "ini:/sims/ships/marauder/marauder_cutter";
+				
+				case A_Neutral:
+				case A_NOMEXCorporation:
+				case A_NSOLaplace:
+				case A_TrimannShipping:
+				case A_RhondusGasMining:
+				case A_AshantiInvestment:
+				case A_CrosspointMinerals:
+				case A_HeliosMining:
+				case A_JardinTerraforming:
+				case A_ChonBodifule:
+				case A_OrionProducts:
+				case A_VonShellingIndustries:
+				case A_MegalithCorp:
+				case A_HibatshPMC:
+				case A_DesterCorporation:
+				case A_WhindWeaponsSystems:
+				case A_AdvancedSecurityCorp:
+				case A_Network54:
+				case A_Infonet:
+				case A_StellarNet:
+				case A_WordsworthTechnology:
+				case A_NetcomSA:
+				case A_CoventryEngineeringResearch:
+				case A_NINEXWetware:
+				case A_UniversalConsumerProducts:
+				case A_HighlifeProducts:
+				case A_LowOrbitRecovery:
+				case A_KIMOShipping:
+				case A_DatagonTechnologies:
+				case A_MicoriaCommunications:
+				case A_LOMAXEngines:
+				case A_LOMAXTechnologies:
+				case A_NumikoProducts:
+				case A_TheThirdWay:
+					switch ( Math.RandomInt( 1, 5 ) )
+					{
+						case 1:
+						case 2:
+						case 3:
+						case 4:
+							return "ini:/sims/ships/corporate/interceptor";
+						
+						case 5:
+							return "ini:/sims/ships/corporate/corp_cruiser_turrets";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				default:
+					debug Debug.Error( "GetShip: Unhandled allegiance" );
+			}
+			
+			break;
+		
+		case ST_Medical:
+			switch ( faction_ )
+			{
+				case A_Neutral:
+				case A_Independent:
+				case A_Exile:
+				case A_Military:
+				case A_Underworld:
+				case A_Government:
+				case A_Transient:
+				case A_Society:
+				case A_Invalid:
+				case A_Stepson:
+				case A_Kong:
+				case A_MAASCorporation:
+				case A_CarvaCartel:
+				case A_Junkers:
+				case A_Police:
+				case A_NOMEXCorporation:
+				case A_NSOLaplace:
+				case A_Marauders:
+				case A_Angels:
+				case A_TheOman:
+				case A_MCA:
+				case A_Player:
+				case A_League:
+				case A_TrimannShipping:
+				case A_RhondusGasMining:
+				case A_AshantiInvestment:
+				case A_CrosspointMinerals:
+				case A_HeliosMining:
+				case A_JardinTerraforming:
+				case A_ChonBodifule:
+				case A_OrionProducts:
+				case A_VonShellingIndustries:
+				case A_MegalithCorp:
+				case A_HibatshPMC:
+				case A_DesterCorporation:
+				case A_WhindWeaponsSystems:
+				case A_AdvancedSecurityCorp:
+				case A_Network54:
+				case A_Infonet:
+				case A_StellarNet:
+				case A_WordsworthTechnology:
+				case A_NetcomSA:
+				case A_CoventryEngineeringResearch:
+				case A_NINEXWetware:
+				case A_UniversalConsumerProducts:
+				case A_HighlifeProducts:
+				case A_LowOrbitRecovery:
+				case A_KIMOShipping:
+				case A_DatagonTechnologies:
+				case A_MicoriaCommunications:
+				case A_LOMAXEngines:
+				case A_LOMAXTechnologies:
+				case A_NumikoProducts:
+				case A_TheThirdWay:
+					switch ( Math.RandomInt( 0, 2 ) )
+					{
+						case 0:
+							return "ini:/sims/ships/utility/puffin";
+						
+						case 1:
+							return "ini:/sims/ships/navy/troop_carrier";
+						
+						case 2:
+							return "ini:/sims/ships/utility/truck";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				default:
+					debug Debug.Error( "GetShip: Unhandled allegiance" );
+			}
+			
+			break;
+		
+		case ST_Interface:
+			switch ( faction_ )
+			{
+				case A_Neutral:
+				case A_Independent:
+				case A_Exile:
+				case A_Military:
+				case A_Underworld:
+				case A_Government:
+				case A_Transient:
+				case A_Society:
+				case A_Invalid:
+				case A_Stepson:
+				case A_Kong:
+				case A_MAASCorporation:
+				case A_CarvaCartel:
+				case A_Junkers:
+				case A_Police:
+				case A_NOMEXCorporation:
+				case A_NSOLaplace:
+				case A_Marauders:
+				case A_Angels:
+				case A_TheOman:
+				case A_MCA:
+				case A_Player:
+				case A_League:
+				case A_TrimannShipping:
+				case A_RhondusGasMining:
+				case A_AshantiInvestment:
+				case A_CrosspointMinerals:
+				case A_HeliosMining:
+				case A_JardinTerraforming:
+				case A_ChonBodifule:
+				case A_OrionProducts:
+				case A_VonShellingIndustries:
+				case A_MegalithCorp:
+				case A_HibatshPMC:
+				case A_DesterCorporation:
+				case A_WhindWeaponsSystems:
+				case A_AdvancedSecurityCorp:
+				case A_Network54:
+				case A_Infonet:
+				case A_StellarNet:
+				case A_WordsworthTechnology:
+				case A_NetcomSA:
+				case A_CoventryEngineeringResearch:
+				case A_NINEXWetware:
+				case A_UniversalConsumerProducts:
+				case A_HighlifeProducts:
+				case A_LowOrbitRecovery:
+				case A_KIMOShipping:
+				case A_DatagonTechnologies:
+				case A_MicoriaCommunications:
+				case A_LOMAXEngines:
+				case A_LOMAXTechnologies:
+				case A_NumikoProducts:
+				case A_TheThirdWay:
+					switch ( Math.RandomInt( 0, 1 ) )
+					{
+						case 0:
+							return "ini:/sims/ships/utility/interfacer";
+						
+						case 1:
+							return "ini:/sims/utility/lst";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				default:
+					debug Debug.Error( "GetShip: Unhandled allegiance" );
+			}
+			
+			break;
+		
+		case ST_PassengerLight:
+			switch ( faction_ )
+			{
+				case A_Government:
+				case A_Military:
+				case A_Independent:
+				case A_Exile:
+				case A_Underworld:
+				case A_Transient:
+				case A_Society:
+				case A_Invalid:
+				case A_Stepson:
+				case A_Kong:
+				case A_MAASCorporation:
+				case A_CarvaCartel:
+				case A_Junkers:
+				case A_Angels:
+				case A_TheOman:
+				case A_MCA:
+				case A_Player:
+				case A_League:
+					switch ( Math.RandomInt( 0, 2 ) )
+					{
+						case 0:
+							return "ini:/sims/ships/utility/puffin";
+						
+						case 1:
+							return "ini:/sims/ships/navy/troop_carrier";
+						
+						case 2:
+							return "ini:/sims/ships/utility/interfacer";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				case A_Police:
+					switch ( Math.RandomInt( 0, 2 ) )
+					{
+						case 0:
+							return "ini:/sims/ships/utility/truck";
+						
+						case 1:
+							return "ini:/sims/ships/navy/patcom";
+						
+						case 2:
+							return "ini:/sims/ships/navy/troop_carrier";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				case A_Marauders:
+					return "ini:/sims/ships/utility/puffin";
+				
+				case A_NOMEXCorporation:
+				case A_NSOLaplace:
+				case A_Neutral:
+				case A_TrimannShipping:
+				case A_RhondusGasMining:
+				case A_AshantiInvestment:
+				case A_CrosspointMinerals:
+				case A_HeliosMining:
+				case A_JardinTerraforming:
+				case A_ChonBodifule:
+				case A_OrionProducts:
+				case A_VonShellingIndustries:
+				case A_MegalithCorp:
+				case A_HibatshPMC:
+				case A_DesterCorporation:
+				case A_WhindWeaponsSystems:
+				case A_AdvancedSecurityCorp:
+				case A_Network54:
+				case A_Infonet:
+				case A_StellarNet:
+				case A_WordsworthTechnology:
+				case A_NetcomSA:
+				case A_CoventryEngineeringResearch:
+				case A_NINEXWetware:
+				case A_UniversalConsumerProducts:
+				case A_HighlifeProducts:
+				case A_LowOrbitRecovery:
+				case A_KIMOShipping:
+				case A_DatagonTechnologies:
+				case A_MicoriaCommunications:
+				case A_LOMAXEngines:
+				case A_LOMAXTechnologies:
+				case A_NumikoProducts:
+				case A_TheThirdWay:
+					switch ( Math.RandomInt( 0, 1 ) )
+					{
+						case 0:
+							return "ini:/sims/ships/corporate/yacht";
+						
+						case 1:
+							return "ini:/sims/ships/utility/interfacer";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				default:
+					debug Debug.Error( "GetShip: Unhandled faction" );
+			}
+			
+			break;
+		
+		case ST_PassengerHeavy:
+			switch ( faction_ )
+			{
+				case A_Independent:
+				case A_Exile:
+				case A_Underworld:
+				case A_Transient:
+				case A_Society:
+				case A_Invalid:
+				case A_Stepson:
+				case A_Kong:
+				case A_MAASCorporation:
+				case A_CarvaCartel:
+				case A_Junkers:
+				case A_Angels:
+				case A_TheOman:
+				case A_MCA:
+				case A_Player:
+				case A_League:
+					return "ini:/sims/ships/utility/truck";
+				
+				case A_Military:
+				case A_Government:
+				case A_Police:
+					switch ( Math.RandomInt( 0, 1 ) )
+					{
+						case 0:
+							return "ini:/sims/ships/utility/lst";
+						
+						case 1:
+							return "ini:/sims/ships/navy/troop_carrier";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				case A_Marauders:
+					return "ini:/sims/ships/corporate/yacht";
+				
+				case A_Neutral:
+				case A_NOMEXCorporation:
+				case A_NSOLaplace:
+				case A_TrimannShipping:
+				case A_RhondusGasMining:
+				case A_AshantiInvestment:
+				case A_CrosspointMinerals:
+				case A_HeliosMining:
+				case A_JardinTerraforming:
+				case A_ChonBodifule:
+				case A_OrionProducts:
+				case A_VonShellingIndustries:
+				case A_MegalithCorp:
+				case A_HibatshPMC:
+				case A_DesterCorporation:
+				case A_WhindWeaponsSystems:
+				case A_AdvancedSecurityCorp:
+				case A_Network54:
+				case A_Infonet:
+				case A_StellarNet:
+				case A_WordsworthTechnology:
+				case A_NetcomSA:
+				case A_CoventryEngineeringResearch:
+				case A_NINEXWetware:
+				case A_UniversalConsumerProducts:
+				case A_HighlifeProducts:
+				case A_LowOrbitRecovery:
+				case A_KIMOShipping:
+				case A_DatagonTechnologies:
+				case A_MicoriaCommunications:
+				case A_LOMAXEngines:
+				case A_LOMAXTechnologies:
+				case A_NumikoProducts:
+				case A_TheThirdWay:
+					switch ( Math.RandomInt( 0, 1 ) )
+					{
+						case 0:
+							return "ini:/sims/ships/utility/puffin";
+						
+						case 1:
+							return "ini:/sims/ships/utility/interfacer";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				default:
+					debug Debug.Error( "GetShip: Unhandled allegiance" );
+			}
+			
+			break;
+		
+		case ST_PassengerAll:
+			switch ( faction_ )
+			{
+				case A_Military:
+				case A_Government:
+				case A_Police:
+					switch ( Math.RandomInt( 1, 4 ) )
+					{
+						case 1:
+							return "ini:/sims/ships/utility/lst";
+						
+						case 2:
+							return "ini:/sims/ships/corporate/yacht";
+						
+						case 3:
+							return "ini:/sims/ships/navy/troop_carrier";
+						
+						case 4:
+							return "ini:/sims/ships/utility/interfacer";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				case A_Independent:
+				case A_Exile:
+				case A_Underworld:
+				case A_Transient:
+				case A_Society:
+				case A_Invalid:
+				case A_Stepson:
+				case A_Kong:
+				case A_MAASCorporation:
+				case A_CarvaCartel:
+				case A_Junkers:
+				case A_Marauders:
+				case A_Angels:
+				case A_TheOman:
+				case A_MCA:
+				case A_Player:
+				case A_League:
+					switch ( Math.RandomInt( 1, 4 ) )
+					{
+						case 1:
+							return "ini:/sims/ships/utility/puffin";
+						
+						case 2:
+							return "ini:/sims/ships/corporate/yacht";
+						
+						case 3:
+							return "ini:/sims/ships/navy/troop_carrier";
+						
+						case 4:
+							return "ini:/sims/ships/utility/interfacer";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				case A_Neutral:
+				case A_NOMEXCorporation:
+				case A_NSOLaplace:
+				case A_TrimannShipping:
+				case A_RhondusGasMining:
+				case A_AshantiInvestment:
+				case A_CrosspointMinerals:
+				case A_HeliosMining:
+				case A_JardinTerraforming:
+				case A_ChonBodifule:
+				case A_OrionProducts:
+				case A_VonShellingIndustries:
+				case A_MegalithCorp:
+				case A_HibatshPMC:
+				case A_DesterCorporation:
+				case A_WhindWeaponsSystems:
+				case A_AdvancedSecurityCorp:
+				case A_Network54:
+				case A_Infonet:
+				case A_StellarNet:
+				case A_WordsworthTechnology:
+				case A_NetcomSA:
+				case A_CoventryEngineeringResearch:
+				case A_NINEXWetware:
+				case A_UniversalConsumerProducts:
+				case A_HighlifeProducts:
+				case A_LowOrbitRecovery:
+				case A_KIMOShipping:
+				case A_DatagonTechnologies:
+				case A_MicoriaCommunications:
+				case A_LOMAXEngines:
+				case A_LOMAXTechnologies:
+				case A_NumikoProducts:
+				case A_TheThirdWay:
+					switch ( Math.RandomInt( 1, 3 ) )
+					{
+						case 1:
+							return "ini:/sims/ships/corporate/yacht";
+						
+						case 2:
+							return "ini:/sims/ships/navy/troop_carrier";
+						
+						case 3:
+							return "ini:/sims/ships/utility/interfacer";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				default:
+					debug Debug.Error( "GetShip: Unhandled allegiance" );
+			}
+			
+			break;
+		
+		case ST_MiningLight:
+			switch ( faction_ )
+			{
+				case A_Neutral:
+				case A_Independent:
+				case A_Exile:
+				case A_Military:
+				case A_Underworld:
+				case A_Government:
+				case A_Transient:
+				case A_Society:
+				case A_Invalid:
+				case A_Stepson:
+				case A_Kong:
+				case A_MAASCorporation:
+				case A_CarvaCartel:
+				case A_Junkers:
+				case A_Police:
+				case A_NOMEXCorporation:
+				case A_NSOLaplace:
+				case A_Marauders:
+				case A_Angels:
+				case A_TheOman:
+				case A_MCA:
+				case A_Player:
+				case A_League:
+				case A_TrimannShipping:
+				case A_RhondusGasMining:
+				case A_AshantiInvestment:
+				case A_CrosspointMinerals:
+				case A_HeliosMining:
+				case A_JardinTerraforming:
+				case A_ChonBodifule:
+				case A_OrionProducts:
+				case A_VonShellingIndustries:
+				case A_MegalithCorp:
+				case A_HibatshPMC:
+				case A_DesterCorporation:
+				case A_WhindWeaponsSystems:
+				case A_AdvancedSecurityCorp:
+				case A_Network54:
+				case A_Infonet:
+				case A_StellarNet:
+				case A_WordsworthTechnology:
+				case A_NetcomSA:
+				case A_CoventryEngineeringResearch:
+				case A_NINEXWetware:
+				case A_UniversalConsumerProducts:
+				case A_HighlifeProducts:
+				case A_LowOrbitRecovery:
+				case A_KIMOShipping:
+				case A_DatagonTechnologies:
+				case A_MicoriaCommunications:
+				case A_LOMAXEngines:
+				case A_LOMAXTechnologies:
+				case A_NumikoProducts:
+				case A_TheThirdWay:
+					switch ( Math.RandomInt( 1, 3 ) )
+					{
+						case 1:
+							return "ini:/sims/ships/utility/lightminer";
+						
+						case 2:
+							return "ini:/sims/ships/utility/gas_miner";
+						
+						case 3:
+							return "ini:/sims/ships/utility/flitter";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				default:
+					debug Debug.Error( "GetShip: Unhandled allegiance" );
+			}
+			
+			break;
+		
+		case ST_MiningHeavy:
+			switch ( faction_ )
+			{
+				case A_Independent:
+				case A_Exile:
+				case A_Underworld:
+				case A_Transient:
+				case A_Society:
+				case A_Invalid:
+				case A_Stepson:
+				case A_Kong:
+				case A_CarvaCartel:
+				case A_Junkers:
+				case A_Police:
+				case A_NSOLaplace:
+				case A_Marauders:
+				case A_Angels:
+				case A_TheOman:
+				case A_MCA:
+				case A_Player:
+				case A_League:
+				case A_NOMEXCorporation:
+				case A_MAASCorporation:
+				case A_Government:
+				case A_Military:
+				case A_Neutral:
+				case A_TrimannShipping:
+				case A_RhondusGasMining:
+				case A_AshantiInvestment:
+				case A_CrosspointMinerals:
+				case A_HeliosMining:
+				case A_JardinTerraforming:
+				case A_ChonBodifule:
+				case A_OrionProducts:
+				case A_VonShellingIndustries:
+				case A_MegalithCorp:
+				case A_HibatshPMC:
+				case A_DesterCorporation:
+				case A_WhindWeaponsSystems:
+				case A_AdvancedSecurityCorp:
+				case A_Network54:
+				case A_Infonet:
+				case A_StellarNet:
+				case A_WordsworthTechnology:
+				case A_NetcomSA:
+				case A_CoventryEngineeringResearch:
+				case A_NINEXWetware:
+				case A_UniversalConsumerProducts:
+				case A_HighlifeProducts:
+				case A_LowOrbitRecovery:
+				case A_KIMOShipping:
+				case A_DatagonTechnologies:
+				case A_MicoriaCommunications:
+				case A_LOMAXEngines:
+				case A_LOMAXTechnologies:
+				case A_NumikoProducts:
+				case A_TheThirdWay:
+					switch ( Math.RandomInt( 1, 2 ) )
+					{
+						case 1:
+							return "ini:/sims/ships/utility/truck";
+						
+						case 2:
+							return "ini:/sims/ships/utility/gas_miner";
+					}
+					
+					return "ini:/sims/ships/utility/truck";
+				
+				default:
+					debug Debug.Error( "GetShip: Unhandled allegiance" );
+			}
+			
+			break;
+		
+		case ST_MiningAll:
+			switch ( faction_ )
+			{
+				case A_Neutral:
+				case A_Independent:
+				case A_Exile:
+				case A_Military:
+				case A_Underworld:
+				case A_Government:
+				case A_Transient:
+				case A_Society:
+				case A_Invalid:
+				case A_Stepson:
+				case A_Kong:
+				case A_MAASCorporation:
+				case A_CarvaCartel:
+				case A_Junkers:
+				case A_Police:
+				case A_NOMEXCorporation:
+				case A_NSOLaplace:
+				case A_Marauders:
+				case A_Angels:
+				case A_TheOman:
+				case A_MCA:
+				case A_Player:
+				case A_League:
+				case A_TrimannShipping:
+				case A_RhondusGasMining:
+				case A_AshantiInvestment:
+				case A_CrosspointMinerals:
+				case A_HeliosMining:
+				case A_JardinTerraforming:
+				case A_ChonBodifule:
+				case A_OrionProducts:
+				case A_VonShellingIndustries:
+				case A_MegalithCorp:
+				case A_HibatshPMC:
+				case A_DesterCorporation:
+				case A_WhindWeaponsSystems:
+				case A_AdvancedSecurityCorp:
+				case A_Network54:
+				case A_Infonet:
+				case A_StellarNet:
+				case A_WordsworthTechnology:
+				case A_NetcomSA:
+				case A_CoventryEngineeringResearch:
+				case A_NINEXWetware:
+				case A_UniversalConsumerProducts:
+				case A_HighlifeProducts:
+				case A_LowOrbitRecovery:
+				case A_KIMOShipping:
+				case A_DatagonTechnologies:
+				case A_MicoriaCommunications:
+				case A_LOMAXEngines:
+				case A_LOMAXTechnologies:
+				case A_NumikoProducts:
+				case A_TheThirdWay:
+					switch ( Math.RandomInt( 1, 4 ) )
+					{
+						case 1:
+							return "ini:/sims/ships/utility/truck";
+						
+						case 2:
+							return "ini:/sims/ships/utility/lightminer";
+						
+						case 3:
+							return "ini:/sims/ships/utility/gas_miner";
+						
+						case 4:
+							return "ini:/sims/ships/utility/flitter";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				default:
+					debug Debug.Error( "GetShip: Unhandled allegiance" );
+			}
+			
+			break;
+		
+		case ST_TankerLight:
+			switch ( faction_ )
+			{
+				case A_Neutral:
+				case A_Independent:
+				case A_Exile:
+				case A_Military:
+				case A_Underworld:
+				case A_Government:
+				case A_Transient:
+				case A_Society:
+				case A_Invalid:
+				case A_Stepson:
+				case A_Kong:
+				case A_MAASCorporation:
+				case A_CarvaCartel:
+				case A_Junkers:
+				case A_Police:
+				case A_NOMEXCorporation:
+				case A_NSOLaplace:
+				case A_Marauders:
+				case A_Angels:
+				case A_TheOman:
+				case A_MCA:
+				case A_Player:
+				case A_League:
+				case A_TrimannShipping:
+				case A_RhondusGasMining:
+				case A_AshantiInvestment:
+				case A_CrosspointMinerals:
+				case A_HeliosMining:
+				case A_JardinTerraforming:
+				case A_ChonBodifule:
+				case A_OrionProducts:
+				case A_VonShellingIndustries:
+				case A_MegalithCorp:
+				case A_HibatshPMC:
+				case A_DesterCorporation:
+				case A_WhindWeaponsSystems:
+				case A_AdvancedSecurityCorp:
+				case A_Network54:
+				case A_Infonet:
+				case A_StellarNet:
+				case A_WordsworthTechnology:
+				case A_NetcomSA:
+				case A_CoventryEngineeringResearch:
+				case A_NINEXWetware:
+				case A_UniversalConsumerProducts:
+				case A_HighlifeProducts:
+				case A_LowOrbitRecovery:
+				case A_KIMOShipping:
+				case A_DatagonTechnologies:
+				case A_MicoriaCommunications:
+				case A_LOMAXEngines:
+				case A_LOMAXTechnologies:
+				case A_NumikoProducts:
+				case A_TheThirdWay:
+					switch ( Math.RandomInt( 1, 3 ) )
+					{
+						case 1:
+						case 2:
+							return "ini:/sims/ships/utility/fueltransporter_small";
+						
+						case 3:
+							return "ini:/sims/ships/utility/fueltransporter_mid";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				default:
+					debug Debug.Error( "GetShip: Unhandled allegiance" );
+			}
+			
+			break;
+		
+		case ST_TankerHeavy:
+			switch ( faction_ )
+			{
+				case A_Neutral:
+				case A_Independent:
+				case A_Exile:
+				case A_Military:
+				case A_Underworld:
+				case A_Government:
+				case A_Transient:
+				case A_Society:
+				case A_Invalid:
+				case A_Stepson:
+				case A_Kong:
+				case A_MAASCorporation:
+				case A_CarvaCartel:
+				case A_Junkers:
+				case A_Police:
+				case A_NOMEXCorporation:
+				case A_NSOLaplace:
+				case A_Marauders:
+				case A_Angels:
+				case A_TheOman:
+				case A_MCA:
+				case A_Player:
+				case A_League:
+				case A_TrimannShipping:
+				case A_RhondusGasMining:
+				case A_AshantiInvestment:
+				case A_CrosspointMinerals:
+				case A_HeliosMining:
+				case A_JardinTerraforming:
+				case A_ChonBodifule:
+				case A_OrionProducts:
+				case A_VonShellingIndustries:
+				case A_MegalithCorp:
+				case A_HibatshPMC:
+				case A_DesterCorporation:
+				case A_WhindWeaponsSystems:
+				case A_AdvancedSecurityCorp:
+				case A_Network54:
+				case A_Infonet:
+				case A_StellarNet:
+				case A_WordsworthTechnology:
+				case A_NetcomSA:
+				case A_CoventryEngineeringResearch:
+				case A_NINEXWetware:
+				case A_UniversalConsumerProducts:
+				case A_HighlifeProducts:
+				case A_LowOrbitRecovery:
+				case A_KIMOShipping:
+				case A_DatagonTechnologies:
+				case A_MicoriaCommunications:
+				case A_LOMAXEngines:
+				case A_LOMAXTechnologies:
+				case A_NumikoProducts:
+				case A_TheThirdWay:
+					switch ( Math.RandomInt( 1, 3 ) )
+					{
+						case 1:
+						case 2:
+							return "ini:/sims/ships/utility/fueltransporter_mid";
+						
+						case 3:
+							return "ini:/sims/ships/utility/fueltransporter_long";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				default:
+					debug Debug.Error( "Unhandled allegiance" );
+			}
+			
+			break;
+		
+		case ST_TankerAll:
+			switch ( faction_ )
+			{
+				case A_Neutral:
+				case A_Independent:
+				case A_Exile:
+				case A_Military:
+				case A_Underworld:
+				case A_Government:
+				case A_Transient:
+				case A_Society:
+				case A_Invalid:
+				case A_Stepson:
+				case A_Kong:
+				case A_MAASCorporation:
+				case A_CarvaCartel:
+				case A_Junkers:
+				case A_Police:
+				case A_NOMEXCorporation:
+				case A_NSOLaplace:
+				case A_Marauders:
+				case A_Angels:
+				case A_TheOman:
+				case A_MCA:
+				case A_Player:
+				case A_League:
+				case A_TrimannShipping:
+				case A_RhondusGasMining:
+				case A_AshantiInvestment:
+				case A_CrosspointMinerals:
+				case A_HeliosMining:
+				case A_JardinTerraforming:
+				case A_ChonBodifule:
+				case A_OrionProducts:
+				case A_VonShellingIndustries:
+				case A_MegalithCorp:
+				case A_HibatshPMC:
+				case A_DesterCorporation:
+				case A_WhindWeaponsSystems:
+				case A_AdvancedSecurityCorp:
+				case A_Network54:
+				case A_Infonet:
+				case A_StellarNet:
+				case A_WordsworthTechnology:
+				case A_NetcomSA:
+				case A_CoventryEngineeringResearch:
+				case A_NINEXWetware:
+				case A_UniversalConsumerProducts:
+				case A_HighlifeProducts:
+				case A_LowOrbitRecovery:
+				case A_KIMOShipping:
+				case A_DatagonTechnologies:
+				case A_MicoriaCommunications:
+				case A_LOMAXEngines:
+				case A_LOMAXTechnologies:
+				case A_NumikoProducts:
+				case A_TheThirdWay:
+					switch ( Math.RandomInt( 1, 3 ) )
+					{
+						case 1:
+							return "ini:/sims/ships/utility/fueltransporter_small";
+						
+						case 2:
+							return "ini:/sims/ships/utility/fueltransporter_mid";
+						
+						case 3:
+							return "ini:/sims/ships/utility/fueltransporter_long";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				default:
+					debug Debug.Error( "GetShip: Unhandled allegiance" );
+			}
+			
+			break;
+		
+		case ST_GeneralPurpose:
+			switch ( faction_ )
+			{
+				case A_Police:
+				case A_Government:
+				case A_Military:
+					switch ( Math.RandomInt( 1, 8 ) )
+					{
+						case 1:
+							return "ini:/sims/ships/utility/lst";
+						
+						case 2:
+							return "ini:/sims/ships/utility/truck";
+						
+						case 3:
+							return "ini:/sims/ships/utility/snrv";
+						
+						case 4:
+							return "ini:/sims/ships/utility/tug";
+						
+						case 5:
+							return "ini:/sims/ships/navy/old_corvette";
+						
+						case 6:
+							return "ini:/sims/ships/navy/patcom";
+						
+						case 7:
+							return "ini:/sims/ships/navy/troop_carrier";
+						
+						case 8:
+							return "ini:/sims/ships/utility/interfacer";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				case A_Independent:
+				case A_Exile:
+				case A_Underworld:
+				case A_Transient:
+				case A_Society:
+				case A_Invalid:
+				case A_Stepson:
+				case A_Kong:
+				case A_CarvaCartel:
+				case A_Junkers:
+				case A_Angels:
+				case A_TheOman:
+				case A_MCA:
+				case A_Player:
+				case A_League:
+					switch ( Math.RandomInt( 1, 7 ) )
+					{
+						case 1:
+							return "ini:/sims/ships/utility/puffin";
+						
+						case 2:
+							return "ini:/sims/ships/utility/truck";
+						
+						case 3:
+							return "ini:/sims/ships/utility/tug";
+						
+						case 4:
+						case 5:
+							return "ini:/sims/ships/independent/cutter";
+						
+						case 6:
+							return "ini:/sims/ships/independent/puffin_armed";
+						
+						case 7:
+							return "ini:/sims/ships/independent/tug_armed";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				case A_Marauders:
+					return "ini:/sims/ships/marauder/marauder_cutter";
+				
+				case A_Neutral:
+				case A_NSOLaplace:
+				case A_NOMEXCorporation:
+				case A_MAASCorporation:
+				case A_TrimannShipping:
+				case A_RhondusGasMining:
+				case A_AshantiInvestment:
+				case A_CrosspointMinerals:
+				case A_HeliosMining:
+				case A_JardinTerraforming:
+				case A_ChonBodifule:
+				case A_OrionProducts:
+				case A_VonShellingIndustries:
+				case A_MegalithCorp:
+				case A_HibatshPMC:
+				case A_DesterCorporation:
+				case A_WhindWeaponsSystems:
+				case A_AdvancedSecurityCorp:
+				case A_Network54:
+				case A_Infonet:
+				case A_StellarNet:
+				case A_WordsworthTechnology:
+				case A_NetcomSA:
+				case A_CoventryEngineeringResearch:
+				case A_NINEXWetware:
+				case A_UniversalConsumerProducts:
+				case A_HighlifeProducts:
+				case A_LowOrbitRecovery:
+				case A_KIMOShipping:
+				case A_DatagonTechnologies:
+				case A_MicoriaCommunications:
+				case A_LOMAXEngines:
+				case A_LOMAXTechnologies:
+				case A_NumikoProducts:
+				case A_TheThirdWay:
+					switch ( Math.RandomInt( 1, 4 ) )
+					{
+						case 1:
+							return "ini:/sims/ships/utility/truck";
+						
+						case 2:
+							return "ini:/sims/ships/utility/tug";
+						
+						case 3:
+							return "ini:/sims/ships/corporate/yacht";
+						
+						case 4:
+							return "ini:/sims/ships/utility/snrv";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				default:
+					debug Debug.Error( "GetShip: Unhandled allegiance" );
+			}
+			
+			break;
+		
+		case ST_Flitter:
+			switch ( faction_ )
+			{
+				case A_Neutral:
+				case A_Independent:
+				case A_Exile:
+				case A_Military:
+				case A_Underworld:
+				case A_Government:
+				case A_Transient:
+				case A_Society:
+				case A_Invalid:
+				case A_Stepson:
+				case A_Kong:
+				case A_MAASCorporation:
+				case A_CarvaCartel:
+				case A_Junkers:
+				case A_Police:
+				case A_NOMEXCorporation:
+				case A_NSOLaplace:
+				case A_Marauders:
+				case A_Angels:
+				case A_TheOman:
+				case A_MCA:
+				case A_Player:
+				case A_League:
+				case A_TrimannShipping:
+				case A_RhondusGasMining:
+				case A_AshantiInvestment:
+				case A_CrosspointMinerals:
+				case A_HeliosMining:
+				case A_JardinTerraforming:
+				case A_ChonBodifule:
+				case A_OrionProducts:
+				case A_VonShellingIndustries:
+				case A_MegalithCorp:
+				case A_HibatshPMC:
+				case A_DesterCorporation:
+				case A_WhindWeaponsSystems:
+				case A_AdvancedSecurityCorp:
+				case A_Network54:
+				case A_Infonet:
+				case A_StellarNet:
+				case A_WordsworthTechnology:
+				case A_NetcomSA:
+				case A_CoventryEngineeringResearch:
+				case A_NINEXWetware:
+				case A_UniversalConsumerProducts:
+				case A_HighlifeProducts:
+				case A_LowOrbitRecovery:
+				case A_KIMOShipping:
+				case A_DatagonTechnologies:
+				case A_MicoriaCommunications:
+				case A_LOMAXEngines:
+				case A_LOMAXTechnologies:
+				case A_NumikoProducts:
+				case A_TheThirdWay:
+					return "ini:/sims/ships/utility/flitter";
+				
+				default:
+					debug Debug.Error( "GetShip: Unhandled allegiance" );
+			}
+			
+			break;
+		
+		case ST_DemoShips:
+			switch ( Math.RandomInt( 0, 9 ) )
+			{
+				case 0:
+					return "ini:/sims/ships/player/fast_attack_prefitted";
+				
+				case 1:
+					return "ini:/sims/ships/player/heavy_corvette_prefitted";
+				
+				case 2:
+					return "ini:/sims/ships/navy/old_corvette_hard";
+				
+				case 3:
+					return "ini:/sims/ships/navy/capital_carrier";
+				
+				case 4:
+					return "ini:/sims/ships/marauder/marauder_cutter";
+				
+				case 5:
+					return "ini:/sims/ships/independent/tug_armed";
+				
+				case 6:
+					return "ini:/sims/ships/independent/puffin_armed";
+				
+				case 7:
+					return "ini:/sims/ships/corporate/corp_cruiser_turrets";
+				
+				case 8:
+					return "ini:/sims/ships/cops/interceptor";
+				
+				case 9:
+					return "ini:/sims/ships/corporate/interceptor";
+				
+				default:
+					debug Debug.Error( "GetShip: Random number OOB" );
+			}
+			
+			break;
+		
+		case ST_Recovery:
+			switch ( faction_ )
+			{
+				case A_Neutral:
+				case A_Independent:
+				case A_Exile:
+				case A_Military:
+				case A_Underworld:
+				case A_Government:
+				case A_Transient:
+				case A_Society:
+				case A_Invalid:
+				case A_Stepson:
+				case A_Kong:
+				case A_MAASCorporation:
+				case A_CarvaCartel:
+				case A_Junkers:
+				case A_Police:
+				case A_NOMEXCorporation:
+				case A_NSOLaplace:
+				case A_Marauders:
+				case A_Angels:
+				case A_TheOman:
+				case A_MCA:
+				case A_Player:
+				case A_League:
+				case A_TrimannShipping:
+				case A_RhondusGasMining:
+				case A_AshantiInvestment:
+				case A_CrosspointMinerals:
+				case A_HeliosMining:
+				case A_JardinTerraforming:
+				case A_ChonBodifule:
+				case A_OrionProducts:
+				case A_VonShellingIndustries:
+				case A_MegalithCorp:
+				case A_HibatshPMC:
+				case A_DesterCorporation:
+				case A_WhindWeaponsSystems:
+				case A_AdvancedSecurityCorp:
+				case A_Network54:
+				case A_Infonet:
+				case A_StellarNet:
+				case A_WordsworthTechnology:
+				case A_NetcomSA:
+				case A_CoventryEngineeringResearch:
+				case A_NINEXWetware:
+				case A_UniversalConsumerProducts:
+				case A_HighlifeProducts:
+				case A_LowOrbitRecovery:
+				case A_KIMOShipping:
+				case A_DatagonTechnologies:
+				case A_MicoriaCommunications:
+				case A_LOMAXEngines:
+				case A_LOMAXTechnologies:
+				case A_NumikoProducts:
+				case A_TheThirdWay:
+					return "ini:/sims/ships/utility/snrv_recovery";
+				
+				default:
+					debug Debug.Error( "GetShip: Unhandled faction" );
+			}
+		
+		case ST_Taxi:
+			switch ( faction_ )
+			{
+				case A_Neutral:
+				case A_Independent:
+				case A_Exile:
+				case A_Military:
+				case A_Underworld:
+				case A_Government:
+				case A_Transient:
+				case A_Society:
+				case A_Invalid:
+				case A_Stepson:
+				case A_Kong:
+				case A_MAASCorporation:
+				case A_CarvaCartel:
+				case A_Junkers:
+				case A_Police:
+				case A_NOMEXCorporation:
+				case A_NSOLaplace:
+				case A_Marauders:
+				case A_Angels:
+				case A_TheOman:
+				case A_MCA:
+				case A_Player:
+				case A_League:
+				case A_TrimannShipping:
+				case A_RhondusGasMining:
+				case A_AshantiInvestment:
+				case A_CrosspointMinerals:
+				case A_HeliosMining:
+				case A_JardinTerraforming:
+				case A_ChonBodifule:
+				case A_OrionProducts:
+				case A_VonShellingIndustries:
+				case A_MegalithCorp:
+				case A_HibatshPMC:
+				case A_DesterCorporation:
+				case A_WhindWeaponsSystems:
+				case A_AdvancedSecurityCorp:
+				case A_Network54:
+				case A_Infonet:
+				case A_StellarNet:
+				case A_WordsworthTechnology:
+				case A_NetcomSA:
+				case A_CoventryEngineeringResearch:
+				case A_NINEXWetware:
+				case A_UniversalConsumerProducts:
+				case A_HighlifeProducts:
+				case A_LowOrbitRecovery:
+				case A_KIMOShipping:
+				case A_DatagonTechnologies:
+				case A_MicoriaCommunications:
+				case A_LOMAXEngines:
+				case A_LOMAXTechnologies:
+				case A_NumikoProducts:
+				case A_TheThirdWay:
+					switch ( Math.RandomInt( 1, 2 ) )
+					{
+						case 1:
+							return "ini:/sims/ships/utility/taxi";
+						
+						case 2:
+							return "ini:/sims/ships/utility/interfacer";
+						
+						default:
+							debug Debug.Error( "GetShip: Random number OOB" );
+					}
+				
+				default:
+					debug Debug.Error( "GetShip: Illegal faction" );
+			}
+			
+			break;
+		
+		default:
+			debug Debug.Error( "GetShip: Unhandled ship type" );
+	}
+	
+	debug Debug.Error( "iShipCreation.GetShip: Generation failed" );
+	return "";
+}
+
+hgroup CreateCharacterGroup( eShipType type_, string pilot_type_, int number_, hfaction faction_, string name_pointer_ )
+{
+	hship ship;
+	hgroup group = Group.Create();
+	string name;
+	string local_3;
+	int ii;
+	bool local_5 = true;
+	bool local_6 = false;
+	bool local_7 = false;
+	bool local_8 = false;
+	IeAllegiance ieAllegiance;
+	int local_10 = 0;
+	
+	ieAllegiance = iFaction.Allegiance( faction_ );
+	
+	for ( ii = 0; ii < number_; ++ii )
+	{
+		ship = iShip.Create( GetShip( ieAllegiance, type_ ), "name" );
+		
+		if ( ship == false )
+		{
+			debug
+			{
+				Debug.PrintString( "iShipCreation.CreateCharacterGroup: Could not create '" );
+				Debug.PrintString( name_pointer_ );
+				Debug.PrintString( " ship of type " );
+				Debug.PrintInt( type_ );
+				Debug.PrintString( "\n" );
+			}
+			
+			continue;
+		}
+		else debug
+		{
+			Debug.PrintString( "iShipCreation.CreateCharacterGroup: '" );
+			Debug.PrintString( name_pointer_ );
+			Debug.PrintString( " ship of type " );
+			Debug.PrintInt( type_ );
+			Debug.PrintString( " created sucessfully : " );
+		}
+		
+		iSim.SetFaction( ship, faction_ );
+		
+		if ( name_pointer_ == "Random" )
+		{
+			debug Debug.PrintString( " picking random name\n" );
+			local_10 = -1;
+			name = ShipName( iUtilities.FromAllegianceEnumNoSpace( ieAllegiance ), local_10 );
+		}
+		else
+		{
+			debug Debug.PrintString( " picking iterated name\n" );
+			name = ShipName( name_pointer_, local_10 );
+			local_10 = ( local_10 + 1 );
+		}
+		
+		Object.SetStringProperty( ship, "name", name );
+		Group.AddSim( group, ship );
+		iPilotSetup.StringDescription( ship, pilot_type_ );
+		local_6 = true;
+	}
+	
+	return group;
+}
+
+local_function_1( hship ship_0_, int param_1_ )
+{
+	string local_0 = "ini:/sims/ships/utility/megapod_open_rotated";
+	hship ship_1;
+	int random = Math.RandomInt( 4, 8 );
+	int ii;
+	
+	for ( ii = 0; ii < random; ++ii )
+	{
+		ship_1 = iShip.Create( local_0, "name_cargo_pod" );
+		Object.AddIntProperty( ship_1, "cargo_faction", iFaction.Allegiance( iSim.Faction( ship_0_ ) ) );
+		Object.AddIntProperty( ship_1, "type_cargo", param_1_ );
+		Object.AddIntProperty( ship_1, "number_small_pods", Math.RandomInt( 2, 8 ) );
+		Object.SetStringProperty( ship_1, "death_script", "iDeathScript.MegaPodDeath" );
+		iShip.Dock( ship_1, ship_0_ );
+		
+		debug atomic
+		{
+			Debug.PrintString( "iShipCreation: Creating Mega POD cargo" );
+			Debug.PrintString( String.Join( " for ship ", Object.StringProperty( ship_0_, "name" ) ) );
+			Debug.PrintString( "\n" );
+		}
+	}
+	
+	return;
+}
+
+CreateSupplyCargo( hship supply_vessel_, int supply_type_ )
+{
+	bool cargoOrigin;
+	int ii;
+	int local_2;
+	bool local_3 = false;
+	bool local_4 = false;
+	int count;
+	bool local_6 = true;
+	int local_7;
+	int local_8;
+	list localList;
+	string local_10;
+	int local_11;
+	string local_12;
+	string name;
+	hship ship_1;
+	
+	cargoOrigin = Object.AddIntProperty( supply_vessel_, "cargo_origin", supply_type_ );
+	
+	if ( cargoOrigin == 0 )
+	{
+		debug Debug.PrintString( "iShipCreation: Unable to add cargo_origin property to vessel\n" );
+	}
+	
+	if ( Object.PropertyExists( supply_vessel_, "mega_freighter" ) == 1 )
+	{
+		local_function_1( supply_vessel_, supply_type_ );
+		return;
+	}
+	
+	count = iDockport.Count( supply_vessel_, DT_CargoFreightOnly, DS_Free );
+	local_7 = iUtilities.RandomCentreWeighted( 1.0, count );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iShipCreation: Filling vessel with supply cargo of (" );
+		Debug.PrintString( String.FromInt( local_7 ) );
+		Debug.PrintString( String.Join( "/", String.FromInt( count ) ) );
+		Debug.PrintString( ") pod(s) for vessel " );
+		Debug.PrintString( Object.StringProperty( supply_vessel_, "name" ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	for ( ii = 0; ii < local_7; ++ii )
+	{
+		switch ( Math.RandomInt( 0, 2 ) )
+		{
+			case 0:
+				local_12 = "ini:/sims/ships/utility/cargo_pod";
+				break;
+			
+			case 1:
+				local_12 = "ini:/sims/ships/utility/freightpod";
+				break;
+			
+			case 2:
+				local_12 = "ini:/sims/ships/utility/containerpod";
+				break;
+		}
+		
+		ship_1 = iShip.Create( local_12, "" );
+		Object.AddIntProperty( ship_1, "cargo_faction", iFaction.Allegiance( iSim.Faction( supply_vessel_ ) ) );
+		
+		if ( ship_1 == false )
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iShipCreation.CreateSupplyCargo: Critical error: no cargo pod create with template " );
+				Debug.PrintString( local_12 );
+			}
+		}
+		
+		List.AddTail( localList, ship_1 );
+		
+		if ( supply_type_ == -2 )
+		{
+			local_11 = iCargoScript.MilitarySupplyCargoGenerator();
+		}
+		else if ( supply_type_ == -1 )
+		{
+			local_11 = iCargoScript.SupplyCargoGenerator();
+		}
+		else
+		{
+			local_11 = iCargoScript.FindCargoForLocation( iHabitat.CastIntToHabitatType( supply_type_ ) );
+		}
+		
+		if ( (local_11 == 482) || ((local_11 == 471) || ((local_11 == 472) || ((local_11 == 549) || ((local_11 == 230) || ((local_11 == 514) || ((local_11 == 530) || (local_11 == 531))))))) )
+		{
+			Object.SetStringProperty( ship_1, "death_script", "iDeathScript.Antimatter" );
+		}
+		
+		Object.SetIntProperty( ship_1, "cargo", local_11 );
+		name = iCargo.Name( iCargo.Find( local_11 ) );
+		iUtilities.RenameSim( ship_1, name );
+		iShip.Dock( ship_1, supply_vessel_ );
+		
+		debug atomic
+		{
+			Debug.PrintString( "iShipCreation: Creating POD cargo : " );
+			Debug.PrintString( name );
+			Debug.PrintString( String.Join( " for ship ", Object.StringProperty( supply_vessel_, "name" ) ) );
+			Debug.PrintString( "\n" );
+		}
+	}
+}
+
+CreateTradeCargo( hship trade_vessel_, string trade_type_ )
+{
+	int local_0;
+	int ii;
+	int local_2;
+	bool local_3 = false;
+	bool local_4 = false;
+	int count = 5;
+	bool local_6 = true;
+	int local_7;
+	int local_8;
+	list localList;
+	string local_10;
+	hship shipFreightpod;
+	int local_12;
+	string name;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iShipCreation: Creating Trade cargo of type " );
+		Debug.PrintString( trade_type_ );
+		Debug.PrintString( "\n" );
+	}
+	
+	if ( Object.PropertyExists( trade_vessel_, "mega_freighter" ) == 1 )
+	{
+		local_function_1( trade_vessel_, 1 );
+		return;
+	}
+	
+	count = iDockport.Count( trade_vessel_, DT_CargoFreightOnly, DS_Free );
+	local_7 = iUtilities.RandomCentreWeighted( 1.0, count );
+	
+	for ( ii = 0; ii < local_7; ++ii )
+	{
+		shipFreightpod = iShip.Create( "ini:/sims/ships/utility/freightpod", "" );
+		Object.AddIntProperty( shipFreightpod, "cargo_faction", iFaction.Allegiance( iSim.Faction( trade_vessel_ ) ) );
+		List.AddTail( localList, shipFreightpod );
+		
+		if ( trade_type_ == "Cheap" )
+		{
+			local_12 = iCargoScript.CheapCargoGenerator();
+		}
+		else if ( trade_type_ == "Medium" )
+		{
+			local_12 = iCargoScript.MediumCargoGenerator();
+		}
+		else if ( trade_type_ == "High" )
+		{
+			local_12 = iCargoScript.HighCargoGenerator();
+		}
+		else if ( trade_type_ == "Expensive" )
+		{
+			local_12 = iCargoScript.VeryHighCargoGenerator();
+		}
+		else
+		{
+			local_12 = iCargoScript.CheapCargoGenerator();
+			
+			debug atomic
+			{
+				Debug.PrintString( "iShipCreation.CreateTradeCargo - Invalid trade type passed ! \n" );
+			}
+		}
+		
+		if ( (local_12 == 482) || ((local_12 == 471) || ((local_12 == 472) || ((local_12 == 549) || ((local_12 == 230) || ((local_12 == 514) || ((local_12 == 530) || (local_12 == 531))))))) )
+		{
+			Object.SetStringProperty( shipFreightpod, "death_script", "iDeathScript.Antimatter" );
+		}
+		
+		Object.SetIntProperty( shipFreightpod, "cargo", local_12 );
+		name = iCargo.Name( iCargo.Find( local_12 ) );
+		iUtilities.RenameSim( shipFreightpod, name );
+		iShip.Dock( shipFreightpod, trade_vessel_ );
+		
+		debug atomic
+		{
+			Debug.PrintString( "iShipCreation: Creating POD cargo : " );
+			Debug.PrintString( name );
+			Debug.PrintString( String.Join( " for ship ", Object.StringProperty( trade_vessel_, "name" ) ) );
+			Debug.PrintString( "\n" );
+		}
+	}
+}
+
+CreateHaulageCargo( hship cargo_vessel_, IeHabitatType location_type_ )
+{
+	bool cargoOrigin;
+	string local_1 = iUtilities.FromLocationEnum( location_type_ );
+	int local_2;
+	int ii;
+	int local_4;
+	bool local_5 = false;
+	bool local_6 = false;
+	int count;
+	bool local_8 = true;
+	int local_9;
+	int local_10;
+	list localList;
+	string local_12;
+	hship ship_1;
+	string local_14;
+	int local_15;
+	string name;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iShipCreation: Creating Haulage cargo for location " );
+		Debug.PrintString( local_1 );
+		Debug.PrintString( "\n" );
+	}
+	
+	if ( Object.PropertyExists( cargo_vessel_, "mega_freighter" ) == 1 )
+	{
+		local_function_1( cargo_vessel_, 2 );
+		return;
+	}
+	
+	count = iDockport.Count( cargo_vessel_, DT_CargoFreightOnly, DS_Free );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iShipCreation: Vessel " );
+		Debug.PrintString( Object.StringProperty( cargo_vessel_, "name" ) );
+		Debug.PrintString( "has this many ports: " );
+		Debug.PrintString( String.FromInt( count ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	local_9 = iUtilities.RandomCentreWeighted( 1.0, count );
+	local_4 = location_type_;
+	cargoOrigin = Object.AddIntProperty( cargo_vessel_, "cargo_origin", local_4 );
+	
+	if ( cargoOrigin == 0 )
+	{
+		debug Debug.PrintString( "iShipCreation: Unable to add cargo_origin property to vessel\n" );
+	}
+	
+	Object.SetIntProperty( cargo_vessel_, "cargo_origin", local_4 );
+	
+	for ( ii = 0; ii < local_9; ++ii )
+	{
+		switch ( Math.RandomInt( 0, 2 ) )
+		{
+			case 0:
+				local_14 = "ini:/sims/ships/utility/cargo_pod";
+				break;
+			
+			case 1:
+				local_14 = "ini:/sims/ships/utility/freightpod";
+				break;
+			
+			case 2:
+				local_14 = "ini:/sims/ships/utility/containerpod";
+				break;
+		}
+		
+		ship_1 = iShip.Create( local_14, "name_cargo_pod" );
+		Object.AddIntProperty( ship_1, "cargo_faction", iFaction.Allegiance( iSim.Faction( cargo_vessel_ ) ) );
+		List.AddTail( localList, ship_1 );
+		local_15 = iCargoScript.FindCargoForLocation( location_type_ );
+		
+		if ( (local_15 == 482) || ((local_15 == 471) || ((local_15 == 472) || ((local_15 == 549) || ((local_15 == 230) || ((local_15 == 514) || ((local_15 == 530) || (local_15 == 531))))))) )
+		{
+			Object.SetStringProperty( ship_1, "death_script", "iDeathScript.Antimatter" );
+		}
+		
+		Object.SetIntProperty( ship_1, "cargo", local_15 );
+		name = iCargo.Name( iCargo.Find( local_15 ) );
+		iUtilities.RenameSim( ship_1, name );
+		iShip.Dock( ship_1, cargo_vessel_ );
+		
+		debug atomic
+		{
+			Debug.PrintString( "iShipCreation: Creating POD cargo : " );
+			Debug.PrintString( name );
+			Debug.PrintString( String.Join( " for ship ", Object.StringProperty( cargo_vessel_, "name" ) ) );
+			Debug.PrintString( "\n" );
+		}
+	}
+}
+
+list ReturnSupplyCargo( hship supply_vessel_, int supply_type_ )
+{
+	bool cargoOrigin;
+	int ii;
+	int local_2;
+	bool local_3 = false;
+	bool local_4 = false;
+	int count;
+	bool local_6 = true;
+	int local_7;
+	int local_8;
+	list localList;
+	string local_10;
+	int local_11;
+	string local_12;
+	string name;
+	hship ship_1;
+	
+	cargoOrigin = Object.AddIntProperty( supply_vessel_, "cargo_origin", supply_type_ );
+	
+	if ( cargoOrigin == 0 )
+	{
+		debug Debug.PrintString( "iShipCreation: Unable to add cargo_origin property to vessel\n" );
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iShipCreation: Creating Supply cargo \n " );
+	}
+	
+	count = iDockport.Count( supply_vessel_, DT_CargoFreightOnly, DS_Free );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iShipCreation: Vessel " );
+		Debug.PrintString( Object.StringProperty( supply_vessel_, "name" ) );
+		Debug.PrintString( "has this many ports: " );
+		Debug.PrintString( String.FromInt( count ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	local_7 = iUtilities.RandomCentreWeighted( 1.0, count );
+	
+	for ( ii = 0; ii < local_7; ++ii )
+	{
+		switch ( Math.RandomInt( 0, 2 ) )
+		{
+			case 0:
+				local_12 = "ini:/sims/ships/utility/cargo_pod";
+				break;
+			
+			case 1:
+				local_12 = "ini:/sims/ships/utility/freightpod";
+				break;
+			
+			case 2:
+				local_12 = "ini:/sims/ships/utility/containerpod";
+				break;
+		}
+		
+		ship_1 = iShip.Create( local_12, "name_cargo_pod" );
+		Object.AddIntProperty( ship_1, "cargo_faction", iFaction.Allegiance( iSim.Faction( supply_vessel_ ) ) );
+		List.AddTail( localList, ship_1 );
+		
+		if ( supply_type_ == -2 )
+		{
+			local_11 = iCargoScript.MilitarySupplyCargoGenerator();
+		}
+		else if ( supply_type_ == -1 )
+		{
+			local_11 = iCargoScript.SupplyCargoGenerator();
+		}
+		else
+		{
+			local_11 = iCargoScript.FindCargoForLocation( iHabitat.CastIntToHabitatType( supply_type_ ) );
+		}
+		
+		if ( (local_11 == 482) || ((local_11 == 471) || ((local_11 == 472) || ((local_11 == 549) || ((local_11 == 230) || ((local_11 == 514) || ((local_11 == 530) || (local_11 == 531))))))) )
+		{
+			Object.SetStringProperty( ship_1, "death_script", "iDeathScript.Antimatter" );
+		}
+		
+		Object.SetIntProperty( ship_1, "cargo", local_11 );
+		name = iCargo.Name( iCargo.Find( local_11 ) );
+		iUtilities.RenameSim( ship_1, name );
+		
+		debug atomic
+		{
+			Debug.PrintString( "iShipCreation: Creating POD cargo : " );
+			Debug.PrintString( name );
+			Debug.PrintString( String.Join( " for ship ", Object.StringProperty( supply_vessel_, "name" ) ) );
+			Debug.PrintString( "\n" );
+		}
+	}
+	
+	return localList;
+}
+
+list ReturnTradeCargo( hship trade_vessel_, string trade_type_ )
+{
+	int local_0;
+	int ii;
+	int local_2;
+	bool local_3 = false;
+	bool local_4 = false;
+	int count = 5;
+	bool local_6 = true;
+	int local_7;
+	int local_8;
+	list localList;
+	string local_10;
+	hship shipFreightpod;
+	int local_12;
+	string name;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iShipCreation: Creating Trade cargo of type " );
+		Debug.PrintString( trade_type_ );
+		Debug.PrintString( "\n" );
+	}
+	
+	count = iDockport.Count( trade_vessel_, DT_CargoFreightOnly, DS_Free );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iShipCreation: Vessel " );
+		Debug.PrintString( Object.StringProperty( trade_vessel_, "name" ) );
+		Debug.PrintString( "has this many ports: " );
+		Debug.PrintString( String.FromInt( count ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	local_7 = iUtilities.RandomCentreWeighted( 1.0, count );
+	
+	for ( ii = 0; ii < local_7; ++ii )
+	{
+		shipFreightpod = iShip.Create( "ini:/sims/ships/utility/freightpod", "name_cargo_pod" );
+		Object.AddIntProperty( shipFreightpod, "cargo_faction", iFaction.Allegiance( iSim.Faction( trade_vessel_ ) ) );
+		List.AddTail( localList, shipFreightpod );
+		
+		if ( trade_type_ == "Cheap" )
+		{
+			local_12 = iCargoScript.CheapCargoGenerator();
+		}
+		else if ( trade_type_ == "Medium" )
+		{
+			local_12 = iCargoScript.MediumCargoGenerator();
+		}
+		else if ( trade_type_ == "High" )
+		{
+			local_12 = iCargoScript.HighCargoGenerator();
+		}
+		else if ( trade_type_ == "Expensive" )
+		{
+			local_12 = iCargoScript.VeryHighCargoGenerator();
+		}
+		else
+		{
+			local_12 = iCargoScript.CheapCargoGenerator();
+			
+			debug atomic
+			{
+				Debug.PrintString( "iShipCreation.CreateTradeCargo - Invalid trade type passed ! \n" );
+			}
+		}
+		
+		if ( (local_12 == 482) || ((local_12 == 471) || ((local_12 == 472) || ((local_12 == 549) || ((local_12 == 230) || ((local_12 == 514) || ((local_12 == 530) || (local_12 == 531))))))) )
+		{
+			Object.SetStringProperty( shipFreightpod, "death_script", "iDeathScript.Antimatter" );
+		}
+		
+		Object.SetIntProperty( shipFreightpod, "cargo", local_12 );
+		name = iCargo.Name( iCargo.Find( local_12 ) );
+		iUtilities.RenameSim( shipFreightpod, name );
+		Object.SetStringProperty( shipFreightpod, "name", String.Join( "Pod of ", name ) );
+		
+		debug atomic
+		{
+			Debug.PrintString( "iShipCreation: Creating POD cargo : " );
+			Debug.PrintString( name );
+			Debug.PrintString( String.Join( " for ship ", Object.StringProperty( trade_vessel_, "name" ) ) );
+			Debug.PrintString( "\n" );
+		}
+	}
+	
+	return localList;
+}
+
+list ReturnHaulageCargo( hship cargo_vessel_, IeHabitatType location_type_ )
+{
+	bool cargoOrigin;
+	string local_1 = iUtilities.FromLocationEnum( location_type_ );
+	int local_2;
+	int ii;
+	int local_4;
+	bool local_5 = false;
+	bool local_6 = false;
+	int count;
+	bool local_8 = true;
+	int local_9;
+	int local_10;
+	list localList;
+	string local_12;
+	hship ship_1;
+	string local_14;
+	int local_15;
+	string name;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iShipCreation: Creating Haulage cargo for location " );
+		Debug.PrintString( local_1 );
+		Debug.PrintString( "\n" );
+	}
+	
+	count = iDockport.Count( cargo_vessel_, DT_CargoFreightOnly, DS_Free );
+	local_9 = iUtilities.RandomCentreWeighted( 1.0, count );
+	local_4 = location_type_;
+	cargoOrigin = Object.AddIntProperty( cargo_vessel_, "cargo_origin", local_4 );
+	
+	if ( cargoOrigin == 0 )
+	{
+		debug Debug.PrintString( "iShipCreation: Unable to add cargo_origin property to vessel\n" );
+	}
+	
+	for ( ii = 0; ii < local_9; ++ii )
+	{
+		switch ( Math.RandomInt( 0, 2 ) )
+		{
+			case 0:
+				local_14 = "ini:/sims/ships/utility/cargo_pod";
+				break;
+			
+			case 1:
+				local_14 = "ini:/sims/ships/utility/freightpod";
+				break;
+			
+			case 2:
+				local_14 = "ini:/sims/ships/utility/containerpod";
+				break;
+		}
+		
+		ship_1 = iShip.Create( local_14, "name_cargo_pod" );
+		Object.AddIntProperty( ship_1, "cargo_faction", iFaction.Allegiance( iSim.Faction( cargo_vessel_ ) ) );
+		List.AddTail( localList, ship_1 );
+		local_15 = iCargoScript.FindCargoForLocation( location_type_ );
+		
+		if ( (local_15 == 482) || ((local_15 == 471) || ((local_15 == 472) || ((local_15 == 549) || ((local_15 == 230) || ((local_15 == 514) || ((local_15 == 530) || (local_15 == 531))))))) )
+		{
+			Object.SetStringProperty( ship_1, "death_script", "iDeathScript.Antimatter" );
+		}
+		
+		Object.SetIntProperty( ship_1, "cargo", local_15 );
+		name = iCargo.Name( iCargo.Find( local_15 ) );
+		iUtilities.RenameSim( ship_1, name );
+		
+		debug atomic
+		{
+			Debug.PrintString( "iShipCreation: Creating POD cargo : " );
+			Debug.PrintString( name );
+			Debug.PrintString( String.Join( " for ship ", Object.StringProperty( cargo_vessel_, "name" ) ) );
+			Debug.PrintString( "\n" );
+		}
+	}
+	
+	return localList;
+}
+
+hgroup GetTraffic( eShipType traffic_type_, IeAllegiance allegiance_, int number_req_ )
+{
+	hship ship;
+	hgroup group = Group.Create();
+	string local_2;
+	string local_3;
+	int ii;
+	bool local_5 = true;
+	bool local_6 = false;
+	bool local_7 = false;
+	bool local_8 = false;
+	hfaction faction = iFaction.Find( iUtilities.FromAllegianceEnum( allegiance_ ) );
+	
+	if ( number_req_ == 0 )
+	{
+		debug Debug.PrintString( "iShipCreation: Error detected in number of vessels req, creating 1\n" );
+		number_req_ = 1;
+	}
+	
+	for ( ii = 0; ii < number_req_; ++ii )
+	{
+		ship = iShip.Create( GetShip( allegiance_, traffic_type_ ), "name" );
+		Sim.SetCullable( ship, false );
+		
+		if ( ship == false )
+		{
+			debug Debug.Error( "iShipCreation: ARRRGGGhhhh this ship was not created!!!" );
+		}
+		else debug Debug.PrintString( "iShipCreation.GetTraffic : ship succesfully created\n" );
+		
+		Object.SetStringProperty( ship, "name", ShipName( iUtilities.FromAllegianceEnumNoSpace( allegiance_ ), -1 ) );
+		faction = iFaction.Find( iUtilities.FromAllegianceEnum( allegiance_ ) );
+		
+		if ( faction != false )
+		{
+			iSim.SetFaction( ship, faction );
+		}
+		else
+		{
+			debug Debug.PrintString( "iShipCreation.Gettraffic: Unable to assign correct allegiance to ship\n" );
+			iSim.SetFaction( ship, iFaction.Find( iUtilities.FromAllegianceEnum( A_Independent ) ) );
+		}
+		
+		Group.AddSim( group, ship );
+		
+		if ( iDockport.Count( ship, DT_CargoFreightOnly, DS_Any ) > 20 )
+		{
+			Object.AddBoolProperty( ship, "mega_freighter", true );
+		}
+		
+		if ( (traffic_type_ == ST_FreightLight) || ((traffic_type_ == ST_FreightHeavy) || ((traffic_type_ == ST_FreightAll) || (traffic_type_ == ST_FreightSuperHeavy))) )
+		{
+			iPilotSetup.GenericFreight( ship );
+		}
+		else
+		{
+			iPilotSetup.Generic( ship );
+		}
+	}
+	
+	return group;
+}
+
+bool PutShipsInFormation( hgroup ship_list_, eFormationType formation_type_, float spacing_offset_, bool first_time_ )
+{
+	switch ( formation_type_ )
+	{
+		case FT_Wedge:
+			iFormation.Wedge( ship_list_, spacing_offset_, first_time_ );
+			return true;
+		
+		case FT_LineAbreast:
+			iFormation.LineAbreast( ship_list_, spacing_offset_, first_time_ );
+			return true;
+		
+		case FT_LineAhead:
+			iFormation.LineAhead( ship_list_, spacing_offset_, first_time_ );
+			return true;
+		
+		case FT_Parade:
+			iFormation.Parade( ship_list_, spacing_offset_, first_time_ );
+			return true;
+		
+		case FT_SkirmishLine:
+			iFormation.SkirmishLine( ship_list_, spacing_offset_, first_time_ );
+			return true;
+		
+		case FT_V:
+			iFormation.V( ship_list_, spacing_offset_, first_time_ );
+			return true;
+		
+		case FT_Cross:
+			iFormation.Cross( ship_list_, spacing_offset_, first_time_ );
+			return true;
+		
+		case FT_Loose:
+			iFormation.Loose( ship_list_, spacing_offset_, first_time_ );
+			return true;
+		
+		case FT_Impi:
+			iFormation.Impi( ship_list_, spacing_offset_, first_time_ );
+			return true;
+		
+		case FT_Outrider:
+			iFormation.Outrider( ship_list_, spacing_offset_, first_time_ );
+			return true;
+		
+		case FT_Goose:
+			iFormation.Goose( ship_list_, spacing_offset_, first_time_ );
+			return true;
+		
+		case FT_LineAstern:
+			iFormation.LineAstern( ship_list_, spacing_offset_, first_time_ );
+			return true;
+		
+		case FT_Box:
+			iFormation.Box( ship_list_, spacing_offset_, first_time_ );
+			return true;
+		
+		case FT_Claw:
+			iFormation.Claw( ship_list_, spacing_offset_, first_time_ );
+			return true;
+		
+		default:
+			return false;
+	}
+	
+	return false;
+}
+
+hgroup CreateCharacterShips( eShipType carrier_type_, string carrier_ship_name_pointer_, string pilot_name_pointer_, string carrier_pilot_type_, int carrier_number_, eShipType escort_type_, string escort_ship_name_pointer_, string escort_pilot_type_, int escort_number_, hfaction faction_ )
+{
+	hgroup group_0 = Group.Create();
+	hgroup group_1 = Group.Create();
+	
+	if ( carrier_number_ > 0 )
+	{
+		group_0 = CreateCharacterGroup( carrier_type_, carrier_pilot_type_, carrier_number_, faction_, carrier_ship_name_pointer_ );
+	}
+	
+	if ( escort_number_ > 0 )
+	{
+		group_1 = CreateCharacterGroup( escort_type_, escort_pilot_type_, escort_number_, faction_, escort_ship_name_pointer_ );
+		Group.AddGroup( group_0, group_1 );
+	}
+	
+	if ( Group.SimCount( group_0 ) == 0 )
+	{
+		debug Debug.PrintString( "iShipCreation.CreateCharacterShips - ERROR, list of character ships is empty !\n" );
+	}
+	
+	return group_0;
+}
+
+hgroup CreateCargoPods( eCargoType cargo_type_, int number_ )
+{
+	int ii;
+	hgroup group = Group.Create();
+	hship shipFreightpod;
+	
+	for ( ii = 0; ii < number_; ++ii )
+	{
+		shipFreightpod = iShip.Create( "ini:/sims/ships/utility/freightpod", iCargo.Name( iCargo.Find( cargo_type_ ) ) );
+		Object.SetIntProperty( shipFreightpod, "cargo", cargo_type_ );
+		Group.AddSim( group, shipFreightpod );
+	}
+	
+	return group;
+}
+

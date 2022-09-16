@@ -1,0 +1,177 @@
+package iFrontendGUI;
+
+uses Config,
+     GUI,
+     Set,
+     List,
+     String,
+     Global,
+     Task,
+     Text,
+     iGUI,
+     iGame,
+     Group,
+     Sim,
+     MapEnumerations,
+     iMapEntity,
+     iBody,
+     iHabitat,
+     iFaction,
+     iSim,
+     iShip,
+     iMultiplay;
+
+provides MainMenuScreen,
+         WrongDiskScreen,
+         WrongDiskScreen_OnRetry,
+         WrongDiskScreen_OnQuit;
+
+prototype MainMenuScreen();
+prototype WrongDiskScreen_OnRetry();
+prototype WrongDiskScreen();
+prototype WrongDiskScreen_OnQuit();
+prototype task local_function_2();
+prototype local_function_3();
+prototype local_function_1( int param_0_, string param_1_ );
+prototype local_function_0();
+
+MainMenuScreen()
+{
+	atomic
+	{
+		GUI.SetScreen( "icPDAOverlayManager" );
+		GUI.PushScreen( "icWrongDiskScreen" );
+	}
+}
+
+WrongDiskScreen_OnRetry()
+{
+	if ( iGame.GotPlayDisk( "movies/intro.bik" ) )
+	{
+		Global.CreateBool( "WrongDiskScreen_GotDisk", 2, true );
+		Global.CreateBool( "WrongDiskScreen_LocalisedTextEnabled", 14, true );
+		local_function_0();
+	}
+}
+
+WrongDiskScreen()
+{
+	htask local_0;
+	hwindow window_0;
+	hwindow window_1;
+	list localList;
+	int gUIFancybuttonWidth;
+	int gUIFancybuttonHeight;
+	int local_6 = ( GUI.FrameWidth() / 2 );
+	int local_7 = ( GUI.FrameHeight() / 2 );
+	int gUIMainTitleHeight;
+	int local_9;
+	string local_10;
+	
+	Text.Add( "csv:/text/gui" );
+	Text.Add( "csv:/text/gui_addendum" );
+	Text.Add( "csv:/text/gui_addendum_2" );
+	Text.Add( "csv:/text/gui_addendum_3" );
+	Text.Add( "csv:/text/gui_addendum_4" );
+	Text.Add( "csv:/text/gui_addendum_5" );
+	Text.Add( "csv:/text/objectives" );
+	iGUI.SetGUIGlobals();
+	gUIFancybuttonWidth = Global.Int( "GUI_fancybutton_width" );
+	gUIFancybuttonHeight = Global.Int( "GUI_fancybutton_height" );
+	gUIMainTitleHeight = Global.Int( "GUI_main_title_height" );
+	local_9 = ( local_7 - (gUIMainTitleHeight * 2) );
+	WrongDiskScreen_OnRetry();
+	
+	if ( Global.Exists( "WrongDiskScreen_GotDisk" ) == 1 )
+	{
+		Global.Destroy( "WrongDiskScreen_GotDisk" );
+		return;
+	}
+	
+	local_function_1( local_9, "wrongdisk_pleaseinsert" );
+	local_9 = ( local_9 + gUIMainTitleHeight );
+	local_function_1( local_9, "wrongdisk_playdisk" );
+	window_0 = GUI.CreateWindow( local_6 - (gUIFancybuttonWidth / 2), local_7, local_6 + (gUIFancybuttonWidth / 2), local_7 + gUIFancybuttonHeight, GUI.TopWindow() );
+	window_1 = iGUI.CreateFancyButton( 0, 0, window_0 );
+	GUI.SetWindowTitle( window_1, Text.Field( "gui_cancel", FT_Text ) );
+	GUI.SetButtonFunctionPog( window_1, "iFrontendGUI.WrongDiskScreen_OnQuit" );
+	GUI.SetWindowTextFormatting( window_1, true, 0 );
+	List.AddTail( localList, window_1 );
+	GUI.SetFirstControlFocus( GUI.Cast( List.Head( localList ) ) );
+	iGUI.SetCyclicControlFocusPath( localList );
+	local_0 = start local_function_2();
+	Task.Detach( local_0 );
+	Global.CreateHandle( "wrong_disk_monitor_task", 2, local_0 );
+}
+
+WrongDiskScreen_OnQuit()
+{
+	local_function_3();
+	local_function_0();
+}
+
+task local_function_2()
+{
+	schedule
+	{
+		every 1.0:
+		{
+			WrongDiskScreen_OnRetry();
+			
+			if ( Global.Exists( "WrongDiskScreen_GotDisk" ) )
+			{
+				return;
+			}
+		}
+	}
+}
+
+local_function_3()
+{
+	htask wrongDiskMonitorTask = Task.Cast( Global.Handle( "wrong_disk_monitor_task" ) );
+	
+	if ( wrongDiskMonitorTask != false )
+	{
+		Task.Halt( wrongDiskMonitorTask );
+	}
+	
+	Global.Destroy( "wrong_disk_monitor_task" );
+}
+
+local_function_1( int param_0_, string param_1_ )
+{
+	hwindow window;
+	string local_1;
+	int gUIMainTitleHeight = Global.Int( "GUI_main_title_height" );
+	
+	window = GUI.CreateStaticWindow( 0, param_0_, GUI.FrameWidth(), gUIMainTitleHeight, GUI.TopWindow() );
+	local_1 = Text.Field( param_1_, FT_Text );
+	local_1 = String.UpperCase( local_1 );
+	GUI.SetWindowTitle( window, local_1 );
+	GUI.SetWindowTextFormatting( window, true, 0 );
+	GUI.SetWindowFont( window, Global.String( "GUI_main_title_font" ) );
+	GUI.SetWindowStateColours( window, Global.Float( "GUI_faded_red" ), Global.Float( "GUI_faded_green" ), Global.Float( "GUI_faded_blue" ), Global.Float( "GUI_faded_red" ), Global.Float( "GUI_faded_green" ), Global.Float( "GUI_faded_blue" ), Global.Float( "GUI_faded_red" ), Global.Float( "GUI_faded_green" ), Global.Float( "GUI_faded_blue" ) );
+}
+
+local_function_0()
+{
+	string local_0;
+	int ii;
+	int countNumber = Config.CountNumber( "system", "icGame", "movies" );
+	
+	atomic
+	{
+		GUI.PopScreen();
+		GUI.OverlayScreen( "icSPMainPDAScreen" );
+		
+		if ( iMultiplay.NetworkIsLobbySession() || !( iGame.SessionName() == "" ) )
+		{
+		}
+		else for ( ii = ( countNumber - 1 ); ii >= 0; --ii )
+		{
+			local_0 = Config.GetNumberedString( "system", "icGame", "movies", ii );
+			iGame.PlayMovie( local_0 );
+		}
+	}
+}
+

@@ -1,0 +1,71 @@
+package iCleanup;
+
+uses String,
+     Set,
+     List,
+     Global,
+     INIFile;
+
+provides CleanupGameGlobals,
+         CleanupActGlobals;
+
+prototype local_function_0( string param_0_ );
+prototype CleanupGameGlobals();
+prototype CleanupActGlobals();
+
+local_function_0( string param_0_ )
+{
+	hinifile inifile = INIFile.Create( "ini:/mission_directory" );
+	bool local_1;
+	int local_2 = 0;
+	
+	do
+	{
+		local_1 = INIFile.NumberedExists( inifile, String.Join( "GeneratedMissionList", param_0_ ), "mission", local_2 );
+		
+		if ( local_1 )
+		{
+			Global.Destroy( String.Join( "g_generated_mission_", String.FromInt( local_2 ) ) );
+			local_2 = ( local_2 + 1 );
+		}
+	}
+	while ( local_1 );
+	
+	Global.Destroy( "g_generated_number_of_missions" );
+	INIFile.Destroy( inifile );
+}
+
+CleanupGameGlobals()
+{
+	if ( Global.Exists( "g_current_act" ) )
+	{
+		local_function_0( "Act1" );
+		Global.Destroy( "g_current_act" );
+		Global.Destroy( "g_generated_missions_running" );
+		Global.Destroy( "g_generated_max_number_of_missions" );
+		Global.Destroy( "g_generated_mission_chance" );
+		Global.Destroy( "g_piracy_rating" );
+		Global.Destroy( "g_player_ship_name" );
+		Global.Destroy( "g_jafs_active" );
+		INIFile.Destroy( INIFile.Cast( Global.Handle( "g_traffic_ini" ) ) );
+		Global.Destroy( "g_traffic_ini" );
+		INIFile.Destroy( INIFile.Cast( Global.Handle( "g_shipping_ini" ) ) );
+		Global.Destroy( "g_shipping_ini" );
+		INIFile.Destroy( INIFile.Cast( Global.Handle( "g_master_cargo_ini" ) ) );
+		Global.Destroy( "g_master_cargo_ini" );
+		INIFile.Destroy( INIFile.Cast( Global.Handle( "g_metropolis_ini" ) ) );
+		Global.Destroy( "g_metropolis_ini" );
+		INIFile.Destroy( INIFile.Cast( Global.Handle( "g_ship_names_ini" ) ) );
+		Global.Destroy( "g_ship_names_ini" );
+		Global.Destroy( "g_player_sensor_range" );
+		Global.Destroy( "g_active_location_list" );
+		Global.Destroy( "g_maximum_generated_ships" );
+		Global.Destroy( "g_station_awareness_radius" );
+		Global.Destroy( "g_traffic_exception_list" );
+	}
+}
+
+CleanupActGlobals()
+{
+}
+

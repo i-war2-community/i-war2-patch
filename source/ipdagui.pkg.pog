@@ -1,0 +1,1972 @@
+package iPDAGUI;
+
+uses Config,
+     Debug,
+     GUI,
+     Set,
+     List,
+     String,
+     Global,
+     Input,
+     Group,
+     Sim,
+     State,
+     Stream,
+     Task,
+     Text,
+     iMapEntity,
+     iSim,
+     iDeathScript,
+     iDirector,
+     MapEnumerations,
+     iFaction,
+     iGUI,
+     iGame,
+     iBody,
+     iHabitat,
+     iShip,
+     iMultiplay,
+     iOptions;
+
+provides SPMainPDAScreen,
+         SPMainPDAScreen_OnStart,
+         SPMainPDAScreen_OnLoad,
+         SPMainPDAScreen_OnInstant,
+         SPMainPDAScreen_OnMultiplayer,
+         SPMainPDAScreen_OnOptions,
+         SPMainPDAScreen_OnMovies,
+         SPMainPDAScreen_OnCredits,
+         SPMainPDAScreen_OnQuit,
+         SPDemoMainScreen,
+         SPDemoMainScreen_OnTraining,
+         SPDemoMainScreen_OnStart,
+         SPDemoMainScreen_OnInstant,
+         SPDemoMainScreen_OnOptions,
+         SPDemoMainScreen_OnQuit,
+         PDAConfirmScreen,
+         PDAConfirmScreen_OnOK,
+         PDAConfirmScreen_OnCancel,
+         FlightConfirmScreen,
+         FlightConfirmScreen_OnOK,
+         FlightConfirmScreen_OnCancel,
+         SPBasePDAScreen,
+         SPBasePDAScreen_OnSave,
+         SPBasePDAScreen_OnLoad,
+         SPBasePDAScreen_OnQuit,
+         SPBasePDAScreen_OnResume,
+         SPFlightPDAScreen,
+         SPFlightPDAScreen_OnLoad,
+         SPFlightPDAScreen_OnQuit,
+         SPFlightPDAScreen_OnResume,
+         SPFlightPDAScreen_OnSelectTeam,
+         SPPDASaveScreen,
+         SPPDASaveScreen_SetDefaultName,
+         SPPDASaveScreen_OnSave,
+         SPPDASaveScreen_OnBackButton,
+         SPPDALoadScreen,
+         SPPDALoadScreen_OnLoad,
+         SPPDALoadScreen_OnAutosaveLoad,
+         SPPDALoadScreen_OnBackButton,
+         SPPDAOptionsScreen,
+         SPPDAOptionsScreen_OnGraphics,
+         SPPDAOptionsScreen_OnSound,
+         SPPDAOptionsScreen_OnControls,
+         SPPDAOptionsScreen_OnRestoreDefaults,
+         SPPDAOptionsScreen_OnBackButton,
+         SPPDAOptionsScreen_OnBackToMainMenuButton,
+         SPPDAOptionsCategory_OnSelectOption,
+         SPPDAOptionsCategory_OnMouseDown,
+         SPPDAOptionsCategory_OnMouseUp,
+         SPPDAOptionsCategory_OnLeftOption,
+         SPPDAOptionsCategory_OnRightOption,
+         SPPDAOptionsCategory_OnBackButton,
+         SPPDAOptionsCategory_OnBackToMainMenuButton,
+         SPPDAGraphicsScreen,
+         SPPDAGraphicsScreen_OnDeviceSwitch,
+         SPPDASoundScreen,
+         SPPDAControlsScreen,
+         SPPDAControlsScreen_OnControlStyle,
+         SPPDADeviceScreen,
+         SPPDADeviceScreen_OnApply,
+         SPPDADeviceScreen_OnBackButton,
+         SPPDADeviceScreen_OnBackToMainMenuButton,
+         MoviesScreen,
+         MoviesScreen_OnBackButton,
+         MoviesScreen_OnIntro,
+         MoviesScreen_OnComsecDiscovery,
+         MoviesScreen_OnBaseDiscovery,
+         MoviesScreen_OnBaseEntry,
+         MoviesScreen_OnJailBreak,
+         MoviesScreen_OnOutro,
+         MoviesScreen_OnCredits,
+         ControlScreen,
+         ControlScreen_OnSelectScheme,
+         ControlScreen_OnBackButton,
+         ControlScreen_OnBackButtonToMainMenu,
+         InstantActionShipChoiceScreen,
+         InstantActionShipChoiceScreen_OnShipSelect,
+         InstantActionShipChoiceScreen_OnBackButton,
+         RestartScreen,
+         RestartScreen_OnQuit,
+         RestartScreen_OnRestart;
+
+prototype SPMainPDAScreen();
+prototype SPMainPDAScreen_OnStart();
+prototype SPMainPDAScreen_OnLoad();
+prototype SPMainPDAScreen_OnInstant();
+prototype SPMainPDAScreen_OnMultiplayer();
+prototype SPMainPDAScreen_OnMovies();
+prototype SPMainPDAScreen_OnCredits();
+prototype SPMainPDAScreen_OnOptions();
+prototype SPMainPDAScreen_OnQuit();
+prototype SPDemoMainScreen();
+prototype SPDemoMainScreen_OnTraining();
+prototype SPDemoMainScreen_OnStart();
+prototype SPDemoMainScreen_OnInstant();
+prototype SPDemoMainScreen_OnOptions();
+prototype SPDemoMainScreen_OnQuit();
+prototype PDAConfirmScreen();
+prototype PDAConfirmScreen_OnOK();
+prototype PDAConfirmScreen_OnCancel();
+prototype FlightConfirmScreen();
+prototype FlightConfirmScreen_OnOK();
+prototype FlightConfirmScreen_OnCancel();
+prototype SPBasePDAScreen();
+prototype SPBasePDAScreen_OnSave();
+prototype SPBasePDAScreen_OnLoad();
+prototype SPBasePDAScreen_OnQuit();
+prototype SPBasePDAScreen_OnResume();
+prototype SPFlightPDAScreen();
+prototype SPFlightPDAScreen_OnLoad();
+prototype SPFlightPDAScreen_OnQuit();
+prototype SPFlightPDAScreen_OnResume();
+prototype SPFlightPDAScreen_OnSelectTeam();
+prototype SPPDASaveScreen();
+prototype SPPDASaveScreen_OnBackButton();
+prototype SPPDASaveScreen_SetDefaultName();
+prototype SPPDASaveScreen_OnSave();
+prototype local_function_1( string param_0_, list localList_0_, list localList_1_ );
+prototype local_function_0( list localList_0_, list localList_1_ );
+prototype local_function_2( string param_0_, string param_1_, list localList_0_, list localList_1_ );
+prototype SPPDALoadScreen();
+prototype SPPDALoadScreen_OnBackButton();
+prototype SPPDALoadScreen_OnAutosaveLoad();
+prototype SPPDALoadScreen_OnLoad();
+prototype local_function_3( list localList_0_, list localList_1_ );
+prototype SPPDAOptionsScreen();
+prototype SPPDAOptionsScreen_OnRestoreDefaults();
+prototype SPPDAOptionsScreen_OnBackButton();
+prototype SPPDAOptionsScreen_OnBackToMainMenuButton();
+prototype SPPDAOptionsScreen_OnGraphics();
+prototype SPPDAOptionsScreen_OnSound();
+prototype SPPDAOptionsScreen_OnControls();
+prototype SPPDAGraphicsScreen();
+prototype SPPDAGraphicsScreen_OnDeviceSwitch();
+prototype SPPDASoundScreen();
+prototype SPPDAControlsScreen();
+prototype SPPDAControlsScreen_OnControlStyle();
+prototype SPPDAOptionsCategory_OnBackButton();
+prototype SPPDAOptionsCategory_OnBackToMainMenuButton();
+prototype SPPDAOptionsCategory_OnSelectOption();
+prototype SPPDAOptionsCategory_OnMouseDown();
+prototype SPPDAOptionsCategory_OnMouseUp();
+prototype SPPDAOptionsCategory_OnLeftOption();
+prototype SPPDAOptionsCategory_OnRightOption();
+prototype task local_function_4();
+prototype SPPDADeviceScreen();
+prototype task local_function_7();
+prototype SPPDADeviceScreen_OnBackButton();
+prototype SPPDADeviceScreen_OnBackToMainMenuButton();
+prototype SPPDADeviceScreen_OnApply();
+prototype local_function_5( int param_0_ );
+prototype local_function_6();
+prototype int local_function_8();
+prototype int local_function_9();
+prototype MoviesScreen();
+prototype MoviesScreen_OnBackButton();
+prototype MoviesScreen_OnIntro();
+prototype MoviesScreen_OnComsecDiscovery();
+prototype MoviesScreen_OnBaseDiscovery();
+prototype MoviesScreen_OnBaseEntry();
+prototype MoviesScreen_OnJailBreak();
+prototype MoviesScreen_OnOutro();
+prototype MoviesScreen_OnCredits();
+prototype local_function_10( string param_0_, string param_1_, list localList_0_, list localList_1_ );
+prototype local_function_11( list localList_0_, list localList_1_ );
+prototype ControlScreen();
+prototype ControlScreen_OnSelectScheme();
+prototype ControlScreen_OnBackButton();
+prototype ControlScreen_OnBackButtonToMainMenu();
+prototype InstantActionShipChoiceScreen();
+prototype InstantActionShipChoiceScreen_OnShipSelect();
+prototype InstantActionShipChoiceScreen_OnBackButton();
+prototype hwindow local_function_12( hwindow window_0_, int param_1_, string param_2_, string param_3_ );
+prototype RestartScreen();
+prototype local_function_13();
+prototype task local_function_14();
+prototype RestartScreen_OnQuit();
+prototype task local_function_15();
+prototype RestartScreen_OnRestart();
+
+SPMainPDAScreen()
+{
+	hwindow window_0;
+	hwindow window_1;
+	hwindow window_2;
+	hwindow window_3;
+	hwindow window_4;
+	hwindow window_5;
+	hwindow window_6;
+	hwindow window_7;
+	hwindow window_8;
+	list localList;
+	bool local_10 = Global.Exists( "WrongDiskScreen_LocalisedTextEnabled" );
+	
+	Text.Add( "csv:/text/gui" );
+	Text.Add( "csv:/text/gui_addendum" );
+	Text.Add( "csv:/text/gui_addendum_2" );
+	Text.Add( "csv:/text/gui_addendum_3" );
+	Text.Add( "csv:/text/gui_addendum_4" );
+	Text.Add( "csv:/text/gui_addendum_5" );
+	Text.Add( "csv:/text/objectives" );
+	iGUI.SetGUIGlobals();
+	GUI.RegisterSound( "sound:/audio/gui/minor", S_Minor );
+	GUI.RegisterSound( "sound:/audio/gui/confirm", S_Confirm );
+	GUI.RegisterSound( "sound:/audio/gui/error", S_Error );
+	GUI.RegisterSound( "sound:/audio/gui/loadout", S_Loadout );
+	GUI.RegisterSound( "sound:/audio/gui/mechanical_confirm", S_MechConfirm );
+	GUI.RegisterSound( "sound:/audio/gui/add_program", S_AddProgram );
+	GUI.RegisterSound( "sound:/audio/gui/remove_program", S_RemoveProgram );
+	GUI.RegisterSound( "sound:/audio/gui/add_upgrade", S_AddUpgrade );
+	GUI.RegisterSound( "sound:/audio/gui/remove_upgrade", S_RemoveUpgrade );
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	
+	if ( !( iGame.SessionName() == "" ) || iMultiplay.NetworkIsLobbySession() )
+	{
+		if ( iMultiplay.ClientRejectedCount() < 1 )
+		{
+			SPMainPDAScreen_OnMultiplayer();
+			return;
+		}
+	}
+	
+	if ( !iGame.IsMultiplayerOnly() && local_10 )
+	{
+		window_0 = iGUI.CreateMenuButton( "iPDAGUI.SPMainPDAScreen_OnStart", Text.Field( "pda_start_new_game", FT_Text ), localList );
+		window_1 = iGUI.CreateMenuButton( "iPDAGUI.SPMainPDAScreen_OnLoad", Text.Field( "pda_load_game", FT_Text ), localList );
+		window_2 = iGUI.CreateMenuButton( "iPDAGUI.SPMainPDAScreen_OnInstant", Text.Field( "pda_instant_action", FT_Text ), localList );
+	}
+	
+	window_3 = iGUI.CreateMenuButton( "iPDAGUI.SPMainPDAScreen_OnMultiplayer", Text.Field( "pda_multiplayer", FT_Text ), localList );
+	window_4 = iGUI.CreateMenuButton( "iPDAGUI.SPMainPDAScreen_OnOptions", Text.Field( "pda_options", FT_Text ), localList );
+	
+	if ( local_10 )
+	{
+		window_5 = iGUI.CreateMenuButton( "iPDAGUI.SPMainPDAScreen_OnMovies", Text.Field( "movie_movies", FT_Text ), localList );
+	}
+	
+	window_6 = iGUI.CreateMenuButton( "iPDAGUI.SPMainPDAScreen_OnCredits", Text.Field( "pda_credits", FT_Text ), localList );
+	window_7 = iGUI.CreateMenuButton( "iPDAGUI.SPMainPDAScreen_OnQuit", Text.Field( "pda_quit_button", FT_Text ), localList );
+	window_8 = iGUI.CreateMenu( localList );
+	GUI.SetFirstControlFocus( GUI.Cast( List.Head( localList ) ) );
+	iGUI.SetCyclicControlFocusPath( localList );
+	
+	if ( Stream.IsPlayingURL( 0, "sound:/audio/music/badlands" ) == 0 )
+	{
+		Stream.Play( 0, "sound:/audio/music/badlands", true, true );
+	}
+}
+
+SPMainPDAScreen_OnStart()
+{
+	string local_0 = Config.GetString( "system", "Test", "package" );
+	string local_1 = Config.GetString( "system", "Test", "system" );
+	
+	GUI.PlaySound( S_Confirm );
+	
+	if ( local_0 == "" )
+	{
+		debug Debug.PrintString( "SPMainPDAScreen_OnStart: No test package specified - using normal game package \"iPrelude\"" );
+		local_0 = "iPrelude";
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "SPMainPDAScreen_OnStart: Starting story package \"" );
+		Debug.PrintString( local_0 );
+		Debug.PrintString( "\"\n" );
+	}
+	
+	if ( local_1 == "" )
+	{
+		debug Debug.PrintString( "SPMainPDAScreen_OnStart: No test system specified - using normal game system \"map:/geog/badlands/hoffers_wake\"" );
+		local_1 = "map:/geog/badlands/hoffers_wake";
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "SPMainPDAScreen_OnStart: Starting story package \"" );
+		Debug.PrintString( local_0 );
+		Debug.PrintString( "\"\n" );
+		Debug.PrintString( "SPMainPDAScreen_OnStart: Starting game in system \"" );
+		Debug.PrintString( local_1 );
+		Debug.PrintString( "\"\n" );
+	}
+	
+	iGame.SetGameType( 0 );
+	iGame.StartNewGame( local_1, local_0 );
+}
+
+SPMainPDAScreen_OnLoad()
+{
+	GUI.PlaySound( S_Confirm );
+	GUI.OverlayScreen( "icSPPDALoadScreen" );
+}
+
+SPMainPDAScreen_OnInstant()
+{
+	GUI.OverlayScreen( "icInstantActionShipChoiceScreen" );
+}
+
+SPMainPDAScreen_OnMultiplayer()
+{
+	GUI.PlaySound( S_Confirm );
+	GUI.PushScreen( "icMPMasterScreen" );
+}
+
+SPMainPDAScreen_OnMovies()
+{
+	GUI.PlaySound( S_Confirm );
+	GUI.OverlayScreen( "icMoviesScreen" );
+}
+
+SPMainPDAScreen_OnCredits()
+{
+	GUI.PlaySound( S_Confirm );
+	GUI.PushScreen( "icCreditScreen" );
+}
+
+SPMainPDAScreen_OnOptions()
+{
+	GUI.PlaySound( S_Confirm );
+	GUI.OverlayScreen( "icSPPDAOptionsScreen" );
+}
+
+SPMainPDAScreen_OnQuit()
+{
+	GUI.PlaySound( S_Confirm );
+	GUI.OverlayScreen( "icPDAConfirmScreen" );
+}
+
+SPDemoMainScreen()
+{
+	hwindow window_0;
+	hwindow window_1;
+	hwindow window_2;
+	hwindow window_3;
+	hwindow window_4;
+	hwindow window_5;
+	list localList;
+	
+	GUI.RegisterSound( "sound:/audio/gui/minor", S_Minor );
+	GUI.RegisterSound( "sound:/audio/gui/confirm", S_Confirm );
+	GUI.RegisterSound( "sound:/audio/gui/error", S_Error );
+	GUI.RegisterSound( "sound:/audio/gui/loadout", S_Loadout );
+	GUI.RegisterSound( "sound:/audio/gui/mechanical_confirm", S_MechConfirm );
+	GUI.RegisterSound( "sound:/audio/gui/add_program", S_AddProgram );
+	GUI.RegisterSound( "sound:/audio/gui/remove_program", S_RemoveProgram );
+	GUI.RegisterSound( "sound:/audio/gui/add_upgrade", S_AddUpgrade );
+	GUI.RegisterSound( "sound:/audio/gui/remove_upgrade", S_RemoveUpgrade );
+	Text.Add( "csv:/text/gui" );
+	Text.Add( "csv:/text/gui_addendum" );
+	Text.Add( "csv:/text/gui_addendum_2" );
+	Text.Add( "csv:/text/gui_addendum_3" );
+	Text.Add( "csv:/text/gui_addendum_4" );
+	Text.Add( "csv:/text/objectives" );
+	iGUI.SetGUIGlobals();
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	window_0 = iGUI.CreateMenuButton( "iPDAGUI.SPDemoMainScreen_OnTraining", Text.Field( "pda_training", FT_Text ), localList );
+	window_1 = iGUI.CreateMenuButton( "iPDAGUI.SPDemoMainScreen_OnStart", Text.Field( "pda_start_new_game", FT_Text ), localList );
+	window_2 = iGUI.CreateMenuButton( "iPDAGUI.SPDemoMainScreen_OnInstant", Text.Field( "pda_instant_action", FT_Text ), localList );
+	window_3 = iGUI.CreateMenuButton( "iPDAGUI.SPDemoMainScreen_OnOptions", Text.Field( "pda_options", FT_Text ), localList );
+	window_4 = iGUI.CreateMenuButton( "iPDAGUI.SPDemoMainScreen_OnQuit", Text.Field( "pda_quit_button", FT_Text ), localList );
+	window_5 = iGUI.CreateMenu( localList );
+	GUI.SetFirstControlFocus( window_0 );
+	iGUI.SetCyclicControlFocusPath( localList );
+	
+	if ( Stream.IsPlayingURL( 0, "sound:/audio/music/badlands" ) == 0 )
+	{
+		Stream.Play( 0, "sound:/audio/music/badlands", false, true );
+	}
+}
+
+SPDemoMainScreen_OnTraining()
+{
+	string local_0 = "iDemoTraining";
+	
+	GUI.PlaySound( S_Confirm );
+	
+	debug atomic
+	{
+		Debug.PrintString( "SPDemoMainScreen_OnTraining: Starting demo training package \"" );
+		Debug.PrintString( local_0 );
+		Debug.PrintString( "\"\n" );
+	}
+	
+	iGame.SetGameType( 1 );
+	iGame.StartNewGame( "map:/geog/badlands/mini_hoffers_wake", local_0 );
+}
+
+SPDemoMainScreen_OnStart()
+{
+	string local_0 = "iDemoMission";
+	
+	GUI.PlaySound( S_Confirm );
+	
+	debug atomic
+	{
+		Debug.PrintString( "SPDemoMainScreen_OnStart: Starting demo package \"" );
+		Debug.PrintString( local_0 );
+		Debug.PrintString( "\"\n" );
+	}
+	
+	iGame.SetGameType( 1 );
+	iGame.StartNewGame( "map:/geog/badlands/mini_hoffers_wake", local_0 );
+}
+
+SPDemoMainScreen_OnInstant()
+{
+	GUI.PlaySound( S_Confirm );
+	iGame.SetGameType( 2 );
+	iGame.StartNewGame( "map:/geog/badlands/mini_hoffers_wake", "iInstantAction" );
+}
+
+SPDemoMainScreen_OnOptions()
+{
+	GUI.PlaySound( S_Confirm );
+	GUI.OverlayScreen( "icSPPDAOptionsScreen" );
+}
+
+SPDemoMainScreen_OnQuit()
+{
+	GUI.PlaySound( S_Confirm );
+	iGame.SetGameType( 1 );
+	GUI.OverlayScreen( "icPDAConfirmScreen" );
+}
+
+PDAConfirmScreen()
+{
+	hwindow window_0;
+	hwindow window_1;
+	hwindow window_2;
+	hwindow window_3;
+	list localList;
+	int local_5;
+	int local_6;
+	
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	window_0 = iGUI.CreateShadyBar();
+	iGUI.AddBackButtons( window_0, "iPDAGUI.PDAConfirmScreen_OnCancel", "iPDAGUI.PDAConfirmScreen_OnCancel" );
+	iGUI.AddTitle( window_0, Text.Field( "pda_quit_button", FT_Text ) );
+	window_2 = iGUI.CreateAndInitialiseParentlessInverseButton( "iPDAGUI.PDAConfirmScreen_OnCancel", Text.Field( "gui_cancel", FT_Text ), localList );
+	window_1 = iGUI.CreateAndInitialiseParentlessInverseButton( "iPDAGUI.PDAConfirmScreen_OnOK", Text.Field( "pda_quit_button", FT_Text ), localList );
+	local_5 = ( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_alignmentoffset" ) );
+	local_6 = ( Global.Int( "GUI_title_yoffset" ) + (Global.Int( "GUI_fancybutton_height" ) + 20) );
+	window_3 = iGUI.CreateWindowListInFancyBorder( window_0, localList, local_5, local_6 );
+	GUI.SetFirstControlFocus( window_2 );
+	iGUI.SetCyclicControlFocusPath( localList );
+	GUI.SetControlFocusCancelFunction( "iPDAGUI.PDAConfirmScreen_OnCancel" );
+}
+
+PDAConfirmScreen_OnOK()
+{
+	iMultiplay.ServerAppTerminate();
+	
+	if ( iGame.GameType() == 1 )
+	{
+		iGame.PlayMovieLooped( "pop" );
+		iGame.PlayMovieLooped( "/movies/splash5" );
+		iGame.PlayMovieLooped( "/movies/splash4" );
+		iGame.PlayMovieLooped( "/movies/splash3" );
+		iGame.PlayMovieLooped( "/movies/splash2" );
+		iGame.PlayMovieLooped( "/movies/splash1" );
+		iGame.PlayMovieLooped( "/movies/splash1" );
+	}
+	
+	GUI.PopScreen();
+}
+
+PDAConfirmScreen_OnCancel()
+{
+	GUI.RemoveLastOverlay();
+}
+
+FlightConfirmScreen()
+{
+	hwindow window_0;
+	hwindow window_1;
+	hwindow window_2;
+	hwindow window_3;
+	list localList;
+	int local_5;
+	int local_6;
+	
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	window_0 = iGUI.CreateShadyBar();
+	iGUI.AddBackButtons( window_0, "iPDAGUI.FlightConfirmScreen_OnCancel", "iPDAGUI.FlightConfirmScreen_OnCancel" );
+	iGUI.AddTitle( window_0, Text.Field( "pda_quit_button", FT_Text ) );
+	window_2 = iGUI.CreateAndInitialiseParentlessInverseButton( "iPDAGUI.FlightConfirmScreen_OnCancel", Text.Field( "gui_cancel", FT_Text ), localList );
+	window_1 = iGUI.CreateAndInitialiseParentlessInverseButton( "iPDAGUI.FlightConfirmScreen_OnOK", Text.Field( "pda_quit_button", FT_Text ), localList );
+	local_5 = ( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_alignmentoffset" ) );
+	local_6 = ( Global.Int( "GUI_title_yoffset" ) + (Global.Int( "GUI_fancybutton_height" ) + 20) );
+	window_3 = iGUI.CreateWindowListInFancyBorder( window_0, localList, local_5, local_6 );
+	GUI.SetFirstControlFocus( window_2 );
+	iGUI.SetCyclicControlFocusPath( localList );
+	GUI.SetControlFocusCancelFunction( "iPDAGUI.FlightConfirmScreen_OnCancel" );
+}
+
+FlightConfirmScreen_OnOK()
+{
+	switch ( iGame.GameType() )
+	{
+		case 0:
+		case 1:
+		case 2:
+			GUI.PopScreensTo( "icSPMasterScreen" );
+			GUI.PopScreen();
+			return;
+		
+		case 3:
+			iMultiplay.ClientSetRequestedToCycle( false );
+			GUI.PopScreen();
+			GUI.PopScreen();
+			GUI.PushScreen( "icPDAOverlayManager" );
+			GUI.OverlayScreen( "icNetworkScreen" );
+			return;
+	}
+}
+
+FlightConfirmScreen_OnCancel()
+{
+	GUI.RemoveLastOverlay();
+}
+
+SPBasePDAScreen()
+{
+	hwindow window_0;
+	hwindow window_1;
+	hwindow window_2;
+	hwindow window_3;
+	hwindow window_4;
+	hwindow window_5;
+	list localList;
+	
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	window_0 = iGUI.CreateMenuButton( "iPDAGUI.SPBasePDAScreen_OnResume", Text.Field( "pda_resume", FT_Text ), localList );
+	window_1 = iGUI.CreateMenuButton( "iPDAGUI.SPBasePDAScreen_OnSave", Text.Field( "pda_save_game", FT_Text ), localList );
+	window_2 = iGUI.CreateMenuButton( "iPDAGUI.SPBasePDAScreen_OnLoad", Text.Field( "pda_load_game", FT_Text ), localList );
+	window_3 = iGUI.CreateMenuButton( "iPDAGUI.SPMainPDAScreen_OnOptions", Text.Field( "pda_options", FT_Text ), localList );
+	window_4 = iGUI.CreateMenuButton( "iPDAGUI.SPBasePDAScreen_OnQuit", Text.Field( "pda_quit", FT_Text ), localList );
+	window_5 = iGUI.CreateMenu( localList );
+	GUI.SetFirstControlFocus( window_0 );
+	iGUI.SetCyclicControlFocusPath( localList );
+}
+
+SPBasePDAScreen_OnSave()
+{
+	GUI.PlaySound( S_Confirm );
+	GUI.OverlayScreen( "icSPPDASaveScreen" );
+}
+
+SPBasePDAScreen_OnLoad()
+{
+	GUI.PlaySound( S_Confirm );
+	GUI.OverlayScreen( "icSPPDALoadScreen" );
+}
+
+SPBasePDAScreen_OnQuit()
+{
+	GUI.PlaySound( S_Confirm );
+	GUI.OverlayScreen( "icFlightConfirmScreen" );
+}
+
+SPBasePDAScreen_OnResume()
+{
+	GUI.PlaySound( S_Confirm );
+	GUI.PopScreen();
+}
+
+SPFlightPDAScreen()
+{
+	hwindow window_0;
+	hwindow window_1;
+	hwindow window_2;
+	hwindow window_3;
+	hwindow window_4;
+	int local_5;
+	hwindow window_5;
+	list localList;
+	
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	
+	if ( (iGame.GameType() == 3) && iMultiplay.ClientIsTeamGame() )
+	{
+		if ( iSim.Faction( iShip.FindPlayerShip() ) == iFaction.Find( Text.Field( "mp_flag_team_a", FT_Text ) ) )
+		{
+			window_4 = iGUI.CreateMenuButton( "iPDAGUI.SPFlightPDAScreen_OnSelectTeam", Text.Field( "mp_pda_team_beta", FT_Text ), localList );
+		}
+		else
+		{
+			window_4 = iGUI.CreateMenuButton( "iPDAGUI.SPFlightPDAScreen_OnSelectTeam", Text.Field( "mp_pda_team_alpha", FT_Text ), localList );
+		}
+	}
+	
+	if ( Global.Exists( "pda_no_resume" ) )
+	{
+		Global.Destroy( "pda_no_resume" );
+	}
+	else
+	{
+		window_0 = iGUI.CreateMenuButton( "iPDAGUI.SPFlightPDAScreen_OnResume", Text.Field( "pda_resume", FT_Text ), localList );
+	}
+	
+	if ( (iGame.GameType() != 3) && ((iGame.GameType() != 2) && (iGame.GameType() != 1)) )
+	{
+		window_1 = iGUI.CreateMenuButton( "iPDAGUI.SPFlightPDAScreen_OnLoad", Text.Field( "pda_load_game", FT_Text ), localList );
+	}
+	
+	window_2 = iGUI.CreateMenuButton( "iPDAGUI.SPMainPDAScreen_OnOptions", Text.Field( "pda_options", FT_Text ), localList );
+	window_3 = iGUI.CreateMenuButton( "iPDAGUI.SPFlightPDAScreen_OnQuit", Text.Field( "pda_quit", FT_Text ), localList );
+	window_5 = iGUI.CreateMenu( localList );
+	GUI.SetFirstControlFocus( GUI.Cast( List.Head( localList ) ) );
+	iGUI.SetCyclicControlFocusPath( localList );
+}
+
+SPFlightPDAScreen_OnLoad()
+{
+	GUI.PlaySound( S_Confirm );
+	GUI.OverlayScreen( "icSPPDALoadScreen" );
+}
+
+SPFlightPDAScreen_OnQuit()
+{
+	GUI.PlaySound( S_Confirm );
+	GUI.OverlayScreen( "icFlightConfirmScreen" );
+}
+
+SPFlightPDAScreen_OnResume()
+{
+	GUI.PlaySound( S_Confirm );
+	GUI.PopScreen();
+}
+
+SPFlightPDAScreen_OnSelectTeam()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	hfaction faction = iSim.Faction( playerShip );
+	string local_2;
+	
+	if ( faction == iFaction.Find( Text.Field( "mp_flag_team_a", FT_Text ) ) )
+	{
+		local_2 = Text.Field( "mp_flag_team_b", FT_Text );
+	}
+	else
+	{
+		local_2 = Text.Field( "mp_flag_team_a", FT_Text );
+	}
+	
+	iSim.SetFaction( playerShip, iFaction.Find( local_2 ) );
+	iMultiplay.ClientSendUserMessage( playerShip, 1, local_2 );
+	SPBasePDAScreen_OnResume();
+}
+
+SPPDASaveScreen()
+{
+	hwindow window;
+	int local_1;
+	int local_2;
+	int local_3;
+	list localList_0;
+	list localList_1;
+	int local_6;
+	
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	window = iGUI.CreateWideShadyBar();
+	iGUI.AddBackButtons( window, "iPDAGUI.SPPDALoadScreen_OnBackButton", "iPDAGUI.SPPDALoadScreen_OnBackButton" );
+	iGUI.AddTitle( window, Text.Field( "pda_save_game", FT_Text ) );
+	local_function_0( localList_0, localList_1 );
+	local_2 = ( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_alignmentoffset" ) );
+	local_3 = ( Global.Int( "GUI_title_yoffset" ) + (Global.Int( "GUI_fancybutton_height" ) + 20) );
+	iGUI.CreateWindowListInFancyBorder( window, localList_1, local_2, local_3 );
+	Global.CreateList( "saved_game_buttons", 2, localList_0 );
+	GUI.SetFirstControlFocus( GUI.Cast( List.Head( localList_0 ) ) );
+	iGUI.SetCyclicControlFocusPath( localList_0 );
+	GUI.SetControlFocusCancelFunction( "iPDAGUI.SPPDASaveScreen_OnBackButton" );
+}
+
+SPPDASaveScreen_OnBackButton()
+{
+	Global.Destroy( "saved_game_buttons" );
+	GUI.RemoveLastOverlay();
+}
+
+SPPDASaveScreen_SetDefaultName()
+{
+	string local_0;
+	list localList = Global.List( "saved_game_buttons" );
+	hwindow gUI;
+	int itemCount = List.ItemCount( localList );
+	int ii;
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		gUI = GUI.Cast( List.GetNth( localList, ii ) );
+		
+		if ( GUI.FocusedWindow() == gUI )
+		{
+			local_0 = Text.Field( "savegame_act", FT_Text );
+			local_0 = String.Join( local_0, " " );
+			local_0 = String.Join( local_0, String.FromInt( Global.Int( "g_current_act" ) ) );
+			local_0 = String.Join( local_0, "  " );
+			local_0 = String.Join( local_0, iGame.RealTime() );
+			GUI.SetEditBoxValue( gUI, local_0 );
+			GUI.SetEditBoxCursorToEnd( gUI );
+		}
+	}
+}
+
+SPPDASaveScreen_OnSave()
+{
+	string local_0;
+	list localList = Global.List( "saved_game_buttons" );
+	hwindow gUI;
+	int itemCount = List.ItemCount( localList );
+	int ii;
+	
+	GUI.PlaySound( S_Confirm );
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		gUI = GUI.Cast( List.GetNth( localList, ii ) );
+		
+		if ( GUI.FocusedWindow() == gUI )
+		{
+			local_0 = GUI.EditBoxValue( gUI );
+			iGame.SaveGame( ii, local_0 );
+			return;
+		}
+	}
+}
+
+local_function_1( string param_0_, list localList_0_, list localList_1_ )
+{
+	hwindow window_0;
+	hwindow window_1;
+	int gUIInversebuttonTextoffset = Global.Int( "GUI_inversebutton_textoffset" );
+	int local_3 = ( 640 - (2 * Global.Int( "GUI_alignment_offset" )) );
+	int local_4 = ( Global.Int( "GUI_shader_width" ) - Global.Int( "GUI_inversebutton_width" ) );
+	
+	local_4 = ( local_3 - local_4 );
+	window_1 = GUI.CreateStaticWindow( 0, 0, local_4, Global.Int( "GUI_inversebutton_height" ), none );
+	GUI.SetWindowClientArea( window_1, 0, 0, local_4, Global.Int( "GUI_inversebutton_height" ) );
+	window_0 = GUI.CreateEditBox( gUIInversebuttonTextoffset, 0, local_4 - (2 * gUIInversebuttonTextoffset), Global.Int( "GUI_inversebutton_height" ), window_1, false, param_0_, false );
+	GUI.SetEditBoxOverrides( window_0, "iPDAGUI.SPPDASaveScreen_SetDefaultName", "", "iPDAGUI.SPPDASaveScreen_OnSave" );
+	GUI.SetWindowFont( window_0, Global.String( "GUI_detail_font" ) );
+	GUI.SetWindowTextFormatting( window_0, false, 0 );
+	GUI.SetWindowStateColours( window_0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 );
+	GUI.SetWindowStateTextures( window_1, Global.String( "GUI_texture_request" ), Global.Int( "GUI_inversebutton_neutral_left_left" ), Global.Int( "GUI_inversebutton_neutral_left_top" ), Global.Int( "GUI_inversebutton_neutral_left_right" ), Global.Int( "GUI_inversebutton_neutral_left_bottom" ), Global.Int( "GUI_inversebutton_neutral_body_left" ), Global.Int( "GUI_inversebutton_neutral_body_top" ), Global.Int( "GUI_inversebutton_neutral_body_right" ), Global.Int( "GUI_inversebutton_neutral_body_bottom" ), Global.Int( "GUI_inversebutton_neutral_right_left" ), Global.Int( "GUI_inversebutton_neutral_right_top" ), Global.Int( "GUI_inversebutton_neutral_right_right" ), Global.Int( "GUI_inversebutton_neutral_right_bottom" ), Global.Int( "GUI_inversebutton_focused_left_left" ), Global.Int( "GUI_inversebutton_focused_left_top" ), Global.Int( "GUI_inversebutton_focused_left_right" ), Global.Int( "GUI_inversebutton_focused_left_bottom" ), Global.Int( "GUI_inversebutton_focused_body_left" ), Global.Int( "GUI_inversebutton_focused_body_top" ), Global.Int( "GUI_inversebutton_focused_body_right" ), Global.Int( "GUI_inversebutton_focused_body_bottom" ), Global.Int( "GUI_inversebutton_focused_right_left" ), Global.Int( "GUI_inversebutton_focused_right_top" ), Global.Int( "GUI_inversebutton_focused_right_right" ), Global.Int( "GUI_inversebutton_focused_right_bottom" ), Global.Int( "GUI_inversebutton_selected_left_left" ), Global.Int( "GUI_inversebutton_selected_left_top" ), Global.Int( "GUI_inversebutton_selected_left_right" ), Global.Int( "GUI_inversebutton_selected_left_bottom" ), Global.Int( "GUI_inversebutton_selected_body_left" ), Global.Int( "GUI_inversebutton_selected_body_top" ), Global.Int( "GUI_inversebutton_selected_body_right" ), Global.Int( "GUI_inversebutton_selected_body_bottom" ), Global.Int( "GUI_inversebutton_selected_right_left" ), Global.Int( "GUI_inversebutton_selected_right_top" ), Global.Int( "GUI_inversebutton_selected_right_right" ), Global.Int( "GUI_inversebutton_selected_right_bottom" ) );
+	List.AddTail( localList_0_, window_0 );
+	List.AddTail( localList_1_, window_1 );
+}
+
+local_function_0( list localList_0_, list localList_1_ )
+{
+	string name;
+	int local_1 = iGame.NumberOfSavedGameSlots();
+	int ii;
+	
+	for ( ii = 0; ii < local_1; ++ii )
+	{
+		name = iGame.NameOfSaveInSlot( ii );
+		
+		if ( !( name == "" ) )
+		{
+			local_function_1( name, localList_0_, localList_1_ );
+		}
+		else
+		{
+			local_function_1( Text.Field( "savegame_empty", FT_Text ), localList_0_, localList_1_ );
+		}
+	}
+}
+
+local_function_2( string param_0_, string param_1_, list localList_0_, list localList_1_ )
+{
+	hwindow window_0;
+	hwindow window_1;
+	int gUIInversebuttonTextoffset = Global.Int( "GUI_inversebutton_textoffset" );
+	int local_3 = ( 640 - (2 * Global.Int( "GUI_alignment_offset" )) );
+	int local_4 = ( Global.Int( "GUI_shader_width" ) - Global.Int( "GUI_inversebutton_width" ) );
+	
+	local_4 = ( local_3 - local_4 );
+	window_1 = GUI.CreateStaticWindow( 0, 0, local_4, Global.Int( "GUI_inversebutton_height" ), none );
+	GUI.SetWindowClientArea( window_1, 0, 0, local_4, Global.Int( "GUI_inversebutton_height" ) );
+	window_0 = GUI.CreateButton( gUIInversebuttonTextoffset, 0, local_4 - (2 * gUIInversebuttonTextoffset), Global.Int( "GUI_inversebutton_height" ), window_1 );
+	GUI.SetButtonFunctionPog( window_0, param_0_ );
+	GUI.SetWindowTitle( window_0, param_1_ );
+	GUI.SetWindowFont( window_0, Global.String( "GUI_detail_font" ) );
+	GUI.SetWindowTextFormatting( window_0, false, 0 );
+	GUI.SetWindowStateColours( window_0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 );
+	GUI.SetWindowStateTextures( window_1, Global.String( "GUI_texture_request" ), Global.Int( "GUI_inversebutton_neutral_left_left" ), Global.Int( "GUI_inversebutton_neutral_left_top" ), Global.Int( "GUI_inversebutton_neutral_left_right" ), Global.Int( "GUI_inversebutton_neutral_left_bottom" ), Global.Int( "GUI_inversebutton_neutral_body_left" ), Global.Int( "GUI_inversebutton_neutral_body_top" ), Global.Int( "GUI_inversebutton_neutral_body_right" ), Global.Int( "GUI_inversebutton_neutral_body_bottom" ), Global.Int( "GUI_inversebutton_neutral_right_left" ), Global.Int( "GUI_inversebutton_neutral_right_top" ), Global.Int( "GUI_inversebutton_neutral_right_right" ), Global.Int( "GUI_inversebutton_neutral_right_bottom" ), Global.Int( "GUI_inversebutton_focused_left_left" ), Global.Int( "GUI_inversebutton_focused_left_top" ), Global.Int( "GUI_inversebutton_focused_left_right" ), Global.Int( "GUI_inversebutton_focused_left_bottom" ), Global.Int( "GUI_inversebutton_focused_body_left" ), Global.Int( "GUI_inversebutton_focused_body_top" ), Global.Int( "GUI_inversebutton_focused_body_right" ), Global.Int( "GUI_inversebutton_focused_body_bottom" ), Global.Int( "GUI_inversebutton_focused_right_left" ), Global.Int( "GUI_inversebutton_focused_right_top" ), Global.Int( "GUI_inversebutton_focused_right_right" ), Global.Int( "GUI_inversebutton_focused_right_bottom" ), Global.Int( "GUI_inversebutton_selected_left_left" ), Global.Int( "GUI_inversebutton_selected_left_top" ), Global.Int( "GUI_inversebutton_selected_left_right" ), Global.Int( "GUI_inversebutton_selected_left_bottom" ), Global.Int( "GUI_inversebutton_selected_body_left" ), Global.Int( "GUI_inversebutton_selected_body_top" ), Global.Int( "GUI_inversebutton_selected_body_right" ), Global.Int( "GUI_inversebutton_selected_body_bottom" ), Global.Int( "GUI_inversebutton_selected_right_left" ), Global.Int( "GUI_inversebutton_selected_right_top" ), Global.Int( "GUI_inversebutton_selected_right_right" ), Global.Int( "GUI_inversebutton_selected_right_bottom" ) );
+	List.AddTail( localList_0_, window_0 );
+	List.AddTail( localList_1_, window_1 );
+}
+
+SPPDALoadScreen()
+{
+	hwindow window;
+	int local_1;
+	int local_2;
+	int local_3;
+	list localList_0;
+	list localList_1;
+	bool local_6;
+	
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	window = iGUI.CreateWideShadyBar();
+	iGUI.AddBackButtons( window, "iPDAGUI.SPPDALoadScreen_OnBackButton", "iPDAGUI.SPPDALoadScreen_OnBackButton" );
+	iGUI.AddTitle( window, Text.Field( "pda_load_game", FT_Text ) );
+	local_6 = iGame.AutosaveSaved();
+	
+	if ( local_6 )
+	{
+		local_function_2( "iPDAGUI.SPPDALoadScreen_OnAutosaveLoad", Text.Field( "savegame_autosave", FT_Text ), localList_0, localList_1 );
+	}
+	
+	local_function_3( localList_0, localList_1 );
+	local_2 = ( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_alignmentoffset" ) );
+	local_3 = ( Global.Int( "GUI_title_yoffset" ) + (Global.Int( "GUI_fancybutton_height" ) + 20) );
+	iGUI.CreateWindowListInFancyBorder( window, localList_1, local_2, local_3 );
+	GUI.SetFirstControlFocus( GUI.Cast( List.Head( localList_0 ) ) );
+	iGUI.SetCyclicControlFocusPath( localList_0 );
+	
+	if ( local_6 )
+	{
+		List.RemoveHead( localList_0 );
+	}
+	
+	Global.CreateList( "saved_game_buttons", 2, localList_0 );
+	GUI.SetControlFocusCancelFunction( "iPDAGUI.SPPDALoadScreen_OnBackButton" );
+}
+
+SPPDALoadScreen_OnBackButton()
+{
+	GUI.PlaySound( S_Confirm );
+	Global.Destroy( "saved_game_buttons" );
+	GUI.RemoveLastOverlay();
+}
+
+SPPDALoadScreen_OnAutosaveLoad()
+{
+	GUI.PlaySound( S_Confirm );
+	GUI.ClearAllScreens();
+	GUI.PushScreen( "icPDAOverlayManager" );
+	GUI.OverlayScreen( "icSPMainPDAScreen" );
+	iGame.SetGameType( 0 );
+	iGame.LoadGame( Text.Field( "savegame_autosave", FT_Text ) );
+}
+
+SPPDALoadScreen_OnLoad()
+{
+	string local_0;
+	list localList = Global.List( "saved_game_buttons" );
+	hwindow gUI;
+	int itemCount = List.ItemCount( localList );
+	int ii;
+	
+	GUI.PlaySound( S_Confirm );
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		gUI = GUI.Cast( List.GetNth( localList, ii ) );
+		
+		if ( GUI.FocusedWindow() == gUI )
+		{
+			local_0 = GUI.WindowTitle( gUI );
+			GUI.ClearAllScreens();
+			GUI.PushScreen( "icPDAOverlayManager" );
+			GUI.OverlayScreen( "icSPMainPDAScreen" );
+			iGame.SetGameType( 0 );
+			iGame.LoadGame( local_0 );
+			return;
+		}
+	}
+}
+
+local_function_3( list localList_0_, list localList_1_ )
+{
+	int local_0 = iGame.NumberOfSavedGameSlots();
+	int ii;
+	string name;
+	
+	for ( ii = 0; ii < local_0; ++ii )
+	{
+		name = iGame.NameOfSaveInSlot( ii );
+		
+		if ( !( name == "" ) )
+		{
+			local_function_2( "iPDAGUI.SPPDALoadScreen_OnLoad", name, localList_0_, localList_1_ );
+		}
+	}
+}
+
+SPPDAOptionsScreen()
+{
+	hwindow window_0;
+	hwindow window_1;
+	hwindow window_2;
+	hwindow window_3;
+	hwindow window_4;
+	hwindow window_5;
+	list localList;
+	int local_7;
+	int local_8;
+	int gUIFancybuttonHeight = Global.Int( "GUI_fancybutton_height" );
+	string local_10;
+	string local_11;
+	
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	window_0 = iGUI.CreateShadyBar();
+	iGUI.AddBackButtons( window_0, "iPDAGUI.SPPDAOptionsScreen_OnBackButton", "iPDAGUI.SPPDAOptionsScreen_OnBackToMainMenuButton" );
+	iGUI.AddTitle( window_0, Text.Field( "pda_options", FT_Text ) );
+	local_11 = Text.Field( "options_graphics", FT_Text );
+	local_11 = String.UpperCase( local_11 );
+	window_1 = iGUI.CreateAndInitialiseParentlessInverseButton( "iPDAGUI.SPPDAOptionsScreen_OnGraphics", local_11, localList );
+	local_11 = Text.Field( "options_sound", FT_Text );
+	local_11 = String.UpperCase( local_11 );
+	window_2 = iGUI.CreateAndInitialiseParentlessInverseButton( "iPDAGUI.SPPDAOptionsScreen_OnSound", local_11, localList );
+	local_11 = Text.Field( "options_controls", FT_Text );
+	local_11 = String.UpperCase( local_11 );
+	window_3 = iGUI.CreateAndInitialiseParentlessInverseButton( "iPDAGUI.SPPDAOptionsScreen_OnControls", local_11, localList );
+	local_7 = ( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_alignmentoffset" ) );
+	local_8 = ( Global.Int( "GUI_title_yoffset" ) + (Global.Int( "GUI_fancybutton_height" ) + 20) );
+	window_5 = iGUI.CreateWindowListInFancyBorder( window_0, localList, local_7, local_8 );
+	
+	if ( GUI.NumScreens() == 1 )
+	{
+		window_4 = iGUI.CreateAndInitialiseFancyButton( window_0, local_8 + (GUI.WindowCanvasHeight( window_5 ) + 10), Text.Field( "options_restoredefaults", FT_Text ), "iPDAGUI.SPPDAOptionsScreen_OnRestoreDefaults" );
+		List.AddTail( localList, window_4 );
+	}
+	
+	GUI.SetFirstControlFocus( window_1 );
+	iGUI.SetCyclicControlFocusPath( localList );
+	GUI.SetControlFocusCancelFunction( "iPDAGUI.SPPDAOptionsScreen_OnBackButton" );
+}
+
+SPPDAOptionsScreen_OnRestoreDefaults()
+{
+	iOptions.RestoreDefaults();
+	GUI.RemoveLastOverlay();
+	GUI.OverlayScreen( "icSPPDAOptionsScreen" );
+}
+
+SPPDAOptionsScreen_OnBackButton()
+{
+	GUI.PlaySound( S_Confirm );
+	GUI.RemoveLastOverlay();
+}
+
+SPPDAOptionsScreen_OnBackToMainMenuButton()
+{
+	SPPDAOptionsScreen_OnBackButton();
+}
+
+SPPDAOptionsScreen_OnGraphics()
+{
+	GUI.PlaySound( S_Confirm );
+	GUI.OverlayScreen( "icSPPDAGraphicsScreen" );
+}
+
+SPPDAOptionsScreen_OnSound()
+{
+	GUI.PlaySound( S_Confirm );
+	GUI.OverlayScreen( "icSPPDASoundScreen" );
+}
+
+SPPDAOptionsScreen_OnControls()
+{
+	GUI.PlaySound( S_Confirm );
+	GUI.OverlayScreen( "icSPPDAControlsScreen" );
+}
+
+SPPDAGraphicsScreen()
+{
+	hwindow gUI;
+	list localList;
+	hwindow window_0;
+	hwindow window_1;
+	hwindow window_2;
+	htask local_5;
+	string local_6;
+	int gUIFancybuttonHeight = Global.Int( "GUI_fancybutton_height" );
+	
+	local_6 = Text.Field( "pda_options", FT_Text );
+	local_6 = String.UpperCase( local_6 );
+	localList = iGUI.CreateGreyBoxStyleScreen( local_6, "iPDAGUI.SPPDAOptionsCategory_OnBackButton", "iPDAGUI.SPPDAOptionsCategory_OnBackToMainMenuButton" );
+	gUI = GUI.Cast( List.Head( localList ) );
+	List.RemoveHead( localList );
+	List.RemoveAll( localList );
+	window_1 = GUI.CreateWindow( 0, 0, GUI.WindowCanvasWidth( gUI ), GUI.WindowCanvasHeight( gUI ) - gUIFancybuttonHeight, gUI );
+	window_0 = iGUI.CreateTitledListBox( window_1, Text.Field( "options_graphics", FT_Text ), 0, "", 0, "", 0, "" );
+	List.AddHead( localList, window_0 );
+	GUI.SetInputOverrideFunctions( window_0, "iPDAGUI.SPPDAOptionsCategory_OnLeftOption", "", "iPDAGUI.SPPDAOptionsCategory_OnRightOption", "", "iPDAGUI.SPPDAOptionsCategory_OnSelectOption", "iPDAGUI.SPPDAOptionsCategory_OnBackButton", "iPDAGUI.SPPDAOptionsCategory_OnMouseDown", "iPDAGUI.SPPDAOptionsCategory_OnMouseUp", "" );
+	GUI.SetControlFocusCancelFunction( "iPDAGUI.SPPDAOptionsCategory_OnBackButton" );
+	iOptions.RegisterFloat( "options_modeldetail", "FcDetailSwitchNode", "global_detail_scale", 0.10, 0.70, false );
+	iOptions.RegisterFloat( "options_modeldetail", "FcDetailSwitchNode", "cull_detail", 0.00550, 0.0020, false );
+	iOptions.RegisterFloat( "options_modeldetail", "FcDetailSwitchNode", "box_detail", 0.02750, 0.0040, false );
+	iOptions.RegisterFloat( "options_brightness", "fcGraphicsDeviceD3D", "brightness", 0.0, 1.0, true );
+	
+	if ( GUI.NumScreens() == 1 )
+	{
+		iOptions.RegisterInt( "options_texture_size", "fcGraphicsDeviceD3D", "texture_size", 2, 0, false );
+	}
+	
+	if ( GUI.NumScreens() == 1 )
+	{
+		iOptions.RegisterInt( "options_texturequality", "fcGraphicsDeviceD3D", "texture_quality", 0, 1, false );
+	}
+	
+	if ( GUI.NumScreens() == 1 )
+	{
+		iOptions.RegisterBool( "options_compressedtextures", "fcGraphicsDeviceD3D", "use_compressed_textures", false );
+	}
+	
+	if ( GUI.NumScreens() == 1 )
+	{
+		iOptions.RegisterInt( "options_shader_quality", "FcModel", "shader_quality", 0, 2, false );
+	}
+	
+	iOptions.RegisterBool( "options_trilinear", "fcGraphicsDeviceD3D", "use_trilinear", false );
+	iOptions.RegisterBool( "options_anistropic_filtering", "fcGraphicsDeviceD3D", "use_anisotropic_filtering", false );
+	
+	if ( GUI.NumScreens() == 1 )
+	{
+		iOptions.RegisterBool( "options_multitexture", "fcGraphicsDeviceD3D", "use_multitexture", false );
+	}
+	
+	iOptions.RegisterInt( "options_lightingquality", "fcGraphicsDeviceD3D", "max_simultaneous_lights", 2, 8, false );
+	
+	if ( GUI.NumScreens() == 1 )
+	{
+		iOptions.RegisterBool( "options_hardwaretnl", "fcGraphicsDeviceD3D", "use_hardware_tnl", false );
+	}
+	
+	iOptions.RegisterBool( "options_vsync", "fcGraphicsDeviceD3D", "vsync", true );
+	
+	if ( GUI.NumScreens() == 1 )
+	{
+		iOptions.RegisterBool( "options_starfieldquality", "icStarfieldAvatar", "high_quality", false );
+	}
+	
+	iOptions.RegisterBool( "options_antialiasedhudlines", "icHUD", "use_thick_lines", false );
+	iOptions.RegisterBool( "options_antialiasedorbstalks", "icHUDOrbRadar", "use_thick_stalks", false );
+	iOptions.CreateWindows( window_0 );
+	Global.CreateHandle( "options_screen_list_box", 2, window_0 );
+	
+	if ( GUI.NumScreens() == 1 )
+	{
+		local_6 = Text.Field( "options_resolution", FT_Text );
+		local_6 = String.UpperCase( local_6 );
+		window_2 = iGUI.CreateAndInitialiseFancyButton( gUI, GUI.WindowCanvasHeight( gUI ) - gUIFancybuttonHeight, local_6, "iPDAGUI.SPPDAGraphicsScreen_OnDeviceSwitch" );
+		List.AddTail( localList, window_2 );
+	}
+	
+	GUI.SetFirstControlFocus( window_0 );
+	iGUI.SetCyclicControlFocusPath( localList );
+	Global.CreateInt( "SPPDAOptionsCategory_FocusedOption", 2, -1 );
+	local_5 = start local_function_4();
+	Task.Detach( local_5 );
+	Global.CreateHandle( "update_task", 2, local_5 );
+}
+
+SPPDAGraphicsScreen_OnDeviceSwitch()
+{
+	htask updateTask = Task.Cast( Global.Handle( "update_task" ) );
+	
+	Task.Halt( updateTask );
+	Global.Destroy( "update_task" );
+	GUI.PlaySound( S_Confirm );
+	iOptions.Apply();
+	GUI.OverlayScreen( "icSPPDADeviceScreen" );
+}
+
+SPPDASoundScreen()
+{
+	hwindow gUI;
+	list localList;
+	hwindow window;
+	htask local_3;
+	string local_4;
+	int gUIFancybuttonHeight = Global.Int( "GUI_fancybutton_height" );
+	
+	local_4 = Text.Field( "pda_options", FT_Text );
+	local_4 = String.UpperCase( local_4 );
+	localList = iGUI.CreateGreyBoxStyleScreen( local_4, "iPDAGUI.SPPDAOptionsCategory_OnBackButton", "iPDAGUI.SPPDAOptionsCategory_OnBackToMainMenuButton" );
+	gUI = GUI.Cast( List.Head( localList ) );
+	List.RemoveHead( localList );
+	List.RemoveAll( localList );
+	window = iGUI.CreateTitledListBox( gUI, Text.Field( "options_sound", FT_Text ), 0, "", 0, "", 0, "" );
+	List.AddHead( localList, window );
+	GUI.SetInputOverrideFunctions( window, "iPDAGUI.SPPDAOptionsCategory_OnLeftOption", "", "iPDAGUI.SPPDAOptionsCategory_OnRightOption", "", "iPDAGUI.SPPDAOptionsCategory_OnSelectOption", "iPDAGUI.SPPDAOptionsCategory_OnBackButton", "iPDAGUI.SPPDAOptionsCategory_OnMouseDown", "iPDAGUI.SPPDAOptionsCategory_OnMouseUp", "" );
+	GUI.SetControlFocusCancelFunction( "iPDAGUI.SPPDAOptionsCategory_OnBackButton" );
+	iOptions.RegisterFloat( "options_speechvolume", "fcSoundDeviceDA", "speech_volume", 0.0, 1.0, true );
+	iOptions.RegisterFloat( "options_musicvolume", "fcSoundDeviceDA", "music_volume", 0.0, 1.0, true );
+	iOptions.RegisterFloat( "options_movie_volume", "fcMovieDeviceBink", "volume", 0.0, 1.0, true );
+	iOptions.RegisterFloat( "options_soundfxvolume", "fcSoundDeviceDA", "effects_volume", 0.0, 1.0, true );
+	iOptions.CreateWindows( window );
+	Global.CreateHandle( "options_screen_list_box", 2, window );
+	GUI.SetFirstControlFocus( window );
+	iGUI.SetCyclicControlFocusPath( localList );
+	Global.CreateInt( "SPPDAOptionsCategory_FocusedOption", 2, -1 );
+	local_3 = start local_function_4();
+	Task.Detach( local_3 );
+	Global.CreateHandle( "update_task", 2, local_3 );
+}
+
+SPPDAControlsScreen()
+{
+	hwindow gUI;
+	list localList;
+	hwindow window_0;
+	hwindow window_1;
+	hwindow window_2;
+	htask local_5;
+	bool local_6 = false;
+	int constant_0 = 210;
+	int constant_1 = 50;
+	int constant_2 = 230;
+	int constant_3 = 50;
+	int constant_4 = 210;
+	int constant_5 = 150;
+	int constant_6 = 230;
+	int constant_7 = 150;
+	int constant_8 = 210;
+	int constant_9 = 238;
+	int constant_10 = 230;
+	string local_18;
+	int gUIFancybuttonHeight = Global.Int( "GUI_fancybutton_height" );
+	
+	local_18 = Text.Field( "pda_options", FT_Text );
+	local_18 = String.UpperCase( local_18 );
+	localList = iGUI.CreateGreyBoxStyleScreen( local_18, "iPDAGUI.SPPDAOptionsCategory_OnBackButton", "iPDAGUI.SPPDAOptionsCategory_OnBackToMainMenuButton" );
+	gUI = GUI.Cast( List.Head( localList ) );
+	List.RemoveHead( localList );
+	List.RemoveAll( localList );
+	window_1 = GUI.CreateWindow( 0, 0, GUI.WindowCanvasWidth( gUI ), GUI.WindowCanvasHeight( gUI ) - gUIFancybuttonHeight, gUI );
+	window_0 = iGUI.CreateTitledListBox( window_1, Text.Field( "options_controls", FT_Text ), 0, "", 0, "", 0, "" );
+	List.AddHead( localList, window_0 );
+	GUI.SetInputOverrideFunctions( window_0, "iPDAGUI.SPPDAOptionsCategory_OnLeftOption", "", "iPDAGUI.SPPDAOptionsCategory_OnRightOption", "", "iPDAGUI.SPPDAOptionsCategory_OnSelectOption", "iPDAGUI.SPPDAOptionsCategory_OnBackButton", "iPDAGUI.SPPDAOptionsCategory_OnMouseDown", "iPDAGUI.SPPDAOptionsCategory_OnMouseUp", "" );
+	GUI.SetControlFocusCancelFunction( "iPDAGUI.SPPDAOptionsCategory_OnBackButton" );
+	iOptions.RegisterFloat( "options_forcefeedbackramp", "fcInputDeviceDI", "feedback_strength", 0.0, 1.0, false );
+	iOptions.RegisterBool( "options_swaprollandyaw", "icPlayerPilot", "toggle_roll_yaw", false );
+	iOptions.CreateWindows( window_0 );
+	Global.CreateHandle( "options_screen_list_box", 2, window_0 );
+	
+	if ( Input.NumInputSchemes() > 0 )
+	{
+		local_18 = Text.Field( "options_controlstyle", FT_Text );
+		local_18 = String.UpperCase( local_18 );
+		window_2 = iGUI.CreateAndInitialiseFancyButton( gUI, GUI.WindowCanvasHeight( gUI ) - gUIFancybuttonHeight, local_18, "iPDAGUI.SPPDAControlsScreen_OnControlStyle" );
+		List.AddTail( localList, window_2 );
+	}
+	
+	GUI.SetFirstControlFocus( window_0 );
+	iGUI.SetCyclicControlFocusPath( localList );
+	Global.CreateInt( "SPPDAOptionsCategory_FocusedOption", 2, -1 );
+	local_5 = start local_function_4();
+	Task.Detach( local_5 );
+	Global.CreateHandle( "update_task", 2, local_5 );
+}
+
+SPPDAControlsScreen_OnControlStyle()
+{
+	htask updateTask = Task.Cast( Global.Handle( "update_task" ) );
+	
+	Task.Halt( updateTask );
+	Global.Destroy( "update_task" );
+	iOptions.Apply();
+	GUI.OverlayScreen( "icControlScreen" );
+}
+
+SPPDAOptionsCategory_OnBackButton()
+{
+	htask updateTask = Task.Cast( Global.Handle( "update_task" ) );
+	
+	Task.Halt( updateTask );
+	Global.Destroy( "update_task" );
+	GUI.PlaySound( S_Confirm );
+	iOptions.Apply();
+	GUI.RemoveLastOverlay();
+	Global.Destroy( "options_screen_list_box" );
+	Global.Destroy( "SPPDAOptionsCategory_FocusedOption" );
+	iOptions.UnregisterAll();
+}
+
+SPPDAOptionsCategory_OnBackToMainMenuButton()
+{
+	atomic
+	{
+		SPPDAOptionsCategory_OnBackButton();
+		GUI.RemoveLastOverlay();
+	}
+}
+
+SPPDAOptionsCategory_OnSelectOption()
+{
+	hwindow optionsScreenListBox = GUI.Cast( Global.Handle( "options_screen_list_box" ) );
+	
+	iOptions.OnSelect( optionsScreenListBox );
+}
+
+SPPDAOptionsCategory_OnMouseDown()
+{
+	int local_0;
+	hwindow optionsScreenListBox = GUI.Cast( Global.Handle( "options_screen_list_box" ) );
+	
+	local_0 = GUI.ListBoxFocusedEntry( optionsScreenListBox );
+	Global.CreateInt( "SPPDAOptionsCategory_FocusedOption", 2, local_0 );
+}
+
+SPPDAOptionsCategory_OnMouseUp()
+{
+	int local_0;
+	int sPPDAOptionsCategoryFocusedOption;
+	hwindow optionsScreenListBox = GUI.Cast( Global.Handle( "options_screen_list_box" ) );
+	
+	local_0 = GUI.ListBoxFocusedEntry( optionsScreenListBox );
+	sPPDAOptionsCategoryFocusedOption = Global.Int( "SPPDAOptionsCategory_FocusedOption" );
+	
+	if ( sPPDAOptionsCategoryFocusedOption == local_0 )
+	{
+		iOptions.OnSelect( optionsScreenListBox );
+	}
+	
+	Global.CreateInt( "SPPDAOptionsCategory_FocusedOption", 2, -1 );
+}
+
+SPPDAOptionsCategory_OnLeftOption()
+{
+	hwindow optionsScreenListBox = GUI.Cast( Global.Handle( "options_screen_list_box" ) );
+	
+	iOptions.OnLeft( optionsScreenListBox );
+}
+
+SPPDAOptionsCategory_OnRightOption()
+{
+	hwindow optionsScreenListBox = GUI.Cast( Global.Handle( "options_screen_list_box" ) );
+	
+	iOptions.OnRight( optionsScreenListBox );
+}
+
+task local_function_4()
+{
+	schedule
+	{
+		every 0.10:
+		{
+			iOptions.Update();
+		}
+	}
+}
+
+SPPDADeviceScreen()
+{
+	hwindow window_0;
+	hwindow window_1;
+	list localList;
+	int local_3;
+	int local_4;
+	hwindow gUI;
+	int local_6 = ( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_alignmentoffset" ) );
+	int local_7;
+	int local_8;
+	int constant_0 = 20;
+	hwindow window_2;
+	hwindow window_3;
+	int constant_1 = 4;
+	int local_13 = ( (2 * Global.Int( "GUI_fancyborder_width" )) + 13 );
+	int local_14 = ( Global.Int( "GUI_alignment_offset" ) + constant_1 );
+	hwindow window_4;
+	string local_16;
+	int local_17;
+	int ii;
+	htask local_19;
+	htask updateTask;
+	
+	if ( Global.Exists( "update_task" ) )
+	{
+		updateTask = Task.Cast( Global.Handle( "update_task" ) );
+		Task.Halt( updateTask );
+		Global.Destroy( "update_task" );
+	}
+	
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	window_0 = iGUI.CreateShadyBar();
+	iGUI.AddBackButtons( window_0, "iPDAGUI.SPPDADeviceScreen_OnBackButton", "iPDAGUI.SPPDADeviceScreen_OnBackToMainMenuButton" );
+	local_16 = Text.Field( "options_graphics", FT_Text );
+	local_16 = String.UpperCase( local_16 );
+	iGUI.AddTitle( window_0, local_16 );
+	local_7 = ( Global.Int( "GUI_title_yoffset" ) + (Global.Int( "GUI_fancybutton_height" ) + constant_0) );
+	local_8 = ( GUI.FrameHeight() - (Global.Int( "GUI_backbutton_rise" ) + constant_0) );
+	localList = iOptions.CreateGraphicsDeviceOptionButtons();
+	
+	for ( ii = 0; ii < List.ItemCount( localList ); ++ii )
+	{
+		iGUI.MakeInverseButtonIconic( GUI.Cast( List.GetNth( localList, ii ) ) );
+	}
+	
+	Global.CreateList( "SPPDADeviceScreen_DeviceList", 2, localList );
+	local_16 = Text.Field( "options_device", FT_Text );
+	local_16 = String.UpperCase( local_16 );
+	window_2 = iGUI.CreateWindowListInSplitter( window_0, localList, local_6, local_7, local_16 );
+	local_4 = iOptions.GraphicsDeviceIndex();
+	gUI = GUI.Cast( List.GetNth( localList, local_4 ) );
+	GUI.SetRadioButtonChecked( gUI, true );
+	local_7 = ( local_7 + (GUI.WindowCanvasHeight( window_2 ) + constant_0) );
+	local_3 = ( local_8 - Global.Int( "GUI_fancybutton_height" ) );
+	window_1 = iGUI.CreateAndInitialiseFancyButton( window_0, local_3, String.UpperCase( Text.Field( "options_apply", FT_Text ) ), "iPDAGUI.SPPDADeviceScreen_OnApply" );
+	local_8 = ( local_3 - constant_0 );
+	Global.CreateHandle( "SPPDADeviceScreen_ApplyButton", 2, window_1 );
+	local_17 = ( Global.Int( "GUI_shader_width" ) + (constant_1 - (local_14 * 2)) );
+	window_2 = GUI.CreateSplitterWindow( Global.Int( "GUI_alignment_offset" ) + constant_1, local_7, local_17, local_8 - local_7, window_0, local_13, false );
+	window_3 = GUI.SplitterWindowTopWindow( window_2 );
+	local_16 = Text.Field( "options_resolution", FT_Text );
+	local_16 = String.UpperCase( local_16 );
+	window_4 = GUI.CreateStaticWindow( 0, 0, GUI.WindowCanvasWidth( window_3 ), GUI.WindowCanvasHeight( window_3 ), window_3 );
+	GUI.SetWindowFont( window_4, Global.String( "type_font" ) );
+	GUI.SetWindowTextFormatting( window_4, false, 9 );
+	GUI.SetWindowTitle( window_4, local_16 );
+	GUI.SetWindowStateColours( window_4, Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ) );
+	Global.CreateHandle( "SPPDADeviceScreen_Splitter", 2, window_2 );
+	local_function_5( local_4 );
+	local_function_6();
+	GUI.SetControlFocusCancelFunction( "iPDAGUI.SPPDADeviceScreen_OnBackButton" );
+	local_19 = start local_function_7();
+	Task.Detach( local_19 );
+	Global.CreateHandle( "SPPDADeviceScreen_MonitorTask", 2, local_19 );
+}
+
+task local_function_7()
+{
+	int local_0 = -1;
+	int local_1;
+	
+	while ( 1 )
+	{
+		local_1 = local_function_8();
+		
+		if ( local_1 != local_0 )
+		{
+			local_function_5( local_1 );
+			local_function_6();
+			local_0 = local_1;
+		}
+		
+		Task.Sleep( Task.Current(), 0.10 );
+	}
+}
+
+SPPDADeviceScreen_OnBackButton()
+{
+	htask sPPDADeviceScreenMonitorTask = Task.Cast( Global.Handle( "SPPDADeviceScreen_MonitorTask" ) );
+	
+	GUI.PlaySound( S_Confirm );
+	Task.Halt( sPPDADeviceScreenMonitorTask );
+	Global.Destroy( "SPPDADeviceScreen_DeviceList" );
+	Global.Destroy( "SPPDADeviceScreen_ResolutionListBox" );
+	Global.Destroy( "SPPDADeviceScreen_ApplyButton" );
+	Global.Destroy( "SPPDADeviceScreen_Splitter" );
+	Global.Destroy( "SPPDADeviceScreen_MonitorTask" );
+	Global.Destroy( "SPPDADeviceScreen_Scrollbar" );
+	Global.Destroy( "SPPDADeviceScreen_ResolutionButtons" );
+	GUI.RemoveLastOverlay();
+}
+
+SPPDADeviceScreen_OnBackToMainMenuButton()
+{
+	atomic
+	{
+		SPPDADeviceScreen_OnBackButton();
+		GUI.RemoveLastOverlay();
+		GUI.RemoveLastOverlay();
+	}
+}
+
+SPPDADeviceScreen_OnApply()
+{
+	int local_0 = iOptions.GraphicsDeviceIndex();
+	int local_1 = local_function_8();
+	int local_2 = iOptions.GraphicsResolutionIndex( local_0 );
+	int local_3 = local_function_9();
+	
+	if ( (local_0 != local_1) || (local_2 != local_3) )
+	{
+		iOptions.SetGraphicsDevice( local_1, local_3 );
+		SPPDADeviceScreen_OnBackButton();
+		GUI.OverlayScreen( "icSPPDADeviceScreen" );
+	}
+}
+
+local_function_5( int param_0_ )
+{
+	list localList;
+	hwindow sPPDADeviceScreenSplitter;
+	int local_2;
+	hwindow sPPDADeviceScreenResolutionListBox;
+	hwindow window;
+	int local_5;
+	hwindow sPPDADeviceScreenScrollbar;
+	int local_7;
+	int local_8;
+	int local_9;
+	int gUIScrollbarWidth = Global.Int( "GUI_scrollbar_width" );
+	int local_11;
+	int ii;
+	bool local_13;
+	
+	sPPDADeviceScreenResolutionListBox = GUI.Cast( Global.Handle( "SPPDADeviceScreen_ResolutionListBox" ) );
+	GUI.DeleteWindow( sPPDADeviceScreenResolutionListBox );
+	sPPDADeviceScreenScrollbar = GUI.Cast( Global.Handle( "SPPDADeviceScreen_Scrollbar" ) );
+	
+	if ( sPPDADeviceScreenScrollbar != false )
+	{
+		GUI.DeleteWindow( sPPDADeviceScreenScrollbar );
+	}
+	
+	sPPDADeviceScreenSplitter = GUI.Cast( Global.Handle( "SPPDADeviceScreen_Splitter" ) );
+	window = GUI.SplitterWindowBottomWindow( sPPDADeviceScreenSplitter );
+	local_7 = GUI.WindowCanvasHeight( window );
+	local_8 = ( iOptions.NumberOfResolutionOptions( param_0_ ) * (Global.Int( "GUI_inversebutton_height" ) + 3) );
+	
+	if ( local_8 > local_7 )
+	{
+		local_13 = true;
+	}
+	
+	local_9 = GUI.WindowCanvasWidth( window );
+	
+	if ( local_13 )
+	{
+		local_9 = ( local_9 - (gUIScrollbarWidth + 4) );
+	}
+	
+	sPPDADeviceScreenResolutionListBox = GUI.CreateListBox( 0, 0, local_9, GUI.WindowCanvasHeight( window ), window, true, false );
+	GUI.DisableHighlight( sPPDADeviceScreenResolutionListBox );
+	Global.CreateHandle( "SPPDADeviceScreen_ResolutionListBox", 2, sPPDADeviceScreenResolutionListBox );
+	
+	if ( local_13 )
+	{
+		sPPDADeviceScreenScrollbar = GUI.CreateVerticalScrollbar( GUI.WindowCanvasWidth( window ) - gUIScrollbarWidth, 0, gUIScrollbarWidth, GUI.WindowCanvasHeight( window ), window, sPPDADeviceScreenResolutionListBox, Global.Float( "GUI_scrollbar_buttonratio" ), "" );
+		Global.CreateHandle( "SPPDADeviceScreen_Scrollbar", 2, sPPDADeviceScreenScrollbar );
+	}
+	
+	localList = iOptions.CreateGraphicsResolutionOptionButtons( param_0_, local_13 );
+	
+	for ( ii = 0; ii < List.ItemCount( localList ); ++ii )
+	{
+		iGUI.MakeRectangularInverseButtonIconic( GUI.Cast( List.GetNth( localList, ii ) ) );
+	}
+	
+	Global.CreateList( "SPPDADeviceScreen_ResolutionButtons", 2, localList );
+	
+	for ( ii = 0; ii < List.ItemCount( localList ); ++ii )
+	{
+		GUI.AddListBoxEntry( sPPDADeviceScreenResolutionListBox, GUI.Cast( List.GetNth( localList, ii ) ) );
+	}
+	
+	local_11 = iOptions.GraphicsResolutionIndex( param_0_ );
+	GUI.SelectListBoxEntry( sPPDADeviceScreenResolutionListBox, local_11 );
+}
+
+local_function_6()
+{
+	list localList_0 = Global.List( "SPPDADeviceScreen_DeviceList" );
+	list localList_1 = Global.List( "SPPDADeviceScreen_ResolutionButtons" );
+	list localList_2;
+	hwindow sPPDADeviceScreenResolutionListBox = GUI.Cast( Global.Handle( "SPPDADeviceScreen_ResolutionListBox" ) );
+	hwindow sPPDADeviceScreenApplyButton = GUI.Cast( Global.Handle( "SPPDADeviceScreen_ApplyButton" ) );
+	
+	localList_2 = localList_0;
+	List.Append( localList_2, localList_1 );
+	List.AddTail( localList_2, sPPDADeviceScreenApplyButton );
+	GUI.SetFirstControlFocus( GUI.Cast( List.Head( localList_2 ) ) );
+	iGUI.SetCyclicControlFocusPath( localList_2 );
+}
+
+int local_function_8()
+{
+	int ii;
+	list localList = Global.List( "SPPDADeviceScreen_DeviceList" );
+	int local_2 = -1;
+	hwindow gUI;
+	
+	for ( ii = 0; ii < List.ItemCount( localList ); ++ii )
+	{
+		gUI = GUI.Cast( List.GetNth( localList, ii ) );
+		
+		if ( GUI.RadioButtonValue( gUI ) )
+		{
+			local_2 = ii;
+			break;
+		}
+	}
+	
+	return local_2;
+}
+
+int local_function_9()
+{
+	int local_0 = 0;
+	hwindow gUI;
+	list localList = Global.List( "SPPDADeviceScreen_ResolutionButtons" );
+	
+	while ( !List.IsEmpty( localList ) )
+	{
+		gUI = GUI.Cast( List.Head( localList ) );
+		
+		if ( GUI.RadioButtonValue( gUI ) )
+		{
+			debug Debug.PrintString( "iPDAGUI.SPPDADeviceScreen_CurrentlySelectedResolutionButton : Selected resolution button: " );
+			debug Debug.PrintInt( local_0 );
+			debug Debug.PrintString( "\n" );
+			return local_0;
+		}
+		
+		List.RemoveHead( localList );
+		local_0 = ( local_0 + 1 );
+	}
+	
+	return -1;
+}
+
+MoviesScreen()
+{
+	hwindow window_0;
+	hwindow window_1;
+	hwindow window_2;
+	hwindow window_3;
+	int local_4;
+	hwindow window_4;
+	hwindow window_5;
+	int local_7;
+	hwindow window_6;
+	list localList;
+	int local_10;
+	int local_11;
+	int gUIFancybuttonHeight = Global.Int( "GUI_fancybutton_height" );
+	string local_13;
+	string local_14;
+	
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	window_0 = iGUI.CreateShadyBar();
+	iGUI.AddBackButtons( window_0, "iPDAGUI.MoviesScreen_OnBackButton", "iPDAGUI.MoviesScreen_OnBackButton" );
+	iGUI.AddTitle( window_0, Text.Field( "movie_movies", FT_Text ) );
+	local_14 = Text.Field( "movie_intro", FT_Text );
+	local_14 = String.UpperCase( local_14 );
+	window_1 = iGUI.CreateAndInitialiseParentlessInverseButton( "iPDAGUI.MoviesScreen_OnIntro", local_14, localList );
+	
+	if ( iGame.GotEarnedMovie( EM_ComsecDiscovery ) )
+	{
+		local_14 = Text.Field( "movies_comsec_discovery", FT_Text );
+		local_14 = String.UpperCase( local_14 );
+		window_2 = iGUI.CreateAndInitialiseParentlessInverseButton( "iPDAGUI.MoviesScreen_OnComsecDiscovery", local_14, localList );
+	}
+	
+	if ( iGame.GotEarnedMovie( EM_BaseDiscovery ) )
+	{
+		local_14 = Text.Field( "movies_base_discovery", FT_Text );
+		local_14 = String.UpperCase( local_14 );
+		window_3 = iGUI.CreateAndInitialiseParentlessInverseButton( "iPDAGUI.MoviesScreen_OnBaseDiscovery", local_14, localList );
+	}
+	
+	if ( iGame.GotEarnedMovie( EM_JailBreak ) )
+	{
+		local_14 = Text.Field( "movie_act1", FT_Text );
+		local_14 = String.UpperCase( local_14 );
+		window_4 = iGUI.CreateAndInitialiseParentlessInverseButton( "iPDAGUI.MoviesScreen_OnJailBreak", local_14, localList );
+	}
+	
+	if ( iGame.GotEarnedMovie( EM_Outro ) )
+	{
+		local_14 = Text.Field( "movie_outro", FT_Text );
+		local_14 = String.UpperCase( local_14 );
+		window_5 = iGUI.CreateAndInitialiseParentlessInverseButton( "iPDAGUI.MoviesScreen_OnOutro", local_14, localList );
+	}
+	
+	local_10 = ( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_alignmentoffset" ) );
+	local_11 = ( Global.Int( "GUI_title_yoffset" ) + (Global.Int( "GUI_fancybutton_height" ) + 20) );
+	window_6 = iGUI.CreateWindowListInFancyBorder( window_0, localList, local_10, local_11 );
+	GUI.SetFirstControlFocus( window_1 );
+	iGUI.SetCyclicControlFocusPath( localList );
+	GUI.SetControlFocusCancelFunction( "iPDAGUI.MoviesScreen_OnBackButton" );
+}
+
+MoviesScreen_OnBackButton()
+{
+	GUI.RemoveLastOverlay();
+}
+
+MoviesScreen_OnIntro()
+{
+	iGame.PlayMovie( "/movies/intro" );
+}
+
+MoviesScreen_OnComsecDiscovery()
+{
+	iGame.PlayMovie( "/movies/prelude" );
+}
+
+MoviesScreen_OnBaseDiscovery()
+{
+	iGame.PlayMovie( "/movies/PBDiscovery" );
+}
+
+MoviesScreen_OnBaseEntry()
+{
+	iGame.PlayMovie( "/movies/PB_Beauty" );
+}
+
+MoviesScreen_OnJailBreak()
+{
+	iGame.PlayMovie( "/movies/midtro" );
+}
+
+MoviesScreen_OnOutro()
+{
+	iGame.PlayMovie( "/movies/outro" );
+}
+
+MoviesScreen_OnCredits()
+{
+	SPMainPDAScreen_OnCredits();
+}
+
+local_function_10( string param_0_, string param_1_, list localList_0_, list localList_1_ )
+{
+	hwindow window_0;
+	hwindow window_1;
+	int gUIInversebuttonTextoffset = Global.Int( "GUI_inversebutton_textoffset" );
+	int local_3 = ( 640 - (2 * Global.Int( "GUI_alignment_offset" )) );
+	int local_4 = ( Global.Int( "GUI_shader_width" ) - Global.Int( "GUI_inversebutton_width" ) );
+	
+	local_4 = ( local_3 - local_4 );
+	window_1 = GUI.CreateStaticWindow( 0, 0, local_4, Global.Int( "GUI_inversebutton_height" ), none );
+	GUI.SetWindowClientArea( window_1, 0, 0, local_4, Global.Int( "GUI_inversebutton_height" ) );
+	window_0 = GUI.CreateButton( gUIInversebuttonTextoffset, 0, local_4 - (2 * gUIInversebuttonTextoffset), Global.Int( "GUI_inversebutton_height" ), window_1 );
+	GUI.SetButtonFunctionPog( window_0, param_0_ );
+	GUI.SetWindowTitle( window_0, param_1_ );
+	GUI.SetWindowFont( window_0, Global.String( "GUI_detail_font" ) );
+	GUI.SetWindowTextFormatting( window_0, false, 0 );
+	GUI.SetWindowStateColours( window_0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 );
+	iGUI.MakeInverseButtonIconic( window_1 );
+	List.AddTail( localList_0_, window_0 );
+	List.AddTail( localList_1_, window_1 );
+}
+
+local_function_11( list localList_0_, list localList_1_ )
+{
+	int local_0 = Input.NumInputSchemes();
+	int ii;
+	int constant = 15;
+	string name;
+	int local_4 = Input.CurrentInputScheme();
+	
+	for ( ii = 0; ii < local_0; ++ii )
+	{
+		if ( ii == constant )
+		{
+			return;
+		}
+		
+		name = Input.NthInputSchemeName( ii );
+		name = String.UpperCase( name );
+		local_function_10( "iPDAGUI.ControlScreen_OnSelectScheme", name, localList_0_, localList_1_ );
+		
+		if ( ii == local_4 )
+		{
+			GUI.SelectWindow( GUI.Cast( List.Tail( localList_0_ ) ) );
+		}
+	}
+}
+
+ControlScreen()
+{
+	hwindow window;
+	int local_1;
+	int local_2;
+	int local_3;
+	list localList_0;
+	list localList_1;
+	
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	window = iGUI.CreateWideShadyBar();
+	iGUI.AddBackButtons( window, "iPDAGUI.ControlScreen_OnBackButton", "iPDAGUI.ControlScreen_OnBackButtonToMainMenu" );
+	iGUI.AddTitle( window, String.UpperCase( Text.Field( "options_controlstyle", FT_Text ) ) );
+	local_function_11( localList_0, localList_1 );
+	local_2 = ( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_alignmentoffset" ) );
+	local_3 = ( Global.Int( "GUI_title_yoffset" ) + (Global.Int( "GUI_fancybutton_height" ) + 20) );
+	iGUI.CreateWindowListInFancyBorder( window, localList_1, local_2, local_3 );
+	GUI.SetFirstControlFocus( GUI.Cast( List.Head( localList_0 ) ) );
+	iGUI.SetCyclicControlFocusPath( localList_0 );
+	Global.CreateList( "control_style_buttons", 2, localList_0 );
+	GUI.SetControlFocusCancelFunction( "iPDAGUI.ControlScreen_OnBackButton" );
+}
+
+ControlScreen_OnSelectScheme()
+{
+	list localList = Global.List( "control_style_buttons" );
+	hwindow gUI;
+	int ii;
+	string local_3;
+	int local_4 = Input.CurrentInputScheme();
+	
+	for ( ii = 0; ii < List.ItemCount( localList ); ++ii )
+	{
+		gUI = GUI.Cast( List.GetNth( localList, ii ) );
+		
+		if ( ii == local_4 )
+		{
+			if ( GUI.FocusedWindow() == gUI )
+			{
+			}
+			else
+			{
+				GUI.DeselectWindow( gUI );
+			}
+		}
+		else if ( GUI.FocusedWindow() == gUI )
+		{
+			Input.SelectInputScheme( ii );
+			GUI.SelectWindow( gUI );
+		}
+	}
+}
+
+ControlScreen_OnBackButton()
+{
+	Global.Destroy( "control_style_buttons" );
+	GUI.RemoveLastOverlay();
+}
+
+ControlScreen_OnBackButtonToMainMenu()
+{
+	atomic
+	{
+		ControlScreen_OnBackButton();
+		GUI.RemoveLastOverlay();
+		GUI.RemoveLastOverlay();
+	}
+}
+
+InstantActionShipChoiceScreen()
+{
+	hwindow window_0;
+	list localList;
+	int local_2;
+	int local_3;
+	hwindow window_1 = none;
+	hwindow window_2 = none;
+	hwindow window_3 = none;
+	hwindow window_4 = none;
+	
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	window_0 = iGUI.CreateShadyBar();
+	iGUI.AddBackButtons( window_0, "iPDAGUI.InstantActionShipChoiceScreen_OnBackButton", "iPDAGUI.InstantActionShipChoiceScreen_OnBackButton" );
+	iGUI.AddTitle( window_0, Text.Field( "pda_instant_action", FT_Text ) );
+	window_1 = iGUI.CreateAndInitialiseParentlessInverseButton( "iPDAGUI.InstantActionShipChoiceScreen_OnShipSelect", Text.Field( "ship_type_storm_petrel", FT_Text ), localList );
+	GUI.SetInputOverrideFunctions( window_1, "", "", "", "", "", "iPDAGUI.InstantActionShipChoiceScreen_OnBackButton", "", "", "" );
+	Global.CreateHandle( "shiptype_stormpetrel", 2, window_1 );
+	
+	if ( Config.GetBool( "system", "InstantAction", "tug" ) )
+	{
+		window_2 = iGUI.CreateAndInitialiseParentlessInverseButton( "iPDAGUI.InstantActionShipChoiceScreen_OnShipSelect", Text.Field( "ship_type_tug", FT_Text ), localList );
+		GUI.SetInputOverrideFunctions( window_2, "", "", "", "", "", "iPDAGUI.InstantActionShipChoiceScreen_OnBackButton", "", "", "" );
+		Global.CreateHandle( "shiptype_tug", 2, window_2 );
+	}
+	
+	if ( Config.GetBool( "system", "InstantAction", "fast_attack_ship" ) )
+	{
+		window_3 = iGUI.CreateAndInitialiseParentlessInverseButton( "iPDAGUI.InstantActionShipChoiceScreen_OnShipSelect", Text.Field( "ship_type_fast_attack_ship", FT_Text ), localList );
+		GUI.SetInputOverrideFunctions( window_3, "", "", "", "", "", "iPDAGUI.InstantActionShipChoiceScreen_OnBackButton", "", "", "" );
+		Global.CreateHandle( "shiptype_fastattackship", 2, window_3 );
+	}
+	
+	if ( Config.GetBool( "system", "InstantAction", "heavy_corvette" ) )
+	{
+		window_4 = iGUI.CreateAndInitialiseParentlessInverseButton( "iPDAGUI.InstantActionShipChoiceScreen_OnShipSelect", Text.Field( "ship_type_heavy_corvette", FT_Text ), localList );
+		GUI.SetInputOverrideFunctions( window_4, "", "", "", "", "", "iPDAGUI.InstantActionShipChoiceScreen_OnBackButton", "", "", "" );
+		Global.CreateHandle( "shiptype_heavycorvette", 2, window_4 );
+	}
+	
+	local_2 = ( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_alignmentoffset" ) );
+	local_3 = ( Global.Int( "GUI_title_yoffset" ) + (Global.Int( "GUI_fancybutton_height" ) + 20) );
+	iGUI.CreateWindowListInSplitter( window_0, localList, local_2, local_3, Text.Field( "hangarmenu_ship", FT_Text ) );
+	GUI.SetFirstControlFocus( window_1 );
+	iGUI.SetCyclicControlFocusPath( localList );
+	GUI.SetControlFocusCancelFunction( "iPDAGUI.InstantActionShipChoiceScreen_OnBackButton" );
+}
+
+InstantActionShipChoiceScreen_OnShipSelect()
+{
+	hwindow shiptypeStormpetrel = GUI.Cast( Global.Handle( "shiptype_stormpetrel" ) );
+	hwindow shiptypeTug = GUI.Cast( Global.Handle( "shiptype_tug" ) );
+	hwindow shiptypeFastattackship = GUI.Cast( Global.Handle( "shiptype_fastattackship" ) );
+	hwindow shiptypeHeavycorvette = GUI.Cast( Global.Handle( "shiptype_heavycorvette" ) );
+	string local_4;
+	
+	if ( GUI.FocusedWindow() == shiptypeTug )
+	{
+		local_4 = "ini:/sims/ships/player/tug_prefitted";
+	}
+	else if ( GUI.FocusedWindow() == shiptypeFastattackship )
+	{
+		local_4 = "ini:/sims/ships/player/fast_attack_prefitted";
+	}
+	else if ( GUI.FocusedWindow() == shiptypeHeavycorvette )
+	{
+		local_4 = "ini:/sims/ships/player/heavy_corvette_prefitted";
+	}
+	else if ( GUI.FocusedWindow() == shiptypeStormpetrel )
+	{
+		local_4 = "ini:/sims/ships/player/storm_petrel_prefitted";
+	}
+	
+	Global.CreateString( "g_instant_action_ship_ini", 2, local_4 );
+	iGame.SetGameType( 2 );
+	iGame.StartNewGame( "map:/geog/badlands/hoffers_wake", "iInstantAction" );
+}
+
+InstantActionShipChoiceScreen_OnBackButton()
+{
+	GUI.RemoveLastOverlay();
+}
+
+hwindow local_function_12( hwindow window_0_, int param_1_, string param_2_, string param_3_ )
+{
+	int local_0 = ( Global.Int( "GUI_fancybutton_width" ) * 2 );
+	hwindow window_1 = GUI.CreateButton( 0, param_1_, local_0, Global.Int( "GUI_fancybutton_height" ), window_0_ );
+	
+	GUI.SetWindowFont( window_1, Global.String( "GUI_title_font" ) );
+	GUI.SetWindowTextFormatting( window_1, true, 0 );
+	GUI.SetWindowStateColours( window_1, Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_selected_red" ), Global.Float( "GUI_selected_green" ), Global.Float( "GUI_selected_blue" ) );
+	GUI.SetWindowStateTextures( window_1, Global.String( "GUI_texture_request" ), Global.Int( "GUI_fancybutton_neutral_left_left" ), Global.Int( "GUI_fancybutton_neutral_left_top" ), Global.Int( "GUI_fancybutton_neutral_left_right" ), Global.Int( "GUI_fancybutton_neutral_left_bottom" ), Global.Int( "GUI_fancybutton_neutral_body_left" ), Global.Int( "GUI_fancybutton_neutral_body_top" ), Global.Int( "GUI_fancybutton_neutral_body_right" ), Global.Int( "GUI_fancybutton_neutral_body_bottom" ), Global.Int( "GUI_fancybutton_neutral_right_left" ), Global.Int( "GUI_fancybutton_neutral_right_top" ), Global.Int( "GUI_fancybutton_neutral_right_right" ), Global.Int( "GUI_fancybutton_neutral_right_bottom" ), Global.Int( "GUI_fancybutton_focused_left_left" ), Global.Int( "GUI_fancybutton_focused_left_top" ), Global.Int( "GUI_fancybutton_focused_left_right" ), Global.Int( "GUI_fancybutton_focused_left_bottom" ), Global.Int( "GUI_fancybutton_focused_body_left" ), Global.Int( "GUI_fancybutton_focused_body_top" ), Global.Int( "GUI_fancybutton_focused_body_right" ), Global.Int( "GUI_fancybutton_focused_body_bottom" ), Global.Int( "GUI_fancybutton_focused_right_left" ), Global.Int( "GUI_fancybutton_focused_right_top" ), Global.Int( "GUI_fancybutton_focused_right_right" ), Global.Int( "GUI_fancybutton_focused_right_bottom" ), Global.Int( "GUI_fancybutton_selected_left_left" ), Global.Int( "GUI_fancybutton_selected_left_top" ), Global.Int( "GUI_fancybutton_selected_left_right" ), Global.Int( "GUI_fancybutton_selected_left_bottom" ), Global.Int( "GUI_fancybutton_selected_body_left" ), Global.Int( "GUI_fancybutton_selected_body_top" ), Global.Int( "GUI_fancybutton_selected_body_right" ), Global.Int( "GUI_fancybutton_selected_body_bottom" ), Global.Int( "GUI_fancybutton_selected_right_left" ), Global.Int( "GUI_fancybutton_selected_right_top" ), Global.Int( "GUI_fancybutton_selected_right_right" ), Global.Int( "GUI_fancybutton_selected_right_bottom" ) );
+	GUI.SetWindowTitle( window_1, param_2_ );
+	GUI.SetButtonFunctionPog( window_1, param_3_ );
+	return window_1;
+}
+
+RestartScreen()
+{
+	hwindow window_0;
+	hwindow window_1;
+	hwindow window_2;
+	list localList;
+	string local_4;
+	int local_5 = ( Global.Int( "GUI_fancybutton_width" ) * 2 );
+	int gUIFancybuttonHeight = Global.Int( "GUI_fancybutton_height" );
+	int local_7 = ( GUI.FrameWidth() / 2 );
+	int local_8 = ( GUI.FrameHeight() / 2 );
+	
+	if ( Global.Bool( "restart_screen_mission_running" ) )
+	{
+		local_4 = "stock_restart_mission";
+	}
+	else
+	{
+		local_4 = "stock_restart_from_base";
+	}
+	
+	local_4 = Text.Field( local_4, FT_Text );
+	local_4 = String.UpperCase( local_4 );
+	window_0 = GUI.CreateWindow( local_7 - (local_5 / 2), local_8 - gUIFancybuttonHeight, local_7 + (local_5 / 2), local_8 + gUIFancybuttonHeight, GUI.TopWindow() );
+	window_1 = local_function_12( window_0, 0, local_4, "iPDAGUI.RestartScreen_OnRestart" );
+	window_2 = local_function_12( window_0, gUIFancybuttonHeight, String.UpperCase( Text.Field( "stock_quit_or_load", FT_Text ) ), "iPDAGUI.RestartScreen_OnQuit" );
+	List.AddTail( localList, window_1 );
+	List.AddTail( localList, window_2 );
+	GUI.SetFirstControlFocus( GUI.Cast( List.Head( localList ) ) );
+	iGUI.SetCyclicControlFocusPath( localList );
+}
+
+local_function_13()
+{
+	Global.Destroy( "restart_screen_mission_running" );
+	Global.Destroy( "restart_screen_mission_state" );
+	Global.Destroy( "restart_screen_player_ship" );
+	Global.Destroy( "restart_screen_mission_waypoint" );
+	Global.Destroy( "restart_screen_point_of_death" );
+}
+
+task local_function_14()
+{
+	int local_0 = 0;
+	string local_1;
+	hsim restartScreenPlayerShip = Sim.Cast( Global.Handle( "restart_screen_player_ship" ) );
+	hsim restartScreenPointOfDeath = Sim.Cast( Global.Handle( "restart_screen_point_of_death" ) );
+	
+	Sim.PlaceAt( restartScreenPlayerShip, restartScreenPointOfDeath );
+	local_1 = Global.String( "restart_screen_caption" );
+	local_1 = Text.Field( local_1, FT_Text );
+	iDirector.Obituary( local_1 );
+	
+	while ( (local_0 < 2) && iDirector.IsObituaryView() )
+	{
+		Task.Sleep( Task.Current(), 1.0 );
+		local_0 = ( local_0 + 1 );
+	}
+	
+	if ( local_0 == 2 )
+	{
+		iDirector.SetCaption( "cam_press_space", 0.0 );
+	}
+	
+	while ( (local_0 < 60) && iDirector.IsObituaryView() )
+	{
+		Task.Sleep( Task.Current(), 1.0 );
+		local_0 = ( local_0 + 1 );
+	}
+	
+	local_function_13();
+	Global.CreateBool( "restart_screen_made_decision", 2, true );
+	Global.CreateBool( "restart_screen_restarting", 2, false );
+}
+
+RestartScreen_OnQuit()
+{
+	htask local_0 = start local_function_14();
+	
+	Task.Detach( local_0 );
+	GUI.RemoveLastOverlay();
+}
+
+task local_function_15()
+{
+	if ( Global.Bool( "restart_screen_mission_running" ) )
+	{
+		State.SetProgress( State.Cast( Global.Handle( "restart_screen_mission_state" ) ), 100 );
+	}
+	
+	Task.Sleep( Task.Current(), 3.0 );
+	iDeathScript.RestorePlayerShip( Sim.Cast( Global.Handle( "restart_screen_player_ship" ) ), Sim.Cast( Global.Handle( "restart_screen_mission_waypoint" ) ) );
+	local_function_13();
+	Global.CreateBool( "restart_screen_made_decision", 2, true );
+	Global.CreateBool( "restart_screen_restarting", 2, true );
+}
+
+RestartScreen_OnRestart()
+{
+	htask local_0 = start local_function_15();
+	
+	Task.Detach( local_0 );
+	GUI.RemoveLastOverlay();
+}
+

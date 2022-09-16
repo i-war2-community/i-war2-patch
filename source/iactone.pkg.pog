@@ -1,0 +1,2196 @@
+package iActOne;
+
+uses Config,
+     Debug,
+     GUI,
+     String,
+     Set,
+     List,
+     Global,
+     Math,
+     Object,
+     Group,
+     Sim,
+     State,
+     Stream,
+     Task,
+     Text,
+     iAct1Mission01,
+     iAct1Mission02,
+     iAct1Mission03,
+     iAct1Mission04,
+     iAct1Mission05,
+     iAct1Mission06,
+     iAct1Mission07,
+     iAct1Mission08,
+     iAct1Mission09,
+     iAct1Mission10,
+     iAct1PiracySpecial,
+     iAct1WingmenTraining,
+     iComms,
+     iConversation,
+     iSim,
+     iBody,
+     iHabitat,
+     iShip,
+     iCutsceneUtilities,
+     iDirector,
+     iEmail,
+     MapEnumerations,
+     iFaction,
+     iGMTracker,
+     iGame,
+     iGangsterIncidentGen,
+     CargoTypes,
+     iInventory,
+     Subsim,
+     iDockport,
+     iJafsScript,
+     iLoadout,
+     iMapEntity,
+     iMissionGenerator,
+     iMusic,
+     iPilotSetup,
+     iRangeCheck,
+     iScore,
+     iStartSystem,
+     iTrade,
+     INIFile,
+     iUtilities;
+
+provides PiracyRatingTracker,
+         PiracyRatingHandler,
+         MasterScript,
+         HavenStationIntroduction,
+         Main,
+         BaseMain,
+         MarauderEncounters,
+         StepsonMember,
+         piracy_email_hinter;
+
+prototype local_function_22();
+prototype local_function_5();
+prototype task local_function_6();
+prototype task local_function_7();
+prototype task local_function_8();
+prototype task local_function_9();
+prototype task local_function_11();
+prototype task local_function_10();
+prototype task local_function_12();
+prototype task local_function_13();
+prototype task local_function_16();
+prototype task local_function_14();
+prototype task local_function_15();
+prototype task local_function_17();
+prototype task local_function_18();
+prototype task local_function_19();
+prototype task local_function_20();
+prototype task local_function_21();
+prototype local_function_1( int param_0_ );
+prototype local_function_0( int param_0_ );
+prototype task StepsonMember();
+prototype task PiracyRatingHandler();
+prototype task PiracyRatingTracker();
+prototype task MarauderEncounters();
+prototype task local_function_2( hship ship_, hmapentity mapentity_0_, hmapentity mapentity_1_ );
+prototype task HavenStationIntroduction();
+prototype local_function_4();
+prototype task MasterScript();
+prototype task local_function_23();
+prototype Main();
+prototype BaseMain();
+prototype task local_function_3( hmapentity mapentity_ );
+prototype local_function_26( hsim param_0_, hsim param_1_, int param_2_, float param_3_, float param_4_ );
+prototype string local_function_24( int param_0_ );
+prototype string local_function_25( int param_0_ );
+prototype task piracy_email_hinter();
+
+local_function_22()
+{
+	debug Debug.PrintString( "iActOne.ActOneGlobals - initialising act one globals\n" );
+	Text.Add( "csv:/text/act_1/act1_master" );
+	Text.Add( "csv:/text/act_1/act1_master_addendum" );
+	Text.Add( "csv:/text/act_1/act1_master_addendum2" );
+	Text.Add( "csv:/text/act_1/act1_master_addendum3" );
+	Text.Add( "csv:/text/act_1/act1_master_addendum4" );
+	Text.Add( "csv:/text/act_1/act1_wingmen_training" );
+	Global.CreateInt( "g_jafs_comment", 2, 0 );
+	Global.CreateBool( "g_act1_found_base", 2, false );
+	Global.CreateBool( "g_act1_character_intro", 2, false );
+	Global.CreateBool( "g_act1_stepsons_intro", 2, false );
+	Global.CreateBool( "g_act1_stepsons_pleased", 2, false );
+	Global.CreateBool( "g_act1_stepson_member", 2, false );
+	Global.CreateBool( "g_act1_got_turret_fighters", 2, false );
+	Global.CreateBool( "g_act1_turret_fighters_mounted", 2, false );
+	Global.CreateBool( "g_act_1_marauders_encountered", 2, false );
+	Global.CreateBool( "g_act1_marauders_encountered", 2, false );
+	Global.CreateBool( "g_act1_destroyed_marauder_cache", 2, false );
+	Global.CreateBool( "g_act1_hoffers_wake_warning", 2, false );
+	Global.CreateBool( "g_act1_retreived_gunstars", 2, false );
+	Global.CreateBool( "g_act1_saved_hoffers_wake", 2, false );
+	Global.CreateBool( "g_act1_league_introduction", 2, false );
+	Global.CreateBool( "g_act1_league_initiation", 2, false );
+	Global.CreateBool( "g_act1_stepsons_trusted", 2, false );
+	Global.CreateBool( "g_act1_league_initiation", 2, false );
+	Global.CreateBool( "g_act1_retrieved_artefact", 2, false );
+	Global.CreateBool( "g_act1_puzzle_active", 2, false );
+	Global.CreateBool( "g_act1_lor_stolen", 2, false );
+	Global.CreateBool( "g_act1_joint_forces_complete", 2, false );
+	Global.CreateBool( "g_act1_treasure_hunt_conversation", 2, false );
+	Global.CreateInt( "g_story_1.05", 2, 0 );
+	Global.CreateInt( "g_story_1.10", 2, 0 );
+	Global.CreateInt( "g_story_1.30", 2, 0 );
+	Global.CreateInt( "g_story_1.35", 2, 0 );
+	Global.CreateInt( "g_story_1.36", 2, 0 );
+	Global.CreateInt( "g_story_1.20", 2, 0 );
+	Global.CreateInt( "g_story_1.25", 2, 0 );
+	Global.CreateInt( "g_story_1.40", 2, 0 );
+	Global.CreateInt( "g_story_1.50", 2, 0 );
+	Global.CreateInt( "g_story_1.60", 2, 0 );
+	Global.CreateInt( "g_story_1.70", 2, 0 );
+	Global.CreateInt( "g_story_1.80", 2, 0 );
+	Global.CreateInt( "g_story_1.90", 2, 0 );
+	Global.CreateInt( "g_story_1.100", 2, 0 );
+	Global.CreateInt( "g_story_1.110", 2, 0 );
+	iGangsterIncidentGen.CreateGlobals();
+}
+
+local_function_5()
+{
+	debug Debug.PrintString( "iActOne.DestryActOneGlobals - Purging all act one globals. NONE SHALL SURVIVE !\n" );
+	Text.Remove( "csv:/text/act_1/act1_master" );
+	Text.Remove( "csv:/text/act_1/act1_master_addendum" );
+	Text.Remove( "csv:/text/act_1/act1_master_addendum3" );
+	Text.Remove( "csv:/text/act_1/act1_master_addendum4" );
+	Text.Remove( "csv:/text/act_1/act1_wingmen_training" );
+	Global.Destroy( "g_ship_threat" );
+	Global.Destroy( "g_act1_found_base" );
+	Global.Destroy( "g_act1_character_intro" );
+	Global.Destroy( "g_act1_stepsons_intro" );
+	Global.Destroy( "g_act1_stepsons_pleased" );
+	Global.Destroy( "g_act1_stepson_member" );
+	Global.Destroy( "g_act1_got_turret_fighters" );
+	Global.Destroy( "g_act1_turret_fighters_mounted" );
+	Global.Destroy( "g_act_1_marauders_encountered" );
+	Global.Destroy( "g_act1_marauders_encountered" );
+	Global.Destroy( "g_act1_destroyed_marauder_cache" );
+	Global.Destroy( "g_act1_hoffers_wake_warning" );
+	Global.Destroy( "g_act1_retreived_gunstars" );
+	Global.Destroy( "g_act1_saved_hoffers_wake" );
+	Global.Destroy( "g_act1_league_introduction" );
+	Global.Destroy( "g_act1_league_initiation" );
+	Global.Destroy( "g_act1_stepsons_trusted" );
+	Global.Destroy( "g_act1_league_initiation" );
+	Global.Destroy( "g_act1_retrieved_artefact" );
+	Global.Destroy( "g_act1_puzzle_active" );
+	Global.Destroy( "g_act1_lor_stolen" );
+	Global.Destroy( "g_act1_joint_forces_complete" );
+	Global.Destroy( "g_act1_treasure_hunt_conversation" );
+	Global.Destroy( "g_story_1.05" );
+	Global.Destroy( "g_story_1.10" );
+	Global.Destroy( "g_story_1.30" );
+	Global.Destroy( "g_story_1.35" );
+	Global.Destroy( "g_story_1.36" );
+	Global.Destroy( "g_story_1.20" );
+	Global.Destroy( "g_story_1.25" );
+	Global.Destroy( "g_story_1.40" );
+	Global.Destroy( "g_story_1.50" );
+	Global.Destroy( "g_story_1.60" );
+	Global.Destroy( "g_story_1.70" );
+	Global.Destroy( "g_story_1.80" );
+	Global.Destroy( "g_story_1.90" );
+	Global.Destroy( "g_story_1.100" );
+	Global.Destroy( "g_story_1.110" );
+	Global.Destroy( "g_finished_email_hinter" );
+	iGangsterIncidentGen.DestroyGlobals();
+}
+
+task local_function_6()
+{
+	iConversation.Begin();
+	iConversation.Say( none, "name_cal", "a1_master_dialogue_cal_hey_anyone_home" );
+	iConversation.Say( none, "name_cal", "a1_master_dialogue_cal_clay_its_me_cal" );
+	iConversation.Say( none, "name_clay", "a1_master_dialogue_clay_thats_it_fifteen_years_and_you_come_back_with_just_a_hi_honey_im_home" );
+	iConversation.Say( none, "name_cal", "a1_master_dialogue_cal_er_its_a_long_story" );
+	iConversation.Say( none, "name_clay", "a1_master_dialogue_clay_ill_give_you_long_story" );
+	iConversation.Say( none, "name_cal", "a1_master_dialogue_cal_sorry_clay_but_i_had_run_in_with_kaleb_maas" );
+	iConversation.Say( none, "name_clay", "a1_master_dialogue_clay_oh_right_well_i_guess_you_guys_better_make_yourself_at_home" );
+	iConversation.End();
+}
+
+task local_function_7()
+{
+	int convoResponse;
+	
+	debug Debug.PrintString( "iActOne.StoryElement1.10 : Story element has begun.\n" );
+	iInventory.AddTug();
+	iLoadout.SetShip( S_Tug );
+	iInventory.Add( CT_LDSiShortMissiles, 5 );
+	iConversation.Begin();
+	iConversation.Say( none, "name_smith", "a1_master_sure_got_ourselves" );
+	iConversation.Say( none, "name_smith", "a1_master_ive_already_has_a_play" );
+	iConversation.Say( none, "name_smith", "a1_master_reackon_itll_fly_like_a_dream" );
+	iConversation.AddResponse( "a1_master_lamb_chop", "a1_master_lamb_chop_how_about_that" );
+	iConversation.AddResponse( "a1_master_southern_cross", "a1_master_the_southern_cross_thats_a_good_name" );
+	iConversation.AddResponse( "a1_master_crazy_horse", "a1_master_how_about_crazy_horse" );
+	iConversation.AddResponse( "a1_master_jolly_roger", "a1_master_what_about_jolly_roger" );
+	iConversation.AddResponse( "a1_master_black_pig", "a1_master_mmmm_black_pig_is_a_good_name" );
+	convoResponse = iConversation.Ask( none, "name_smith", "a1_master_only_thing_she_needs_now_is_a_name" );
+	
+	if ( convoResponse == 1 )
+	{
+		iConversation.Say( none, "name_smith", "a1_master_lambchop_what_kind_of_stupid_name_is_that" );
+		iConversation.Say( none, "name_cal", "a1_master_well_you_did_ask" );
+		iConversation.Say( none, "name_smith", "a1_master_sigh_lambchop_it_is" );
+		iConversation.End();
+		Global.SetString( "g_player_ship_name", "a1_ship_name_1" );
+		return;
+	}
+	
+	if ( convoResponse == 2 )
+	{
+		iConversation.Say( none, "name_smith", "a1_master_good_name" );
+		iConversation.End();
+		Global.SetString( "g_player_ship_name", "a1_ship_name_2" );
+		return;
+	}
+	
+	if ( convoResponse == 3 )
+	{
+		iConversation.Say( none, "name_smith", "a1_master_crazy_horse_good_has_a_fugative_edge" );
+		iConversation.End();
+		Global.SetString( "g_player_ship_name", "a1_ship_name_3" );
+		return;
+	}
+	
+	if ( convoResponse == 4 )
+	{
+		iConversation.Say( none, "name_smith", "a1_master_well_its_not_the_most_subtle" );
+		iConversation.End();
+		Global.SetString( "g_player_ship_name", "a1_ship_name_4" );
+		return;
+	}
+	
+	if ( convoResponse == 5 )
+	{
+		iConversation.Say( none, "name_smith", "a1_master_black_pig_well_its_you_who_will_flying_it" );
+		iConversation.End();
+		Global.SetString( "g_player_ship_name", "a1_ship_name_5" );
+	}
+}
+
+task local_function_8()
+{
+	debug Debug.PrintString( "iActOne.StoryElement1.30 : Story element has begun.\n" );
+	iConversation.Begin();
+	iConversation.Say( none, "name_lori", "a1_master_lori_now_what" );
+	iConversation.Say( none, "name_cal", "a1_master_cal_I_have_a_plan" );
+	iConversation.Say( none, "name_jafs", "a1_master_jafs_space_pirates" );
+	iConversation.Say( none, "name_lori", "a1_master_lori_ok_im_in" );
+	iConversation.Say( none, "name_az", "a1_master_ibuki_well_our" );
+	iConversation.Say( none, "name_smith", "a1_master_smith_ibuki_right" );
+	iConversation.Say( none, "name_cal", "a1_master_cal_youre_right" );
+	iConversation.Say( none, "name_smith", "a1_master_smith_ok_kid" );
+	iConversation.End();
+}
+
+task local_function_9()
+{
+	debug Debug.PrintString( "iactOne.StoryElement1.20 ; Story element has begun.\n" );
+	iConversation.Begin();
+	iConversation.Say( none, "name_jafs", "a1_master_jafs_hey_cal" );
+	iConversation.Say( none, "name_cal", "a1_master_cal_while_you" );
+	iConversation.Say( none, "name_jafs", "a1_master_jafs_yeah_while_i" );
+	iConversation.Say( none, "name_clay", "a1_master_dialogue_clay_its_a_good" );
+	iConversation.End();
+	Global.SetBool( "g_act1_character_intro", true );
+	Global.CreateBool( "g_jafs_menu_option_enabled", 2, true );
+}
+
+task local_function_11()
+{
+	debug Debug.PrintString( "iactOne.StoryElement1.35 ; Story element has begun.\n" );
+	iConversation.Begin();
+	iConversation.Say( none, "name_jafs", "a1_master_jafs_ive_been_looking" );
+	iConversation.Say( none, "name_cal", "a1_master_cal_i_thought_you_had_contacts" );
+	iConversation.Say( none, "name_jafs", "a1_master_jafs_times_have_changed" );
+	iConversation.End();
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Independent" ), 484, 1, 90, 3, 0 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Independent" ), 483, 1, 39, 10, 0 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Independent" ), 490, 1, 26, 10, 0 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Independent" ), 498, 1, 258, 5, 0 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Independent" ), 488, 1, 268, 5, 0 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Independent" ), 492, 1, 293, 5, 0 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Independent" ), 563, 1, 313, 5, 0 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Independent" ), 490, 1, 47, 10, 0 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Independent" ), 488, 1, 45, 20, 0 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Independent" ), 165, 1, 29, 40, 0 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Independent" ), 490, 1, 43, 10, 0 ) );
+}
+
+task local_function_10()
+{
+	debug Debug.PrintString( "iactOne.StoryElement1.25 ; Story element has begun.\n" );
+	iConversation.Begin();
+	iConversation.Say( none, "name_jafs", "a1_master_jafs_tick_off" );
+	iConversation.End();
+}
+
+task local_function_12()
+{
+	debug Debug.PrintString( "iactOne.StoryElement1.25 ; Story element has begun.\n" );
+	iConversation.Begin();
+	iConversation.Say( none, "name_jafs", "a1_master_jafs_bad_news" );
+	iConversation.End();
+}
+
+task local_function_13()
+{
+	debug Debug.PrintString( "iactOne.StoryElement1.40 ; Story element has begun.\n" );
+	iConversation.Begin();
+	iConversation.Say( none, "name_jafs", "a1_master_dialogue_jafs_mail_from_stepsons" );
+	iConversation.End();
+	iEmail.SendEmail( "a1_master_stepsons_mail_sender", "a1_master_story1.40_mail_subject", "html:/text/act_1/act1_master_stepsonsmail_1", true );
+}
+
+task local_function_16()
+{
+	debug Debug.PrintString( "iactOne.StoryElement1.60 ; Story element has begun.\n" );
+	iEmail.SendEmail( "a1_master_stepsons_mail_sender", "a1_master_story1.60_mail_subject", "html:/text/act_1/act1_master_stepsonsmail_2", true );
+}
+
+task local_function_14()
+{
+	debug Debug.PrintString( "iactOne.StoryElement1.50 ; Story element has begun.\n" );
+	iConversation.Begin();
+	iConversation.Say( none, "name_cal", "a1_master_cal_brand_new_turret_fighters" );
+	iConversation.Say( none, "name_az", "a1_master_ibuki_what_do_you_think" );
+	iConversation.Say( none, "name_cal", "a1_master_cal_what_about_you" );
+	iConversation.Say( none, "name_lori", "a1_master_lori_listen_up" );
+	iConversation.Say( none, "name_cal", "a1_master_cal_ok_ok_im_sorry" );
+	iConversation.Say( none, "name_clay", "a1_training_clay_try_them_out" );
+	iConversation.End();
+	Global.SetBool( "g_act1_turret_fighters_mounted", true );
+	iLoadout.SetShip( S_CommandSection );
+	iLoadout.SetShip( S_Tug );
+	Global.CreateBool( "g_tfighters_menu_option_enabled", 2, true );
+}
+
+task local_function_15()
+{
+	debug Debug.PrintString( "iactOne.StoryElement1.70 ; Story element has begun.\n" );
+	iEmail.SendEmail( "a1_master_stepsons_mail_sender", "a1_master_story1.70_mail_subject", "html:/text/act_1/act1_master_stepsonsmail_3", true );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 560, 1, 377, 2, 2 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 561, 1, 49, 1, 0 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 561, 1, 52, 2, 0 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 565, 1, 466, 2, 2 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 565, 1, 45, 3, 1 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 565, 1, 102, 1, 1 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 565, 1, 43, 3, 1 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 501, 1, 121, 1, 0 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 501, 1, 38, 2, 0 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 564, 1, 201, 1, 1 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 564, 1, 35, 2, 2 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 588, 1, 377, 2, 1 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 588, 1, 45, 4, 1 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 588, 1, 40, 4, 1 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 308, 1, 92, 3, 1 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 308, 1, 39, 5, 0 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 308, 1, 153, 1, 1 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 569, 1, 24, 2, 1 ) );
+}
+
+task local_function_17()
+{
+	debug Debug.PrintString( "iactOne.StoryElement1.80 ; Story element has begun.\n" );
+	iConversation.Begin();
+	iConversation.Say( none, "name_smith", "a1_master_smith_my_buddy_maurice" );
+	iConversation.End();
+	iEmail.SendEmail( "a1_master_maurice_mail_sender", "a1_master_story1.80_maurice_mail_subject", "html:/text/act_1/act1_master_mauricemail_1", true );
+}
+
+task local_function_18()
+{
+	debug Debug.PrintString( "iactOne.StoryElement1.90 ; Story element has begun.\n" );
+	iEmail.SendEmail( "a1_master_stepsons_mail_sender", "a1_master_story1.90_stepson_mail_subject", "html:/text/act_1/act1_master_stepsonsmail_4", true );
+	iEmail.SendEmail( "a1_master_maurice_mail_sender", "a1_master_story1.90_maurice_mail_subject", "html:/text/act_1/act1_master_mauricemail_2", true );
+	iConversation.Begin();
+	iConversation.Say( none, "name_az", "a1_master_ibuki_latest_mails" );
+	iConversation.Say( none, "name_smith", "a1_master_smith_dunno_but_im_inclined_to_think" );
+	iConversation.Say( none, "name_cal", "a1_master_cal_and_thats_the_problem" );
+	iConversation.Say( none, "name_jafs", "a1_master_jafs_how_about_exploit_the_situation" );
+	iConversation.Say( none, "name_cal", "a1_master_cal_not_quite_the_plan" );
+	iConversation.End();
+	Global.SetBool( "g_act1_hoffers_wake_warning", true );
+}
+
+task local_function_19()
+{
+	debug Debug.PrintString( "iactOne.StoryElement1.100 ; Story element has begun.\n" );
+	iEmail.SendEmail( "a1_master_league_mail_sender", "a1_master_story1.100_mail_subject", "html:/text/act_1/act1_master_leaguemail_1", true );
+	Global.SetBool( "g_act1_league_introduction", true );
+}
+
+task local_function_20()
+{
+	debug Debug.PrintString( "iactOne.StoryElement1.110 ; Story element has begun.\n" );
+	iEmail.SendEmail( "a1_master_league_mail_sender", "a1_master_story1.110_mail_subject", "html:/text/act_1/act1_master_leaguemail_2", true );
+}
+
+task local_function_21()
+{
+	debug Debug.PrintString( "iActOne.TreasureHuntConversationSequence : task hascommenced\n" );
+	iConversation.Begin();
+	iConversation.Say( none, "name_jafs", "a1_master_jafs_lucrecias_horde_hey_aint_lucrecia_your_grandma" );
+	iConversation.Say( none, "name_cal", "a1_master_cal_yup_thats_her_but_I_dont_know_what_this_horde_is_all_about" );
+	iConversation.Say( none, "name_clay", "a1_master_clay_before_she_dissapeared_your_grandma_stashed_a_good_portion_of_her_loot" );
+	iConversation.Say( none, "name_cal", "a1_master_cal_so_we_know_where_both_the_locations_to_triangulate_from_are_but_what_about_the_date" );
+	iConversation.Say( none, "name_clay", "a1_master_clay_i_dont_know_as_i_could_be_hacked_she_trusted_me_even_less" );
+	iConversation.Say( none, "name_jafs", "a1_master_jafs_you_dumb_piece_of_jumk_think" );
+	iConversation.End();
+}
+
+local_function_1( int param_0_ )
+{
+	switch ( param_0_ )
+	{
+		case 1:
+			debug Debug.PrintString( "iActOneStart.StepsonComms - Jaffs complains about few trades on offer. Add trades....\n" );
+			Global.SetInt( "g_story_1.35", 1 );
+			return;
+		
+		case 2:
+			debug Debug.PrintString( "iActOneStart.StepsonComms - Jaffs makes some more complaints about trades on offer. Adding more trades.\n" );
+			Global.SetInt( "g_story_1.36", 1 );
+			return;
+		
+		case 3:
+			debug Debug.PrintString( "iActOneStart.StepsonComms - Sending fourth Stepsons teaser to e-mail.\n" );
+			iEmail.SendEmail( "a1_sender_the_stepsons", "a1_subject_doing_well", "html:/text/act_1/act1_stepson_mail_2", false );
+			return;
+		
+		case 4:
+			debug Debug.PrintString( "iActOneStart.StepsonComms - Sending fifth Stepsons teaser to e-mail.\n" );
+			iEmail.SendEmail( "a1_sender_the_stepsons", "a1_subject_we_are_impressed", "html:/text/act_1/act1_stepson_mail_3", false );
+			return;
+	}
+}
+
+local_function_0( int param_0_ )
+{
+	debug Debug.PrintString( "iActOne.PiracyGeneratedMission : Adding new generated issions to the list....\n" );
+	
+	switch ( param_0_ )
+	{
+		case 1:
+			if ( 0 == Global.Exists( "g_added_gm_batch_1" ) )
+			{
+				iGMTracker.AddGMEnum( 1 );
+				iGMTracker.AddGMEnum( 2 );
+				iGMTracker.AddGMEnum( 3 );
+				iGMTracker.SetGMRange( 2, 3 );
+				Global.CreateBool( "g_added_gm_batch_1", 1, true );
+			}
+			
+			return;
+		
+		case 2:
+			if ( 0 == Global.Exists( "g_added_gm_batch_2" ) )
+			{
+				iGMTracker.AddGMEnum( 4 );
+				iGMTracker.AddGMEnum( 5 );
+				iGMTracker.AddGMEnum( 6 );
+				iGMTracker.SetGMRange( 4, 6 );
+				Global.CreateBool( "g_added_gm_batch_2", 1, true );
+			}
+			
+			return;
+		
+		case 3:
+			if ( 0 == Global.Exists( "g_added_gm_batch_3" ) )
+			{
+				iGMTracker.AddGMEnum( 7 );
+				iGMTracker.AddGMEnum( 8 );
+				iGMTracker.AddGMEnum( 9 );
+				iGMTracker.AddGMEnum( 10 );
+				iGMTracker.SetGMRange( 7, 10 );
+				Global.CreateBool( "g_added_gm_batch_3", 1, true );
+			}
+			
+			return;
+		
+		case 4:
+			if ( 0 == Global.Exists( "g_added_gm_batch_4" ) )
+			{
+				iGMTracker.AddGMEnum( 11 );
+				iGMTracker.SetGMRange( 11, 11 );
+				Global.CreateBool( "g_added_gm_batch_4", 1, true );
+			}
+			
+			return;
+	}
+}
+
+task StepsonMember()
+{
+	int local_0 = 0;
+	htask currentTask = Task.Current();
+	hstate taskState = State.Find( currentTask );
+	
+	if ( !taskState )
+	{
+		taskState = State.Create( currentTask, 0 );
+	}
+	
+	debug Debug.PrintString( "iActOne.StepsonMember : Starting to monitoring the players career with the Stepsons.\n" );
+	
+	switch ( State.Progress( taskState ) )
+	{
+		case 0:
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 484, 1, 344, 1, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 483, 1, 7, 3, 2 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 490, 1, 377, 1, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 559, 1, 336, 1, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 498, 1, 90, 1, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 488, 1, 313, 1, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 492, 1, 317, 2, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 563, 1, 330, 1, 2 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 492, 1, 24, 1, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 492, 1, 53, 1, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 490, 1, 52, 2, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 488, 1, 45, 2, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 165, 1, 29, 3, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 490, 1, 40, 2, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 488, 1, 50, 2, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 494, 1, 83, 2, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 494, 1, 45, 1, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 167, 1, 347, 1, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 213, 1, 351, 2, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 496, 1, 363, 1, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 299, 1, 358, 1, 2 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 301, 1, 344, 1, 2 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 590, 1, 377, 2, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 490, 1, 371, 1, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 591, 1, 381, 1, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 592, 1, 390, 2, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 167, 1, 47, 5, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 496, 1, 38, 1, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 299, 1, 40, 4, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 301, 1, 45, 4, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 590, 1, 24, 2, 2 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 490, 1, 47, 1, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 591, 1, 58, 1, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 592, 1, 28, 2, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 299, 1, 35, 2, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 301, 1, 32, 2, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 590, 1, 31, 2, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 490, 1, 35, 2, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Independent" ), 490, 1, 47, 1, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Independent" ), 488, 1, 45, 2, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Independent" ), 165, 1, 29, 4, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Independent" ), 490, 1, 43, 1, 0 ) );
+			iTrade.RemoveTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Independent" ), 484, 1, 90, 3, 0 ) );
+			iTrade.RemoveTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Independent" ), 483, 1, 39, 10, 0 ) );
+			iTrade.RemoveTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Independent" ), 490, 1, 26, 10, 0 ) );
+			iTrade.RemoveTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Independent" ), 498, 1, 258, 5, 0 ) );
+			iTrade.RemoveTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Independent" ), 488, 1, 268, 5, 0 ) );
+			iTrade.RemoveTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Independent" ), 492, 1, 293, 5, 0 ) );
+			iTrade.RemoveTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Independent" ), 563, 1, 313, 5, 0 ) );
+			iTrade.RemoveTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Independent" ), 490, 1, 47, 10, 0 ) );
+			iTrade.RemoveTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Independent" ), 488, 1, 45, 20, 0 ) );
+			iTrade.RemoveTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Independent" ), 165, 1, 29, 40, 0 ) );
+			iTrade.RemoveTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Independent" ), 490, 1, 43, 10, 0 ) );
+			State.SetProgress( taskState, 1 );
+		
+		case 1:
+			Global.SetBool( "g_act1_stepsons_pleased", true );
+			State.Destroy( Task.Current() );
+			return;
+			
+			while ( !Global.Bool( "g_act1_stepsons_pleased" ) )
+			{
+				schedule
+				{
+					every 60.0:
+					{
+						debug Debug.PrintString( "iActOne.StepsonMember - checking to see if player has completed enough generated missions to advance to next act stage\n" );
+						local_0 = ( local_0 + 1 );
+						
+						if ( local_0 == 5 )
+						{
+							debug Debug.PrintString( "iActOne.StepsonMember - player has completed enought generated Stepson missions to advance to next state....\n" );
+							Global.SetBool( "g_act1_stepsons_pleased", true );
+							break;
+						}
+						else if ( local_0 > 0 )
+						{
+							debug atomic
+							{
+								Debug.PrintString( "iActOne.StepsonMember - player has completed " );
+								Debug.PrintInt( local_0 );
+								Debug.PrintString( " generated Stepson missions - five are needed to progress.....\n" );
+							}
+						}
+						else debug Debug.PrintString( "iActOne.StepsonMember - not enough generated missions have been completed to advance to next stage \n" );
+					}
+				}
+				
+				State.Destroy( Task.Current() );
+				return;
+			}
+	}
+}
+
+task PiracyRatingHandler()
+{
+	int local_0;
+	
+	debug Debug.PrintString( "iActOne.piracyRatingHandler - Starting temporary piracy rating incrementor\n" );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			Global.SetInt( "g_piracy_rating", Global.Int( "g_piracy_rating" ) + 100 );
+			
+			debug atomic
+			{
+				Debug.PrintString( String.Join( "iActOne.PiracyRatingHandler - Piracy rating is now - ", String.FromInt( Global.Int( "g_piracy_rating" ) ) ) );
+				Debug.PrintString( "\n" );
+			}
+		}
+	}
+}
+
+task PiracyRatingTracker()
+{
+	htask currentTask = Task.Current();
+	hstate taskState = State.Find( currentTask );
+	
+	local_function_0( 1 );
+	
+	if ( !taskState )
+	{
+		taskState = State.Create( currentTask, 0 );
+	}
+	
+	debug Debug.PrintString( "iActOne.PiracyRatingTracker - Commencing Piracy Rating Tracker script.\n" );
+	
+	switch ( State.Progress( taskState ) )
+	{
+		case 0:
+			if ( Object.PropertyExists( taskState, "done_special" ) == 0 )
+			{
+				Object.AddIntProperty( taskState, "done_special", 1 );
+				
+				if ( iUtilities.SkipMission( "Piracy Special Mission?" ) )
+				{
+					Object.AddIntProperty( taskState, "next_piracy_level", 100 );
+					local_function_1( 4 );
+					Global.SetBool( "g_act1_stepsons_intro", true );
+					
+					if ( 0 == Global.Exists( "g_added_gm_batch_5" ) )
+					{
+						iGMTracker.AddGMEnum( 1 );
+						iGMTracker.AddGMEnum( 2 );
+						iGMTracker.AddGMEnum( 3 );
+						iGMTracker.AddGMEnum( 4 );
+						iGMTracker.AddGMEnum( 5 );
+						iGMTracker.AddGMEnum( 6 );
+						iGMTracker.AddGMEnum( 7 );
+						iGMTracker.AddGMEnum( 8 );
+						iGMTracker.AddGMEnum( 9 );
+						iGMTracker.AddGMEnum( 10 );
+						iGMTracker.AddGMEnum( 11 );
+						Global.CreateBool( "g_added_gm_batch_5", 1, true );
+					}
+					
+					State.Destroy( Task.Current() );
+					return;
+				}
+				else
+				{
+					iAct1PiracySpecial.Main();
+				}
+			}
+			
+			Object.AddIntProperty( taskState, "next_piracy_level", 1 );
+			
+			schedule
+			{
+				every 5.0:
+				{
+					if ( iScore.PodPiracyValue() >= Object.IntProperty( taskState, "next_piracy_level" ) )
+					{
+						break;
+					}
+				}
+			}
+			
+			debug Debug.PrintString( "iActOne.PiracyRatingTracker - Player has achieved piracy level 1\n" );
+			Object.SetIntProperty( taskState, "next_piracy_level", Object.IntProperty( taskState, "next_piracy_level" ) + 17 );
+			State.SetProgress( taskState, 1 );
+		
+		case 1:
+			schedule
+			{
+				every 5.0:
+				{
+					if ( iScore.PodPiracyValue() >= Object.IntProperty( taskState, "next_piracy_level" ) )
+					{
+						break;
+					}
+				}
+			}
+			
+			debug Debug.PrintString( "iActOne.PiracyRatingTracker - Player has achieved piracy level 2\n" );
+			Object.SetIntProperty( taskState, "next_piracy_level", Object.IntProperty( taskState, "next_piracy_level" ) + 20 );
+			local_function_1( 1 );
+			State.SetProgress( taskState, 2 );
+		
+		case 2:
+			schedule
+			{
+				every 5.0:
+				{
+					debug
+					{
+						Debug.PrintString( "iActOne.PiracyRatingTracker: Current score " );
+						Debug.PrintString( String.FromInt( iScore.PodPiracyValue() ) );
+						Debug.PrintString( " of " );
+						Debug.PrintString( String.FromInt( Object.IntProperty( taskState, "next_piracy_level" ) ) );
+						Debug.PrintString( "\n" );
+					}
+					
+					if ( iScore.PodPiracyValue() >= Object.IntProperty( taskState, "next_piracy_level" ) )
+					{
+						break;
+					}
+				}
+			}
+			
+			debug Debug.PrintString( "ActOne.PiracyRatingTracker - Player has achieved piracy level 3\n" );
+			Object.SetIntProperty( taskState, "next_piracy_level", Object.IntProperty( taskState, "next_piracy_level" ) + 20 );
+			local_function_0( 1 );
+			State.SetProgress( taskState, 3 );
+		
+		case 3:
+			schedule
+			{
+				every 5.0:
+				{
+					debug
+					{
+						Debug.PrintString( "iActOne.PiracyRatingTracker: Current score " );
+						Debug.PrintString( String.FromInt( iScore.PodPiracyValue() ) );
+						Debug.PrintString( " of " );
+						Debug.PrintString( String.FromInt( Object.IntProperty( taskState, "next_piracy_level" ) ) );
+						Debug.PrintString( "\n" );
+					}
+					
+					if ( iScore.PodPiracyValue() >= Object.IntProperty( taskState, "next_piracy_level" ) )
+					{
+						break;
+					}
+				}
+			}
+			
+			debug Debug.PrintString( "iActOne.PiracyRatingTracker - Player has achieved piracy level 4\n" );
+			Object.SetIntProperty( taskState, "next_piracy_level", Object.IntProperty( taskState, "next_piracy_level" ) + 20 );
+			local_function_1( 2 );
+			State.SetProgress( taskState, 4 );
+		
+		case 4:
+			schedule
+			{
+				every 5.0:
+				{
+					debug
+					{
+						Debug.PrintString( "iActOne.PiracyRatingTracker: Current score " );
+						Debug.PrintString( String.FromInt( iScore.PodPiracyValue() ) );
+						Debug.PrintString( " of " );
+						Debug.PrintString( String.FromInt( Object.IntProperty( taskState, "next_piracy_level" ) ) );
+						Debug.PrintString( "\n" );
+					}
+					
+					if ( iScore.PodPiracyValue() >= Object.IntProperty( taskState, "next_piracy_level" ) )
+					{
+						break;
+					}
+				}
+			}
+			
+			debug Debug.PrintString( "iActOne.PiracyRatingTracker - Player has achieved piracy level 5\n" );
+			Object.SetIntProperty( taskState, "next_piracy_level", Object.IntProperty( taskState, "next_piracy_level" ) + 20 );
+			local_function_0( 2 );
+			State.SetProgress( taskState, 5 );
+		
+		case 5:
+			schedule
+			{
+				every 5.0:
+				{
+					debug
+					{
+						Debug.PrintString( "iActOne.PiracyRatingTracker: Current score " );
+						Debug.PrintString( String.FromInt( iScore.PodPiracyValue() ) );
+						Debug.PrintString( " of " );
+						Debug.PrintString( String.FromInt( Object.IntProperty( taskState, "next_piracy_level" ) ) );
+						Debug.PrintString( "\n" );
+					}
+					
+					if ( iScore.PodPiracyValue() >= Object.IntProperty( taskState, "next_piracy_level" ) )
+					{
+						break;
+					}
+				}
+			}
+			
+			debug Debug.PrintString( "iActOne.PiracyRatingTracker - Player has achieved piracy level 6\n" );
+			Object.SetIntProperty( taskState, "next_piracy_level", Object.IntProperty( taskState, "next_piracy_level" ) + 20 );
+			local_function_1( 3 );
+			State.SetProgress( taskState, 6 );
+		
+		case 6:
+			schedule
+			{
+				every 5.0:
+				{
+					debug
+					{
+						Debug.PrintString( "iActOne.PiracyRatingTracker: Current score " );
+						Debug.PrintString( String.FromInt( iScore.PodPiracyValue() ) );
+						Debug.PrintString( " of " );
+						Debug.PrintString( String.FromInt( Object.IntProperty( taskState, "next_piracy_level" ) ) );
+						Debug.PrintString( "\n" );
+					}
+					
+					if ( iScore.PodPiracyValue() >= Object.IntProperty( taskState, "next_piracy_level" ) )
+					{
+						break;
+					}
+				}
+			}
+			
+			debug Debug.PrintString( "iActOne.PiracyRatingTracker - Player has achieved piracy level 7\n" );
+			Object.SetIntProperty( taskState, "next_piracy_level", Object.IntProperty( taskState, "next_piracy_level" ) + 20 );
+			local_function_0( 3 );
+			State.SetProgress( taskState, 7 );
+		
+		case 7:
+			schedule
+			{
+				every 5.0:
+				{
+					debug
+					{
+						Debug.PrintString( "iActOne.PiracyRatingTracker: Current score " );
+						Debug.PrintString( String.FromInt( iScore.PodPiracyValue() ) );
+						Debug.PrintString( " of " );
+						Debug.PrintString( String.FromInt( Object.IntProperty( taskState, "next_piracy_level" ) ) );
+						Debug.PrintString( "\n" );
+					}
+					
+					if ( iScore.PodPiracyValue() >= Object.IntProperty( taskState, "next_piracy_level" ) )
+					{
+						break;
+					}
+				}
+			}
+			
+			debug Debug.PrintString( "iActOne.PiracyRatingTracker - Player has achieved piracy level 8\n" );
+			Object.SetIntProperty( taskState, "next_piracy_level", Object.IntProperty( taskState, "next_piracy_level" ) + 20 );
+			local_function_1( 4 );
+			State.SetProgress( taskState, 8 );
+		
+		case 8:
+			schedule
+			{
+				every 5.0:
+				{
+					debug
+					{
+						Debug.PrintString( "iActOne.PiracyRatingTracker: Current score " );
+						Debug.PrintString( String.FromInt( iScore.PodPiracyValue() ) );
+						Debug.PrintString( " of " );
+						Debug.PrintString( String.FromInt( Object.IntProperty( taskState, "next_piracy_level" ) ) );
+						Debug.PrintString( "\n" );
+					}
+					
+					if ( iScore.PodPiracyValue() >= Object.IntProperty( taskState, "next_piracy_level" ) )
+					{
+						break;
+					}
+				}
+			}
+			
+			debug Debug.PrintString( "iActOne.PiracyRatingTracker - Player has achieved piracy level 11\n" );
+			Object.SetIntProperty( taskState, "next_piracy_level", Object.IntProperty( taskState, "next_piracy_level" ) + 20 );
+			local_function_0( 4 );
+			State.SetProgress( taskState, 9 );
+		
+		case 9:
+			schedule
+			{
+				every 5.0:
+				{
+					debug
+					{
+						Debug.PrintString( "iActOne.PiracyRatingTracker: Current score " );
+						Debug.PrintString( String.FromInt( iScore.PodPiracyValue() ) );
+						Debug.PrintString( " of " );
+						Debug.PrintString( String.FromInt( Object.IntProperty( taskState, "next_piracy_level" ) ) );
+						Debug.PrintString( "\n" );
+					}
+					
+					if ( iScore.PodPiracyValue() >= Object.IntProperty( taskState, "next_piracy_level" ) )
+					{
+						break;
+					}
+				}
+			}
+			
+			debug Debug.PrintString( "iActOne.PiracyRatingTracker - Player has achieved piracy level 12\n" );
+			Object.SetIntProperty( taskState, "next_piracy_level", Object.IntProperty( taskState, "next_piracy_level" ) + 20 );
+			Global.SetBool( "g_act1_stepsons_intro", true );
+			State.Destroy( Task.Current() );
+	}
+}
+
+task MarauderEncounters()
+{
+	htask currentTask = Task.Current();
+	hstate taskState = State.Find( currentTask );
+	
+	if ( !taskState )
+	{
+		taskState = State.Create( currentTask, 0 );
+	}
+	
+	if ( iUtilities.SkipMission( "Marauder generated missions?" ) )
+	{
+		Global.SetBool( "g_act_1_marauders_encountered", true );
+		Global.SetInt( "g_story_1.90", 1 );
+		State.SetProgress( taskState, 4 );
+	}
+	
+	debug Debug.PrintString( "iActOne.MarauderEncounters : Starting Marauder Encounters Task\n" );
+	
+	switch ( State.Progress( taskState ) )
+	{
+		case 0:
+			debug Debug.PrintString( "iActOne.MarauderEncounters : Setting up marauder encounter counter global\n" );
+			Global.CreateInt( "g_marauder_encounter_count", 2, 0 );
+			State.SetProgress( taskState, 1 );
+		
+		case 1:
+			iGangsterIncidentGen.SetActive( true );
+			iGangsterIncidentGen.SetFaction( A_Marauders );
+			iGangsterIncidentGen.SetNumberOfVesselAttackersVar( 2 );
+			iGangsterIncidentGen.SetNumberOfStationAttackersVar( 3 );
+			iGangsterIncidentGen.SetDelayCheck( 40.0 );
+			Task.Detach( start iGangsterIncidentGen.GangsterWarGenerator() );
+			
+			while ( Global.Bool( "g_act1_marauders_encountered" ) == 0 )
+			{
+				schedule
+				{
+					every 10.0:
+					{
+						debug Debug.PrintString( "iActOne.MarauderEncounters : Checking for a new marauder encounter...." );
+						Global.SetInt( "g_marauder_encounter_count", Global.Int( "g_marauder_encounter_count" ) + 1 );
+						
+						if ( Global.Int( "g_marauder_encounter_count" ) == 24 )
+						{
+							Global.SetBool( "g_act1_marauders_encountered", true );
+							debug Debug.PrintString( "iActOne.MarauderEncounter : player has had enough marauder encounters - progress to marauder cache\n" );
+							break;
+						}
+					}
+				}
+			}
+			
+			Global.SetBool( "g_act1_marauders_encountered", true );
+			State.SetProgress( taskState, 2 );
+		
+		case 2:
+			iGangsterIncidentGen.SetActive( false );
+			debug Debug.PrintString( "iActOne.MarauderEncounter : Pausing the baddie generator while act 01 mission 05 executes....\n" );
+			
+			while ( Global.Bool( "g_act1_destroyed_marauder_cache" ) == 0 )
+			{
+				Task.Sleep( Task.Current(), 60.0 );
+				debug Debug.PrintString( "iActOne.MarauderEncounter : Waiting for the Marauder Cach mission to be completed.....\n" );
+			}
+			
+			debug Debug.PrintString( "iActOne.MarauderEncounter : player has completed Marauder Cache mission, resuming marauder encounters\n" );
+			Global.SetInt( "g_marauder_encounter_count", 0 );
+			State.SetProgress( taskState, 3 );
+		
+		case 3:
+			iGangsterIncidentGen.SetActive( true );
+			iGangsterIncidentGen.SetFaction( A_Marauders );
+			iGangsterIncidentGen.SetNumberOfVesselAttackersVar( 4 );
+			iGangsterIncidentGen.SetNumberOfStationAttackersVar( 7 );
+			iGangsterIncidentGen.SetDelayCheck( 35.0 );
+			
+			while ( Global.Bool( "g_act1_hoffers_wake_warning" ) == 0 )
+			{
+				schedule
+				{
+					every 60.0:
+					{
+						debug Debug.PrintString( "iActOne.MarauderEncounters : Checking for a post cache marauder encounter" );
+						Global.SetInt( "g_marauder_encounter_count", Global.Int( "g_marauder_encounter_count" ) + 1 );
+						
+						if ( Global.Int( "g_marauder_encounter_count" ) == 3 )
+						{
+							Global.SetInt( "g_story_1.90", 1 );
+							Global.SetBool( "g_act1_hoffers_wake_warning", true );
+							debug Debug.PrintString( "iActOne.MarauderEncounter : player has had enough marauder encounters - progress to marauder cache\n" );
+							break;
+						}
+						else if ( Global.Int( "g_marauder_encounter_count" ) > 5 )
+						{
+							debug Debug.PrintString( "iActOne.MarauderEncounter : playr has exceeded marauder encounter to get story 1.80, but has not returned to base yet.....\n" );
+						}
+					}
+				}
+			}
+			
+			debug Debug.PrintString( "iActOne.MarauderEncounter : Stopping marauder encounters while the player performs act 01 mission 06 - gunstar supermarket sweep...\n" );
+			State.SetProgress( taskState, 4 );
+		
+		case 4:
+			State.Destroy( Task.Current() );
+	}
+}
+
+task local_function_2( hship ship_, hmapentity mapentity_0_, hmapentity mapentity_1_ )
+{
+	hsim local_0 = iDirector.CreateDolly();
+	
+	iDirector.Begin();
+	
+	atomic
+	{
+		iUtilities.SimPlaceBetweenExact( ship_, mapentity_0_, mapentity_1_, 20000.0 );
+		Sim.PointAt( ship_, mapentity_1_ );
+		Sim.PlaceRelativeTo( local_0, ship_, 200.0, 50.0, 1000.0 );
+		iShip.SetFreeWithoutPilot( ship_, true );
+		Sim.SetVelocityLocalToSim( ship_, 0.0, 0.0, 500.0 );
+		Sim.AvatarAddChannel( ship_, "lz", 1.0 );
+	}
+	
+	iDirector.SetDollyCamera( local_0 );
+	iDirector.SetFocus( ship_ );
+	Task.Sleep( Task.Current(), 5.0 );
+	iDirector.FadeOut( 1.0, 0.0, 0.0, 0.0 );
+	Task.Sleep( Task.Current(), 1.0 );
+	
+	atomic
+	{
+		iUtilities.SimPlaceBetweenExact( ship_, mapentity_1_, mapentity_0_, 20000.0 );
+		Sim.PointAt( ship_, mapentity_1_ );
+		Sim.PlaceRelativeTo( local_0, ship_, -200.0, 50.0, 1000.0 );
+		Sim.SetVelocityLocalToSim( ship_, 0.0, 0.0, 500.0 );
+		Sim.AvatarSetChannel( ship_, "lz", 1.0 );
+	}
+	
+	iDirector.SetDollyCamera( local_0 );
+	iDirector.SetFocus( ship_ );
+	iDirector.FadeIn( 1.0, 0.0, 0.0, 0.0 );
+	Task.Sleep( Task.Current(), 5.0 );
+	iDirector.End();
+}
+
+task HavenStationIntroduction()
+{
+	htask currentTask = Task.Current();
+	hstate taskState = State.Find( currentTask );
+	hship playerShip = iShip.FindPlayerShip();
+	hship shipSnrvRecovery;
+	bool local_4 = false;
+	bool local_5 = false;
+	string local_6;
+	hmapentity jebiadiahsFoundary;
+	hmapentity havenStation;
+	int convoResponse;
+	bool local_10 = true;
+	hgroup group = iCutsceneUtilities.GetKillGroup();
+	int local_12;
+	
+	Global.CreateBool( "g_act1_haven_station_visited", 2, false );
+	
+	if ( !taskState )
+	{
+		taskState = State.Create( currentTask, 0 );
+	}
+	
+	debug Debug.PrintString( "iActOne.HavenStationIntroduction : Starting haven station introduction task\n" );
+	
+	switch ( State.Progress( taskState ) )
+	{
+		case 0:
+			debug Debug.PrintString( "iActOne.HavenStationVisitor : Sending player invitation to the league\n" );
+			iEmail.SendEmail( "a1_m08_email_sender", "a1_master_subject_haven", "html:/text/act_1/act1_master_leaguemail_2", true );
+			State.SetProgress( taskState, 1 );
+		
+		case 1:
+			debug Debug.PrintString( "iActOne.HavenStationVisitor : setting up the tiger lilly - the league aligned piggy back ship\n" );
+			shipSnrvRecovery = iShip.Create( "ini:/sims/ships/utility/snrv_recovery", "Tiger Lilly" );
+			iSim.SetFaction( shipSnrvRecovery, iFaction.Find( "League" ) );
+			iPilotSetup.Generic( shipSnrvRecovery );
+			Sim.SetCullable( shipSnrvRecovery, false );
+			iSim.SetIndestructable( shipSnrvRecovery, true );
+			Object.SetFloatProperty( shipSnrvRecovery, "docking_priority", 200.0 );
+			debug Debug.PrintString( "iActOne.HavenStationVisitor - Placing the Tiger littly near Jebiadiah's Foundary...\n" );
+			jebiadiahsFoundary = iMapEntity.FindByName( "Jebiadiah's Foundary" );
+			
+			if ( jebiadiahsFoundary == false )
+			{
+				debug Debug.Error( "iActOne.HavenStationIntroduction : cannot find Jebadiah's foundary in current system\n" );
+			}
+			
+			Sim.PlaceRelativeTo( shipSnrvRecovery, iMapEntity.WaypointForEntity( jebiadiahsFoundary ), 500.0, 500.0, 500.0 );
+			
+			while ( local_10 && (Global.Int( "g_current_act" ) == 1) )
+			{
+				while ( !local_4 )
+				{
+					if ( Sim.DistanceBetween( playerShip, shipSnrvRecovery ) > 20000.0 )
+					{
+						debug Debug.PrintString( "iActOne.HavenStationIntroduction : The player isnowhere near the tiger lilly, sleepig for ten seconds\n" );
+						local_5 = false;
+						Task.Sleep( Task.Current(), 10.0 );
+					}
+					else if ( Sim.DistanceBetween( playerShip, shipSnrvRecovery ) > 8000.0 )
+					{
+						debug Debug.PrintString( "iActOne.HavenStationIntroduction : The player is close to the tiger lilly, but not close enough, sleeping for a second\n" );
+						Task.Sleep( Task.Current(), 1.0 );
+					}
+					else if ( !local_5 )
+					{
+						local_5 = true;
+						iConversation.Begin();
+						iConversation.AddResponse( "a1_master_tl_player_affirmative", "a1_master_tl_player_affirmative" );
+						iConversation.AddResponse( "a1_master_player_tl_player_negative", "a1_master_player_tl_player_negative" );
+						convoResponse = iConversation.Ask( shipSnrvRecovery, "a1_master_tiger_lilly", "a1_master_tl_want_to_go_to_haven_station" );
+						
+						if ( convoResponse == 1 )
+						{
+							iConversation.Say( shipSnrvRecovery, "a1_master_tiger_lilly", "a1_master_tl_then_dock_to_me" );
+							iConversation.End();
+						}
+						else
+						{
+							iConversation.Say( shipSnrvRecovery, "a1_master_tiger_lilly", "a1_master_suit_yourself" );
+							iConversation.End();
+						}
+					}
+					else if ( iSim.IsDockedTo( playerShip, shipSnrvRecovery ) )
+					{
+						debug Debug.PrintString( "iActOne.HavenStationIntroduction - player ship has docked to the tiger Lilly - lets go to haven station...\n" );
+						local_4 = true;
+					}
+					else
+					{
+						debug Debug.PrintString( "iActOne.HavenStationIntroduction  : player is close to tiger lilly, but has already spoken to it, sleeping\n" );
+						Task.Sleep( Task.Current(), 5.0 );
+					}
+				}
+				
+				havenStation = iMapEntity.FindByNameInSystem( "Haven Station", "map:/geog/badlands/hoffers_wake" );
+				
+				if ( jebiadiahsFoundary == false )
+				{
+					debug Debug.Error( "iActOne.HavenStationIntroduction : cannot find Haven Station in current system\n" );
+				}
+				
+				iRangeCheck.AddTrafficException( havenStation );
+				iCutsceneUtilities.HandleAbort( start local_function_2( shipSnrvRecovery, jebiadiahsFoundary, havenStation ) );
+				
+				atomic
+				{
+					Sim.PlaceRelativeTo( shipSnrvRecovery, havenStation, 500.0, 500.0, 2000.0 );
+					Sim.SetVelocity( shipSnrvRecovery, 0.0, 0.0, 0.0 );
+					Sim.PointAt( shipSnrvRecovery, havenStation );
+					iShip.SetFreeWithoutPilot( shipSnrvRecovery, false );
+				}
+				
+				Task.Sleep( Task.Current(), 1.0 );
+				iConversation.Begin();
+				iConversation.Say( shipSnrvRecovery, "a1_master_tiger_lilly", "a1_master_welcome_haven_station" );
+				iConversation.End();
+				
+				while ( iSim.IsDockedTo( playerShip, shipSnrvRecovery ) )
+				{
+					Task.Sleep( Task.Current(), 1.0 );
+				}
+				
+				local_4 = false;
+				
+				if ( !Global.Bool( "g_act1_haven_station_visited" ) )
+				{
+					Text.Add( "csv:/text/act_2/act2_mission25_addendum2" );
+					Task.Sleep( Task.Current(), 4.0 );
+					iMusic.Pause();
+					iMusic.Play( "sound:/audio/music/a4_theme", false, false );
+					iCutsceneUtilities.HandleAbort( start local_function_3( havenStation ) );
+					
+					atomic
+					{
+						Sim.PlaceRelativeTo( playerShip, havenStation, 1000.0, 500.0, 1000.0 );
+						Sim.SetVelocity( playerShip, 0.0, 0.0, 0.0 );
+						Sim.SetAngularVelocityEuler( playerShip, 0.0, 0.0, 0.0 );
+						Sim.PointAt( playerShip, havenStation );
+						Stream.Stop( 0, false );
+						Stream.Stop( 1, false );
+						iMusic.Resume();
+						iMusic.SetSuite( MS_Down );
+						iMusic.SetMood( MM_Theme );
+						Text.Remove( "csv:/text/act_2/act2_mission25_addendum2" );
+					}
+					
+					Global.SetBool( "g_act1_haven_station_visited", true );
+				}
+				
+				iRangeCheck.RemoveTrafficException( havenStation );
+				
+				while ( !local_4 )
+				{
+					if ( Sim.DistanceBetween( playerShip, shipSnrvRecovery ) > 10000.0 )
+					{
+						debug Debug.PrintString( "iActOne.HavenStationIntroduction : The player isnowhere near the tiger lilly, sleepig for ten seconds\n" );
+						local_5 = false;
+						Task.Sleep( Task.Current(), 10.0 );
+					}
+					else if ( Sim.DistanceBetween( playerShip, shipSnrvRecovery ) > 1000.0 )
+					{
+						debug Debug.PrintString( "iActOne.HavenStationIntroduction : The player is close to the tiger lilly, but not close enough, sleeping for a second\n" );
+						Task.Sleep( Task.Current(), 1.0 );
+					}
+					else if ( !local_5 )
+					{
+						local_5 = true;
+						iConversation.Begin();
+						iConversation.AddResponse( "a1_master_tl_player_affirmative", "a1_master_tl_player_affirmative" );
+						iConversation.AddResponse( "a1_master_player_tl_player_negative", "a1_master_tl_player_affirmative" );
+						convoResponse = iConversation.Ask( shipSnrvRecovery, "a1_master_tiger_lilly", "a1_master_tl_want_to_go_to_hoffers_wake_alpha" );
+						
+						if ( convoResponse == 1 )
+						{
+							iConversation.Say( shipSnrvRecovery, "a1_master_tiger_lilly", "a1_master_tl_then_dock_to_me" );
+							iConversation.End();
+						}
+						else
+						{
+							iConversation.Say( shipSnrvRecovery, "a1_master_tiger_lilly", "a1_master_suit_yourself" );
+							iConversation.End();
+						}
+					}
+					else if ( iSim.IsDockedTo( playerShip, shipSnrvRecovery ) )
+					{
+						debug Debug.PrintString( "iActOne.HavenStationIntroduction - player ship has docked to the tiger Lilly - lets go to Jeffersons Foundary...\n" );
+						local_4 = true;
+					}
+					else
+					{
+						debug Debug.PrintString( "iActOne.HavenStationIntroduction  : player is close to tiger lilly, but has already spoken to it, sleeping\n" );
+						Task.Sleep( Task.Current(), 5.0 );
+					}
+				}
+				
+				iCutsceneUtilities.HandleAbort( start local_function_2( shipSnrvRecovery, havenStation, jebiadiahsFoundary ) );
+				
+				atomic
+				{
+					Sim.PlaceRelativeTo( shipSnrvRecovery, jebiadiahsFoundary, 500.0, 200.0, 1000.0 );
+					Sim.SetVelocity( shipSnrvRecovery, 0.0, 0.0, 0.0 );
+					Sim.PointAt( shipSnrvRecovery, jebiadiahsFoundary );
+					iShip.SetFreeWithoutPilot( shipSnrvRecovery, false );
+				}
+				
+				iConversation.Begin();
+				iConversation.Say( shipSnrvRecovery, "a1_master_tiger_lilly", "a1_master_welcome_hoffers_alpha" );
+				iConversation.End();
+				
+				while ( iSim.IsDockedTo( playerShip, shipSnrvRecovery ) )
+				{
+					Task.Sleep( Task.Current(), 1.0 );
+				}
+				
+				local_4 = false;
+			}
+	}
+}
+
+local_function_4()
+{
+	if ( Config.Exists( "system", "icGUIMovie", "az" ) )
+	{
+		Config.SetBool( "system", "icGUIMovie", "az", true );
+	}
+	else
+	{
+		Config.CreateBool( "system", "icGUIMovie", "az", true );
+	}
+	
+	if ( Config.Exists( "system", "icGUIMovie", "ocal" ) )
+	{
+		Config.SetBool( "system", "icGUIMovie", "ocal", true );
+	}
+	else
+	{
+		Config.CreateBool( "system", "icGUIMovie", "ocal", true );
+	}
+	
+	if ( Config.Exists( "system", "icGUIMovie", "jaffs" ) )
+	{
+		Config.SetBool( "system", "icGUIMovie", "jaffs", true );
+	}
+	else
+	{
+		Config.CreateBool( "system", "icGUIMovie", "jaffs", true );
+	}
+	
+	if ( Config.Exists( "system", "icGUIMovie", "lori" ) )
+	{
+		Config.SetBool( "system", "icGUIMovie", "lori", true );
+	}
+	else
+	{
+		Config.CreateBool( "system", "icGUIMovie", "lori", true );
+	}
+	
+	if ( Config.Exists( "system", "icGUIMovie", "smith" ) )
+	{
+		Config.SetBool( "system", "icGUIMovie", "smith", true );
+		return;
+	}
+	
+	Config.CreateBool( "system", "icGUIMovie", "smith", true );
+}
+
+task MasterScript()
+{
+	htask currentTask = Task.Current();
+	int local_1;
+	hstate taskState = State.Find( currentTask );
+	int local_3;
+	hship playerShip = iShip.FindPlayerShip();
+	
+	if ( !taskState )
+	{
+		taskState = State.Create( currentTask, 0 );
+		iStartSystem.SetPlayerBaseMoviesVisible( true );
+	}
+	
+	if ( Global.Int( "g_story_1.50" ) == 2 )
+	{
+		if ( Global.Exists( "g_training_task_handle" ) == 0 )
+		{
+			Global.CreateHandle( "g_training_task_handle", 2, start iAct1WingmenTraining.MainTask() );
+		}
+		else
+		{
+		}
+	}
+	
+	if ( iUtilities.SkipAct( "Act One: Hoffer's Wake", 1 ) )
+	{
+		local_function_4();
+		debug Debug.PrintString( "iActOne.MasterScript: Skipping act, calling mission stubs.\n" );
+		iAct1Mission01.Stub();
+		iInventory.AddTug();
+		iLoadout.SetShip( S_Tug );
+		iAct1Mission02.Stub();
+		iAct1Mission03.Stub();
+		iAct1Mission04.Stub();
+		iAct1Mission05.Stub();
+		iAct1Mission06.Stub();
+		iAct1Mission07.Stub();
+		iAct1Mission08.Stub();
+		iAct1Mission09.Stub();
+		iAct1Mission10.Stub();
+		iMapEntity.SetHidden( iMapEntity.FindByName( "Haven Station" ), true );
+		local_function_5();
+		State.Destroy( Task.Current() );
+		iGame.NextAct( "iActTwo" );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Independent" ), 484, 1, 90, 3, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Independent" ), 483, 1, 39, 10, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Independent" ), 490, 1, 26, 10, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Independent" ), 498, 1, 258, 5, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Independent" ), 488, 1, 268, 5, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Independent" ), 492, 1, 293, 5, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Independent" ), 563, 1, 313, 5, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Independent" ), 490, 1, 47, 10, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Independent" ), 488, 1, 45, 20, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Independent" ), 165, 1, 29, 40, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Independent" ), 490, 1, 43, 10, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 560, 1, 377, 2, 2 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 561, 1, 49, 1, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 561, 1, 52, 2, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 565, 1, 466, 2, 2 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 565, 1, 45, 3, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 565, 1, 102, 1, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 565, 1, 43, 3, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 501, 1, 121, 1, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 501, 1, 38, 2, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 564, 1, 201, 1, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 564, 1, 35, 2, 2 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 588, 1, 377, 2, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 588, 1, 45, 4, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 588, 1, 40, 4, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 308, 1, 92, 3, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 308, 1, 39, 5, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 308, 1, 153, 1, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 569, 1, 24, 2, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 484, 1, 344, 1, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 483, 1, 7, 3, 2 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 490, 1, 377, 1, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 498, 1, 90, 1, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 488, 1, 313, 1, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 492, 1, 317, 2, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 563, 1, 330, 1, 2 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 492, 1, 24, 1, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 492, 1, 53, 1, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 490, 1, 52, 2, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 488, 1, 45, 2, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 165, 1, 29, 3, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 490, 1, 40, 2, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 488, 1, 50, 2, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 494, 1, 83, 2, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 494, 1, 45, 1, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 167, 1, 347, 1, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 496, 1, 363, 1, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 299, 1, 358, 1, 2 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 301, 1, 344, 1, 2 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 590, 1, 377, 2, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 490, 1, 371, 1, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 591, 1, 381, 1, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 592, 1, 390, 2, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 167, 1, 47, 5, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 496, 1, 38, 1, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 299, 1, 40, 4, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 301, 1, 45, 4, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 590, 1, 24, 2, 2 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 490, 1, 47, 1, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 591, 1, 58, 1, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 592, 1, 28, 2, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 299, 1, 35, 2, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 301, 1, 32, 2, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 590, 1, 31, 2, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 490, 1, 35, 2, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Independent" ), 490, 1, 47, 1, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Independent" ), 488, 1, 45, 2, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Independent" ), 165, 1, 29, 4, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Independent" ), 490, 1, 43, 1, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 579, 1, 35, 2, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 596, 1, 466, 1, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 596, 1, 31, 2, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 503, 1, 258, 1, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 503, 1, 52, 2, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 214, 1, 390, 3, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 214, 1, 49, 1, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 218, 1, 462, 1, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 218, 1, 50, 4, 2 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 500, 1, 268, 1, 2 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 500, 1, 14, 2, 3 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 193, 1, 479, 1, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 193, 1, 58, 3, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 168, 1, 540, 1, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 168, 1, 7, 5, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 216, 1, 29, 5, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 579, 1, 30, 1, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 579, 1, 7, 3, 2 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 521, 1, 83, 2, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 521, 1, 52, 2, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 528, 1, 377, 1, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 528, 1, 52, 2, 0 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 230, 1, 453, 5, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 230, 1, 50, 8, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 230, 1, 13, 3, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 595, 1, 404, 1, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 595, 1, 31, 3, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 570, 1, 409, 1, 5 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 570, 1, 39, 3, 3 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 229, 1, 427, 2, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 229, 1, 52, 2, 2 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 169, 1, 440, 1, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 169, 1, 52, 6, 1 ) );
+		iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 570, 1, 37, 1, 1 ) );
+		return;
+	}
+	
+	debug Debug.PrintString( "iActOne.MasterScript: Commencing Act One Chapter Script.\n" );
+	
+	if ( (Global.Exists( "g_finished_email_hinter" ) == 0) && (Global.Bool( "g_act1_character_intro" ) == 1) )
+	{
+		start piracy_email_hinter();
+	}
+	
+	switch ( State.Progress( taskState ) )
+	{
+		case 0:
+			iJafsScript.DisableJafs();
+			iAct1Mission01.Main();
+			State.SetProgress( taskState, 1 );
+		
+		case 1:
+			schedule
+			{
+				every 1.0:
+				{
+					if ( Global.Bool( "g_act1_found_base" ) == 1 )
+					{
+						debug Debug.PrintString( "iActOne.MasterScript - player has found Lucrecia's Base.\n" );
+						break;
+					}
+					else debug Debug.PrintString( "iActOne.MasterScript - Still waiting for player to find Lucrecia's base.\n" );
+				}
+			}
+			
+			debug Debug.PrintString( "iActOne.MasterScript -initilising story elements S1.10 & S1.30 in player base.\n" );
+			State.SetProgress( taskState, 2 );
+		
+		case 2:
+			schedule
+			{
+				every 1.0:
+				{
+					if ( Global.Bool( "g_act1_character_intro" ) == 1 )
+					{
+						debug Debug.PrintString( "iActOne.MasterScript - player has received character intro's\n" );
+						break;
+					}
+					else debug Debug.PrintString( "iActOne.MasterScript - Still waiting for player receive character intro's\n" );
+				}
+			}
+			
+			iJafsScript.EnableJafs();
+			start PiracyRatingTracker();
+			State.SetProgress( taskState, 3 );
+		
+		case 3:
+			iUtilities.SkipWaitForBool( "utils_bool_g_act1_stepsons_intro", "g_act1_stepsons_intro", true );
+			
+			schedule
+			{
+				every 5.0:
+				{
+					if ( Global.Bool( "g_act1_stepsons_intro" ) == 1 )
+					{
+						debug Debug.PrintString( "iActOne.MasterScript - player has received and itroduction to work for the Stepsons\n" );
+						break;
+					}
+					else debug Debug.PrintString( "iActOne.MasterScript - Still waiting for player to attract the Stepsons job offer.\n" );
+				}
+			}
+			
+			iAct1Mission02.Main();
+			State.SetProgress( taskState, 4 );
+		
+		case 4:
+			schedule
+			{
+				every 5.0:
+				{
+					if ( Global.Bool( "g_act1_stepson_member" ) == 1 )
+					{
+						debug Debug.PrintString( "iActOne.MasterScript - player has completed act 01 Mission 02 - \n" );
+						break;
+					}
+					else debug Debug.PrintString( "iActOne.MasterScript - Still waiting for player to acomplete act 01 Mission 02.\n" );
+				}
+			}
+			
+			Task.Detach( start StepsonMember() );
+			State.SetProgress( taskState, 6 );
+		
+		case 5:
+			schedule
+			{
+				every 5.0:
+				{
+					if ( Global.Bool( "g_act1_stepsons_pleased" ) == 1 )
+					{
+						debug Debug.PrintString( "iActOne.MasterScript - Player has pleased the Stepsons enough to be given an important mission. Arselicker.\n" );
+						break;
+					}
+					else debug Debug.PrintString( "iActOne.MasterScript - Still waiting for player to work his way up through Stespon Heirachy.\n" );
+				}
+			}
+			
+			State.SetProgress( taskState, 6 );
+		
+		case 6:
+			schedule
+			{
+				every 5.0:
+				{
+					if ( Global.Bool( "g_act1_stepsons_pleased" ) == 1 )
+					{
+						debug Debug.PrintString( "iActOne.MasterScript - Player has pleased stepsons.\n" );
+						break;
+					}
+					else debug Debug.PrintString( "iActOne.MasterScript - Still waiting for player to please stepsons\n" );
+				}
+			}
+			
+			Global.SetInt( "g_story_1.40", 1 );
+			iAct1Mission04.Main();
+			State.SetProgress( taskState, 7 );
+		
+		case 7:
+			schedule
+			{
+				every 1.0:
+				{
+					if ( Global.Bool( "g_act1_got_turret_fighters" ) == 1 )
+					{
+						debug Debug.PrintString( "iActOne.MasterScript - Player has completed Act 01 Mission 04.\n" );
+						break;
+					}
+					else debug Debug.PrintString( "iActOne.MasterScript - Waiting for the player to complete Act 01 Mission 04.\n" );
+				}
+			}
+			
+			Global.SetInt( "g_story_1.50", 1 );
+			Global.SetInt( "g_story_1.70", 1 );
+			Global.SetInt( "g_story_1.60", 1 );
+			Task.Detach( start MarauderEncounters() );
+			State.SetProgress( taskState, 9 );
+		
+		case 9:
+			iUtilities.SkipWaitForBool( "utils_g_act1_marauders_encountered", "g_act1_marauders_encountered", true );
+			
+			schedule
+			{
+				every 5.0:
+				{
+					if ( Global.Bool( "g_act1_marauders_encountered" ) == 1 )
+					{
+						debug Debug.PrintString( "iActOne.MasterScript - Player has encountered the marauders - he's ready for the first marauder mission.\n" );
+						break;
+					}
+					else debug Debug.PrintString( "iActOne.MasterScript - Waiting for the player encounter enough marauders to trigger Act 01 Mission 05.\n" );
+				}
+			}
+			
+			iAct1Mission05.Main();
+			State.SetProgress( taskState, 10 );
+		
+		case 10:
+			schedule
+			{
+				every 5.0:
+				{
+					if ( Global.Bool( "g_act1_destroyed_marauder_cache" ) == 1 )
+					{
+						debug Debug.PrintString( "iActOne.MasterScript - Player has finished Act1 Mission 05, Bravo.\n" );
+						break;
+					}
+					else debug Debug.PrintString( "iActOne.MasterScript - Waiting for the player to complete Act 01 Mission 05.\n" );
+				}
+			}
+			
+			Global.SetInt( "g_story_1.80", 1 );
+			State.SetProgress( taskState, 11 );
+			iAct1Mission03.Main();
+		
+		case 11:
+			schedule
+			{
+				every 5.0:
+				{
+					if ( Global.Bool( "g_act1_hoffers_wake_warning" ) == 1 )
+					{
+						debug Debug.PrintString( "iActOne.MasterScript - Player has been warned about the marauder threat to Hoffers Wake \n" );
+						break;
+					}
+					else debug Debug.PrintString( "iActOne.MasterScript - Waiting for the player to be warned about the threat to Hoffers Wake.\n" );
+				}
+			}
+			
+			do
+			{
+				Task.Sleep( Task.Current(), 5.0 );
+			}
+			while ( Global.Bool( "g_act1_joint_forces_complete" ) == 0 );
+			
+			iAct1Mission06.Main();
+			State.SetProgress( taskState, 12 );
+		
+		case 12:
+			schedule
+			{
+				every 5.0:
+				{
+					if ( Global.Bool( "g_act1_retreived_gunstars" ) == 1 )
+					{
+						debug Debug.PrintString( "iActOne.MasterScript - Player has completed Act 01 Mission 06 - preparing to launch battle of Hoffers Wake \n" );
+						break;
+					}
+					else debug Debug.PrintString( "iActOne.MasterScript - Waiting for the player to finish Act 01 mission 06.\n" );
+				}
+			}
+			
+			iAct1Mission07.Main();
+			State.SetProgress( taskState, 13 );
+		
+		case 13:
+			schedule
+			{
+				every 5.0:
+				{
+					if ( Global.Bool( "g_act1_saved_hoffers_wake" ) == 1 )
+					{
+						debug Debug.PrintString( "iActOne.MasterScript - Player has completed Act 01 Mission 07. \n" );
+						break;
+					}
+					else debug Debug.PrintString( "iActOne.MasterScript - Waiting for the player to finish Act 01 mission 07.\n" );
+				}
+			}
+			
+			Global.SetInt( "g_story_1.100", 1 );
+			State.SetProgress( taskState, 14 );
+		
+		case 14:
+			schedule
+			{
+				every 5.0:
+				{
+					if ( Global.Bool( "g_act1_league_introduction" ) == 1 )
+					{
+						debug Debug.PrintString( "iActOne.MasterScript - player has been introduced to the league.\n" );
+						break;
+					}
+					else debug Debug.PrintString( "iActOne.MasterScript - Waiting for the player to read the league introduction.\n" );
+				}
+			}
+			
+			iAct1Mission08.Main();
+			State.SetProgress( taskState, 15 );
+		
+		case 15:
+			schedule
+			{
+				every 5.0:
+				{
+					if ( Global.Bool( "g_act1_league_initiation" ) == 1 )
+					{
+						debug Debug.PrintString( "iActOne.MasterScript - player has completed league initiation test ( act 1 Mission 08 ). \n" );
+						break;
+					}
+					else debug Debug.PrintString( "iActOne.MasterScript - Waiting for the player to complete league intiation test ( act 1 Mission 08 ) .\n" );
+				}
+			}
+			
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 579, 1, 35, 2, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 596, 1, 466, 1, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 596, 1, 31, 2, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 503, 1, 258, 1, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 503, 1, 52, 2, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 214, 1, 390, 3, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 214, 1, 49, 1, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 218, 1, 462, 1, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 218, 1, 50, 4, 2 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 500, 1, 268, 1, 2 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 500, 1, 14, 2, 3 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 193, 1, 479, 1, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 193, 1, 58, 3, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 168, 1, 540, 1, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 168, 1, 7, 5, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 216, 1, 29, 5, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 579, 1, 30, 1, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 579, 1, 7, 3, 2 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 521, 1, 83, 2, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 521, 1, 52, 2, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 528, 1, 377, 1, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 528, 1, 52, 2, 0 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 230, 1, 453, 5, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 230, 1, 50, 8, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 230, 1, 13, 3, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 595, 1, 404, 1, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 595, 1, 31, 3, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 570, 1, 409, 1, 5 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 570, 1, 39, 3, 3 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 229, 1, 427, 2, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 229, 1, 52, 2, 2 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 169, 1, 440, 1, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Stepson" ), 169, 1, 52, 6, 1 ) );
+			iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Stepson" ), 570, 1, 37, 1, 1 ) );
+			start HavenStationIntroduction();
+			iAct1Mission09.Main();
+			State.SetProgress( taskState, 16 );
+		
+		case 16:
+			schedule
+			{
+				every 5.0:
+				{
+					if ( Global.Bool( "g_act1_lor_stolen" ) == 1 )
+					{
+						debug Debug.PrintString( "iActOne.MasterScript - player has compelted act1 misson 09. \n" );
+						break;
+					}
+					else debug Debug.PrintString( "iActOne.MasterScript - Waiting for the player to complete act 1 mission09.\n" );
+				}
+			}
+			
+			iAct1Mission10.Main();
+			State.SetProgress( taskState, 17 );
+		
+		case 17:
+			schedule
+			{
+				every 5.0:
+				{
+					if ( Global.Bool( "g_act1_retrieved_artefact" ) == 1 )
+					{
+						debug Debug.PrintString( "iActOne.MasterScript - player has compelted act1 misson 10 and has retreived the alien artefact. \n" );
+						break;
+					}
+					else debug Debug.PrintString( "iActOne.MasterScript - Waiting for the player to complete act 1 mission 10.\n" );
+				}
+			}
+			
+			debug Debug.PrintString( " iActOone.MasterScript - Finished Act One\n" );
+			local_function_5();
+			State.Destroy( Task.Current() );
+			iGame.NextAct( "iActTwo" );
+	}
+}
+
+task local_function_23()
+{
+	htask local_0;
+	int convoResponse;
+	hemail email = iEmail.Find( "html:/text/act_1/act1_mission10_email" );
+	
+	if ( Global.Bool( "g_act1_puzzle_active" ) == 1 )
+	{
+		iConversation.Begin();
+		iConversation.AddResponse( "a1_master_player_yes", "a1_master_player_yes" );
+		iConversation.AddResponse( "a1_master_player_no", "a1_master_player_no" );
+		convoResponse = iConversation.Ask( none, "name_smith", "a1_master_smith_want_to_use" );
+		
+		switch ( convoResponse )
+		{
+			case 1:
+				iConversation.End();
+				GUI.OverlayScreen( "icSPComputerPuzzleScreen" );
+				break;
+		}
+		
+		iConversation.End();
+	}
+	
+	if ( (iEmail.Unread() > 2) && (Global.Bool( "g_act1_lor_stolen" ) != 1) )
+	{
+		if ( Math.RandomInt( 1, 2 ) == 1 )
+		{
+			iConversation.OneLiner( none, "name_smith", "a1_master_smith_email" );
+		}
+	}
+	
+	if ( (Global.Exists( "g_finished_email_hinter" ) == 0) && (Global.Bool( "g_act1_character_intro" ) == 1) )
+	{
+		start piracy_email_hinter();
+	}
+	
+	schedule
+	{
+		every 0.50:
+		{
+			debug Debug.PrintString( " iActOne.BaseMessageChecker - Checking to see if any new story sequences are needed....\n" );
+			
+			if ( !Task.IsHalted( local_0 ) )
+			{
+				debug Debug.PrintString( "iActOne.BaseMessageChecker - A story sequence is currently running.\n" );
+			}
+			else
+			{
+				debug Debug.PrintString( "iActOne.BaseMessageChecker - No story sequences are currnetly runing, checking to see if any are waiting to run\n" );
+				
+				if ( Global.Int( "g_story_1.05" ) == 1 )
+				{
+					Global.SetInt( "g_story_1.05", 2 );
+					local_0 = start local_function_6();
+				}
+				else if ( Global.Int( "g_story_1.10" ) == 1 )
+				{
+					Global.SetInt( "g_story_1.10", 2 );
+					local_0 = start local_function_7();
+				}
+				else if ( Global.Int( "g_story_1.30" ) == 1 )
+				{
+					Global.SetInt( "g_story_1.30", 2 );
+					local_0 = start local_function_8();
+				}
+				else if ( Global.Int( "g_story_1.20" ) == 1 )
+				{
+					Global.SetInt( "g_story_1.20", 2 );
+					local_0 = start local_function_9();
+				}
+				else if ( Global.Int( "g_story_1.25" ) == 1 )
+				{
+					Global.SetInt( "g_story_1.25", 2 );
+					local_0 = start local_function_10();
+				}
+				else if ( Global.Int( "g_story_1.35" ) == 1 )
+				{
+					Global.SetInt( "g_story_1.35", 2 );
+					local_0 = start local_function_11();
+				}
+				else if ( Global.Int( "g_story_1.36" ) == 1 )
+				{
+					Global.SetInt( "g_story_1.36", 2 );
+					local_0 = start local_function_12();
+				}
+				else if ( Global.Int( "g_story_1.40" ) == 1 )
+				{
+					Global.SetInt( "g_story_1.40", 2 );
+					local_0 = start local_function_13();
+				}
+				else if ( Global.Int( "g_story_1.50" ) == 1 )
+				{
+					Global.SetInt( "g_story_1.50", 2 );
+					local_0 = start local_function_14();
+				}
+				else if ( Global.Int( "g_story_1.70" ) == 1 )
+				{
+					Global.SetInt( "g_story_1.70", 2 );
+					local_0 = start local_function_15();
+				}
+				else if ( Global.Int( "g_story_1.60" ) == 1 )
+				{
+					Global.SetInt( "g_story_1.60", 2 );
+					local_0 = start local_function_16();
+				}
+				else if ( Global.Int( "g_story_1.80" ) == 1 )
+				{
+					Global.SetInt( "g_story_1.80", 2 );
+					local_0 = start local_function_17();
+				}
+				else if ( Global.Int( "g_story_1.90" ) == 1 )
+				{
+					Global.SetInt( "g_story_1.90", 2 );
+					local_0 = start local_function_18();
+				}
+				else if ( Global.Int( "g_story_1.100" ) == 1 )
+				{
+					Global.SetInt( "g_story_1.100", 2 );
+					local_0 = start local_function_19();
+				}
+				else if ( Global.Int( "g_story_1.110" ) == 1 )
+				{
+					Global.SetInt( "g_story_1.110", 2 );
+					local_0 = start local_function_20();
+				}
+				else if ( (Global.Bool( "g_act1_treasure_hunt_conversation" ) == 0) && iEmail.Read( email ) )
+				{
+					Global.SetBool( "g_act1_treasure_hunt_conversation", true );
+					local_0 = start local_function_21();
+				}
+				else debug Debug.PrintString( " iActOne.MasterBaseScript - No story sequences are wating to be executed, sleeping for a bit...\n" );
+			}
+		}
+	}
+}
+
+Main()
+{
+	bool local_0 = false;
+	hsim waypointMauricesFreighterServiceDepot;
+	hsim waypoint;
+	hship playerShip = iShip.FindPlayerShip();
+	
+	local_function_4();
+	
+	if ( Global.Int( "g_current_act" ) < 1 )
+	{
+		debug Debug.PrintString( "iActOne.Main: Initialising act 1\n" );
+		Global.SetInt( "g_current_act", 1 );
+		local_function_22();
+		start MasterScript();
+		local_0 = true;
+	}
+	
+	if ( local_0 )
+	{
+		waypointMauricesFreighterServiceDepot = iMapEntity.WaypointForEntity( iMapEntity.FindByName( "Maurice's Freighter Service Depot" ) );
+		waypoint = iUtilities.CreateWaypointRelativeTo( waypointMauricesFreighterServiceDepot, 0.0, 9000000.0, 0.0 );
+		iUtilities.CreatePlayer( "ini:/sims/ships/player/escape_tug", waypoint );
+		
+		if ( playerShip )
+		{
+			Sim.Destroy( playerShip );
+		}
+		
+		iDirector.End();
+		return;
+	}
+	
+	iUtilities.CreatePlayer( "", iMapEntity.FindByName( "Lucrecia's Base" ) );
+}
+
+BaseMain()
+{
+	debug Debug.PrintString( "iActOne.BaseMain: Base master script executed - launching the base message checker task\n" );
+	start local_function_23();
+	start iMissionGenerator.BaseMain();
+}
+
+task local_function_3( hmapentity mapentity_ )
+{
+	hship playerShip = iShip.FindPlayerShip();
+	hsim waypoint_0 = iUtilities.CreateWaypointAt( playerShip );
+	hsim waypoint_1 = iUtilities.CreateWaypointAt( playerShip );
+	hsim waypoint_2 = iUtilities.CreateWaypointRelativeTo( mapentity_, 0.0, -2200.0, 0.0 );
+	hsim local_4 = iDirector.CreateDolly();
+	
+	iDirector.Begin();
+	
+	atomic
+	{
+		Sim.PlaceRelativeTo( playerShip, mapentity_, 1000.0, 500.0, 1000.0 );
+		Sim.SetVelocity( playerShip, 0.0, 0.0, 0.0 );
+		Sim.SetAngularVelocityEuler( playerShip, 0.0, 0.0, 0.0 );
+		Sim.PointAt( playerShip, mapentity_ );
+		Sim.PlaceRelativeTo( waypoint_0, playerShip, 100.0, -50.0, -100.0 );
+		Sim.PlaceRelativeTo( waypoint_1, playerShip, -1000.0, 200.0, -12000.0 );
+		iDirector.SetDollyCamera( local_4 );
+		iDirector.SetFocus( mapentity_ );
+	}
+	
+	iDirector.SetDirection( local_4, waypoint_0, waypoint_1, 20.0, 6.0 );
+	iDirector.FadeIn( 0.0, 0.0, 0.0, 0.0 );
+	Task.Sleep( Task.Current(), 2.0 );
+	iComms.Shout( none, "name_clay", "a2_m25_dialogue_clay_nice_fleet" );
+	Task.Sleep( Task.Current(), 18.0 );
+	iDirector.End();
+}
+
+local_function_26( hsim param_0_, hsim param_1_, int param_2_, float param_3_, float param_4_ )
+{
+	int local_0 = 0;
+	
+	do
+	{
+		Sim.PlaceRelativeTo( param_0_, param_1_, Math.RandomInt( 0, param_2_ ), Math.RandomInt( 0, param_2_ ), Math.RandomInt( 0, param_2_ ) );
+		local_0 = ( local_0 + 1 );
+		Task.Sleep( Task.Current(), param_3_ );
+	}
+	while ( local_0 < param_4_ );
+	
+	return;
+}
+
+string local_function_24( int param_0_ )
+{
+	string local_0;
+	
+	switch ( param_0_ )
+	{
+		case 1:
+			local_0 = "html:/text/act_1/piracy_hint_1";
+			break;
+		
+		case 2:
+			local_0 = "html:/text/act_1/piracy_hint_2";
+			break;
+		
+		case 3:
+			local_0 = "html:/text/act_1/piracy_hint_3";
+			break;
+		
+		case 4:
+			local_0 = "html:/text/act_1/piracy_hint_4";
+			break;
+	}
+	
+	return local_0;
+}
+
+string local_function_25( int param_0_ )
+{
+	string local_0;
+	
+	switch ( param_0_ )
+	{
+		case 1:
+			local_0 = "a2_master_story2.140b_mail_subject";
+			break;
+		
+		case 2:
+			local_0 = "a2_master_story2.180_mail_subject";
+			break;
+		
+		case 3:
+			local_0 = "a2_master_story2.260_mail_subject";
+			break;
+		
+		case 4:
+			local_0 = "a2_master_story2.140b_mail_subject";
+			break;
+	}
+	
+	return local_0;
+}
+
+task piracy_email_hinter()
+{
+	if ( !Global.Exists( "g_hint_timer" ) )
+	{
+		Global.CreateInt( "g_hint_timer", 2, 0 );
+		Global.CreateInt( "g_current_hint_mail", 2, 0 );
+		Global.CreateBool( "g_read_current_mail", 2, false );
+		Global.CreateInt( "g_current_waiter", 2, Math.RandomInt( 60, 300 ) );
+	}
+	
+	if ( iEmail.Read( iEmail.Find( local_function_24( Global.Int( "g_current_hint_mail" ) ) ) ) || (Global.Int( "g_current_hint_mail" ) == 0) )
+	{
+		Global.SetBool( "g_read_current_mail", true );
+	}
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( Global.Bool( "g_read_current_mail" ) == 1 )
+			{
+				Global.SetInt( "g_hint_timer", Global.Int( "g_hint_timer" ) + 1 );
+			}
+			
+			if ( Global.Int( "g_hint_timer" ) > Global.Int( "g_current_waiter" ) )
+			{
+				Global.SetInt( "g_hint_timer", 0 );
+				Global.SetInt( "g_current_waiter", Math.RandomInt( 60, 300 ) );
+				Global.SetInt( "g_current_hint_mail", Global.Int( "g_current_hint_mail" ) + 1 );
+				iEmail.SendEmail( "a1_master_stepsons_mail_sender", local_function_25( Global.Int( "g_current_hint_mail" ) ), local_function_24( Global.Int( "g_current_hint_mail" ) ), true );
+				
+				if ( Global.Int( "g_current_hint_mail" ) == 4 )
+				{
+					Global.Destroy( "g_hint_timer" );
+					Global.Destroy( "g_current_hint_mail" );
+					Global.Destroy( "g_read_current_mail" );
+					Global.Destroy( "g_current_waiter" );
+					Global.CreateBool( "g_finished_email_hinter", 2, true );
+					return;
+				}
+			}
+		}
+		
+		every 10.0:
+		{
+			if ( iEmail.Read( iEmail.Find( local_function_24( Global.Int( "g_current_hint_mail" ) ) ) ) )
+			{
+				Global.SetBool( "g_read_current_mail", true );
+			}
+		}
+	}
+}
+

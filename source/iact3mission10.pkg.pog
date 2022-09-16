@@ -1,0 +1,1134 @@
+package iAct3Mission10;
+
+uses Debug,
+     Set,
+     List,
+     String,
+     Global,
+     Sim,
+     Group,
+     Math,
+     Object,
+     State,
+     Subsim,
+     Task,
+     Text,
+     iSim,
+     iDockport,
+     MapEnumerations,
+     iMapEntity,
+     iLagrangePoint,
+     iShip,
+     iAI,
+     iComms,
+     iConversation,
+     iCutsceneUtilities,
+     iDirector,
+     iEscort,
+     iFaction,
+     iGame,
+     iBody,
+     iHabitat,
+     iMissionTracker,
+     iMusic,
+     iObjectives,
+     iPilotSetup,
+     iRangeCheck,
+     iRegion,
+     INIFile,
+     iUtilities,
+     iCargo,
+     iFormation,
+     CargoTypes,
+     iCargoScript,
+     iShipCreation,
+     iStartSystem,
+     iStation;
+
+provides Main,
+         MissionHandler;
+
+prototype Main();
+prototype local_function_9( hstate state_ );
+prototype local_function_18();
+prototype task local_function_0();
+prototype hship local_function_2( hsim param_0_ );
+prototype local_function_1( hship ship_, hobject param_1_, bool param_2_ );
+prototype task local_function_3( hship ship_0_, hship ship_1_, hstate state_ );
+prototype local_function_19( hgroup group_ );
+prototype task local_function_14( hmapentity mapentity_, hstate state_ );
+prototype local_function_4( hship ship_ );
+prototype task local_function_13( hgroup group_0_, hgroup group_1_, hship ship_, hstate state_ );
+prototype hgroup local_function_12( hmapentity mapentity_ );
+prototype hgroup local_function_6( hisim param_0_ );
+prototype local_function_20( hsim param_0_ );
+prototype hgroup local_function_5();
+prototype task local_function_7( hgroup group_0_, hisim param_1_, hship ship_0_, hship ship_1_ );
+prototype local_function_16( hmapentity mapentity_, hstate state_ );
+prototype hgroup local_function_8();
+prototype task local_function_17( hmapentity mapentity_, hgroup group_0_, hstate state_ );
+prototype local_function_10( hmapentity mapentity_ );
+prototype local_function_11( hmapentity mapentity_ );
+prototype task MissionHandler();
+prototype task local_function_15( hship ship_, hmapentity mapentity_, hstate state_ );
+
+Main()
+{
+	Task.Detach( start local_function_0() );
+}
+
+local_function_9( hstate state_ )
+{
+	hsim waypointLucreciasBase;
+	hship playerShip = iShip.FindPlayerShip();
+	
+	waypointLucreciasBase = iUtilities.CreateWaypointRelativeTo( iMapEntity.FindByNameInSystem( "Lucrecia's Base", "map:/geog/gagarin/formhault" ), 0.0, 0.0, 20000.0 );
+	Object.AddHandleProperty( playerShip, "restart_waypoint", waypointLucreciasBase );
+	Object.AddHandleProperty( playerShip, "current_mission_state", state_ );
+}
+
+local_function_18()
+{
+	iObjectives.Remove( "a3_m10_objectives_protect" );
+	iObjectives.Remove( "a3_m10_objectives_prevent" );
+}
+
+task local_function_0()
+{
+	htask local_0;
+	int local_1;
+	
+	while ( iComms.IsInConversation() )
+	{
+		Task.Sleep( Task.Current(), 0.50 );
+	}
+	
+	if ( !iUtilities.SkipMission( "The Finale??" ) )
+	{
+		Task.Detach( local_0 = start MissionHandler() );
+		return;
+	}
+	
+	Global.SetBool( "g_act3_the_end_complete", true );
+	return;
+}
+
+hship local_function_2( hsim param_0_ )
+{
+	hfaction aliens = iFaction.Find( "Aliens" );
+	hship shipAlien = iShip.Create( "ini:/sims/ships/aliens/alien", "name_alien" );
+	
+	Sim.PlaceNear( shipAlien, param_0_, 50.0 );
+	iPilotSetup.GenericCargoPod( shipAlien );
+	Sim.SetCullable( shipAlien, false );
+	iSim.SetSensorVisibility( shipAlien, true );
+	Object.SetBoolProperty( shipAlien, "ignore_speed_limit", true );
+	iSim.SetFaction( shipAlien, aliens );
+	return shipAlien;
+}
+
+local_function_1( hship ship_, hobject param_1_, bool param_2_ )
+{
+	float radius = Object.FloatProperty( param_1_, "radius" );
+	
+	if ( param_1_ != none )
+	{
+		do
+		{
+			radius = ( radius - 50.0 );
+			Object.SetFloatProperty( param_1_, "radius", radius );
+			Task.Sleep( Task.Current(), 0.10 );
+		}
+		while ( radius > 0.0 );
+	}
+	
+	iSim.AlienInfectionEffect( ship_, true );
+	
+	if ( param_2_ )
+	{
+		iSim.SetAlienInfectionDamage( ship_, 70.0 );
+	}
+}
+
+task local_function_3( hship ship_0_, hship ship_1_, hstate state_ )
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	hsim local_2 = Sim.Cast( Set.FirstElement( Sim.Children( ship_0_ ) ) );
+	hship playerShip = iShip.FindPlayerShip();
+	list localList = List.FromSet( Sim.Children( ship_0_ ) );
+	hship ship_2;
+	hobject local_6 = List.Tail( localList );
+	int itemCount;
+	int ii;
+	
+	iAI.GiveApproachOrderAdvanced( ship_0_, ship_1_, 0.0, 0.0, false );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( Sim.Cast( ship_0_ ) || (State.Progress( state_ ) != 100) )
+			{
+				if ( iShip.Attacked( ship_0_ ) && (iShip.LastAttacker( ship_0_ ) == playerShip) )
+				{
+				}
+				
+				localList = List.FromSet( iSim.SimsInRadius( ship_0_, 8000.0, 536838144 ) );
+				itemCount = List.ItemCount( localList );
+				
+				for ( ii = 0; ii < itemCount; ++ii )
+				{
+					ship_2 = iShip.Cast( List.GetNth( localList, ii ) );
+					
+					if ( Sim.DistanceBetween( ship_2, ship_0_ ) <= 100.0 )
+					{
+						if ( (ship_2 == ship_1_) || (ship_2 == playerShip) )
+						{
+							local_function_1( ship_2, local_6, false );
+							
+							if ( ship_2 == ship_1_ )
+							{
+								State.SetProgress( state_, 2 );
+								return;
+							}
+							else if ( ship_2 == playerShip )
+							{
+								State.SetProgress( state_, 3 );
+								return;
+							}
+						}
+						else
+						{
+							local_function_1( ship_2, local_6, true );
+						}
+						
+						Sim.Destroy( ship_0_ );
+					}
+				}
+				
+				if ( (Sim.DistanceBetween( ship_0_, ship_1_ ) < 9000.0) && !local_0 )
+				{
+					local_0 = true;
+					
+					switch ( Math.RandomInt( 0, 3 ) )
+					{
+						case 0:
+							iConversation.OneLiner( ship_1_, "", "a3_m10_dialogue_jafs_warning1" );
+							break;
+						
+						case 1:
+							iConversation.OneLiner( ship_1_, "", "a3_m10_dialogue_jafs_warning2" );
+							break;
+						
+						case 2:
+							iConversation.OneLiner( ship_1_, "", "a3_m10_dialogue_jafs_warning3" );
+							break;
+						
+						case 3:
+							iConversation.OneLiner( ship_1_, "", "a3_m10_dialogue_jafs_warning4" );
+							break;
+					}
+				}
+			}
+			else
+			{
+				Sim.Destroy( local_2 );
+				Sim.Destroy( ship_0_ );
+				return;
+			}
+		}
+	}
+}
+
+local_function_19( hgroup group_ )
+{
+	list localList;
+	hsim groupIter;
+	hship ship;
+	int simCount = Group.SimCount( group_ );
+	int itemCount;
+	int ii;
+	int jj;
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		groupIter = Group.NthSim( group_, ii );
+		localList = List.FromSet( iSim.SimsInRadius( iSim.Cast( groupIter ), 5000.0, 536838144 ) );
+		itemCount = List.ItemCount( localList );
+		
+		for ( jj = 0; jj < itemCount; ++jj )
+		{
+			ship = iShip.Cast( List.GetNth( localList, jj ) );
+			
+			if ( Sim.DistanceBetween( groupIter, ship ) <= 200.0 )
+			{
+				local_function_1( ship, none, true );
+			}
+		}
+	}
+}
+
+task local_function_14( hmapentity mapentity_, hstate state_ )
+{
+	hgroup group = Group.Create();
+	hship ship;
+	hship playerShip = iShip.FindPlayerShip();
+	hsim simWaypoint;
+	int ii;
+	int random = Math.RandomInt( 10, 28 );
+	int local_6;
+	int constant = 15;
+	
+	for ( ii = 0; ii < constant; ++ii )
+	{
+		simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "alien spawn point" );
+		Group.AddSim( group, simWaypoint );
+		Sim.PlaceNear( simWaypoint, mapentity_, 60000.0 );
+	}
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( State.Progress( state_ ) == 8 )
+			{
+				return;
+			}
+			
+			if ( Object.BoolProperty( state_, "alien_spawn_active" ) == 1 )
+			{
+				local_6 = ( local_6 + 1 );
+				
+				if ( local_6 >= random )
+				{
+					ship = local_function_2( Group.NthSim( group, Math.RandomInt( 0, constant - 1 ) ) );
+					Task.Detach( start local_function_3( ship, iShip.Cast( Object.HandleProperty( state_, "jafs_handle" ) ), state_ ) );
+					local_6 = 0;
+					random = Math.RandomInt( 19, 29 );
+				}
+			}
+			
+			if ( (Sim.DistanceBetween( mapentity_, playerShip ) > 70000.0) && (Object.BoolProperty( state_, "cutscene_active" ) == 0) )
+			{
+				iSim.AlienInfectionEffect( playerShip, true );
+				Task.Detach( start iStartSystem.CriticalMissionFail( playerShip, "caption_failed_ship_destroyed" ) );
+				return;
+			}
+			
+			if ( State.Progress( state_ ) == 100 )
+			{
+				Group.Destroy( group, true );
+				Sim.Destroy( ship );
+				Sim.Destroy( simWaypoint );
+				return;
+			}
+		}
+	}
+}
+
+local_function_4( hship ship_ )
+{
+	hship shipContainerpod;
+	hgroup group = Group.Create();
+	int ii;
+	
+	for ( ii = 0; ii < 6; ++ii )
+	{
+		shipContainerpod = iShip.Create( "ini:/sims/ships/utility/containerpod", "a3_m10_name_bomb" );
+		Object.SetStringProperty( shipContainerpod, "death_script", "iDeathScript.Antimatter" );
+		Group.AddSim( group, shipContainerpod );
+		iShip.Dock( shipContainerpod, ship_ );
+	}
+	
+	Global.CreateHandle( "g_bombs_handle", 1, group );
+}
+
+task local_function_13( hgroup group_0_, hgroup group_1_, hship ship_, hstate state_ )
+{
+	bool local_0 = true;
+	bool local_1 = false;
+	bool local_2 = false;
+	set localSet;
+	hmapentity remekLPoint = iMapEntity.FindByName( "Remek L-Point" );
+	hsim groupIter;
+	hsim local_6;
+	hmapentity lucreciasBase = iMapEntity.FindByName( "Lucrecia's Base" );
+	hship shipSnrv = iShip.Create( "ini:/sims/ships/utility/snrv", "name_jafs" );
+	hship a3_m10_name_zero = iShip.Cast( Sim.FindByName( "a3_m10_name_zero" ) );
+	hregion region;
+	list localList;
+	int itemCount;
+	int ii;
+	float local_14;
+	float speed_0;
+	float speed_1;
+	float speed_2;
+	int local_18;
+	int local_19;
+	
+	iSim.SetIndestructable( shipSnrv, false );
+	iSim.SetMissionCritical( shipSnrv, true );
+	iSim.SetFaction( shipSnrv, iFaction.Find( "Player" ) );
+	local_function_4( shipSnrv );
+	Sim.PlaceNear( shipSnrv, ship_, 900.0 );
+	region = iRegion.CreateTrafficControl( shipSnrv, 200.0, 250.0 );
+	Sim.AttachChild( shipSnrv, Sim.Cast( region ) );
+	iPilotSetup.GenericCargoPod( shipSnrv );
+	speed_0 = Object.VectorPropertyX( shipSnrv, "speed" );
+	speed_1 = Object.VectorPropertyY( shipSnrv, "speed" );
+	speed_2 = Object.VectorPropertyZ( shipSnrv, "speed" );
+	Object.SetVectorProperty( shipSnrv, "speed", 250.0, 250.0, 250.0 );
+	Object.AddHandleProperty( state_, "jafs_handle", shipSnrv );
+	iConversation.OneLiner( shipSnrv, "", "a3_m10_dialogue_jafs_ok_cal" );
+	iObjectives.Add( "a3_m10_objectives_protect" );
+	Object.SetBoolProperty( state_, "alien_spawn_active", true );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( local_18 == 6 )
+			{
+				Object.SetBoolProperty( state_, "alien_spawn_active", false );
+				iAI.GiveApproachOrder( shipSnrv, a3_m10_name_zero );
+				iObjectives.SetState( "a3_m10_objectives_protect", OS_Succeeded );
+				Object.SetVectorProperty( shipSnrv, "speed", speed_0, speed_1, speed_2 );
+				localList = List.FromSet( iSim.SimsInRadius( iSim.Cast( lucreciasBase ), 100000.0, 536870912 ) );
+				
+				if ( List.ItemCount( localList ) != 0 )
+				{
+					for ( ii = 0; ii < List.ItemCount( localList ); ++ii )
+					{
+						Sim.Destroy( iSim.Cast( List.GetNth( localList, ii ) ) );
+					}
+				}
+				
+				State.SetProgress( state_, 1 );
+				return;
+			}
+			else if ( local_0 )
+			{
+				groupIter = Group.NthSim( group_0_, local_18 );
+				iAI.GiveApproachOrder( shipSnrv, groupIter );
+				
+				do
+				{
+					Task.Sleep( Task.Current(), 1.0 );
+					localList = List.FromSet( iSim.SimsInRadius( shipSnrv, 4000.0, 536870912 ) );
+					itemCount = List.ItemCount( localList );
+					
+					if ( itemCount != 0 )
+					{
+						local_6 = Sim.Cast( List.Head( localList ) );
+						local_1 = true;
+						iAI.GiveFleeOrder( shipSnrv, iSim.Cast( local_6 ) );
+						
+						do
+						{
+							Task.Sleep( Task.Current(), 1.0 );
+							
+							if ( (Sim.DistanceBetween( shipSnrv, remekLPoint ) > 25000.0) && (Object.BoolProperty( state_, "cutscene_active" ) == 0) )
+							{
+								debug Debug.Error( "Jafs Too Far" );
+								local_function_1( shipSnrv, none, false );
+								State.SetProgress( state_, 2 );
+								return;
+							}
+						}
+						while ( (Sim.Cast( local_6 ) != false) && (Sim.DistanceBetween( shipSnrv, local_6 ) < 4000.0) );
+						
+						local_1 = false;
+						iAI.GiveApproachOrder( shipSnrv, groupIter );
+					}
+				}
+				while ( !iAI.IsOrderComplete( shipSnrv ) || local_1 );
+				
+				local_2 = false;
+				
+				switch ( Math.RandomInt( 0, 1 ) )
+				{
+					case 0:
+						iConversation.OneLiner( shipSnrv, "", "a3_m10_dialogue_jafs_right_hold" );
+						break;
+					
+					case 1:
+						iConversation.OneLiner( shipSnrv, "", "a3_m10_dialogue_jafs_im_unloading" );
+						break;
+				}
+				
+				localSet = Sim.Children( shipSnrv );
+				local_18 = ( local_18 + 1 );
+				iShip.Undock( iShip.Cast( Set.FirstElement( localSet ) ), shipSnrv );
+				local_0 = false;
+			}
+			else
+			{
+				groupIter = Group.NthSim( group_1_, local_19 );
+				local_14 = ( Sim.DistanceBetween( shipSnrv, groupIter ) * 0.30 );
+				iAI.GiveApproachOrder( shipSnrv, groupIter );
+				
+				do
+				{
+					Task.Sleep( Task.Current(), 1.0 );
+					localList = List.FromSet( iSim.SimsInRadius( shipSnrv, 4000.0, 536870912 ) );
+					itemCount = List.ItemCount( localList );
+					
+					if ( itemCount != 0 )
+					{
+						local_6 = Sim.Cast( List.Head( localList ) );
+						local_1 = true;
+						iAI.GiveFleeOrder( shipSnrv, iSim.Cast( local_6 ) );
+						
+						do
+						{
+							Task.Sleep( Task.Current(), 1.0 );
+							
+							if ( (Sim.DistanceBetween( shipSnrv, remekLPoint ) > 25000.0) && (Object.BoolProperty( state_, "cutscene_active" ) == 0) )
+							{
+								local_function_1( shipSnrv, none, false );
+								State.SetProgress( state_, 2 );
+								return;
+							}
+						}
+						while ( (Sim.Cast( local_6 ) != false) && (Sim.DistanceBetween( shipSnrv, local_6 ) < 4000.0) );
+						
+						local_1 = false;
+						iAI.GiveApproachOrder( shipSnrv, groupIter );
+					}
+				}
+				while ( (Sim.DistanceBetween( shipSnrv, groupIter ) > local_14) && !iAI.IsOrderComplete( shipSnrv ) );
+				
+				local_19 = ( local_19 + 1 );
+				local_0 = true;
+			}
+		}
+	}
+}
+
+hgroup local_function_12( hmapentity mapentity_ )
+{
+	hgroup group_0 = Group.Create();
+	hgroup group_1 = Group.Create();
+	hfaction league = iFaction.Find( "League" );
+	int ii;
+	int constant = 5;
+	hship shipJumpTransporter = iShip.Create( "ini:/sims/ships/utility/jump_transporter", "a3_m10_name_zero" );
+	
+	iPilotSetup.GenericCargoPod( shipJumpTransporter );
+	Sim.PlaceInFrontOf( shipJumpTransporter, mapentity_, -2000.0 );
+	iSim.SetIndestructable( shipJumpTransporter, true );
+	iSim.SetFaction( shipJumpTransporter, league );
+	Sim.SetCullable( shipJumpTransporter, false );
+	Group.AddSim( group_0, shipJumpTransporter );
+	Sim.PlaceRelativeTo( shipJumpTransporter, mapentity_, 0.0, 1000.0, 1000.0 );
+	
+	for ( ii = 0; ii < constant; ++ii )
+	{
+		shipJumpTransporter = iShip.Create( "ini:/sims/ships/cops/interceptor", iShipCreation.ShipName( "General", -1 ) );
+		iPilotSetup.GenericCargoPod( shipJumpTransporter );
+		iSim.SetIndestructable( shipJumpTransporter, true );
+		iSim.SetFaction( shipJumpTransporter, league );
+		
+		if ( !Sim.AddSubsim( shipJumpTransporter, Subsim.Create( "ini:/subsims/systems/nonplayer/nps_antimatter_pbc" ) ) )
+		{
+			debug Debug.Error( "Unable to add antimatter weapons\n" );
+		}
+		
+		Sim.SetCullable( shipJumpTransporter, false );
+		Group.AddSim( group_1, shipJumpTransporter );
+		Sim.PlaceNear( shipJumpTransporter, mapentity_, 1000.0 );
+	}
+	
+	iEscort.InFormationGoose( group_1, Group.Leader( group_0 ), 0, 0.0, 500.0, 0.0, 50.0, 9000.0, false );
+	Group.AddGroup( group_0, group_1 );
+	return group_0;
+}
+
+hgroup local_function_6( hisim param_0_ )
+{
+	hfaction aliens = iFaction.Find( "Aliens" );
+	hgroup group = Group.Create();
+	hship shipAlien;
+	int constant = 7;
+	int ii;
+	
+	for ( ii = 0; ii < constant; ++ii )
+	{
+		shipAlien = iShip.Create( "ini:/sims/ships/aliens/alien", "name_alien" );
+		iSim.SetFaction( shipAlien, aliens );
+		iPilotSetup.GenericCargoPod( shipAlien );
+		Sim.SetCollision( shipAlien, false );
+		Sim.PlaceNear( shipAlien, param_0_, 5000.0 );
+		Group.AddSim( group, shipAlien );
+	}
+	
+	return group;
+}
+
+local_function_20( hsim param_0_ )
+{
+	hsim waypoint_0 = iUtilities.CreateWaypointRelativeTo( param_0_, -800.0, 0.0, 0.0 );
+	hsim waypoint_1 = iUtilities.CreateWaypointRelativeTo( param_0_, 800.0, 0.0, 0.0 );
+	
+	iDirector.SetFocus( waypoint_0 );
+	iDirector.SetSecondaryFocus( waypoint_1 );
+	iDirector.SetCamera( CAM_Conversation );
+}
+
+hgroup local_function_5()
+{
+	hgroup group = Group.Create();
+	hisim local_1;
+	int ii;
+	
+	for ( ii = 0; ii < 4; ++ii )
+	{
+		local_1 = iSim.Cast( Sim.Create( "ini:/sims/custom/haven_station/HavenStationDebris2", "" ) );
+		Group.AddSim( group, local_1 );
+		Sim.SetCollision( local_1, false );
+		iSim.SetIndestructable( local_1, true );
+	}
+	
+	for ( ii = 0; ii < 4; ++ii )
+	{
+		local_1 = iSim.Cast( iShip.Create( "ini:/sims/custom/haven_station/HavenStationDebris3", "" ) );
+		Group.AddSim( group, local_1 );
+		Sim.SetCollision( local_1, false );
+		iSim.SetIndestructable( local_1, true );
+	}
+	
+	for ( ii = 0; ii < 4; ++ii )
+	{
+		local_1 = iSim.Cast( iShip.Create( "ini:/sims/custom/act3_mission10/debris1", "" ) );
+		Group.AddSim( group, local_1 );
+		Sim.SetCollision( local_1, false );
+		iSim.SetIndestructable( local_1, true );
+	}
+	
+	for ( ii = 0; ii < 4; ++ii )
+	{
+		local_1 = iSim.Cast( iShip.Create( "ini:/sims/custom/act3_mission10/debris2", "" ) );
+		Group.AddSim( group, local_1 );
+		Sim.SetCollision( local_1, false );
+		iSim.SetIndestructable( local_1, true );
+	}
+	
+	for ( ii = 0; ii < 4; ++ii )
+	{
+		local_1 = iSim.Cast( iShip.Create( "ini:/sims/custom/act3_mission10/debris3", "" ) );
+		Group.AddSim( group, local_1 );
+		Sim.SetCollision( local_1, false );
+		iSim.SetIndestructable( local_1, true );
+	}
+	
+	for ( ii = 0; ii < 4; ++ii )
+	{
+		local_1 = iSim.Cast( iShip.Create( "ini:/sims/custom/act3_mission10/debris4", "" ) );
+		Group.AddSim( group, local_1 );
+		Sim.SetCollision( local_1, false );
+		iSim.SetIndestructable( local_1, true );
+	}
+	
+	for ( ii = 0; ii < 4; ++ii )
+	{
+		local_1 = iSim.Cast( iShip.Create( "ini:/sims/custom/act3_mission10/debris5", "" ) );
+		Group.AddSim( group, local_1 );
+		Sim.SetCollision( local_1, false );
+		iSim.SetIndestructable( local_1, true );
+	}
+	
+	return group;
+}
+
+task local_function_7( hgroup group_0_, hisim param_1_, hship ship_0_, hship ship_1_ )
+{
+	hgroup group_1 = iCutsceneUtilities.GetKillGroup();
+	hgroup group_2;
+	int local_2;
+	hsim waypoint_0 = iUtilities.CreateWaypointRelativeTo( param_1_, -800.0, 0.0, 0.0 );
+	hsim waypoint_1 = iUtilities.CreateWaypointRelativeTo( param_1_, 800.0, 0.0, 0.0 );
+	hsim local_5 = iDirector.CreateDolly();
+	hship shipAlien;
+	hgroup group_3;
+	hisim local_8;
+	hsim sim10KmAntimatterExplosion;
+	hgroup group_4;
+	float local_11;
+	int ii;
+	
+	iDirector.Begin();
+	iDirector.FadeOut( 0.0, 0.0, 0.0, 0.0 );
+	iGame.EnableBlackout( false );
+	
+	atomic
+	{
+		iAI.ClearAutopilot();
+		iShip.SetFreeWithoutPilot( ship_1_, true );
+		iShip.SetFreeWithoutPilot( ship_0_, true );
+		Sim.SetVelocity( ship_1_, 0.0, 0.0, 0.0 );
+		Sim.SetVelocity( ship_0_, 0.0, 0.0, 0.0 );
+		group_3 = local_function_5();
+		Group.AddGroup( group_1, group_3 );
+		local_11 = ( Object.FloatProperty( param_1_, "radius" ) - 1000.0 );
+		group_4 = Group.Create();
+		Group.AddSim( group_4, iUtilities.CreateWaypointRelativeTo( param_1_, local_11, 0.0, 0.0 ) );
+		Group.AddSim( group_4, iUtilities.CreateWaypointRelativeTo( param_1_, 0.0, local_11, 0.0 ) );
+		Group.AddSim( group_4, iUtilities.CreateWaypointRelativeTo( param_1_, -local_11, 0.0, 0.0 ) );
+		Group.AddSim( group_4, iUtilities.CreateWaypointRelativeTo( param_1_, 0.0, -local_11, 0.0 ) );
+		Group.AddSim( group_4, iUtilities.CreateWaypointRelativeTo( param_1_, 0.0, 0.0, local_11 ) );
+		Group.AddSim( group_4, iUtilities.CreateWaypointRelativeTo( param_1_, 0.0, 0.0, -( local_11 + 1000.0 ) ) );
+		
+		for ( ii = 0; ii < Group.SimCount( group_0_ ); ++ii )
+		{
+			iShip.UndockSelf( iShip.Cast( Group.NthSim( group_0_, ii ) ) );
+			Sim.PlaceAt( Group.NthSim( group_0_, ii ), Group.NthSim( group_4, ii ) );
+		}
+		
+		group_2 = local_function_6( param_1_ );
+		Sim.PlaceRelativeTo( local_5, param_1_, 2000.0, 500.0, 10000.0 );
+		Sim.PointAway( local_5, param_1_ );
+		Sim.PlaceRelativeToInside( ship_1_, local_5, -30.0, -30.0, -3000.0 );
+		Sim.CopyOrientation( ship_1_, local_5 );
+		Sim.PlaceRelativeToInside( ship_0_, local_5, 30.0, 30.0, -2000.0 );
+		Sim.CopyOrientation( ship_0_, local_5 );
+		Sim.SetVelocityLocalToSim( ship_1_, 0.0, 0.0, 800.0 );
+		Sim.SetVelocityLocalToSim( ship_0_, 0.0, 0.0, 800.0 );
+		Sim.AvatarAddChannel( ship_1_, "lz", 1.0 );
+		Sim.AvatarAddChannel( ship_0_, "lz", 1.0 );
+	}
+	
+	iDirector.SetDollyCamera( local_5 );
+	iDirector.SetFocus( param_1_ );
+	iDirector.FadeIn( 0.0, 0.0, 0.0, 0.0 );
+	iComms.Shout( ship_0_, "", "a3_m10_dialogue_jafs_all_bombs" );
+	Task.Sleep( Task.Current(), 6.0 );
+	iDirector.FadeOut( 0.0, 0.0, 0.0, 0.0 );
+	Sim.PlaceRelativeTo( ship_1_, param_1_, 0.0, 200000.0, 0.0 );
+	Sim.PlaceNear( ship_0_, ship_1_, 1000.0 );
+	Sim.PlaceRelativeToInside( waypoint_0, param_1_, -9000.0, 2000.0, 3000.0 );
+	Sim.PlaceRelativeToInside( waypoint_1, param_1_, -9000.0, -2000.0, -7000.0 );
+	iDirector.SetFocus( param_1_ );
+	iDirector.SetDirection( local_5, waypoint_0, waypoint_1, 20.0, 3.0 );
+	Sim.PlaceRelativeTo( local_5, param_1_, -9000.0, -1000.0, 4000.0 );
+	Sim.PointAt( local_5, param_1_ );
+	iDirector.FadeIn( 0.0, 0.0, 0.0, 0.0 );
+	
+	for ( ii = 0; ii < 6; ++ii )
+	{
+		atomic
+		{
+			shipAlien = iShip.Create( "ini:/sims/ships/aliens/alien", "name_alien" );
+			Group.AddSim( group_2, shipAlien );
+			Sim.PlaceRelativeTo( shipAlien, local_5, Math.Random( -4000.0, 4000.0 ), Math.Random( -500.0, 500.0 ), -200.0 );
+			Sim.PointAt( shipAlien, param_1_ );
+			iShip.SetFreeWithoutPilot( shipAlien, true );
+			Sim.SetVelocityLocalToSim( shipAlien, 0.0, 0.0, 1500.0 );
+		}
+		
+		Task.Sleep( Task.Current(), Math.Random( 2.0, 3.0 ) );
+	}
+	
+	iDirector.FadeOut( 0.0, 0.0, 0.0, 0.0 );
+	
+	for ( ii = 0; ii < Group.SimCount( group_2 ); ++ii )
+	{
+		shipAlien = iShip.Cast( Group.NthSim( group_2, ii ) );
+		Sim.SetCollision( shipAlien, false );
+		Sim.PlaceNear( shipAlien, param_1_, 5000.0 );
+		Sim.SetVelocity( shipAlien, 0.0, 0.0, 0.0 );
+	}
+	
+	iDirector.SetDollyCamera( local_5 );
+	Sim.PlaceAt( local_5, waypoint_0 );
+	Sim.PlaceRelativeTo( waypoint_0, param_1_, 500.0, 500.0, 5000.0 );
+	Sim.PlaceRelativeTo( waypoint_1, param_1_, 2000.0, 2000.0, 25000.0 );
+	Task.Sleep( Task.Current(), 2.0 );
+	iDirector.SetDirection( local_5, waypoint_0, waypoint_1, 7.0, 0.0 );
+	iDirector.SetFocus( param_1_ );
+	iDirector.FadeIn( 0.0, 0.0, 0.0, 0.0 );
+	Task.Sleep( Task.Current(), 7.0 );
+	Sim.PlaceAt( waypoint_0, param_1_ );
+	
+	do
+	{
+		iSim.Kill( iSim.Cast( Group.NthSim( group_0_, local_2 ) ) );
+		Task.Sleep( Task.Current(), 0.250 );
+		
+		if ( Group.SimCount( group_0_ ) == 4 )
+		{
+			iSim.StartExplosion( param_1_ );
+		}
+	}
+	while ( Group.SimCount( group_0_ ) > 0 );
+	
+	do
+	{
+		iSim.Kill( iSim.Cast( Group.NthSim( group_2, local_2 ) ) );
+		Task.Sleep( Task.Current(), 0.10 );
+	}
+	while ( Group.SimCount( group_2 ) > 0 );
+	
+	iSim.SetIndestructable( param_1_, false );
+	Sim.Destroy( param_1_ );
+	iSim.StopExplosion( param_1_, SE_Normal, true );
+	sim10KmAntimatterExplosion = Sim.Create( "ini:/sims/explosions/10km_antimatter_explosion", "" );
+	Sim.PlaceBetween( sim10KmAntimatterExplosion, waypoint_0, local_5, 0.50 );
+	Sim.PointAt( waypoint_1, waypoint_0 );
+	
+	atomic
+	{
+		for ( ii = 0; ii < Group.SimCount( group_3 ); ++ii )
+		{
+			local_8 = iSim.Cast( Group.NthSim( group_3, ii ) );
+			Sim.PlaceNear( local_8, waypoint_0, 500.0 );
+			Sim.PlaceRelativeTo( waypoint_1, local_5, Math.Random( -5000.0, 5000.0 ), Math.Random( -5000.0, 5000.0 ), -1000.0 );
+			Sim.PointAt( local_8, waypoint_1 );
+			Sim.SetVelocityLocalToSim( local_8, 0.0, 0.0, Math.Random( 2000.0, 3000.0 ) );
+			Sim.SetAngularVelocityEuler( local_8, Math.Random( -20.0, 20.0 ), Math.Random( -20.0, 20.0 ), Math.Random( -20.0, 20.0 ) );
+		}
+	}
+	
+	Task.Sleep( Task.Current(), 10.0 );
+	iDirector.End();
+}
+
+local_function_16( hmapentity mapentity_, hstate state_ )
+{
+	hgroup gBombsHandle = Group.Cast( Global.Handle( "g_bombs_handle" ) );
+	hship jafsHandle = iShip.Cast( Object.HandleProperty( state_, "jafs_handle" ) );
+	hship playerShip = iShip.FindPlayerShip();
+	hisim simPlayerBase;
+	hmapentity remekLPoint = iMapEntity.FindByNameInSystem( "Remek L-Point", "map:/geog/gagarin/formhault" );
+	
+	iGame.EnableBlackout( true );
+	Object.SetBoolProperty( state_, "cutscene_active", true );
+	
+	atomic
+	{
+		simPlayerBase = iSim.Cast( Sim.Create( "ini:/sims/stations/custom/player_base/player_base", "Lucrecia's Base" ) );
+		iSim.SetIndestructable( simPlayerBase, true );
+		Sim.SetCullable( simPlayerBase, false );
+		Sim.PlaceRelativeTo( simPlayerBase, mapentity_, 0.0, 0.0, -200000.0 );
+		Sim.PointAt( simPlayerBase, mapentity_ );
+		iMapEntity.SetHidden( iMapEntity.Cast( mapentity_ ), true );
+		iMapEntity.SetMapVisibility( iMapEntity.Cast( mapentity_ ), false );
+	}
+	
+	iCutsceneUtilities.HandleAbort( start local_function_7( gBombsHandle, iSim.Cast( simPlayerBase ), jafsHandle, playerShip ) );
+	
+	atomic
+	{
+		Group.Destroy( gBombsHandle, true );
+		iShip.SetFreeWithoutPilot( playerShip, false );
+		iShip.SetFreeWithoutPilot( jafsHandle, false );
+		Sim.PlaceBetween( playerShip, remekLPoint, mapentity_, 0.50 );
+		Sim.PointAt( playerShip, remekLPoint );
+		Sim.PlaceRelativeTo( jafsHandle, playerShip, 100.0, 30.0, 1000.0 );
+		Sim.SetVelocityLocalToSim( playerShip, 0.0, 0.0, 500.0 );
+		Sim.SetVelocityLocalToSim( playerShip, 0.0, 0.0, 500.0 );
+	}
+	
+	Object.SetBoolProperty( state_, "cutscene_active", false );
+}
+
+hgroup local_function_8()
+{
+	hgroup group = Group.Create();
+	hship ship;
+	hfaction mAASCorporation = iFaction.Find( "MAAS Corporation" );
+	
+	iFaction.SetFeeling( mAASCorporation, iFaction.Find( "Player" ), -1.0 );
+	iFaction.SetFeeling( iFaction.Find( "Player" ), mAASCorporation, -1.0 );
+	ship = iShip.Create( "ini:/sims/ships/corporate/corp_cruiser_turrets", "a3_m10_name_flag_ship" );
+	iSim.SetFaction( ship, mAASCorporation );
+	iShip.InstallAIPilot( ship, 0.0, 3.50, -500.0, "", "", "", "" );
+	Group.AddSim( group, ship );
+	ship = iShip.Create( "ini:/sims/ships/corporate/maas_cutter", "a3_m10_name_escape_ship" );
+	iSim.SetFaction( ship, mAASCorporation );
+	iSim.SetIndestructable( ship, true );
+	Group.AddSim( group, ship );
+	iShip.Dock( ship, Group.Leader( group ) );
+	ship = iShip.Create( "ini:/sims/ships/corporate/large_corp_interceptor", iShipCreation.ShipName( "MaasCorporation", -1 ) );
+	iSim.SetFaction( ship, mAASCorporation );
+	iShip.InstallAIPilot( ship, 0.0, 3.50, -500.0, "", "", "", "" );
+	Group.AddSim( group, ship );
+	ship = iShip.Create( "ini:/sims/ships/corporate/large_corp_interceptor", iShipCreation.ShipName( "MaasCorporation", -1 ) );
+	iSim.SetFaction( ship, mAASCorporation );
+	iShip.InstallAIPilot( ship, 0.0, 3.50, -500.0, "", "", "", "" );
+	Group.AddSim( group, ship );
+	return group;
+}
+
+task local_function_17( hmapentity mapentity_, hgroup group_0_, hstate state_ )
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	bool local_2 = false;
+	hship ship = iShip.Cast( Group.NthSim( group_0_, 0 ) );
+	hship jafsHandle = iShip.Cast( Object.HandleProperty( state_, "jafs_handle" ) );
+	hship playerShip = iShip.FindPlayerShip();
+	hmapentity florenceLPoint = iMapEntity.FindByNameInSystem( "Florence L-Point", "map:/geog/gagarin/formhault" );
+	hmapentity remekLPoint = iMapEntity.FindByNameInSystem( "Remek L-Point", "map:/geog/gagarin/formhault" );
+	hgroup group_1 = local_function_8();
+	
+	iConversation.OneLiner( none, "name_jafs", "a3_m10_dialogue_jafs_bombs_detonated" );
+	Object.SetBoolProperty( state_, "alien_spawn_active", false );
+	iAI.GiveDockOrder( Group.NthGroup( group_0_, 0 ), ship );
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 1.0 );
+	}
+	while ( !iAI.IsOrderComplete( Group.NthGroup( group_0_, 0 ) ) );
+	
+	iConversation.OneLiner( ship, "", "a3_m10_dialogue_freighter_all_defense" );
+	Task.Sleep( Task.Current(), 4.0 );
+	Sim.PlaceRelativeTo( Group.Leader( group_1 ), mapentity_, 0.0, 0.0, 18000.0 );
+	iEscort.Goose( group_1, 60.0, 8000.0, true );
+	iSim.AlienInfectionEffect( iSim.Cast( Group.Leader( group_1 ) ), true );
+	iAI.GiveAttackOrder( iShip.Cast( Group.Leader( group_1 ) ), playerShip );
+	iConversation.OneLiner( none, "name_cal", "a3_m10_dialogue_cal_what_the" );
+	iConversation.OneLiner( none, "name_caleb_maas", "a3_m10_dialogue_caleb_get_out" );
+	iConversation.OneLiner( jafsHandle, "", "a3_m10_dialogue_jafs_its_caleb" );
+	iConversation.OneLiner( none, "name_cal", "a3_m10_dialogue_cal_we_cant" );
+	iConversation.OneLiner( jafsHandle, "", "a3_m10_dialogue_jafs_but" );
+	iConversation.OneLiner( none, "name_cal", "a3_m10_dialogue_cal_go" );
+	iObjectives.Add( "a3_m10_objectives_prevent" );
+	iAI.GiveFormateOrder( jafsHandle, ship, 0.0, -50.0, 0.0 );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( (Group.SimCount( group_1 ) == 1) && (!local_2 && (State.Progress( state_ ) != 3)) )
+			{
+				Object.SetBoolProperty( state_, "cutscene_active", true );
+				iObjectives.SetState( "a3_m10_objectives_prevent", OS_Succeeded );
+				local_2 = true;
+				iConversation.OneLiner( none, "name_caleb_maas", "a3_m10_dialogue_caleb_argh_you" );
+				iPilotSetup.GenericCargoPod( iShip.Cast( Group.Leader( group_1 ) ) );
+				iAI.GiveApproachOrder( Group.Leader( group_1 ), florenceLPoint );
+				iAI.ForceLPRoute( iShip.Cast( Group.Leader( group_1 ) ), iLagrangePoint.Cast( remekLPoint ), iLagrangePoint.Cast( florenceLPoint ) );
+				State.SetProgress( state_, 8 );
+			}
+			
+			if ( iAI.IsOrderComplete( jafsHandle ) && !local_0 )
+			{
+				local_0 = true;
+				iConversation.OneLiner( jafsHandle, "", "a3_m10_dialogue_jafs_im_docked" );
+				iAI.GiveApproachOrder( ship, florenceLPoint );
+				iAI.ForceLPRoute( ship, iLagrangePoint.Cast( remekLPoint ), iLagrangePoint.Cast( florenceLPoint ) );
+				Sim.SetCullable( jafsHandle, true );
+			}
+			
+			if ( local_0 && !local_1 )
+			{
+				if ( iAI.IsOrderComplete( ship ) )
+				{
+					local_1 = true;
+					Sim.Destroy( ship );
+				}
+			}
+		}
+	}
+}
+
+local_function_10( hmapentity mapentity_ )
+{
+	set localSet = iSim.NonPlanetaryInRadius( iSim.Cast( mapentity_ ), 30000.0 );
+	hmapentity mapEntity;
+	
+	iStation.AddReactiveException( iHabitat.Cast( mapentity_ ) );
+	iRangeCheck.AddTrafficException( iMapEntity.Cast( mapentity_ ) );
+	
+	do
+	{
+		mapEntity = iMapEntity.Cast( Set.FirstElement( localSet ) );
+		iStation.AddReactiveException( iHabitat.Cast( mapEntity ) );
+		iRangeCheck.AddTrafficException( mapEntity );
+		Set.Remove( localSet, mapEntity );
+	}
+	while ( !Set.IsEmpty( localSet ) );
+}
+
+local_function_11( hmapentity mapentity_ )
+{
+	list localList = List.FromSet( iDockport.DockportsOfType( iSim.Cast( mapentity_ ), DT_All, DS_Any ) );
+	int itemCount = List.ItemCount( localList );
+	int ii;
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		Subsim.Destroy( Subsim.Cast( List.GetNth( localList, ii ) ) );
+	}
+}
+
+task MissionHandler()
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	hship playerShip = iShip.FindPlayerShip();
+	hmapentity remekLPoint = iMapEntity.FindByNameInSystem( "Remek L-Point", "map:/geog/gagarin/formhault" );
+	hmapentity lucreciasBase = iMapEntity.FindByNameInSystem( "Lucrecia's Base", "map:/geog/gagarin/formhault" );
+	hgroup group_0 = Group.Create();
+	hgroup group_1 = Group.Create();
+	hgroup group_2;
+	hstate taskState;
+	int local_9;
+	float local_10;
+	htask currentTask;
+	int local_12;
+	int local_13;
+	int local_14;
+	int local_15;
+	int local_16;
+	int local_17;
+	
+	Text.Add( "csv:/text/act_3/act3_mission10" );
+	Text.Add( "csv:/text/ship_names" );
+	currentTask = Task.Current();
+	taskState = State.Find( currentTask );
+	
+	if ( !taskState )
+	{
+		taskState = State.Create( currentTask, 0 );
+		Object.AddBoolProperty( taskState, "alien_spawn_active", false );
+		iMissionTracker.AddMission( currentTask, 3, 10 );
+	}
+	
+	if ( !Object.PropertyExists( taskState, "cutscene_active" ) )
+	{
+		Object.AddBoolProperty( taskState, "cutscene_active", false );
+	}
+	
+	local_function_9( taskState );
+	
+	while ( Object.PropertyExists( playerShip, "player_dying" ) == 1 )
+	{
+		Task.Sleep( Task.Current(), 1.0 );
+	}
+	
+	if ( iMapEntity.IsDestroyed( iMapEntity.FindByNameInSystem( "Lucrecia's Base", "map:/geog/gagarin/formhault" ) ) )
+	{
+		iMapEntity.SetDestroyed( iMapEntity.FindByNameInSystem( "Lucrecia's Base", "map:/geog/gagarin/formhault" ), false );
+	}
+	
+	if ( !( iSim.ActiveWorld() == "map:/geog/gagarin/formhault" ) )
+	{
+		iConversation.OneLiner( none, "", "Testing Mission in isolation..........." );
+		iSim.CapsuleJump( playerShip, iSim.Cast( remekLPoint ) );
+		
+		do
+		{
+			Task.Sleep( Task.Current(), 0.0010 );
+		}
+		while ( iSim.IsCapsuleJumping( playerShip ) == 1 );
+		
+		Sim.PlaceNear( lucreciasBase, remekLPoint, 16000.0 );
+		Task.Sleep( Task.Current(), 5.0 );
+	}
+	
+	local_function_10( remekLPoint );
+	local_function_11( lucreciasBase );
+	
+	if ( State.Progress( taskState ) == 0 )
+	{
+		group_2 = local_function_12( remekLPoint );
+		local_10 = ( Object.FloatProperty( lucreciasBase, "radius" ) - 1000.0 );
+		Group.AddSim( group_0, iUtilities.CreateWaypointRelativeTo( lucreciasBase, local_10, 0.0, 0.0 ) );
+		Group.AddSim( group_0, iUtilities.CreateWaypointRelativeTo( lucreciasBase, 0.0, local_10, 0.0 ) );
+		Group.AddSim( group_0, iUtilities.CreateWaypointRelativeTo( lucreciasBase, -local_10, 0.0, 0.0 ) );
+		Group.AddSim( group_0, iUtilities.CreateWaypointRelativeTo( lucreciasBase, 0.0, -local_10, 0.0 ) );
+		Group.AddSim( group_0, iUtilities.CreateWaypointRelativeTo( lucreciasBase, 0.0, 0.0, local_10 + 2000.0 ) );
+		Group.AddSim( group_0, iUtilities.CreateWaypointRelativeTo( lucreciasBase, 0.0, 0.0, -( local_10 + 2000.0 ) ) );
+		Group.AddSim( group_1, iUtilities.CreateWaypointRelativeTo( lucreciasBase, local_10, local_10, 0.0 ) );
+		Group.AddSim( group_1, iUtilities.CreateWaypointRelativeTo( lucreciasBase, -local_10, local_10, 0.0 ) );
+		Group.AddSim( group_1, iUtilities.CreateWaypointRelativeTo( lucreciasBase, -local_10, -local_10, 0.0 ) );
+		Group.AddSim( group_1, iUtilities.CreateWaypointRelativeTo( lucreciasBase, 0.0, -local_10, local_10 ) );
+		Group.AddSim( group_1, iUtilities.CreateWaypointRelativeTo( lucreciasBase, 0.0, -local_10, -local_10 ) );
+		iMusic.SetAmbientEnvironment( AE_Aliens );
+	}
+	
+	start local_function_13( group_0, group_1, playerShip, taskState );
+	start local_function_14( remekLPoint, taskState );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( (State.Progress( taskState ) == 2) && !local_1 )
+			{
+				local_1 = true;
+				start local_function_15( playerShip, lucreciasBase, taskState );
+			}
+			
+			if ( (State.Progress( taskState ) == 1) && !local_0 )
+			{
+				local_0 = true;
+				local_function_16( lucreciasBase, taskState );
+				start local_function_17( remekLPoint, group_2, taskState );
+			}
+			
+			if ( (State.Progress( taskState ) == 8) || (State.Progress( taskState ) == 100) )
+			{
+				if ( State.Progress( taskState ) == 8 )
+				{
+					Global.SetBool( "g_act3_the_end_complete", true );
+				}
+				else
+				{
+					atomic
+					{
+						Global.SetBool( "g_skip_locked", false );
+					}
+					
+					Task.Detach( start local_function_0() );
+					Group.Destroy( group_1, true );
+				}
+				
+				iUtilities.RemoveMissionRestart();
+				State.Destroy( Task.Current() );
+				iMissionTracker.RemoveMission( Task.Current() );
+				Group.Destroy( group_0, true );
+				Group.Destroy( group_2, false );
+				return;
+			}
+		}
+	}
+}
+
+task local_function_15( hship ship_, hmapentity mapentity_, hstate state_ )
+{
+	hship jafsHandle = iShip.Cast( Object.HandleProperty( state_, "jafs_handle" ) );
+	int local_1;
+	list localList;
+	int itemCount;
+	int ii;
+	htask local_5;
+	
+	iDirector.Begin();
+	iDirector.SetFocus( jafsHandle );
+	iDirector.SetSecondaryFocus( mapentity_ );
+	iDirector.SetCamera( CAM_TwoShot );
+	iAI.PurgeOrders( jafsHandle );
+	Task.Sleep( Task.Current(), 3.0 );
+	localList = List.FromSet( Sim.Children( jafsHandle ) );
+	List.AddTail( localList, jafsHandle );
+	itemCount = List.ItemCount( localList );
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		iSim.Kill( iSim.Cast( List.GetNth( localList, ii ) ) );
+	}
+	
+	iConversation.OneLiner( jafsHandle, "", "a3_m10_dialogue_jafs_argh" );
+	iSim.SetIndestructable( iSim.Cast( mapentity_ ), false );
+	Object.SetStringProperty( mapentity_, "death_script", "iDeathScript.Antimatter" );
+	Object.SetFloatProperty( mapentity_, "hit_points", 10.0 );
+	iSim.Kill( iSim.Cast( mapentity_ ) );
+	debug Debug.Error( "Jafs infected" );
+	local_5 = start iStartSystem.CriticalMissionFail( ship_, "caption_failed_ship_destroyed" );
+	Task.Detach( local_5 );
+}
+

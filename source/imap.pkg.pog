@@ -1,0 +1,268 @@
+package iMap;
+
+uses Debug,
+     Set,
+     Sim,
+     Group,
+     INIFile,
+     List,
+     Object,
+     String,
+     Task,
+     Text,
+     MapEnumerations,
+     iFaction,
+     iSim,
+     iMapEntity,
+     iBody,
+     iHabitat,
+     iShip,
+     iMultiplay,
+     iUtilities;
+
+provides Main,
+         Load,
+         GetAuthor,
+         GetDescription,
+         GetDate,
+         GetName,
+         GetMap,
+         GetMapSize,
+         GetGeography,
+         GetSpawnPoints;
+
+prototype string GetAuthor( hinifile ini_ );
+prototype string GetDescription( hinifile ini_ );
+prototype string GetDate( hinifile ini_ );
+prototype string GetName( hinifile ini_ );
+prototype string GetMap( hinifile ini_ );
+prototype float GetMapSize( hinifile ini_ );
+prototype hsim local_function_0( hinifile inifile_0_, string param_1_, hsim param_2_, int param_3_ );
+prototype hgroup GetGeography( hinifile ini_, hsim map_centre_ );
+prototype hgroup GetSpawnPoints( hinifile ini_, hsim map_centre_ );
+prototype bool Load( string ini_name_, hsim map_centre_ );
+prototype task local_function_1( hsim param_0_ );
+prototype Main();
+
+string GetAuthor( hinifile ini_ )
+{
+	string local_0 = INIFile.String( ini_, "Info", "author", "None" );
+	
+	return local_0;
+}
+
+string GetDescription( hinifile ini_ )
+{
+	string local_0 = INIFile.String( ini_, "Info", "description", "None" );
+	
+	return local_0;
+}
+
+string GetDate( hinifile ini_ )
+{
+	string local_0 = INIFile.String( ini_, "Info", "date", "None" );
+	
+	return local_0;
+}
+
+string GetName( hinifile ini_ )
+{
+	string local_0 = INIFile.String( ini_, "Info", "mapname", "None" );
+	
+	return local_0;
+}
+
+string GetMap( hinifile ini_ )
+{
+	string local_0 = INIFile.String( ini_, "General", "map", "None" );
+	
+	return local_0;
+}
+
+float GetMapSize( hinifile ini_ )
+{
+	float local_0 = INIFile.Float( ini_, "General", "radius", 0.0 );
+	
+	return local_0;
+}
+
+hsim local_function_0( hinifile inifile_0_, string param_1_, hsim param_2_, int param_3_ )
+{
+	hinifile inifile_1 = INIFile.Create( param_1_ );
+	string local_1 = INIFile.String( inifile_1, "Class", "name", "none" );
+	hsim local_2;
+	float local_3 = INIFile.NumberedFloat( inifile_0_, "Geography", "geog_x", param_3_, 0.0 );
+	float local_4 = INIFile.NumberedFloat( inifile_0_, "Geography", "geog_y", param_3_, 0.0 );
+	float local_5 = INIFile.NumberedFloat( inifile_0_, "Geography", "geog_z", param_3_, 0.0 );
+	float local_6 = INIFile.NumberedFloat( inifile_0_, "Geography", "geog_yaw", param_3_, 0.0 );
+	float local_7 = INIFile.NumberedFloat( inifile_0_, "Geography", "geog_pitch", param_3_, 0.0 );
+	float local_8 = INIFile.NumberedFloat( inifile_0_, "Geography", "geog_roll", param_3_, 0.0 );
+	
+	if ( (local_1 == "icCargoPod") || (local_1 == "icShip") )
+	{
+		local_2 = iShip.Create( param_1_, INIFile.NumberedString( inifile_0_, "Geography", "name", param_3_, "none" ) );
+	}
+	else
+	{
+		local_2 = Sim.Create( param_1_, INIFile.NumberedString( inifile_0_, "Geography", "name", param_3_, "none" ) );
+		
+		if ( iSim.Type( local_2 ) == T_Nebula )
+		{
+			iSim.SetSensorVisibility( iSim.Cast( local_2 ), false );
+		}
+	}
+	
+	iMultiplay.SetTransmitFlag( local_2, false );
+	iMultiplay.SetUpdateFlag( local_2, false );
+	Object.AddBoolProperty( local_2, "poo", true );
+	iSim.SetIndestructable( iSim.Cast( local_2 ), true );
+	Sim.SetCullable( local_2, false );
+	Sim.PlaceRelativeToInside( local_2, param_2_, local_3, -local_4, local_5 );
+	Sim.SetOrientationEuler( local_2, local_6, local_7, local_8 );
+	
+	if ( String.Left( Object.StringProperty( local_2, "name" ), 5 ) == "Alpha" )
+	{
+		iSim.SetFaction( iSim.Cast( local_2 ), iFaction.Find( Text.Field( "mp_flag_team_a", FT_Text ) ) );
+	}
+	else if ( String.Left( Object.StringProperty( local_2, "name" ), 4 ) == "Beta" )
+	{
+		iSim.SetFaction( iSim.Cast( local_2 ), iFaction.Find( Text.Field( "mp_flag_team_b", FT_Text ) ) );
+	}
+	
+	return local_2;
+	INIFile.Destroy( inifile_1 );
+	return local_2;
+}
+
+hgroup GetGeography( hinifile ini_, hsim map_centre_ )
+{
+	hgroup group_0 = Group.Create();
+	hgroup group_1 = Group.Create();
+	hgroup group_2 = Group.Create();
+	hgroup group_3 = Group.Create();
+	int local_4;
+	int ii;
+	hfaction faction_0 = iFaction.Find( Text.Field( "mp_flag_team_a", FT_Text ) );
+	hfaction faction_1 = iFaction.Find( Text.Field( "mp_flag_team_b", FT_Text ) );
+	hsim local_8;
+	
+	local_4 = iUtilities.FindNumberOfINIEntries( ini_, "Geography", "resource" );
+	
+	for ( ii = 0; ii < local_4; ++ii )
+	{
+		local_8 = local_function_0( ini_, INIFile.NumberedString( ini_, "Geography", "resource", ii, "none" ), map_centre_, ii );
+		
+		if ( iSim.Faction( iSim.Cast( local_8 ) ) == faction_0 )
+		{
+			Group.AddSim( group_1, local_8 );
+		}
+		else if ( iSim.Faction( iSim.Cast( local_8 ) ) == faction_1 )
+		{
+			Group.AddSim( group_2, local_8 );
+		}
+		else
+		{
+			Group.AddSim( group_3, local_8 );
+		}
+	}
+	
+	Group.AddGroup( group_0, group_1 );
+	Group.AddGroup( group_0, group_2 );
+	Group.AddGroup( group_0, group_3 );
+	return group_0;
+}
+
+hgroup GetSpawnPoints( hinifile ini_, hsim map_centre_ )
+{
+	hgroup group_0 = Group.Create();
+	hgroup group_1 = Group.Create();
+	hgroup group_2 = Group.Create();
+	hgroup group_3 = Group.Create();
+	hsim waypoint;
+	int local_5 = iUtilities.FindNumberOfINIEntries( ini_, "Spawn", "alpha_spawn_x" );
+	int local_6 = iUtilities.FindNumberOfINIEntries( ini_, "Spawn", "beta_spawn_x" );
+	int local_7 = iUtilities.FindNumberOfINIEntries( ini_, "Spawn", "hero_spawn_x" );
+	int ii;
+	
+	for ( ii = 0; ii < local_5; ++ii )
+	{
+		waypoint = iUtilities.CreateWaypointRelativeTo( map_centre_, INIFile.NumberedFloat( ini_, "Spawn", "alpha_spawn_x", ii, 0.0 ), -INIFile.NumberedFloat( ini_, "Spawn", "alpha_spawn_y", ii, 0.0 ), INIFile.NumberedFloat( ini_, "Spawn", "alpha_spawn_z", ii, 0.0 ) );
+		iMultiplay.SetTransmitFlag( waypoint, false );
+		iMultiplay.SetUpdateFlag( waypoint, false );
+		Sim.SetOrientationEuler( waypoint, INIFile.NumberedFloat( ini_, "Spawn", "alpha_geog_yaw", ii, 0.0 ), INIFile.NumberedFloat( ini_, "Spawn", "alpha_geog_pitch", ii, 0.0 ), INIFile.NumberedFloat( ini_, "Spawn", "alpha_geog_roll", ii, 0.0 ) );
+		Group.AddSim( group_1, waypoint );
+	}
+	
+	for ( ii = 0; ii < local_6; ++ii )
+	{
+		waypoint = iUtilities.CreateWaypointRelativeTo( map_centre_, INIFile.NumberedFloat( ini_, "Spawn", "beta_spawn_x", ii, 0.0 ), -INIFile.NumberedFloat( ini_, "Spawn", "beta_spawn_y", ii, 0.0 ), INIFile.NumberedFloat( ini_, "Spawn", "beta_spawn_z", ii, 0.0 ) );
+		iMultiplay.SetTransmitFlag( waypoint, false );
+		iMultiplay.SetUpdateFlag( waypoint, false );
+		Sim.SetOrientationEuler( waypoint, INIFile.NumberedFloat( ini_, "Spawn", "beta_geog_yaw", ii, 0.0 ), INIFile.NumberedFloat( ini_, "Spawn", "beta_geog_pitch", ii, 0.0 ), INIFile.NumberedFloat( ini_, "Spawn", "beta_geog_roll", ii, 0.0 ) );
+		Group.AddSim( group_2, waypoint );
+	}
+	
+	for ( ii = 0; ii < local_7; ++ii )
+	{
+		waypoint = iUtilities.CreateWaypointRelativeTo( map_centre_, INIFile.NumberedFloat( ini_, "Spawn", "hero_spawn_x", ii, 0.0 ), -INIFile.NumberedFloat( ini_, "Spawn", "hero_spawn_y", ii, 0.0 ), INIFile.NumberedFloat( ini_, "Spawn", "hero_spawn_z", ii, 0.0 ) );
+		iMultiplay.SetTransmitFlag( waypoint, false );
+		iMultiplay.SetUpdateFlag( waypoint, false );
+		Sim.SetOrientationEuler( waypoint, INIFile.NumberedFloat( ini_, "Spawn", "hero_geog_yaw", ii, 0.0 ), INIFile.NumberedFloat( ini_, "Spawn", "hero_geog_pitch", ii, 0.0 ), INIFile.NumberedFloat( ini_, "Spawn", "hero_geog_roll", ii, 0.0 ) );
+		Group.AddSim( group_3, waypoint );
+	}
+	
+	Group.AddGroup( group_0, group_1 );
+	Group.AddGroup( group_0, group_2 );
+	Group.AddGroup( group_0, group_3 );
+	return group_0;
+}
+
+bool Load( string ini_name_, hsim map_centre_ )
+{
+	string local_0;
+	string local_1;
+	string local_2;
+	string name;
+	string local_4;
+	float local_5;
+	hgroup group_0;
+	hgroup group_1;
+	hinifile inifile = INIFile.Create( ini_name_ );
+	int local_9;
+	
+	if ( inifile == false )
+	{
+		Debug.Error( "Unable to load map ini" );
+		return false;
+	}
+	
+	local_0 = GetAuthor( inifile );
+	local_1 = GetDescription( inifile );
+	local_2 = GetDate( inifile );
+	name = GetName( inifile );
+	local_4 = GetMap( inifile );
+	local_5 = GetMapSize( inifile );
+	group_0 = GetGeography( inifile, map_centre_ );
+	group_1 = GetSpawnPoints( inifile, map_centre_ );
+	INIFile.Destroy( inifile );
+	return true;
+}
+
+task local_function_1( hsim param_0_ )
+{
+	Task.Sleep( Task.Current(), 10.0 );
+	Sim.PlaceAt( iShip.FindPlayerShip(), param_0_ );
+	Load( "ini:/multiplayer/maps/test", param_0_ );
+}
+
+Main()
+{
+	hship shipFastAttackPrefitted = iShip.Create( "ini:/sims/ships/player/fast_attack_prefitted", "Killer" );
+	hmapentity mapentity = iMapEntity.SystemCentre();
+	hsim waypoint = iUtilities.CreateWaypointRelativeTo( mapentity, Object.FloatProperty( mapentity, "radius" ) * 3.0, 0.0, 0.0 );
+	
+	iSim.SetSensorVisibility( iSim.Cast( waypoint ), true );
+	iShip.InstallPlayerPilot( shipFastAttackPrefitted );
+	start local_function_1( waypoint );
+}
+

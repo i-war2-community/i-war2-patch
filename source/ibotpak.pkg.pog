@@ -1,0 +1,735 @@
+package iBotPak;
+
+uses Debug,
+     Set,
+     List,
+     String,
+     Global,
+     Sim,
+     Group,
+     INIFile,
+     Math,
+     Object,
+     Task,
+     Text,
+     iMapEntity,
+     iSim,
+     iBody,
+     iHabitat,
+     iShip,
+     iLagrangePoint,
+     Subsim,
+     iDockport,
+     iAI,
+     MapEnumerations,
+     iFaction,
+     iGame,
+     iMultiplay,
+     iPilotSetup;
+
+provides CreateBotShips,
+         AssignGameType;
+
+enum eGameType
+{
+	GT_DeathMatch = 0x00000000,
+	GT_CaptureTheFlag = 0x00000001,
+	GT_BombTag = 0x00000002
+};
+
+prototype int local_function_0( hinifile inifile_, string param_1_, string param_2_ );
+prototype hobject CreateBotShips( string ini_, int number_of_ships_, float skill_level_, hfaction faction_, hship request_ship_, string team_name_ );
+prototype AssignGameType( hobject bots_, eGameType game_type_ );
+prototype set local_function_4( set localSet_0_, hship ship_ );
+prototype list local_function_5( set localSet_, hship ship_ );
+prototype hship local_function_6( list localList_0_ );
+prototype hship local_function_7( hship ship_0_, hsim param_1_, float param_2_ );
+prototype hsim local_function_8( hsim param_0_, float param_1_, hship ship_ );
+prototype task local_function_1( hship ship_0_ );
+prototype task local_function_2( hship ship_0_ );
+prototype hship local_function_9( hship ship_0_, hsim param_1_, float param_2_ );
+prototype task local_function_3( hship ship_ );
+
+int local_function_0( hinifile inifile_, string param_1_, string param_2_ )
+{
+	string local_0;
+	int local_1 = 0;
+	
+	do
+	{
+		local_0 = INIFile.NumberedString( inifile_, param_1_, param_2_, local_1, "moo" );
+		
+		if ( !( local_0 == "moo" ) )
+		{
+			local_1 = ( local_1 + 1 );
+		}
+	}
+	while ( !( local_0 == "moo" ) );
+	
+	return local_1;
+}
+
+hobject CreateBotShips( string ini_, int number_of_ships_, float skill_level_, hfaction faction_, hship request_ship_, string team_name_ )
+{
+	hgroup group = Group.Create();
+	hship ship_1;
+	hinifile inifile = INIFile.Create( ini_ );
+	string local_3;
+	string local_4;
+	int botIndex = 0;
+	int local_6;
+	int ii;
+	
+	if ( inifile == false )
+	{
+		debug Debug.Error( "iBotPak.CreateBotShips: Unable to open assigned inifile!\n" );
+		return none;
+	}
+	
+	local_6 = local_function_0( inifile, "BotShipTypes", "ship" );
+	
+	if ( request_ship_ != false )
+	{
+		botIndex = Object.IntProperty( request_ship_, "bot_index" );
+		local_3 = INIFile.NumberedString( inifile, "BotShipTypes", "ship", botIndex, "<none found>" );
+		local_4 = INIFile.NumberedString( inifile, team_name_, "name", botIndex, "<none found>" );
+		local_4 = String.Join( "MP_NAME_", local_4 );
+		ship_1 = iShip.Create( local_3, local_4 );
+		
+		if ( ship_1 == false )
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iBotPak.CreateBotShips: Error: Failed to create bot with template " );
+				Debug.PrintString( local_3 );
+				Debug.PrintString( " and name " );
+				Debug.PrintString( local_4 );
+				Debug.PrintString( "\n" );
+			}
+			
+			debug Debug.Error( "iBotPak.CreateBotShips: Unable to create bot from ini (see log for details)" );
+		}
+		
+		iPilotSetup.GenericCargoPod( ship_1 );
+		iShip.SetPilotSkillLevel( ship_1, iShip.PilotSkillLevel( request_ship_ ) );
+		iSim.SetFaction( ship_1, iSim.Faction( request_ship_ ) );
+		iMultiplay.SetUpdateFlag( ship_1, true );
+		Object.AddIntProperty( ship_1, "bot_index", botIndex );
+		Object.AddBoolProperty( ship_1, "is_bot", true );
+		Object.AddIntProperty( ship_1, "frag_count", 0 );
+		Object.AddIntProperty( ship_1, "bot_deaths", 0 );
+		return ship_1;
+	}
+	else
+	{
+		for ( ii = 0; ii < number_of_ships_; ++ii )
+		{
+			local_3 = INIFile.NumberedString( inifile, "BotShipTypes", "ship", botIndex, "<none found>" );
+			local_4 = INIFile.NumberedString( inifile, team_name_, "name", botIndex, "<none found>" );
+			local_4 = String.Join( "MP_NAME_", local_4 );
+			ship_1 = iShip.Create( local_3, local_4 );
+			
+			if ( ship_1 == false )
+			{
+				debug Debug.Error( "iBotPak.CreateBotShips: Unable to create bot from ini (see log for details)" );
+				
+				debug atomic
+				{
+					Debug.PrintString( "iBotPak.CreateBotShips: Error: Failed to create bot with template " );
+					Debug.PrintString( local_3 );
+					Debug.PrintString( " and name " );
+					Debug.PrintString( local_4 );
+					Debug.PrintString( "\n" );
+				}
+			}
+			
+			iPilotSetup.GenericCargoPod( ship_1 );
+			iShip.SetPilotSkillLevel( ship_1, skill_level_ );
+			iSim.SetFaction( ship_1, faction_ );
+			iMultiplay.SetUpdateFlag( ship_1, true );
+			Object.AddIntProperty( ship_1, "bot_index", botIndex );
+			Object.AddBoolProperty( ship_1, "is_bot", true );
+			Object.AddIntProperty( ship_1, "frag_count", 0 );
+			Object.AddIntProperty( ship_1, "bot_deaths", 0 );
+			Group.AddSim( group, ship_1 );
+			
+			if ( botIndex < (local_6 - 1) )
+			{
+				botIndex = ( botIndex + 1 );
+			}
+			else
+			{
+				botIndex = 0;
+			}
+		}
+		
+		INIFile.Destroy( inifile );
+		return group;
+	}
+	
+	return none;
+}
+
+AssignGameType( hobject bots_, eGameType game_type_ )
+{
+	hship ship = iShip.Cast( bots_ );
+	hgroup group;
+	int simCount;
+	int ii;
+	
+	if ( ship != false )
+	{
+		if ( game_type_ == GT_DeathMatch )
+		{
+			Task.Detach( start local_function_1( ship ) );
+		}
+		else if ( game_type_ == GT_CaptureTheFlag )
+		{
+			Task.Detach( start local_function_2( ship ) );
+		}
+		else if ( game_type_ == GT_BombTag )
+		{
+			Task.Detach( start local_function_3( ship ) );
+		}
+		
+		return;
+	}
+	
+	group = Group.Cast( bots_ );
+	simCount = Group.SimCount( group );
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		ship = iShip.Cast( Group.NthSim( group, ii ) );
+		
+		if ( game_type_ == GT_DeathMatch )
+		{
+			Task.Detach( start local_function_1( ship ) );
+		}
+		else if ( game_type_ == GT_CaptureTheFlag )
+		{
+			Task.Detach( start local_function_2( ship ) );
+		}
+		else if ( game_type_ == GT_BombTag )
+		{
+			Task.Detach( start local_function_3( ship ) );
+		}
+	}
+}
+
+set local_function_4( set localSet_0_, hship ship_ )
+{
+	hisim local_0 = iSim.Cast( ship_ );
+	hisim local_1;
+	set localSet_1;
+	
+	do
+	{
+		local_1 = iSim.Cast( Set.FirstElement( localSet_0_ ) );
+		
+		if ( (iFaction.Feeling( iSim.Faction( ship_ ), iSim.Faction( local_1 ) ) <= 0.0) && !Object.PropertyExists( local_1, "poo" ) )
+		{
+			Set.Add( localSet_1, local_1 );
+			Set.Remove( localSet_0_, local_1 );
+		}
+		else
+		{
+			Set.Remove( localSet_0_, local_1 );
+		}
+	}
+	while ( !Set.IsEmpty( localSet_0_ ) );
+	
+	return localSet_1;
+}
+
+list local_function_5( set localSet_, hship ship_ )
+{
+	list localList = List.FromSet( localSet_ );
+	hobject local_1;
+	int itemCount = List.ItemCount( localList );
+	int ii;
+	int jj;
+	
+	for ( ii = 0; ii < (itemCount - 1); ++ii )
+	{
+		for ( jj = ( itemCount - 1 ); ii < jj; --jj )
+		{
+			if ( Sim.DistanceBetween( ship_, Sim.Cast( List.GetNth( localList, jj - 1 ) ) ) < Sim.DistanceBetween( ship_, Sim.Cast( List.GetNth( localList, jj ) ) ) )
+			{
+				local_1 = List.GetNth( localList, jj - 1 );
+				List.SetNth( localList, jj - 1, List.GetNth( localList, jj ) );
+				List.SetNth( localList, jj, local_1 );
+			}
+		}
+	}
+	
+	return localList;
+}
+
+hship local_function_6( list localList_0_ )
+{
+	list localList_1 = List.SortByIntProperty( localList_0_, "frag_count" );
+	int itemCount = List.ItemCount( localList_1 );
+	int local_2;
+	int local_3;
+	
+	if ( itemCount > 2 )
+	{
+		if ( (Object.IntProperty( List.GetNth( localList_1, itemCount - 1 ), "frag_count" ) - Object.IntProperty( List.GetNth( localList_1, itemCount - 2 ), "frag_count" )) > 5 )
+		{
+			local_2 = 1;
+		}
+		else if ( itemCount > 3 )
+		{
+			local_2 = 3;
+		}
+		else if ( itemCount > 2 )
+		{
+			local_2 = 2;
+		}
+	}
+	else
+	{
+		local_2 = 1;
+	}
+	
+	return iShip.Cast( List.GetNth( localList_1, itemCount - Math.RandomInt( 1, local_2 ) ) );
+}
+
+hship local_function_7( hship ship_0_, hsim param_1_, float param_2_ )
+{
+	set localSet = iSim.ShipsInRadius( iSim.Cast( param_1_ ), param_2_ );
+	list localList;
+	hship ship_1;
+	int local_3;
+	int local_4;
+	int mpSpawnTime;
+	
+	Set.Remove( localSet, ship_0_ );
+	localSet = local_function_4( localSet, ship_0_ );
+	localList = local_function_5( localSet, ship_0_ );
+	
+	if ( iShip.PilotSkillLevel( ship_0_ ) >= 0.60 )
+	{
+		localList = List.SortByFloatProperty( localList, "hit_points" );
+	}
+	
+	if ( iShip.PilotSkillLevel( ship_0_ ) >= 0.80 )
+	{
+		ship_1 = local_function_6( localList );
+	}
+	else
+	{
+		ship_1 = iShip.Cast( List.GetNth( localList, 0 ) );
+	}
+	
+	if ( ship_1 && Object.PropertyExists( ship_1, "mp_spawn_time" ) )
+	{
+		mpSpawnTime = Object.IntProperty( ship_1, "mp_spawn_time" );
+		
+		if ( iGame.SystemTime() > (mpSpawnTime + 10000) )
+		{
+			debug Debug.PrintString( "likely target has passed spawntime check\n" );
+		}
+		else
+		{
+			ship_1 = none;
+			debug Debug.PrintString( "discarding likely target - only just respawned\n" );
+		}
+	}
+	
+	return ship_1;
+}
+
+hsim local_function_8( hsim param_0_, float param_1_, hship ship_ )
+{
+	list localList = List.FromSet( iSim.SimsInRadius( iSim.Cast( param_0_ ), param_1_, 1073741824 ) );
+	hsim local_1;
+	int itemCount = List.ItemCount( localList );
+	int local_3;
+	int ii;
+	
+	if ( itemCount == 0 )
+	{
+		return none;
+	}
+	else
+	{
+		for ( ii = 0; ii < itemCount; ++ii )
+		{
+			local_1 = Sim.Cast( List.GetNth( localList, ii ) );
+			
+			if ( Sim.DistanceBetween( ship_, local_1 ) < 800.0 )
+			{
+				local_3 = 2;
+			}
+			else
+			{
+				local_3 = 5;
+			}
+			
+			if ( Math.RandomInt( 0, local_3 ) == 0 )
+			{
+				return local_1;
+			}
+		}
+		
+		return none;
+	}
+	
+	return none;
+}
+
+task local_function_1( hship ship_0_ )
+{
+	bool local_0 = false;
+	hsim gArenaCentre = Sim.Cast( Global.Handle( "g_arena_centre" ) );
+	float gArenaRadius = Global.Float( "g_arena_radius" );
+	hisim local_3;
+	hisim ship_1;
+	hsim local_5;
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 1.0 );
+		debug Debug.PrintString( "iBotPak.death_match_behaviour: Behaviour suspended while no player present\n" );
+	}
+	while ( List.ItemCount( iMultiplay.ServerPlayerList() ) == 0 );
+	
+	Task.Sleep( Task.Current(), 3.0 );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( !Sim.Cast( local_5 ) )
+			{
+				ship_1 = iShip.Cast( iShip.LastAttacker( ship_0_ ) );
+				
+				if ( iSim.IsDying( local_3 ) || (!iAI.HasOrder( ship_0_ ) || (Sim.DistanceBetween( local_3, ship_0_ ) > 5000.0)) )
+				{
+					debug atomic
+					{
+						Debug.PrintString( "iBotPak.death_match_behaviour: Vessel " );
+						Debug.PrintString( Object.StringProperty( ship_0_, "name" ) );
+						Debug.PrintString( " is finding a new target....\n" );
+					}
+					
+					atomic
+					{
+						local_3 = local_function_7( ship_0_, gArenaCentre, gArenaRadius );
+					}
+					
+					if ( local_3 )
+					{
+						iAI.GiveAttackOrder( ship_0_, local_3 );
+					}
+				}
+			}
+			else if ( !Sim.Cast( local_5 ) || Sim.IsHidden( local_5 ) )
+			{
+				local_0 == 0;
+			}
+			else if ( (Sim.DistanceBetweenCentres( ship_0_, local_5 ) < 20.0) && !Sim.IsHidden( local_5 ) )
+			{
+				local_0 = false;
+			}
+			
+			if ( ((ship_1 != false) && (local_3 != ship_1)) || local_0 )
+			{
+				if ( Object.FloatProperty( ship_1, "hit_points" ) > Object.FloatProperty( ship_0_, "hit_points" ) )
+				{
+					local_3 = ship_1;
+					iAI.GiveAttackOrder( ship_0_, local_3 );
+				}
+			}
+		}
+		
+		every 3.0:
+		{
+			if ( !local_0 )
+			{
+				atomic
+				{
+					local_5 = local_function_8( gArenaCentre, gArenaRadius, ship_0_ );
+				}
+				
+				if ( Sim.Cast( local_5 ) != false )
+				{
+					local_0 = true;
+					iAI.GiveApproachOrderAdvanced( ship_0_, local_5, 0.0, 0.0, false );
+				}
+			}
+			
+			if ( Sim.IsDead( ship_0_ ) )
+			{
+				return;
+			}
+		}
+	}
+}
+
+task local_function_2( hship ship_0_ )
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	hsim gArenaCentre = Sim.Cast( Global.Handle( "g_arena_centre" ) );
+	float gArenaRadius = Global.Float( "g_arena_radius" );
+	hisim local_4;
+	hisim local_5;
+	string local_6;
+	hship ship_1;
+	hship ship_2;
+	hsim local_9;
+	
+	if ( iFaction.Find( Text.Field( "mp_flag_team_a", FT_Text ) ) )
+	{
+		local_4 = iSim.Cast( Sim.FindByName( Text.Field( "mp_flag_a_flag_name", FT_Text ) ) );
+		local_5 = iSim.Cast( Sim.FindByName( Text.Field( "mp_flag_b_flag_name", FT_Text ) ) );
+		local_6 = "RedFlagIsCaptured";
+	}
+	else
+	{
+		local_4 = iSim.Cast( Sim.FindByName( Text.Field( "mp_flag_b_flag_name", FT_Text ) ) );
+		local_5 = iSim.Cast( Sim.FindByName( Text.Field( "mp_flag_a_flag_name", FT_Text ) ) );
+		local_6 = "BlueFlagIsCaptured";
+	}
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 1.0 );
+		debug Debug.PrintString( "iBotPak.death_match_behaviour: Behaviour suspended while no player present\n" );
+	}
+	while ( List.ItemCount( iMultiplay.ServerPlayerList() ) == 0 );
+	
+	Task.Sleep( Task.Current(), 3.0 );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( Global.Bool( local_6 ) == 0 )
+			{
+				if ( !Sim.Cast( local_9 ) )
+				{
+					ship_2 = iShip.Cast( iShip.LastAttacker( ship_0_ ) );
+					
+					if ( iSim.IsDying( ship_1 ) || (!iAI.HasOrder( ship_0_ ) || (Sim.DistanceBetween( ship_1, ship_0_ ) > 5000.0)) )
+					{
+						debug atomic
+						{
+							Debug.PrintString( "iBotPak.death_match_behaviour: Vessel " );
+							Debug.PrintString( Object.StringProperty( ship_0_, "name" ) );
+							Debug.PrintString( " is finding a new target....\n" );
+						}
+						
+						atomic
+						{
+							ship_1 = local_function_7( ship_0_, gArenaCentre, gArenaRadius );
+						}
+						
+						if ( ship_1 )
+						{
+							iAI.GiveAttackOrder( ship_0_, ship_1 );
+						}
+					}
+				}
+				else if ( !Sim.Cast( local_9 ) || Sim.IsHidden( local_9 ) )
+				{
+					local_0 == 0;
+				}
+				else if ( (Sim.DistanceBetweenCentres( ship_0_, local_9 ) < 20.0) && !Sim.IsHidden( local_9 ) )
+				{
+					local_0 = false;
+				}
+				
+				if ( ((ship_2 != false) && (ship_1 != ship_2)) || local_0 )
+				{
+					if ( Object.FloatProperty( ship_2, "hit_points" ) > Object.FloatProperty( ship_0_, "hit_points" ) )
+					{
+						ship_1 = ship_2;
+						iAI.GiveAttackOrder( ship_0_, ship_1 );
+					}
+				}
+			}
+			else
+			{
+				ship_1 = iShip.Cast( Sim.Parent( local_4 ) );
+				
+				if ( (ship_1 != false) && local_1 )
+				{
+					local_1 = true;
+					iAI.GiveAttackOrder( ship_0_, ship_1 );
+				}
+				else
+				{
+					local_1 = false;
+				}
+			}
+		}
+		
+		every 3.0:
+		{
+			if ( !local_0 && (Global.Bool( local_6 ) == 0) )
+			{
+				atomic
+				{
+					local_9 = local_function_8( gArenaCentre, gArenaRadius, ship_0_ );
+				}
+				
+				if ( (Sim.Cast( local_9 ) != false) && !local_0 )
+				{
+					local_0 = true;
+					iAI.GiveApproachOrderAdvanced( ship_0_, local_9, 0.0, 0.0, false );
+				}
+			}
+			
+			if ( Sim.IsDead( ship_0_ ) )
+			{
+				return;
+			}
+		}
+	}
+}
+
+hship local_function_9( hship ship_0_, hsim param_1_, float param_2_ )
+{
+	set localSet = iSim.ShipsInRadius( iSim.Cast( param_1_ ), param_2_ );
+	list localList;
+	hship ship_1;
+	int itemCount;
+	int local_4;
+	
+	Set.Remove( localSet, ship_0_ );
+	localList = local_function_5( localSet, ship_0_ );
+	itemCount = List.ItemCount( localList );
+	
+	do
+	{
+		ship_1 = iShip.Cast( List.GetNth( localList, local_4 ) );
+		
+		if ( !Object.PropertyExists( ship_1, "poo" ) )
+		{
+			return ship_1;
+		}
+		
+		local_4 = ( local_4 + 1 );
+	}
+	while ( local_4 < itemCount );
+	
+	return none;
+}
+
+task local_function_3( hship ship_ )
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	bool local_2 = false;
+	hsim gArenaCentre = Sim.Cast( Global.Handle( "g_arena_centre" ) );
+	float gArenaRadius = Global.Float( "g_arena_radius" );
+	hsim local_5;
+	hship gShipWithBomb;
+	hobject local_7;
+	hobject local_8;
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( List.ItemCount( iMultiplay.ServerPlayerList() ) > 0 )
+			{
+				if ( !Sim.Cast( local_5 ) )
+				{
+					if ( !Global.Exists( "g_ship_with_bomb" ) || (iShip.Cast( Global.Handle( "g_ship_with_bomb" ) ) != ship_) )
+					{
+						if ( Global.Float( "g_time_to_detonation" ) < 20.0 )
+						{
+							local_0 = false;
+							gShipWithBomb = iShip.Cast( Global.Handle( "g_ship_with_bomb" ) );
+							
+							if ( gShipWithBomb != false )
+							{
+								iAI.GiveFleeOrder( ship_, gShipWithBomb );
+							}
+						}
+						else if ( !Global.Exists( "g_ship_with_bomb" ) && Global.Exists( "g_bomb" ) )
+						{
+							if ( !local_0 )
+							{
+								local_1 = false;
+								local_0 = true;
+								iAI.GiveApproachOrderAdvanced( ship_, Sim.Cast( Global.Handle( "g_bomb" ) ), 0.0, 0.0, false );
+							}
+						}
+						else if ( Global.Exists( "g_ship_with_bomb" ) && !local_1 )
+						{
+							local_0 = false;
+							local_1 = true;
+							iAI.GiveAttackOrder( ship_, Sim.Cast( Global.Handle( "g_ship_with_bomb" ) ) );
+						}
+					}
+					else if ( Global.Float( "g_time_to_detonation" ) < 20.0 )
+					{
+						local_8 = local_function_9( ship_, gArenaCentre, gArenaRadius );
+						
+						if ( (local_8 != local_7) || !iAI.HasOrder( ship_ ) )
+						{
+							local_7 = local_8;
+							iAI.GiveApproachOrderAdvanced( ship_, local_7, 0.0, 0.0, false );
+						}
+					}
+					else
+					{
+						local_8 = local_function_9( ship_, gArenaCentre, gArenaRadius );
+						
+						if ( local_8 != local_7 )
+						{
+							local_7 = local_8;
+							
+							if ( local_7 == false )
+							{
+								debug Debug.PrintString( "No target for me to run after :(\n" );
+							}
+							else
+							{
+								iAI.GiveAttackOrder( ship_, local_7 );
+							}
+						}
+					}
+				}
+				else if ( !Sim.Cast( local_5 ) || Sim.IsHidden( local_5 ) )
+				{
+					local_2 == 0;
+				}
+				else if ( (Sim.DistanceBetweenCentres( ship_, local_5 ) < 20.0) && !Sim.IsHidden( local_5 ) )
+				{
+					local_2 = false;
+				}
+			}
+			else debug Debug.PrintString( "iBotPak.bomb_tag_behaviour: Behaviour suspended while no player present\n" );
+		}
+		
+		every 3.0:
+		{
+			if ( !local_2 )
+			{
+				atomic
+				{
+					local_5 = local_function_8( gArenaCentre, gArenaRadius, ship_ );
+				}
+				
+				if ( (Sim.Cast( local_5 ) != false) && !local_2 )
+				{
+					local_2 = true;
+					iAI.GiveApproachOrderAdvanced( ship_, local_5, 0.0, 0.0, false );
+				}
+			}
+			
+			if ( Sim.IsDead( ship_ ) )
+			{
+				return;
+			}
+		}
+	}
+}
+

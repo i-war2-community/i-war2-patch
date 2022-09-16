@@ -1,0 +1,912 @@
+package iaitestsuit;
+
+uses Debug,
+     Set,
+     List,
+     String,
+     Global,
+     Sim,
+     Group,
+     INIFile,
+     Input,
+     Math,
+     Object,
+     iSim,
+     MapEnumerations,
+     iMapEntity,
+     iLagrangePoint,
+     iShip,
+     Subsim,
+     iDockport,
+     iAI,
+     iConversation,
+     iFaction,
+     iFormation,
+     iHUD,
+     iBody,
+     iHabitat,
+     GUI,
+     CargoTypes,
+     iInventory,
+     iPilotSetup,
+     iScore,
+     iUtilities,
+     iWingmen;
+
+provides Main,
+         CallSetupMenu,
+         CallOrderMenu;
+
+prototype Main();
+prototype local_function_0();
+prototype local_function_2( hobject param_0_ );
+prototype local_function_5( hobject param_0_, hship ship_, float param_2_, float param_3_, float param_4_ );
+prototype local_function_4( hobject param_0_ );
+prototype hgroup local_function_6( hinifile inifile_, int param_1_, string param_2_ );
+prototype local_function_3( hobject param_0_, bool param_1_ );
+prototype task local_function_1();
+prototype local_function_9( bool param_0_, bool param_1_ );
+prototype task local_function_7();
+prototype CallSetupMenu();
+prototype hobject local_function_8();
+prototype task local_function_10();
+prototype CallOrderMenu();
+
+Main()
+{
+	hship ship;
+	hmapentity touchdown = iMapEntity.FindByName( "Touchdown" );
+	hsim waypoint;
+	hship shipFreightpod;
+	list localList;
+	int ii;
+	hfaction faction_0;
+	hfaction faction_1;
+	hfaction faction_2;
+	float radius = Object.FloatProperty( touchdown, "radius" );
+	float constant = 10000000.0;
+	float random;
+	float local_12;
+	string local_13;
+	hinifile inifile = INIFile.Create( "ini:/iAITestShips" );
+	
+	local_13 = INIFile.String( inifile, "Player", "ship", "ini:/sims/ships/player/fast_attack_prefitted" );
+	ship = iShip.Create( local_13, "Player Ship" );
+	Input.BindKey( "iAITestSuit.CallSetupMenu", "ScriptKeys.SetupMenu" );
+	Input.BindKey( "iAITestSuit.CallOrderMenu", "ScriptKeys.OrdersMenu" );
+	Global.CreateInt( "g_setup_state", 2, 0 );
+	Global.CreateInt( "g_amt_grp_1", 2, Math.RandomInt( 2, 10 ) );
+	Global.CreateInt( "g_amt_grp_2", 2, Math.RandomInt( 2, 10 ) );
+	Global.CreateHandle( "g_object1_handle", 2, none );
+	Global.CreateHandle( "g_object2_handle", 2, none );
+	Global.CreateBool( "g_faction_hatred", 2, false );
+	faction_0 = iFaction.Create( "Goodies", "GOO", A_Independent );
+	faction_1 = iFaction.Create( "Baddies", "BAA", A_Marauders );
+	faction_2 = iFaction.Create( "Player", "PLY", A_Player );
+	iFaction.SetFeeling( faction_2, faction_2, 1.0 );
+	iFaction.SetFeeling( faction_2, faction_0, 1.0 );
+	iFaction.SetFeeling( faction_2, faction_1, -1.0 );
+	local_function_0();
+	iSim.SetFaction( ship, faction_2 );
+	
+	for ( ii = 0; ii < List.ItemCount( localList ); ++ii )
+	{
+		iSim.SetFaction( iShip.Cast( List.GetNth( localList, ii ) ), faction_2 );
+	}
+	
+	Sim.PlaceRelativeTo( ship, touchdown, radius + constant, 0.0, 0.0 );
+	iInventory.Add( CT_TurretFighter, 2 );
+	Object.AddIntProperty( ship, "turret_fighters", 2 );
+	List.AddHead( localList, iShip.Create( "ini:/sims/ships/player/turret_fighter_prefitted", "turret fighter" ) );
+	List.AddTail( localList, iShip.Create( "ini:/sims/ships/player/turret_fighter_prefitted", "turret fighter" ) );
+	Global.CreateList( "g_turret_fighters", 2, localList );
+	iShip.InstallPlayerPilot( ship );
+	iWingmen.AddTFighters( ship, localList );
+	iShip.WeaponTargetsFromContactList( iShip.Cast( List.GetNth( localList, 0 ) ) );
+	iShip.WeaponTargetsFromContactList( iShip.Cast( List.GetNth( localList, 1 ) ) );
+	iSim.SetFaction( iShip.Cast( List.GetNth( localList, 0 ) ), faction_2 );
+	iSim.SetFaction( iShip.Cast( List.GetNth( localList, 1 ) ), faction_2 );
+	iUtilities.MakeWaypointVisible( iUtilities.CreateWaypointRelativeTo( touchdown, radius + (constant + 30000.0), 0.0, 0.0 ), true, "Approach Waypoint 1" );
+	iUtilities.MakeWaypointVisible( iUtilities.CreateWaypointRelativeTo( touchdown, -( radius + (constant + 30000.0) ), 0.0, 0.0 ), true, "Approach Waypoint 1a" );
+	iUtilities.MakeWaypointVisible( iUtilities.CreateWaypointRelativeTo( touchdown, radius + (constant + 300000.0), 0.0, 0.0 ), true, "Approach Waypoint 2" );
+	iUtilities.MakeWaypointVisible( iUtilities.CreateWaypointRelativeTo( touchdown, -( radius + (constant + 300000.0) ), 0.0, 0.0 ), true, "Approach Waypoint 2a" );
+	iUtilities.MakeWaypointVisible( iUtilities.CreateWaypointRelativeTo( touchdown, radius + (constant + 3000000.0), 0.0, 0.0 ), true, "Approach Waypoint 3" );
+	iUtilities.MakeWaypointVisible( iUtilities.CreateWaypointRelativeTo( touchdown, -( radius + (constant + 3000000.0) ), 0.0, 0.0 ), true, "Approach Waypoint 3a" );
+	iUtilities.MakeWaypointVisible( iUtilities.CreateWaypointRelativeTo( touchdown, 0.0, radius + (constant + 3000000.0), 0.0 ), true, "Avoidance Test Start" );
+	iUtilities.MakeWaypointVisible( iUtilities.CreateWaypointRelativeTo( touchdown, 0.0, radius + (constant + 3000000.0), 9000.0 ), true, "Avoidance Test End" );
+	waypoint = iUtilities.CreateWaypointRelativeTo( touchdown, 0.0, radius + (constant + 3000000.0), 2500.0 );
+	
+	if ( inifile == false )
+	{
+		Debug.Error( "Unable to open ini!" );
+	}
+	
+	local_12 = INIFile.Float( inifile, "A_Spacing", "value", -1.0 );
+	
+	if ( local_12 == -1.0 )
+	{
+		Debug.Error( "Unable to find avoidance spacing in ini... using standin!" );
+		local_12 = 2300.0;
+	}
+	
+	INIFile.Destroy( inifile );
+	
+	for ( ii = 0; ii < 30; ++ii )
+	{
+		random = Math.Random( 0.0, 1.0 );
+		random = ( (1.0 - (random * random)) * local_12 );
+		shipFreightpod = iShip.Create( "ini:/sims/ships/utility/freightpod", String.FromInt( ii + 1 ) );
+		Sim.PlaceNear( shipFreightpod, waypoint, random );
+		Sim.SetCullable( shipFreightpod, false );
+	}
+	
+	waypoint = iUtilities.CreateWaypointRelativeTo( touchdown, 0.0, radius + (constant + 3000000.0), 5000.0 );
+	
+	for ( ii = 0; ii < 30; ++ii )
+	{
+		random = Math.Random( 0.0, 1.0 );
+		random = ( (1.0 - (random * random)) * local_12 );
+		shipFreightpod = iShip.Create( "ini:/sims/ships/utility/freightpod", String.FromInt( ii + 1 ) );
+		Sim.PlaceNear( shipFreightpod, waypoint, random );
+		Sim.SetCullable( shipFreightpod, false );
+	}
+	
+	waypoint = iUtilities.CreateWaypointRelativeTo( touchdown, 0.0, radius + (constant + 3000000.0), 8000.0 );
+	
+	for ( ii = 0; ii < 30; ++ii )
+	{
+		random = Math.Random( 0.0, 1.0 );
+		random = ( (1.0 - (random * random)) * local_12 );
+		shipFreightpod = iShip.Create( "ini:/sims/ships/utility/freightpod", String.FromInt( ii + 1 ) );
+		Sim.PlaceNear( shipFreightpod, waypoint, random );
+		Sim.SetCullable( shipFreightpod, false );
+	}
+	
+	start local_function_1();
+}
+
+local_function_0()
+{
+	hfaction goodies = iFaction.Find( "Goodies" );
+	hfaction baddies = iFaction.Find( "Baddies" );
+	hfaction player = iFaction.Find( "Player" );
+	
+	iFaction.SetFeeling( player, player, 1.0 );
+	iFaction.SetFeeling( player, goodies, 1.0 );
+	iFaction.SetFeeling( player, baddies, -1.0 );
+	
+	if ( Global.Bool( "g_faction_hatred" ) )
+	{
+		iFaction.SetFeeling( goodies, player, -1.0 );
+		iFaction.SetFeeling( baddies, player, -1.0 );
+		iFaction.SetFeeling( baddies, goodies, -1.0 );
+		iFaction.SetFeeling( goodies, baddies, -1.0 );
+		return;
+	}
+	
+	iFaction.SetFeeling( goodies, player, 0.0 );
+	iFaction.SetFeeling( baddies, player, 0.0 );
+	iFaction.SetFeeling( baddies, goodies, 0.0 );
+	iFaction.SetFeeling( goodies, baddies, 0.0 );
+}
+
+local_function_2( hobject param_0_ )
+{
+	if ( Group.Cast( param_0_ ) != false )
+	{
+		Group.Destroy( Group.Cast( param_0_ ), true );
+		return;
+	}
+	
+	Sim.Destroy( Sim.Cast( param_0_ ) );
+}
+
+local_function_5( hobject param_0_, hship ship_, float param_2_, float param_3_, float param_4_ )
+{
+	hgroup group;
+	
+	if ( Group.Cast( param_0_ ) != false )
+	{
+		group = Group.Cast( param_0_ );
+		Sim.PlaceRelativeTo( Group.Leader( group ), ship_, param_2_, param_3_, param_4_ );
+		iFormation.Goose( group, 90.0, true );
+		return;
+	}
+	
+	Sim.PlaceRelativeTo( Sim.Cast( param_0_ ), ship_, param_2_, param_3_, param_4_ );
+}
+
+local_function_4( hobject param_0_ )
+{
+	hgroup group;
+	int simCount;
+	int ii;
+	
+	if ( Group.Cast( param_0_ ) != false )
+	{
+		group = Group.Cast( param_0_ );
+		simCount = Group.SimCount( group );
+		
+		for ( ii = 0; ii < simCount; ++ii )
+		{
+			iPilotSetup.GenericCargoPod( iShip.Cast( Group.NthSim( group, ii ) ) );
+		}
+		
+		return;
+	}
+	
+	iPilotSetup.GenericCargoPod( iShip.Cast( param_0_ ) );
+}
+
+hgroup local_function_6( hinifile inifile_, int param_1_, string param_2_ )
+{
+	hgroup group = Group.Create();
+	hisim local_1;
+	string local_2;
+	int local_3 = iUtilities.FindNumberOfINIEntries( inifile_, "TestShips", "ship" );
+	int ii;
+	
+	for ( ii = 0; ii < param_1_; ++ii )
+	{
+		local_2 = INIFile.NumberedString( inifile_, "TestShips", "ship", Math.RandomInt( 0, local_3 - 1 ), "none" );
+		
+		if ( local_2 == "none" )
+		{
+			Debug.Error( "Unable to get template from ini" );
+		}
+		
+		local_1 = iSim.Cast( Sim.Create( local_2, String.Join( param_2_, String.Join( "Ship ", String.FromInt( ii + 1 ) ) ) ) );
+		Group.AddSim( group, local_1 );
+		Sim.SetCullable( local_1, false );
+	}
+	
+	return group;
+}
+
+local_function_3( hobject param_0_, bool param_1_ )
+{
+	hgroup group;
+	hfaction goodies;
+	int simCount;
+	int ii;
+	
+	if ( param_1_ == 1 )
+	{
+		goodies = iFaction.Find( "Goodies" );
+	}
+	else
+	{
+		goodies = iFaction.Find( "Baddies" );
+	}
+	
+	if ( Group.Cast( param_0_ ) != false )
+	{
+		group = Group.Cast( param_0_ );
+		simCount = Group.SimCount( group );
+		
+		for ( ii = 0; ii < simCount; ++ii )
+		{
+			iSim.SetFaction( iSim.Cast( Group.NthSim( group, ii ) ), goodies );
+		}
+		
+		return;
+	}
+	
+	iSim.SetFaction( iSim.Cast( param_0_ ), goodies );
+}
+
+task local_function_1()
+{
+	hship playerShip;
+	hinifile inifile = INIFile.Create( "ini:/iAITestShips" );
+	hobject local_2;
+	hobject local_3;
+	float constant_0 = 2000.0;
+	float constant_1 = 3000.0;
+	
+	schedule
+	{
+		every 0.50:
+		{
+			if ( Global.Int( "g_setup_state" ) != 0 )
+			{
+				playerShip = iShip.FindPlayerShip();
+				local_function_2( local_2 );
+				local_function_2( local_3 );
+				
+				switch ( Global.Int( "g_setup_state" ) )
+				{
+					case 1:
+						local_2 = iShip.Create( INIFile.NumberedString( inifile, "TestShips", "ship", 0, "none" ), "Bert" );
+						Sim.SetCullable( Sim.Cast( local_2 ), false );
+						local_3 = iShip.Create( INIFile.NumberedString( inifile, "TestShips", "ship", 1, "none" ), "Wilf" );
+						Sim.SetCullable( Sim.Cast( local_3 ), false );
+						Global.SetHandle( "g_object1_handle", local_2 );
+						Global.SetHandle( "g_object2_handle", local_3 );
+						local_function_3( local_2, true );
+						local_function_3( local_3, false );
+						local_function_4( local_2 );
+						local_function_4( local_3 );
+						local_function_5( local_2, playerShip, -constant_0, 0.0, constant_1 );
+						local_function_5( local_3, playerShip, constant_0, 0.0, constant_1 );
+						break;
+					
+					case 2:
+						local_2 = iShip.Create( INIFile.NumberedString( inifile, "TestShips", "ship", 0, "none" ), "Bert" );
+						Sim.SetCullable( Sim.Cast( local_2 ), false );
+						local_3 = local_function_6( inifile, Global.Int( "g_amt_grp_1" ), "Group 1 " );
+						Global.SetHandle( "g_object1_handle", local_2 );
+						Global.SetHandle( "g_object2_handle", local_3 );
+						local_function_3( local_2, true );
+						local_function_3( local_3, false );
+						local_function_4( local_2 );
+						local_function_4( local_3 );
+						local_function_5( local_2, playerShip, -constant_0, 0.0, constant_1 );
+						local_function_5( local_3, playerShip, constant_0, 0.0, constant_1 );
+						break;
+					
+					case 3:
+						local_2 = local_function_6( inifile, Global.Int( "g_amt_grp_1" ), "Group 1 " );
+						local_3 = local_function_6( inifile, Global.Int( "g_amt_grp_2" ), "Group 2 " );
+						Global.SetHandle( "g_object1_handle", local_2 );
+						Global.SetHandle( "g_object2_handle", local_3 );
+						local_function_3( local_2, true );
+						local_function_3( local_3, false );
+						local_function_4( local_2 );
+						local_function_4( local_3 );
+						local_function_5( local_2, playerShip, -constant_0, 0.0, constant_1 );
+						local_function_5( local_3, playerShip, constant_0, 0.0, constant_1 );
+						break;
+				}
+				
+				Global.SetInt( "g_setup_state", 0 );
+			}
+		}
+	}
+}
+
+local_function_9( bool param_0_, bool param_1_ )
+{
+	int local_0;
+	hfaction goodies;
+	hfaction player = iFaction.Find( "Player" );
+	int local_3;
+	int local_4;
+	
+	if ( param_0_ == 1 )
+	{
+		goodies = iFaction.Find( "Goodies" );
+	}
+	else
+	{
+		goodies = iFaction.Find( "Baddies" );
+	}
+	
+	if ( param_1_ )
+	{
+		iFaction.SetFeeling( goodies, player, -1.0 );
+		return;
+	}
+	
+	iFaction.SetFeeling( goodies, player, 1.0 );
+}
+
+task local_function_7()
+{
+	int convoResponse;
+	
+	iConversation.Begin();
+	iConversation.AddResponse( "Ship v Ship", "" );
+	iConversation.AddResponse( "Ship v Group", "" );
+	iConversation.AddResponse( "Group v Group", "" );
+	iConversation.AddResponse( "Exit Menu", "" );
+	convoResponse = iConversation.Ask( none, "Martyn", "Select Ship Setup:" );
+	
+	switch ( convoResponse )
+	{
+		case 1:
+			Global.SetInt( "g_setup_state", 1 );
+			break;
+		
+		case 2:
+			Global.SetInt( "g_setup_state", 2 );
+			break;
+		
+		case 3:
+			Global.SetInt( "g_setup_state", 3 );
+			break;
+		
+		default:
+			break;
+	}
+	
+	iConversation.End();
+}
+
+CallSetupMenu()
+{
+	start local_function_7();
+}
+
+hobject local_function_8()
+{
+	int convoResponse;
+	
+	iConversation.Begin();
+	iConversation.AddResponse( "Object 1", "" );
+	iConversation.AddResponse( "Object 2", "" );
+	convoResponse = iConversation.Ask( none, "Martyn", "Select Object to Manipulate:" );
+	iConversation.End();
+	
+	switch ( convoResponse )
+	{
+		case 1:
+			return Global.Handle( "g_object1_handle" );
+		
+		case 2:
+			return Global.Handle( "g_object2_handle" );
+	}
+	
+	return none;
+}
+
+task local_function_10()
+{
+	int convoResponse;
+	int ii;
+	set lagrangePoints;
+	hsim local_3;
+	hsim local_4;
+	hobject local_5;
+	hobject gObject1Handle = Global.Handle( "g_object1_handle" );
+	hobject gObject2Handle = Global.Handle( "g_object2_handle" );
+	hhabitat habitat;
+	
+	local_5 = local_function_8();
+	iConversation.Begin();
+	iConversation.AddResponse( "Approach", "" );
+	iConversation.AddResponse( "Formate", "" );
+	iConversation.AddResponse( "Dock", "" );
+	iConversation.AddResponse( "Attack", "" );
+	iConversation.AddResponse( "Generic Attack", "" );
+	iConversation.AddResponse( "Set Moving Local", "" );
+	iConversation.AddResponse( "Set Moving LDS", "" );
+	iConversation.AddResponse( "Leader/Ship Approach My Target", "" );
+	iConversation.AddResponse( "Leader/Ship Capsule Jump", "" );
+	iConversation.AddResponse( "Group Capsule Jump", "" );
+	iConversation.AddResponse( "Check if Order Complete", "" );
+	iConversation.AddResponse( "Remove Current Order", "" );
+	iConversation.AddResponse( "Purge Orders", "" );
+	iConversation.AddResponse( "Check Ship Order", "" );
+	iConversation.AddResponse( "Check Ship Order Target", "" );
+	iConversation.AddResponse( "Make Player Hostile", "" );
+	iConversation.AddResponse( "Make Player Friendly", "" );
+	iConversation.AddResponse( "Randomise number of Ships in Groups", "" );
+	iConversation.AddResponse( "Set Ship/Group Cullable", "" );
+	iConversation.AddResponse( "Set Ship/Group Non-Cullable", "" );
+	iConversation.AddResponse( "Set Ship/Group Indestructable", "" );
+	iConversation.AddResponse( "Set Ship/Group Non-Indestructable", "" );
+	iConversation.AddResponse( "Force Dock", "" );
+	iConversation.AddResponse( "Point At My Target", "" );
+	iConversation.AddResponse( "Change Faction Feelings", "" );
+	iConversation.AddResponse( "Escort", "" );
+	iConversation.AddResponse( "Spew", "" );
+	iConversation.AddResponse( "Dock To My Target", "" );
+	iConversation.AddResponse( "Spin Current Target", "" );
+	iConversation.AddResponse( "Last Attacker Of Current Target", "" );
+	iConversation.AddResponse( "Show Score", "" );
+	iConversation.AddResponse( "Set Ranks", "" );
+	iConversation.AddResponse( "Flee", "" );
+	iConversation.AddResponse( "Exit Menu", "" );
+	convoResponse = iConversation.Ask( none, "Martyn", "Select Order:" );
+	iConversation.End();
+	
+	switch ( convoResponse )
+	{
+		case 1:
+			if ( local_5 == gObject1Handle )
+			{
+				iAI.GiveApproachOrder( local_5, gObject2Handle );
+			}
+			else
+			{
+				iAI.GiveApproachOrder( local_5, gObject1Handle );
+			}
+			
+			break;
+		
+		case 2:
+			if ( local_5 == gObject1Handle )
+			{
+				iAI.GiveFormateOrder( local_5, gObject2Handle, 80.0, 0.0, 0.0 );
+			}
+			else
+			{
+				iAI.GiveFormateOrder( local_5, gObject1Handle, 80.0, 0.0, 0.0 );
+			}
+			
+			break;
+		
+		case 3:
+			if ( local_5 == gObject1Handle )
+			{
+				iAI.GiveDockOrder( local_5, gObject2Handle );
+			}
+			else
+			{
+				iAI.GiveDockOrder( local_5, gObject1Handle );
+			}
+			
+			break;
+		
+		case 4:
+			if ( local_5 == gObject1Handle )
+			{
+				iAI.GiveAttackOrder( local_5, gObject2Handle );
+			}
+			else
+			{
+				iAI.GiveAttackOrder( local_5, gObject1Handle );
+			}
+			
+			break;
+		
+		case 5:
+			iAI.GiveGenericAttackOrder( local_5 );
+			break;
+		
+		case 6:
+			if ( Group.Cast( local_5 ) == false )
+			{
+				iAI.GiveApproachOrder( local_5, iUtilities.CreateWaypointRelativeTo( Sim.Cast( local_5 ), 0.0, 0.0, 24000.0 ) );
+			}
+			else
+			{
+				iAI.GiveApproachOrder( Group.Leader( Group.Cast( local_5 ) ), iUtilities.CreateWaypointRelativeTo( Group.Leader( Group.Cast( local_5 ) ), 0.0, 0.0, 24000.0 ) );
+			}
+			
+			break;
+		
+		case 7:
+			if ( Group.Cast( local_5 ) == false )
+			{
+				iAI.GiveApproachOrder( local_5, iUtilities.CreateWaypointRelativeTo( Sim.Cast( local_5 ), 0.0, 0.0, 10000000.0 ) );
+			}
+			else
+			{
+				iAI.GiveApproachOrder( Group.Leader( Group.Cast( local_5 ) ), iUtilities.CreateWaypointRelativeTo( Group.Leader( Group.Cast( local_5 ) ), 0.0, 0.0, 10000000.0 ) );
+			}
+			
+			break;
+		
+		case 8:
+			if ( Group.Cast( local_5 ) == false )
+			{
+				iAI.GiveApproachOrder( local_5, iShip.CurrentTarget( iShip.FindPlayerShip() ) );
+			}
+			else
+			{
+				iAI.GiveApproachOrder( Group.Leader( Group.Cast( local_5 ) ), iShip.CurrentTarget( iShip.FindPlayerShip() ) );
+			}
+			
+			break;
+		
+		case 9:
+			lagrangePoints = iMapEntity.SystemLagrangePoints();
+			local_3 = iLagrangePoint.Nearest( lagrangePoints, iShip.FindPlayerShip() );
+			
+			for ( local_4 = Sim.Cast( Set.FirstElement( lagrangePoints ) ); local_3 == local_4; local_4 = Sim.Cast( Set.FirstElement( lagrangePoints ) ) )
+			{
+				Set.Remove( lagrangePoints, local_4 );
+			}
+			
+			if ( Group.Cast( local_5 ) != false )
+			{
+				iConversation.OneLiner( Group.Leader( Group.Cast( local_5 ) ), "", String.Join( "Jumping to ", Object.StringProperty( local_4, "name" ) ) );
+				iAI.GiveApproachOrder( Group.Leader( Group.Cast( local_5 ) ), local_4 );
+			}
+			else
+			{
+				iConversation.OneLiner( iShip.Cast( local_5 ), "", String.Join( "Jumping to ", Object.StringProperty( local_4, "name" ) ) );
+				iAI.GiveApproachOrder( local_5, local_4 );
+			}
+			
+			break;
+		
+		case 10:
+			lagrangePoints = iMapEntity.SystemLagrangePoints();
+			local_3 = iLagrangePoint.Nearest( lagrangePoints, iShip.FindPlayerShip() );
+			
+			for ( local_4 = Sim.Cast( Set.FirstElement( lagrangePoints ) ); local_3 == local_4; local_4 = Sim.Cast( Set.FirstElement( lagrangePoints ) ) )
+			{
+				Set.Remove( lagrangePoints, local_4 );
+			}
+			
+			iConversation.OneLiner( local_5, "", String.Join( "Jumping to ", Object.StringProperty( local_4, "name" ) ) );
+			
+			if ( Group.Cast( local_5 ) == false )
+			{
+				Debug.Error( "Brett.... This ain't a group you muppet!!" );
+			}
+			else
+			{
+				iAI.GiveApproachOrder( local_5, local_4 );
+			}
+			
+			break;
+		
+		case 11:
+			if ( iAI.IsOrderComplete( local_5 ) == 1 )
+			{
+				Debug.Error( "Order is complete" );
+			}
+			else
+			{
+				Debug.Error( "Order is not complete" );
+			}
+			
+			break;
+		
+		case 12:
+			iAI.RemoveOrder( local_5 );
+			break;
+		
+		case 13:
+			iAI.PurgeOrders( local_5 );
+			break;
+		
+		case 14:
+			if ( Group.Cast( local_5 ) )
+			{
+				Debug.Error( "Brett, this is a group you muppet" );
+			}
+			else if ( iAI.HasOrder( iShip.Cast( local_5 ) ) )
+			{
+				Debug.Error( String.Join( String.Join( String.Join( "The current order is ", iAI.CurrentOrderName( iShip.Cast( local_5 ) ) ), " " ), String.FromInt( iAI.CurrentOrderType( iShip.Cast( local_5 ) ) ) ) );
+			}
+			else
+			{
+				Debug.Error( "Ship has no order!" );
+			}
+			
+			break;
+		
+		case 15:
+			if ( Group.Cast( local_5 ) )
+			{
+				Debug.Error( "Brett, this is a group you muppet" );
+			}
+			else if ( iAI.CurrentOrderTarget( iShip.Cast( local_5 ) ) != false )
+			{
+				Debug.Error( Object.StringProperty( iAI.CurrentOrderTarget( iShip.Cast( local_5 ) ), "name" ) );
+			}
+			else
+			{
+				Debug.Error( "Ship has no order target!" );
+			}
+			
+			break;
+		
+		case 16:
+			if ( local_5 == gObject1Handle )
+			{
+				local_function_9( true, true );
+			}
+			else
+			{
+				local_function_9( false, true );
+			}
+			
+			break;
+		
+		case 17:
+			if ( local_5 == gObject1Handle )
+			{
+				local_function_9( true, false );
+			}
+			else
+			{
+				local_function_9( false, false );
+			}
+			
+			break;
+		
+		case 18:
+			Global.SetInt( "g_amt_grp_1", Math.RandomInt( 2, 10 ) );
+			Global.SetInt( "g_amt_grp_2", Math.RandomInt( 2, 10 ) );
+			break;
+		
+		case 19:
+			if ( Group.Cast( local_5 ) == false )
+			{
+				Sim.SetCullable( Sim.Cast( local_5 ), true );
+			}
+			else for ( ii = 0; ii < Group.SimCount( Group.Cast( local_5 ) ); ++ii )
+			{
+				Sim.SetCullable( Group.NthSim( Group.Cast( local_5 ), ii ), true );
+			}
+			
+			break;
+		
+		case 20:
+			if ( Group.Cast( local_5 ) == false )
+			{
+				Sim.SetCullable( Sim.Cast( local_5 ), false );
+			}
+			else for ( ii = 0; ii < Group.SimCount( Group.Cast( local_5 ) ); ++ii )
+			{
+				Sim.SetCullable( Group.NthSim( Group.Cast( local_5 ), ii ), false );
+			}
+			
+			break;
+		
+		case 21:
+			if ( Group.Cast( local_5 ) == false )
+			{
+				iSim.SetIndestructable( iSim.Cast( local_5 ), true );
+			}
+			else for ( ii = 0; ii < Group.SimCount( Group.Cast( local_5 ) ); ++ii )
+			{
+				iSim.SetIndestructable( iSim.Cast( Group.NthSim( Group.Cast( local_5 ), ii ) ), true );
+			}
+			
+			break;
+		
+		case 22:
+			if ( Group.Cast( local_5 ) == false )
+			{
+				iSim.SetIndestructable( iSim.Cast( local_5 ), false );
+			}
+			else for ( ii = 0; ii < Group.SimCount( Group.Cast( local_5 ) ); ++ii )
+			{
+				iSim.SetIndestructable( iSim.Cast( Group.NthSim( Group.Cast( local_5 ), ii ) ), false );
+			}
+			
+			break;
+		
+		case 23:
+			if ( (Sim.Cast( gObject1Handle ) == false) || (Sim.Cast( gObject2Handle ) == false) )
+			{
+				Debug.Error( "Cannot work with groups" );
+			}
+			else if ( local_5 == gObject1Handle )
+			{
+				iShip.Dock( iShip.Cast( gObject1Handle ), iSim.Cast( gObject2Handle ) );
+			}
+			else
+			{
+				iShip.Dock( iShip.Cast( gObject2Handle ), iSim.Cast( gObject1Handle ) );
+			}
+			
+			break;
+		
+		case 24:
+			if ( Sim.Cast( local_5 ) == false )
+			{
+				Debug.Error( "Cannot work with groups" );
+			}
+			else
+			{
+				Sim.PointAt( Sim.Cast( local_5 ), iShip.CurrentTarget( iShip.FindPlayerShip() ) );
+			}
+			
+			break;
+		
+		case 25:
+			if ( Global.Bool( "g_faction_hatred" ) )
+			{
+				Global.SetBool( "g_faction_hatred", false );
+				Debug.Error( "Player no longer hated by obj1 or obj2." );
+			}
+			else
+			{
+				Global.SetBool( "g_faction_hatred", true );
+				Debug.Error( "Player now hated by obj1 and obj2." );
+			}
+			
+			local_function_0();
+			break;
+		
+		case 26:
+			if ( local_5 == gObject1Handle )
+			{
+				iAI.GiveEscortOrder( local_5, gObject2Handle, 80.0, 0.0, 0.0, 5000.0 );
+			}
+			else
+			{
+				iAI.GiveEscortOrder( local_5, gObject1Handle, 80.0, 0.0, 0.0, 5000.0 );
+			}
+			
+			break;
+		
+		case 27:
+			habitat = iHabitat.Cast( iShip.CurrentTarget( iShip.FindPlayerShip() ) );
+			
+			if ( habitat == false )
+			{
+				Debug.Error( "Only works with stations." );
+			}
+			else if ( iHabitat.Spew( habitat, iSim.Cast( local_5 ) ) )
+			{
+				Debug.Error( "TRUE" );
+			}
+			else
+			{
+				Debug.Error( "FALSE" );
+			}
+		
+		case 28:
+			if ( Group.Cast( local_5 ) == false )
+			{
+				iAI.GiveDockOrder( local_5, iShip.CurrentTarget( iShip.FindPlayerShip() ) );
+			}
+			else
+			{
+				iAI.GiveDockOrder( Group.Leader( Group.Cast( local_5 ) ), iShip.CurrentTarget( iShip.FindPlayerShip() ) );
+			}
+			
+			break;
+		
+		case 29:
+			iShip.SetFreeWithoutPilot( iShip.Cast( iShip.CurrentTarget( iShip.FindPlayerShip() ) ), true );
+			Sim.SetAngularVelocityEuler( Sim.Cast( iShip.CurrentTarget( iShip.FindPlayerShip() ) ), 5.0, 5.0, 60.0 );
+			break;
+		
+		case 30:
+			Debug.PrintString( "Last attacker was: " );
+			Debug.PrintHandle( iSim.LastAttacker( iSim.Cast( iShip.CurrentTarget( iShip.FindPlayerShip() ) ) ) );
+			Debug.PrintString( ".  Attacked = " );
+			Debug.PrintInt( iSim.Attacked( iSim.Cast( iShip.CurrentTarget( iShip.FindPlayerShip() ) ) ) );
+			Debug.PrintString( "\n" );
+			break;
+		
+		case 31:
+			iScore.SetKillValue( "T_Interceptor", 100 );
+			iScore.SetKillValue( "T_Cruiser", 1000 );
+			iScore.AddPiracy( 149, 5 );
+			iHUD.ShowScore();
+			break;
+		
+		case 32:
+			iScore.AddSkillRating( 1600, "statistics_kill_rating_level_5" );
+			iScore.AddSkillRating( 800, "statistics_kill_rating_level_4" );
+			iScore.AddSkillRating( 400, "statistics_kill_rating_level_3" );
+			iScore.AddSkillRating( 200, "statistics_kill_rating_level_2" );
+			iScore.AddSkillRating( 0, "statistics_kill_rating_level_1" );
+			break;
+		
+		case 33:
+			if ( local_5 == gObject1Handle )
+			{
+				if ( Group.Cast( gObject2Handle ) )
+				{
+					iAI.GiveFleeOrder( gObject1Handle, iSim.Cast( Group.Leader( Group.Cast( gObject2Handle ) ) ) );
+				}
+				else
+				{
+					iAI.GiveFleeOrder( gObject1Handle, iSim.Cast( gObject2Handle ) );
+				}
+			}
+			else if ( Group.Cast( gObject1Handle ) )
+			{
+				iAI.GiveFleeOrder( gObject2Handle, iSim.Cast( Group.Leader( Group.Cast( gObject1Handle ) ) ) );
+			}
+			else
+			{
+				iAI.GiveFleeOrder( gObject2Handle, iSim.Cast( gObject1Handle ) );
+			}
+			
+			break;
+		
+		default:
+			break;
+	}
+	
+	iConversation.End();
+}
+
+CallOrderMenu()
+{
+	start local_function_10();
+}
+

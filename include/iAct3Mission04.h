@@ -1,0 +1,24 @@
+//
+// (c) 1998-9 Particle Systems Ltd. All Rights Reserved
+//
+// iAct3Mission04.h
+//
+// Compiler-generated export header for package "iAct3Mission04"
+//
+// Revision control information:
+//
+// $Header: /iwar2/resource/scripts/include/iAct3Mission04.h 1     27/04/00 15:43 Nigel $
+//
+
+// Dependencies ////////////////////////////////////////////////////////////////
+
+// Enumerated types ////////////////////////////////////////////////////////////
+
+// Functions ///////////////////////////////////////////////////////////////////
+
+prototype iAct3Mission04.Main();
+
+prototype task iAct3Mission04.MissionHandler();
+
+// EOF /////////////////////////////////////////////////////////////////////////
+

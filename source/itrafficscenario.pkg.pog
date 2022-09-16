@@ -1,0 +1,3819 @@
+package iTrafficScenario;
+
+uses Debug,
+     Set,
+     List,
+     String,
+     Global,
+     Sim,
+     Group,
+     Math,
+     Object,
+     Task,
+     iSim,
+     MapEnumerations,
+     iMapEntity,
+     iLagrangePoint,
+     iShip,
+     Subsim,
+     iDockport,
+     iAI,
+     iCargo,
+     iEscort,
+     iFaction,
+     iFormation,
+     iBody,
+     iHabitat,
+     iScriptedOrders,
+     INIFile,
+     iUtilities,
+     iPilotSetup,
+     CargoTypes,
+     iCargoScript,
+     iShipCreation;
+
+provides HaulageIn,
+         HaulageOut,
+         Supply,
+         Trade,
+         Security,
+         Tanker,
+         Official,
+         Underworld,
+         Maintenance,
+         Mining,
+         Oddball,
+         Civilian,
+         Hostile,
+         Scum;
+
+prototype bool local_function_4( hsim param_0_, hmapentity mapentity_ );
+prototype int local_function_1( hhabitat habitat_ );
+prototype int local_function_0( hsim param_0_ );
+prototype int local_function_2( hgroup group_ );
+prototype int local_function_3( hgroup group_ );
+prototype local_function_5( hlagrangepoint lagrangepoint_, int param_1_ );
+prototype HaulageIn( hmapentity location_ );
+prototype HaulageOut( hmapentity location_ );
+prototype Supply( hmapentity location_ );
+prototype Trade( hmapentity location_ );
+prototype Security( hmapentity location_ );
+prototype Tanker( hmapentity location_ );
+prototype Official( hmapentity location_ );
+prototype Maintenance( hmapentity location_ );
+prototype Mining( hmapentity location_ );
+prototype Underworld( hmapentity location_ );
+prototype Oddball( hmapentity location_ );
+prototype Civilian( hmapentity location_ );
+prototype hfaction local_function_6( hfaction faction_ );
+prototype Hostile( hmapentity location_ );
+prototype Scum( hmapentity location_ );
+
+bool local_function_4( hsim param_0_, hmapentity mapentity_ )
+{
+	hship playerShip;
+	float distance;
+	float gPlayerSensorRange = Global.Float( "g_player_sensor_range" );
+	
+	playerShip = iShip.FindPlayerShip();
+	distance = Sim.DistanceBetween( playerShip, mapentity_ );
+	
+	if ( iLagrangePoint.Cast( mapentity_ ) && (Math.RandomInt( 0, 1 ) == 0) )
+	{
+		return true;
+	}
+	
+	if ( Sim.FindSubsimByName( param_0_, "system_lds" ) == false )
+	{
+		Sim.PlaceNear( param_0_, playerShip, 15000.0 );
+	}
+	else if ( distance < (gPlayerSensorRange - 200000.0) )
+	{
+		debug Debug.PrintString( " iTrafficScenario.PlaceTraffic - Station is with players sensor range - placing traffic on edge of player range\n" );
+		Sim.PlaceNear( param_0_, playerShip, gPlayerSensorRange - 100000.0 );
+	}
+	else
+	{
+		debug Debug.PrintString( " iTrafficScenario.PlaceTraffic - Station is outside players sensor range - placing traffic between player & ship \n" );
+		Sim.PlaceNear( param_0_, mapentity_, Math.Random( 1000.0, 5000.0 ) );
+	}
+	
+	return false;
+}
+
+int local_function_1( hhabitat habitat_ )
+{
+	int local_0;
+	int local_1;
+	
+	if ( habitat_ == false )
+	{
+		debug Debug.PrintString( " iTrafficSceanrio.Calculate_maximum_ships - Passed a null location handle to me! \n " );
+	}
+	
+	local_1 = iHabitat.Population( habitat_ );
+	local_0 = ( local_1 / 1000 );
+	
+	if ( local_0 > 4 )
+	{
+		local_0 = 4;
+	}
+	
+	return local_0;
+}
+
+int local_function_0( hsim param_0_ )
+{
+	if ( Object.PropertyExists( param_0_, "mega_freighter" ) )
+	{
+		return Set.ItemCount( Sim.Children( param_0_ ) ) * 8;
+	}
+	
+	return Set.ItemCount( Sim.Children( param_0_ ) );
+}
+
+int local_function_2( hgroup group_ )
+{
+	int local_0;
+	int simCount = Group.SimCount( group_ );
+	int ii;
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		local_0 = ( local_0 + local_function_0( Group.NthSim( group_, ii ) ) );
+	}
+	
+	if ( Object.PropertyExists( Group.Leader( group_ ), "mega_freighter" ) == 1 )
+	{
+		return 6;
+	}
+	else if ( local_0 >= 15 )
+	{
+		return 4;
+	}
+	else if ( local_0 >= 10 )
+	{
+		return 3;
+	}
+	else if ( local_0 >= 5 )
+	{
+		return 2;
+	}
+	else if ( local_0 >= 3 )
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+	
+	return 0;
+}
+
+int local_function_3( hgroup group_ )
+{
+	hsim groupIter;
+	list localList;
+	int local_2;
+	int local_3;
+	int local_4;
+	int simCount = Group.SimCount( group_ );
+	int local_6;
+	int ii;
+	int jj;
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		groupIter = Group.NthSim( group_, ii );
+		local_2 = local_function_0( groupIter );
+		localList = List.FromSet( Sim.Children( groupIter ) );
+		local_3 = ( local_3 + local_2 );
+		
+		for ( jj = 0; jj < local_2; ++jj )
+		{
+			local_4 = ( local_4 + iCargo.Value( iCargo.Cast( List.GetNth( localList, jj ) ) ) );
+		}
+	}
+	
+	local_6 = ( local_4 / local_3 );
+	
+	if ( local_6 >= 6 )
+	{
+		return 7;
+	}
+	else if ( local_6 >= 3 )
+	{
+		return 9;
+	}
+	else
+	{
+		return 6;
+	}
+	
+	return 9;
+}
+
+local_function_5( hlagrangepoint lagrangepoint_, int param_1_ )
+{
+	set localSet;
+	int ii;
+	
+	for ( ii = 0; ii < param_1_; ++ii )
+	{
+		localSet = iSim.SimsInCone( iSim.Cast( lagrangepoint_ ), 375.0, 800.0, 2000.0, 536838144 );
+		
+		if ( Set.IsEmpty( localSet ) )
+		{
+			return;
+		}
+		
+		debug Debug.PrintString( "iTrafficScenario:Waiting for Lagrange Point to be clear - blocked by: " );
+		debug Debug.PrintInt( Set.ItemCount( localSet ) );
+		debug Debug.PrintString( " ships. Time left: " );
+		debug Debug.PrintInt( param_1_ - ii );
+		debug Debug.PrintString( " \n" );
+		Task.Sleep( Task.Current(), 1.0 );
+	}
+}
+
+HaulageIn( hmapentity location_ )
+{
+	int ii;
+	int local_1;
+	int random_0;
+	int random_1;
+	int simCount;
+	string local_5;
+	int local_6;
+	IeHabitatType ieHabitatType;
+	string local_8;
+	IeAllegiance ieAllegiance;
+	int local_10;
+	hgroup group_0;
+	hgroup group_1;
+	int random_2 = 0;
+	hship ship;
+	int local_15;
+	int local_16;
+	int local_17;
+	int local_18;
+	int local_19;
+	int local_20;
+	float gPlayerSensorRange = Global.Float( "g_player_sensor_range" );
+	int local_22;
+	hhabitat habitat;
+	int local_24;
+	set localSet;
+	string local_26;
+	int local_27;
+	bool local_28 = false;
+	hlagrangepoint lagrangePoint;
+	htask local_30;
+	float random_3;
+	bool local_32 = false;
+	
+	if ( Global.Int( "g_total_haulage_running" ) >= 7 )
+	{
+		debug Debug.PrintString( "iTrafficScenarion.HaulageIn: Aborting haulage scenario... cap value reached" );
+		return;
+	}
+	
+	habitat = iHabitat.Cast( location_ );
+	
+	if ( habitat == false )
+	{
+		lagrangePoint = iLagrangePoint.Cast( location_ );
+		debug Debug.PrintString( "iTrafficScenario.HaulageIn  - location is a l-point, finding a location to generate ships \n" );
+		localSet = Global.Set( "g_filtered_system_habitats" );
+		
+		while ( !local_28 )
+		{
+			debug Debug.PrintString( "iTrafficScenario.HaulageIn L-point is local \n" );
+			habitat = iHabitat.Nearest( localSet, lagrangePoint );
+			local_6 = iHabitat.Type( habitat );
+			local_27 = local_6;
+			
+			if ( (local_27 >= 11) && (local_27 <= 34) )
+			{
+				debug atomic
+				{
+					Debug.PrintString( String.Join( "iTrafficScenario.HaulageIn - substitute location for interstellar L-point is - ", Object.StringProperty( habitat, "name" ) ) );
+					Debug.PrintString( "\n" );
+				}
+				
+				local_28 = true;
+			}
+			else if ( Set.IsEmpty( localSet ) == 1 )
+			{
+				debug atomic
+				{
+					Debug.PrintString( String.Join( "iTrafficScenario.HaulageIn - unable to find appropriate haualge in location for system, gonna have to take water to - ", Object.StringProperty( habitat, "name" ) ) );
+					Debug.PrintString( "\n" );
+				}
+				
+				local_28 = true;
+			}
+			else
+			{
+				debug Debug.PrintString( "iTrafficScenario.HaulageIn - did not find appropriate location this pass \n" );
+				Set.Remove( localSet, habitat );
+			}
+		}
+	}
+	else debug Debug.PrintString( " ITrafficScenario.HaulageIn - location is not an L-Point \n" );
+	
+	local_6 = iHabitat.Type( habitat );
+	ieAllegiance = iHabitat.Allegiance( habitat );
+	
+	if ( (local_6 == 122) || (local_6 == 121) )
+	{
+		debug Debug.PrintString( " iTrafficScenario.HaulageIn - location is a beanstalk or transfer station - finding a surface location\n " );
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( String.Join( " iTrafficScenario - Created HaulageIn Scenario for - ", Object.StringProperty( location_, "name" ) ) );
+		Debug.PrintString( " \n" );
+	}
+	
+	local_1 = local_function_1( habitat );
+	
+	if ( local_1 == 1 )
+	{
+		local_1 = 2;
+	}
+	
+	random_0 = Math.RandomInt( 1, local_1 );
+	
+	if ( (Global.Int( "g_total_haulage_running" ) + random_0) > 7 )
+	{
+		random_0 = ( 7 - Global.Int( "g_total_haulage_running" ) );
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( String.Join( "iTrafficScenario.HaulageIn - total freighters to create =  ", String.FromInt( random_0 ) ) );
+		Debug.PrintString( " \n" );
+	}
+	
+	random_3 = Math.Random( 10.0, 100.0 );
+	
+	if ( (local_6 == 22) || (local_6 == 32) )
+	{
+		random_3 = ( random_3 + 20.0 );
+	}
+	
+	if ( random_3 > 90.0 )
+	{
+		group_0 = iShipCreation.GetTraffic( ST_FreightSuperHeavy, ieAllegiance, random_0 );
+	}
+	else if ( random_3 >= 50.0 )
+	{
+		group_0 = iShipCreation.GetTraffic( ST_FreightHeavy, ieAllegiance, random_0 );
+	}
+	else
+	{
+		group_0 = iShipCreation.GetTraffic( ST_FreightLight, ieAllegiance, random_0 );
+	}
+	
+	simCount = Group.SimCount( group_0 );
+	random_1 = Math.RandomInt( 0, 4 );
+	
+	if ( (random_1 <= 3) || (Object.PropertyExists( Group.Leader( group_0 ), "mega_freighter" ) == 1) )
+	{
+		switch ( local_6 )
+		{
+			case 11:
+				ieHabitatType = HT_WaterMine;
+				break;
+			
+			case 12:
+				ieHabitatType = HT_OrganicsMine;
+				break;
+			
+			case 13:
+				ieHabitatType = HT_InorganicsMine;
+				break;
+			
+			case 14:
+				ieHabitatType = HT_BiomassMine;
+				break;
+			
+			case 15:
+				ieHabitatType = HT_CommonMetalsMine;
+				break;
+			
+			case 16:
+				ieHabitatType = HT_RareMetalsMine;
+				break;
+			
+			case 17:
+				ieHabitatType = HT_ExoticMetalsMine;
+				break;
+			
+			case 18:
+				ieHabitatType = HT_RadioactivesMine;
+				break;
+			
+			case 19:
+				ieHabitatType = HT_FusionableGasesMine;
+				break;
+			
+			case 20:
+				ieHabitatType = HT_NeutroniumMine;
+				break;
+			
+			case 22:
+			case 25:
+			case 26:
+			case 27:
+			case 31:
+			case 32:
+			case 33:
+			case 30:
+			case 34:
+			case 35:
+				random_2 = 0;
+				random_2 = Math.RandomInt( 1, 9 );
+				
+				switch ( random_2 )
+				{
+					case 1:
+						ieHabitatType = HT_WaterProcessingPlant;
+						break;
+					
+					case 2:
+						ieHabitatType = HT_OrganicsProcessingPlant;
+						break;
+					
+					case 3:
+						ieHabitatType = HT_InorganicsProcessingPlant;
+						break;
+					
+					case 4:
+						ieHabitatType = HT_BiomassProcessingPlant;
+						break;
+					
+					case 5:
+						ieHabitatType = HT_CommonMetalsProcessingPlant;
+						break;
+					
+					case 6:
+						ieHabitatType = HT_RareMetalsProcessingPlant;
+						break;
+					
+					case 7:
+						ieHabitatType = HT_ExoticMetalsProcessingPlant;
+						break;
+					
+					case 8:
+						ieHabitatType = HT_RadioactivesProcessingPlant;
+						break;
+					
+					case 9:
+						ieHabitatType = HT_FusionableGasesProcessingPlant;
+						break;
+				}
+				
+				break;
+			
+			case 24:
+			case 23:
+			case 28:
+				random_2 = 0;
+				random_2 = Math.RandomInt( 1, 3 );
+				
+				switch ( random_2 )
+				{
+					case 1:
+						ieHabitatType = HT_BiomassProcessingPlant;
+						break;
+					
+					case 2:
+						ieHabitatType = HT_OrganicsProcessingPlant;
+						break;
+					
+					case 3:
+						ieHabitatType = HT_WaterProcessingPlant;
+						break;
+				}
+				
+				break;
+			
+			case 29:
+				random_2 = 0;
+				random_2 = Math.RandomInt( 1, 3 );
+				
+				switch ( random_2 )
+				{
+					case 1:
+						ieHabitatType = HT_InorganicsProcessingPlant;
+						break;
+					
+					case 2:
+						ieHabitatType = HT_OrganicsProcessingPlant;
+						break;
+					
+					case 3:
+						ieHabitatType = HT_WaterProcessingPlant;
+						break;
+				}
+				
+				break;
+			
+			case 38:
+				random_2 = 0;
+				random_2 = Math.RandomInt( 1, 4 );
+				
+				switch ( random_2 )
+				{
+					case 1:
+						ieHabitatType = HT_CommonMetalsMine;
+						break;
+					
+					case 2:
+						ieHabitatType = HT_RareMetalsMine;
+						break;
+					
+					case 3:
+						ieHabitatType = HT_ExoticMetalsMine;
+						break;
+					
+					case 4:
+						ieHabitatType = HT_RadioactivesMine;
+						break;
+				}
+				
+				break;
+			
+			default:
+				ieHabitatType = HT_WaterMine;
+		}
+		
+		local_8 = iUtilities.FromLocationEnum( ieHabitatType );
+		
+		debug atomic
+		{
+			Debug.PrintString( String.Join( " iTrafficScenario.HaulageIn - Cargo is comming from ", local_8 ) );
+			Debug.PrintString( "\n" );
+		}
+		
+		for ( ii = 0; ii < simCount; ++ii )
+		{
+			ship = iShip.Cast( Group.NthSim( group_0, ii ) );
+			
+			debug atomic
+			{
+				Debug.PrintString( String.Join( " ITrafficScenario.HaulIn - Installing Cargo for ship number  - ", String.FromInt( ii ) ) );
+				Debug.PrintString( " \n " );
+			}
+			
+			iShipCreation.CreateHaulageCargo( ship, ieHabitatType );
+		}
+	}
+	
+	local_10 = local_function_2( group_0 );
+	
+	if ( local_10 > 0 )
+	{
+		debug atomic
+		{
+			Debug.PrintString( String.Join( "iTrafficScenario.HaulageIn - Number of escorts to create = ", String.FromInt( local_10 ) ) );
+			Debug.PrintString( "\n" );
+		}
+		
+		group_1 = iShipCreation.GetTraffic( local_function_3( group_0 ), ieAllegiance, local_10 );
+	}
+	else debug Debug.PrintString( "iTrafficScenario.HaulageIn -  No escorts generated \n" );
+	
+	if ( lagrangePoint != false )
+	{
+		local_32 = local_function_4( Group.NthSim( group_0, 0 ), lagrangePoint );
+	}
+	else
+	{
+		local_32 = local_function_4( Group.NthSim( group_0, 0 ), location_ );
+	}
+	
+	if ( simCount > 1 )
+	{
+		debug Debug.PrintString( " iTrafficScenario.HaulIn - Placing additional freighters in formation \n" );
+		
+		if ( local_32 )
+		{
+			local_function_5( lagrangePoint, 30 );
+			iUtilities.CapsuleJumpGroup( group_0, lagrangePoint, Math.Random( 1.0, 2.0 ) );
+			iFormation.LineAhead( group_0, 60.0, false );
+		}
+		else
+		{
+			iFormation.LineAhead( group_0, 60.0, true );
+		}
+	}
+	else if ( local_32 )
+	{
+		local_function_5( lagrangePoint, 30 );
+		iUtilities.CapsuleJumpGroup( group_0, lagrangePoint, Math.Random( 1.0, 2.0 ) );
+	}
+	
+	if ( local_10 > 0 )
+	{
+		debug Debug.PrintString( " iTrafficScenario.HaulIn - Placing lead escort \n" );
+		
+		if ( local_10 > 1 )
+		{
+			debug Debug.PrintString( " iTrafficScenario.HaulIn  - placing additional escorts in formation \n " );
+			
+			if ( local_32 )
+			{
+				local_function_5( lagrangePoint, 3 );
+				iUtilities.CapsuleJumpGroup( group_1, lagrangePoint, Math.Random( 1.0, 2.0 ) );
+				iEscort.InFormationGoose( group_1, group_0, 0, 0.0, 100.0, -100.0, 40.0, 8000.0, false );
+			}
+			else
+			{
+				iEscort.InFormationGoose( group_1, group_0, 0, 0.0, 100.0, -100.0, 40.0, 8000.0, true );
+			}
+		}
+		else
+		{
+			if ( local_32 )
+			{
+				local_function_5( lagrangePoint, 3 );
+				iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group_1 ) ), lagrangePoint );
+			}
+			else
+			{
+				Sim.PlaceRelativeTo( Group.Leader( group_1 ), Group.NthSim( group_0, 0 ), 0.0, 100.0, -100.0 );
+			}
+			
+			iAI.GiveEscortOrder( Group.Leader( group_1 ), group_0, 0.0, 100.0, -100.0, 8000.0 );
+		}
+	}
+	
+	if ( local_10 > 0 )
+	{
+		Group.AddGroup( group_0, group_1 );
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iTrafficScenario.HaulIn - Assigning haulage orders to list, lead by ship called -  " );
+		Debug.PrintString( Object.StringProperty( Group.NthSim( group_0, 0 ), "name" ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	local_30 = start iScriptedOrders.Haulage( group_0, location_ );
+	Task.Detach( local_30 );
+	
+	if ( random_1 <= 3 )
+	{
+		debug atomic
+		{
+			Debug.PrintString( String.Join( "iTrafficScenario.HaulIn  - Hauled goods are being brought to ", Object.StringProperty( location_, "name" ) ) );
+			Debug.PrintString( "\n" );
+		}
+		
+		return;
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( String.Join( "iTrafficScenario.HaulIn - empty ships are leaving ", Object.StringProperty( location_, "name" ) ) );
+		Debug.PrintString( "\n" );
+	}
+}
+
+HaulageOut( hmapentity location_ )
+{
+	int local_0;
+	int ii;
+	int local_2;
+	int random_0;
+	int random_1;
+	int simCount;
+	string local_6;
+	IeHabitatType ieHabitatType;
+	IeAllegiance ieAllegiance;
+	int local_9;
+	hgroup group_0;
+	hgroup group_1;
+	bool local_12 = false;
+	hship ship;
+	int local_14;
+	int local_15;
+	int local_16;
+	int local_17;
+	int local_18;
+	int local_19;
+	float gPlayerSensorRange = Global.Float( "g_player_sensor_range" );
+	int local_21;
+	hhabitat habitat;
+	int local_23;
+	set localSet;
+	string local_25;
+	int local_26;
+	bool local_27 = false;
+	hlagrangepoint lagrangePoint;
+	htask local_29;
+	float random_2;
+	bool local_31 = false;
+	
+	if ( Global.Int( "g_total_haulage_running" ) >= 7 )
+	{
+		debug Debug.PrintString( "iTrafficScenario.Haualge: Aborting haulage sceneario.... capped value reached\n" );
+		return;
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( String.Join( " iTrafficScenario.HaulageOut - Created HaulageOut Scenario for - ", Object.StringProperty( location_, "name" ) ) );
+		Debug.PrintString( " \n" );
+	}
+	
+	habitat = iHabitat.Cast( location_ );
+	
+	if ( habitat == false )
+	{
+		lagrangePoint = iLagrangePoint.Cast( location_ );
+		debug Debug.PrintString( "iTrafficScenario.HaulageOut  - location is an l-point, finding a location to generate ships \n" );
+		localSet = Global.Set( "g_filtered_system_habitats" );
+		
+		while ( !local_27 )
+		{
+			habitat = iHabitat.Nearest( localSet, lagrangePoint );
+			debug Debug.PrintString( "iTrafficScenario.HaulageOut - l point is local \n" );
+			ieHabitatType = iHabitat.Type( habitat );
+			local_26 = ieHabitatType;
+			
+			if ( (local_26 >= 11) && (local_26 <= 34) )
+			{
+				debug atomic
+				{
+					Debug.PrintString( String.Join( "iTrafficScenario.HaulagEOut - substitute location for interstellar L-point is - ", Object.StringProperty( habitat, "name" ) ) );
+					Debug.PrintString( "\n" );
+				}
+				
+				local_27 = true;
+			}
+			else if ( Set.IsEmpty( localSet ) == 1 )
+			{
+				debug atomic
+				{
+					Debug.PrintString( String.Join( "iTrafficScenario.HaulageOut - unable to find appropriate haualge out location for system, gonna have to take water to - ", Object.StringProperty( habitat, "name" ) ) );
+					Debug.PrintString( "\n" );
+				}
+				
+				local_27 = true;
+			}
+			else
+			{
+				Set.Remove( localSet, habitat );
+			}
+		}
+	}
+	else debug Debug.PrintString( " ITrafficScenario.HaulageOut - location is a habitat.\n" );
+	
+	ieHabitatType = iHabitat.Type( habitat );
+	ieAllegiance = iHabitat.Allegiance( habitat );
+	
+	if ( (ieHabitatType == HT_TransferStation) || (ieHabitatType == HT_Beanstalk) )
+	{
+		debug Debug.PrintString( " iTrafficScenario.HaulageOut - location is a beanstalk or transfer station - finding a surface location\n " );
+	}
+	
+	local_2 = local_function_1( habitat );
+	
+	if ( local_2 == 1 )
+	{
+		local_2 = 2;
+	}
+	
+	random_0 = Math.RandomInt( 1, local_2 );
+	
+	if ( (Global.Int( "g_total_haulage_running" ) + random_0) > 7 )
+	{
+		random_0 = ( 7 - Global.Int( "g_total_haulage_running" ) );
+	}
+	
+	ieAllegiance = iHabitat.Allegiance( habitat );
+	
+	debug atomic
+	{
+		Debug.PrintString( String.Join( "iTrafficScenario.HaulageOut - total freighters to create =  ", String.FromInt( random_0 ) ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	random_2 = Math.Random( 10.0, 100.0 );
+	
+	if ( (ieHabitatType == HT_HeavyManufacturingPlant) || (ieHabitatType == HT_StationFabricationManufacturingPlant) )
+	{
+		random_2 = ( random_2 + 20.0 );
+	}
+	
+	if ( random_2 > 90.0 )
+	{
+		group_0 = iShipCreation.GetTraffic( ST_FreightSuperHeavy, ieAllegiance, random_0 );
+	}
+	else if ( random_2 >= 50.0 )
+	{
+		group_0 = iShipCreation.GetTraffic( ST_FreightHeavy, ieAllegiance, random_0 );
+	}
+	else
+	{
+		group_0 = iShipCreation.GetTraffic( ST_FreightLight, ieAllegiance, random_0 );
+	}
+	
+	simCount = Group.SimCount( group_0 );
+	random_1 = Math.RandomInt( 0, 4 );
+	
+	if ( (random_1 <= 3) || (Object.PropertyExists( Group.Leader( group_0 ), "mega_freighter" ) == 1) )
+	{
+		for ( ii = 0; ii < simCount; ++ii )
+		{
+			ship = iShip.Cast( Group.NthSim( group_0, ii ) );
+			
+			debug atomic
+			{
+				Debug.PrintString( String.Join( " ITrafficScenario.HaulOut - Installing Cargo for ship number  - ", String.FromInt( ii ) ) );
+				Debug.PrintString( " \n " );
+			}
+			
+			iShipCreation.CreateHaulageCargo( ship, ieHabitatType );
+		}
+	}
+	
+	local_9 = local_function_2( group_0 );
+	
+	if ( local_9 > 0 )
+	{
+		debug atomic
+		{
+			Debug.PrintString( String.Join( "iTrafficScenario.HaulageOut - Number of escorts to create = ", String.FromInt( local_9 ) ) );
+			Debug.PrintString( "\n" );
+		}
+		
+		group_1 = iShipCreation.GetTraffic( local_function_3( group_0 ), ieAllegiance, local_9 );
+	}
+	else debug Debug.PrintString( "iTrafficScenario.HaulageOut -  No escorts generated \n" );
+	
+	if ( lagrangePoint != false )
+	{
+		local_31 = local_function_4( Group.NthSim( group_0, 0 ), lagrangePoint );
+	}
+	else
+	{
+		local_31 = local_function_4( Group.NthSim( group_0, 0 ), location_ );
+	}
+	
+	if ( simCount > 1 )
+	{
+		debug Debug.PrintString( " iTrafficScenario.HaulOut - Placing  additional freighters in formation \n" );
+		
+		if ( local_31 )
+		{
+			local_function_5( lagrangePoint, 30 );
+			iUtilities.CapsuleJumpGroup( group_0, lagrangePoint, Math.Random( 1.0, 2.0 ) );
+			iFormation.LineAhead( group_0, Math.Random( 1.0, 100.0 ), false );
+		}
+		else
+		{
+			iFormation.LineAhead( group_0, Math.Random( 1.0, 100.0 ), true );
+		}
+	}
+	else if ( local_31 )
+	{
+		local_function_5( lagrangePoint, 30 );
+		iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group_0 ) ), lagrangePoint );
+	}
+	
+	if ( local_9 > 0 )
+	{
+		debug Debug.PrintString( " iTrafficScenario.HaulOut - Placing lead escort\n" );
+		
+		if ( local_9 > 1 )
+		{
+			debug Debug.PrintString( " iTrafficScenario.HaulIn  - placing additional escorts in formation \n " );
+			
+			if ( local_31 )
+			{
+				local_function_5( lagrangePoint, 3 );
+				iUtilities.CapsuleJumpGroup( group_1, lagrangePoint, Math.Random( 1.0, 2.0 ) );
+				iEscort.InFormationGoose( group_1, group_0, 0, 0.0, 100.0, -100.0, 40.0, 8000.0, false );
+			}
+			else
+			{
+				iEscort.InFormationGoose( group_1, group_0, 0, 0.0, 100.0, -100.0, 40.0, 8000.0, true );
+			}
+		}
+		else
+		{
+			if ( local_31 )
+			{
+				local_function_5( lagrangePoint, 3 );
+				iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group_1 ) ), lagrangePoint );
+			}
+			else
+			{
+				Sim.PlaceRelativeTo( Group.Leader( group_1 ), Group.NthSim( group_0, 0 ), 0.0, 100.0, -100.0 );
+			}
+			
+			iAI.GiveEscortOrder( Group.Leader( group_1 ), group_0, 0.0, 100.0, -100.0, 8000.0 );
+		}
+	}
+	
+	if ( local_9 > 0 )
+	{
+		Group.AddGroup( group_0, group_1 );
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iTrafficScenario.HaulOut - Assigning haualge orders to list, lead by ship called -  " );
+		Debug.PrintString( Object.StringProperty( Group.NthSim( group_0, 0 ), "name" ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	local_29 = start iScriptedOrders.Haulage( group_0, location_ );
+	Task.Detach( local_29 );
+	
+	if ( random_1 <= 3 )
+	{
+		debug atomic
+		{
+			Debug.PrintString( String.Join( "iTrafficScenario.HaulOut  - Hauled goods are being carried from  -  ", Object.StringProperty( location_, "name" ) ) );
+			Debug.PrintString( "\n" );
+		}
+		
+		return;
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( String.Join( "iTrafficScenario.HaulOut - empty ships are approaching ", Object.StringProperty( location_, "name" ) ) );
+		Debug.PrintString( "\n" );
+	}
+}
+
+Supply( hmapentity location_ )
+{
+	int local_0;
+	int ii;
+	int local_2;
+	int random_0;
+	int local_4;
+	int simCount;
+	string local_6;
+	int local_7;
+	IeAllegiance ieAllegiance;
+	int local_9;
+	int local_10;
+	hgroup group_0;
+	hgroup group_1;
+	int random_1 = 0;
+	hship ship;
+	int local_15;
+	int local_16;
+	int local_17;
+	int local_18;
+	int local_19;
+	int local_20;
+	float gPlayerSensorRange = Global.Float( "g_player_sensor_range" );
+	int local_22;
+	hhabitat habitat;
+	int local_24;
+	int local_25;
+	set localSet;
+	string local_27;
+	int local_28;
+	bool local_29 = false;
+	bool local_30 = false;
+	bool local_31 = false;
+	int local_32;
+	hlagrangepoint lagrangePoint;
+	bool local_34 = false;
+	htask local_35;
+	bool local_36 = false;
+	
+	if ( Global.Int( "g_total_supply_running" ) >= 7 )
+	{
+		debug Debug.PrintString( "iTrafficScenario.Supply: Aborting supply scenarion... capped value reached\n" );
+		return;
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( String.Join( " iTrafficScenario - Created Supply Scenario for - ", Object.StringProperty( location_, "name" ) ) );
+		Debug.PrintString( " \n" );
+	}
+	
+	habitat = iHabitat.Cast( location_ );
+	
+	if ( habitat == false )
+	{
+		lagrangePoint = iLagrangePoint.Cast( location_ );
+		debug Debug.PrintString( "iTrafficScenario.Supply - location is an l-point, finding a location to generate ships \n" );
+		localSet = Global.Set( "g_filtered_system_habitats" );
+		local_34 = true;
+		habitat = iHabitat.Nearest( localSet, lagrangePoint );
+		debug Debug.PrintString( "iTrafficScenario.Supply - l point is local \n" );
+	}
+	
+	ieAllegiance = iHabitat.Allegiance( habitat );
+	local_7 = iHabitat.Type( habitat );
+	
+	if ( (local_7 == 122) || (local_7 == 121) )
+	{
+		debug Debug.PrintString( " iTrafficScenario.Supply - location is a beanstalk or transfer station - finding a surface location \n" );
+	}
+	
+	switch ( local_7 )
+	{
+		case 22:
+		case 23:
+		case 24:
+		case 25:
+		case 26:
+		case 27:
+		case 28:
+		case 29:
+		case 30:
+		case 31:
+		case 32:
+		case 33:
+		case 39:
+		case 40:
+		case 42:
+		case 43:
+		case 84:
+		case 110:
+		case 97:
+		case 98:
+		case 67:
+		case 107:
+		case 48:
+		case 63:
+		case 89:
+		case 81:
+		case 113:
+			debug Debug.PrintString( "iTrafficScenario.Supply - Station COULD generate supply out. \n" );
+			local_29 = true;
+			break;
+	}
+	
+	switch ( local_7 )
+	{
+		case 20:
+		case 42:
+		case 43:
+		case 53:
+		case 54:
+		case 55:
+		case 56:
+		case 60:
+		case 68:
+		case 69:
+		case 70:
+		case 71:
+		case 72:
+		case 73:
+		case 74:
+		case 78:
+		case 79:
+		case 80:
+		case 82:
+		case 85:
+		case 101:
+		case 102:
+		case 103:
+		case 104:
+			debug Debug.PrintString( "iTrafficScenario.Supply - Station COULD generate military supply. \n" );
+			local_30 = true;
+			break;
+	}
+	
+	if ( local_30 && local_29 )
+	{
+		random_1 = 0;
+		random_1 = Math.RandomInt( 0, 2 );
+		
+		if ( random_1 == 0 )
+		{
+			debug Debug.PrintString( "iTrafficScanreo.Supply - Supply scanreo is type MILITARY SUPPLY \n" );
+			local_32 = -2;
+		}
+		else if ( random_1 == 1 )
+		{
+			debug Debug.PrintString( "iTrafficScenario.Supply -  Supply Scenario type is SUPPLY FROM \n" );
+			local_32 = local_7;
+		}
+		else
+		{
+			debug Debug.PrintString( "iTrafficScenario.Supply - supply Scenario is BASIC SUPPLY \n" );
+			local_32 = -1;
+		}
+	}
+	else if ( local_29 )
+	{
+		if ( Math.RandomInt( 0, 1 ) == 0 )
+		{
+			debug Debug.PrintString( "iTrafficScenario.Supply -  Supply Scenario type is SUPPLY FROM \n" );
+			local_32 = local_7;
+		}
+		else
+		{
+			debug Debug.PrintString( "iTrafficScenario.Supply - supply Scenario is BASIC SUPPLY \n" );
+			local_32 = -1;
+		}
+	}
+	else if ( local_30 )
+	{
+		if ( Math.RandomInt( 0, 1 ) == 0 )
+		{
+			debug Debug.PrintString( "iTrafficScanreo.Supply - Supply scanreo is type MILITARY SUPPLY \n" );
+			local_32 = -2;
+		}
+		else
+		{
+			debug Debug.PrintString( "iTrafficScenario.Supply - supply Scenario is BASIC SUPPLY \n" );
+			local_32 = -1;
+		}
+	}
+	else
+	{
+		debug Debug.PrintString( "iTrafficScenario.Supply - supply Scenario is BASIC SUPPLY \n" );
+		local_32 = -1;
+	}
+	
+	local_2 = local_function_1( habitat );
+	
+	if ( local_2 == 1 )
+	{
+		local_2 = 2;
+	}
+	
+	random_0 = Math.RandomInt( 1, local_2 );
+	
+	if ( (Global.Int( "g_total_supply_running" ) + random_0) > 7 )
+	{
+		random_0 = ( 7 - Global.Int( "g_total_supply_running" ) );
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( String.Join( "iTrafficScenario.Supply - total freighters to create =  ", String.FromInt( random_0 ) ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	switch ( Math.RandomInt( 0, 1 ) )
+	{
+		case 0:
+			group_0 = iShipCreation.GetTraffic( ST_FreightHeavy, ieAllegiance, random_0 );
+			break;
+		
+		case 1:
+			group_0 = iShipCreation.GetTraffic( ST_FreightLight, ieAllegiance, random_0 );
+			break;
+	}
+	
+	simCount = Group.SimCount( group_0 );
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		ship = iShip.Cast( Group.NthSim( group_0, ii ) );
+		
+		debug atomic
+		{
+			Debug.PrintString( String.Join( " ITrafficScenario.Supply - Installing Cargo for ship number  - ", String.FromInt( ii ) ) );
+			Debug.PrintString( " \n " );
+		}
+		
+		iShipCreation.CreateSupplyCargo( ship, local_32 );
+	}
+	
+	local_10 = local_function_2( group_0 );
+	
+	if ( local_32 == -2 )
+	{
+		debug Debug.PrintString( "iTrafficScenario.Supply - Convoy is carry weapons, uppping the escort \n" );
+		local_10 = ( local_10 + 1 );
+	}
+	
+	if ( local_10 > 0 )
+	{
+		debug atomic
+		{
+			Debug.PrintString( String.Join( "iTrafficScenario.Supply - Number of escorts to create = ", String.FromInt( local_10 ) ) );
+			Debug.PrintString( "\n" );
+		}
+		
+		group_1 = iShipCreation.GetTraffic( local_function_3( group_0 ), ieAllegiance, local_10 );
+	}
+	else debug Debug.PrintString( "iTrafficScenario.Supply -  No escorts generated \n" );
+	
+	if ( lagrangePoint != false )
+	{
+		local_36 = local_function_4( Group.NthSim( group_0, 0 ), lagrangePoint );
+	}
+	else
+	{
+		local_36 = local_function_4( Group.NthSim( group_0, 0 ), location_ );
+	}
+	
+	if ( simCount > 1 )
+	{
+		debug Debug.PrintString( " iTrafficScenario.Supply - Placing  additional freighters in formation \n" );
+		
+		if ( local_36 )
+		{
+			local_function_5( lagrangePoint, 30 );
+			iUtilities.CapsuleJumpGroup( group_0, lagrangePoint, Math.Random( 1.0, 2.0 ) );
+			iFormation.LineAhead( group_0, 70.0, false );
+		}
+		else
+		{
+			iFormation.LineAhead( group_0, 70.0, true );
+		}
+	}
+	else if ( local_36 )
+	{
+		local_function_5( lagrangePoint, 30 );
+		iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group_0 ) ), lagrangePoint );
+	}
+	
+	if ( local_10 > 0 )
+	{
+		debug Debug.PrintString( " iTrafficScenario.Supply - Placing lead escort\n" );
+		
+		if ( local_10 > 1 )
+		{
+			debug Debug.PrintString( " iTrafficScenario.HaulIn  - placing additional escorts in formation \n " );
+			
+			if ( local_36 )
+			{
+				local_function_5( lagrangePoint, 3 );
+				iUtilities.CapsuleJumpGroup( group_1, lagrangePoint, Math.Random( 1.0, 2.0 ) );
+				iEscort.InFormationGoose( group_1, group_0, 0, 0.0, 100.0, -100.0, 40.0, 8000.0, false );
+			}
+			else
+			{
+				iEscort.InFormationGoose( group_1, group_0, 0, 0.0, 100.0, -100.0, 40.0, 8000.0, true );
+			}
+		}
+		else
+		{
+			if ( local_36 )
+			{
+				local_function_5( lagrangePoint, 3 );
+				iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group_1 ) ), lagrangePoint );
+			}
+			else
+			{
+				Sim.PlaceRelativeTo( Group.Leader( group_1 ), Group.NthSim( group_0, 0 ), 0.0, 100.0, -100.0 );
+			}
+			
+			iAI.GiveEscortOrder( Group.Leader( group_1 ), group_0, 0.0, 100.0, -100.0, 8000.0 );
+		}
+	}
+	
+	if ( local_10 > 0 )
+	{
+		Group.AddGroup( group_0, group_1 );
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iTrafficScenario.Supply - Assigning supply orders to list, lead by ship called -  " );
+		Debug.PrintString( Object.StringProperty( Group.NthSim( group_0, 0 ), "name" ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	local_35 = start iScriptedOrders.Supply( group_0 );
+	Task.Detach( local_35 );
+}
+
+Trade( hmapentity location_ )
+{
+	int local_0;
+	int ii;
+	int local_2;
+	int constant;
+	int local_4;
+	int simCount;
+	string local_6;
+	int local_7;
+	int local_8;
+	int local_9;
+	int local_10;
+	hgroup group_0;
+	hgroup group_1;
+	int random = 0;
+	hship ship;
+	int local_15;
+	int local_16;
+	int local_17;
+	int local_18;
+	int local_19;
+	int local_20;
+	float gPlayerSensorRange = Global.Float( "g_player_sensor_range" );
+	int local_22;
+	int local_23;
+	int local_24;
+	set localSet;
+	int local_26;
+	string local_27;
+	htask local_28;
+	bool local_29 = false;
+	
+	if ( Global.Int( "g_total_trade_running" ) >= 7 )
+	{
+		debug Debug.PrintString( "iTrafficScenario.Trade: Aborting trade scenario... capped value reached\n" );
+		return;
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( String.Join( " iTrafficScenario.Trade - Created Trade Scenario for - ", Object.StringProperty( location_, "name" ) ) );
+		Debug.PrintString( " \n" );
+	}
+	
+	localSet = iMapEntity.SystemHabitats();
+	constant = 1;
+	
+	debug atomic
+	{
+		Debug.PrintString( String.Join( "iTrafficScenario.Trade - total freighters to create =  ", String.FromInt( constant ) ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	random = Math.RandomInt( 0, 13 );
+	
+	switch ( random )
+	{
+		case 0:
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+		case 5:
+		case 6:
+			local_27 = "Cheap";
+			debug Debug.PrintString( "iTrafficScenario.Trade - we are trading in cheap goods \n" );
+			break;
+		
+		case 7:
+		case 8:
+		case 9:
+		case 10:
+			local_27 = "Medium";
+			debug Debug.PrintString( "iTrafficScenario.Trade - we are trading in medium goods. \n " );
+			break;
+		
+		case 11:
+		case 12:
+			local_27 = "High";
+			debug Debug.PrintString( "iTrafficScenario.Trade - we are trading in high goods. \n " );
+			break;
+		
+		case 13:
+			local_27 = "Expensive";
+			debug Debug.PrintString( "iTrafficScenario.Trade - we are trading in exepnsive goods, oooooo la de dah, arn't we posh \n" );
+			break;
+	}
+	
+	group_0 = iShipCreation.GetTraffic( ST_FreightLight, A_Independent, constant );
+	simCount = Group.SimCount( group_0 );
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		ship = iShip.Cast( Group.NthSim( group_0, ii ) );
+		
+		debug atomic
+		{
+			Debug.PrintString( String.Join( " iTrafficScenario.Trade - Installing Cargo for ship number  - ", String.FromInt( ii ) ) );
+			Debug.PrintString( " \n " );
+		}
+		
+		iShipCreation.CreateTradeCargo( ship, local_27 );
+	}
+	
+	local_10 = local_function_2( group_0 );
+	
+	if ( local_10 > 0 )
+	{
+		debug atomic
+		{
+			Debug.PrintString( String.Join( "iTrafficScenario.Trade - Number of escorts to create = ", String.FromInt( local_10 ) ) );
+			Debug.PrintString( "\n" );
+		}
+		
+		group_1 = iShipCreation.GetTraffic( local_function_3( group_0 ), A_Independent, local_10 );
+	}
+	else debug Debug.PrintString( "iTrafficScenario.Trade -  No escorts generated \n" );
+	
+	local_29 = local_function_4( Group.NthSim( group_0, 0 ), location_ );
+	
+	if ( simCount > 1 )
+	{
+		debug Debug.PrintString( " iTrafficScenario.Trade - Placing  additional freighters in formation \n" );
+		
+		if ( local_29 )
+		{
+			local_function_5( iLagrangePoint.Cast( location_ ), 30 );
+			iUtilities.CapsuleJumpGroup( group_0, location_, Math.Random( 1.0, 2.0 ) );
+			iFormation.LineAhead( group_0, 70.0, false );
+		}
+		else
+		{
+			iFormation.LineAhead( group_0, 70.0, true );
+		}
+	}
+	else if ( local_29 )
+	{
+		local_function_5( iLagrangePoint.Cast( location_ ), 30 );
+		iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group_0 ) ), location_ );
+	}
+	
+	if ( local_10 > 0 )
+	{
+		debug Debug.PrintString( " iTrafficScenario.Trade - Placing lead escort\n" );
+		
+		if ( local_10 > 1 )
+		{
+			debug Debug.PrintString( " iTrafficScenario.HaulIn  - placing additional escorts in formation \n " );
+			
+			if ( local_29 )
+			{
+				local_function_5( iLagrangePoint.Cast( location_ ), 3 );
+				iUtilities.CapsuleJumpGroup( group_1, location_, Math.Random( 1.0, 2.0 ) );
+				iEscort.InFormationGoose( group_1, group_0, 0, 0.0, 100.0, -100.0, 40.0, 8000.0, false );
+			}
+			else
+			{
+				iEscort.InFormationGoose( group_1, group_0, 0, 0.0, 100.0, -100.0, 40.0, 8000.0, true );
+			}
+		}
+		else
+		{
+			if ( local_29 )
+			{
+				local_function_5( iLagrangePoint.Cast( location_ ), 3 );
+				iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group_1 ) ), location_ );
+			}
+			else
+			{
+				Sim.PlaceRelativeTo( Group.Leader( group_1 ), Group.NthSim( group_0, 0 ), 0.0, 100.0, -100.0 );
+			}
+			
+			iAI.GiveEscortOrder( Group.Leader( group_1 ), group_0, 0.0, 100.0, -100.0, 8000.0 );
+		}
+	}
+	
+	if ( local_10 > 0 )
+	{
+		Group.AddGroup( group_0, group_1 );
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iTrafficScenario.Trade - Assigning Trade orders to list, lead by ship called -  " );
+		Debug.PrintString( Object.StringProperty( Group.NthSim( group_0, 0 ), "name" ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	local_28 = start iScriptedOrders.Trade( group_0 );
+	Task.Detach( local_28 );
+}
+
+Security( hmapentity location_ )
+{
+	hhabitat habitat;
+	set localSet;
+	bool local_2 = false;
+	int random_0;
+	hlagrangepoint lagrangePoint;
+	int random_1;
+	hgroup group;
+	float gPlayerSensorRange = Global.Float( "g_player_sensor_range" );
+	float random_2;
+	int local_9;
+	hship playerShip = iShip.FindPlayerShip();
+	IeHabitatType ieHabitatType;
+	IeAllegiance ieAllegiance;
+	htask local_13;
+	bool local_14 = false;
+	
+	debug atomic
+	{
+		Debug.PrintString( String.Join( " iTrafficScenario - Created security Scenario for - ", Object.StringProperty( location_, "name" ) ) );
+		Debug.PrintString( " \n" );
+	}
+	
+	habitat = iHabitat.Cast( location_ );
+	
+	if ( habitat == false )
+	{
+		lagrangePoint = iLagrangePoint.Cast( location_ );
+		debug Debug.PrintString( "iTrafficScenario.Security  - location is an l-point, finding a location to generate ships \n" );
+		localSet = Global.Set( "g_filtered_system_habitats" );
+		local_2 = true;
+		
+		if ( iLagrangePoint.Interstellar( lagrangePoint ) == 1 )
+		{
+			do
+			{
+				habitat = iHabitat.Cast( iHabitat.Random( localSet ) );
+				debug Debug.PrintString( "iTrafficScenario.Security: finding a random habitat....\n" );
+			}
+			while ( habitat == false );
+			
+			debug Debug.PrintString( "iTrafficScenario.Security - l point in interstellar\n" );
+		}
+		else
+		{
+			habitat = iHabitat.Nearest( localSet, lagrangePoint );
+			debug Debug.PrintString( "iTrafficScenario.Security - l point is local \n" );
+		}
+	}
+	
+	ieHabitatType = iHabitat.Type( habitat );
+	ieAllegiance = iHabitat.Allegiance( habitat );
+	
+	if ( local_2 == 0 )
+	{
+		random_0 = Math.RandomInt( 1, 5 );
+	}
+	else
+	{
+		random_0 = Math.RandomInt( 1, 3 );
+	}
+	
+	switch ( random_0 )
+	{
+		case 1:
+			debug Debug.PrintString( " iTrafficScenario.Security - creating system patrol Scenario  \n" );
+			random_1 = Math.RandomInt( 0, local_function_1( habitat ) );
+			
+			if ( random_1 == 0 )
+			{
+				random_1 = 1;
+			}
+			
+			group = iShipCreation.GetTraffic( ST_CombatLight, ieAllegiance, random_1 );
+			
+			if ( lagrangePoint != false )
+			{
+				local_14 = local_function_4( Group.NthSim( group, 0 ), lagrangePoint );
+			}
+			else
+			{
+				local_14 = local_function_4( Group.NthSim( group, 0 ), location_ );
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( String.Join( "iTrafficScenario.Security - Placing lead system patrol ship at distance of ", String.FromFloat( random_2 ) ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			if ( random_1 > 1 )
+			{
+				debug Debug.PrintString( " iTrafficScenario.Security  - placing additional system patrol ships in formation \n " );
+				
+				if ( local_14 )
+				{
+					local_function_5( lagrangePoint, 30 );
+					iUtilities.CapsuleJumpGroup( group, lagrangePoint, Math.Random( 1.0, 2.0 ) );
+					iFormation.Goose( group, Math.Random( 10.0, 30.0 ), false );
+				}
+				else
+				{
+					iFormation.Goose( group, Math.Random( 10.0, 30.0 ), true );
+				}
+			}
+			else if ( local_14 )
+			{
+				local_function_5( lagrangePoint, 30 );
+				iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( " iTrafficScenario.Security - finished placing ships for security system patrol \n" );
+				Debug.PrintString( "iTrafficScenario.Security- Assigning system patrol orders to list, lead by ship called -  " );
+				Debug.PrintString( Object.StringProperty( Group.NthSim( group, 0 ), "name" ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			local_13 = start iScriptedOrders.SystemPatrol( group );
+			Task.Detach( local_13 );
+			return;
+		
+		case 2:
+			debug Debug.PrintString( " iTrafficScenario.Security - creating  a security mission Scenario \n " );
+			random_1 = Math.RandomInt( 0, local_function_1( habitat ) );
+			
+			if ( random_1 == 0 )
+			{
+				random_1 = 1;
+			}
+			
+			group = iShipCreation.GetTraffic( ST_CombatAll, ieAllegiance, random_1 );
+			
+			if ( lagrangePoint != false )
+			{
+				local_14 = local_function_4( Group.NthSim( group, 0 ), lagrangePoint );
+			}
+			else
+			{
+				local_14 = local_function_4( Group.NthSim( group, 0 ), location_ );
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( String.Join( "iTrafficScenario.Security - Placing lead security mission ship at distance of ", String.FromFloat( random_2 ) ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			if ( random_1 > 1 )
+			{
+				debug Debug.PrintString( " iTrafficScenario.Security  - placing additional security mission ships in formation \n " );
+				
+				if ( local_14 )
+				{
+					local_function_5( lagrangePoint, 30 );
+					iUtilities.CapsuleJumpGroup( group, lagrangePoint, Math.Random( 1.0, 2.0 ) );
+					iFormation.Goose( group, Math.Random( 10.0, 30.0 ), false );
+				}
+				else
+				{
+					iFormation.Goose( group, Math.Random( 10.0, 30.0 ), true );
+				}
+			}
+			else if ( local_14 )
+			{
+				local_function_5( lagrangePoint, 30 );
+				iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+			}
+			
+			debug Debug.PrintString( " iTrafficScenario.Security - finished placing ships for security mission \n" );
+			
+			debug atomic
+			{
+				Debug.PrintString( "iTrafficScenario.Security - Assigning official visitor orders to list, lead by ship called -  " );
+				Debug.PrintString( Object.StringProperty( Group.NthSim( group, 0 ), "name" ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			local_13 = start iScriptedOrders.OfficialVisitor( group );
+			Task.Detach( local_13 );
+			return;
+		
+		case 3:
+			debug Debug.PrintString( " iTrafficScenario.Security - creating  secure courier Scenario \n" );
+			random_1 = 1;
+			group = iShipCreation.GetTraffic( ST_FreightCourier, ieAllegiance, random_1 );
+			
+			if ( lagrangePoint != false )
+			{
+				local_14 = local_function_4( Group.NthSim( group, 0 ), lagrangePoint );
+			}
+			else
+			{
+				local_14 = local_function_4( Group.NthSim( group, 0 ), location_ );
+			}
+			
+			if ( local_14 )
+			{
+				local_function_5( lagrangePoint, 30 );
+				iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( String.Join( "iTrafficScenario.Security - Placing lead security mission ship at distance of ", String.FromFloat( random_2 ) ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			debug Debug.PrintString( " ITrafficScenario.Security - Installing Cargo for security courier mission  \n" );
+			iShipCreation.CreateSupplyCargo( iShip.Cast( Group.NthSim( group, 0 ) ), -2 );
+			debug Debug.PrintString( "iTrafficScenario.Security - giving supply order for security courier \n" );
+			
+			debug atomic
+			{
+				Debug.PrintString( "iTrafficScenario.Security - Assigning supply orders to list, lead by ship called -  " );
+				Debug.PrintString( Object.StringProperty( Group.NthSim( group, 0 ), "name" ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			local_13 = start iScriptedOrders.Supply( group );
+			Task.Detach( local_13 );
+			debug Debug.PrintString( "iTrafficScenario.Security - Finished security courier  scenario generation \n" );
+			return;
+		
+		case 4:
+			debug Debug.PrintString( " iTrafficScenario.Security - creating local patrol scenario \n " );
+			random_1 = Math.RandomInt( 0, local_function_1( habitat ) );
+			
+			if ( random_1 == 0 )
+			{
+				random_1 = 1;
+			}
+			
+			group = iShipCreation.GetTraffic( ST_CombatFighter, ieAllegiance, random_1 );
+			
+			if ( lagrangePoint != false )
+			{
+				local_14 = local_function_4( Group.NthSim( group, 0 ), lagrangePoint );
+			}
+			else
+			{
+				local_14 = local_function_4( Group.NthSim( group, 0 ), location_ );
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( String.Join( "iTrafficScenario.Security - Placing lead local patrol ship at distance of ", String.FromFloat( random_2 ) ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			if ( random_1 > 1 )
+			{
+				debug Debug.PrintString( " iTrafficScenario.Security  - placing additional local patrol ships in formation \n " );
+				
+				if ( local_14 )
+				{
+					local_function_5( lagrangePoint, 30 );
+					iUtilities.CapsuleJumpGroup( group, lagrangePoint, Math.Random( 1.0, 2.0 ) );
+					iFormation.Goose( group, Math.Random( 10.0, 30.0 ), false );
+				}
+				else
+				{
+					iFormation.Goose( group, Math.Random( 10.0, 30.0 ), true );
+				}
+			}
+			else if ( local_14 )
+			{
+				local_function_5( lagrangePoint, 30 );
+				iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iTrafficScenario.Security- Assigning local patrol orders to list, lead by ship called -  " );
+				Debug.PrintString( Object.StringProperty( Group.NthSim( group, 0 ), "name" ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			local_13 = start iScriptedOrders.LocalPatrol( group );
+			Task.Detach( local_13 );
+			debug Debug.PrintString( " iTrafficScenario.Security - finished placing ships for security local patrol \n" );
+			return;
+		
+		case 5:
+			debug Debug.PrintString( " iTrafficScenario.Security - creating  security standby Scenario \n " );
+			
+			if ( Sim.DistanceBetween( playerShip, iMapEntity.WaypointForEntity( location_ ) ) < gPlayerSensorRange )
+			{
+				random_1 = Math.RandomInt( 0, local_function_1( habitat ) );
+				
+				if ( random_1 == 0 )
+				{
+					random_1 = 1;
+				}
+				
+				group = iShipCreation.GetTraffic( ST_CombatFighter, ieAllegiance, random_1 );
+				random_2 = Math.Random( 10.0, 1000.0 );
+				Sim.PlaceNear( Group.NthSim( group, 0 ), iMapEntity.WaypointForEntity( location_ ), random_2 );
+				
+				debug atomic
+				{
+					Debug.PrintString( String.Join( "iTrafficScenario.Security - Placing lead security standby ship at distance of ", String.FromFloat( random_2 ) ) );
+					Debug.PrintString( "\n" );
+				}
+				
+				if ( random_1 > 1 )
+				{
+					debug Debug.PrintString( " iTrafficScenario.Security  - placing additional security standby ships in formation \n " );
+					iFormation.LineAbreast( group, Math.Random( 10.0, 30.0 ), true );
+				}
+				
+				debug atomic
+				{
+					Debug.PrintString( "iTrafficScenario.Security - Assigning loiter orders to list, lead by ship called -  " );
+					Debug.PrintString( Object.StringProperty( Group.NthSim( group, 0 ), "name" ) );
+					Debug.PrintString( "\n" );
+				}
+				
+				local_13 = start iScriptedOrders.Loiter( group );
+				debug Debug.PrintString( "iTrafficScenario.Security - returned from iScriptedOrders.Loiter \n" );
+				Task.Detach( local_13 );
+				debug Debug.PrintString( "iTrafficScenario.Security - returned from assiging loiter orders to security standby ships \n" );
+			}
+			else debug Debug.PrintString( " iTrafficSceanrio.Security - player is too close to station to place security standby ships. \n" );
+			
+			debug Debug.PrintString( " iTrafficScenario.Security - finished placing ships for security strandby \n" );
+			return;
+	}
+}
+
+Tanker( hmapentity location_ )
+{
+	int random;
+	IeAllegiance ieAllegiance;
+	hgroup group;
+	set localSet;
+	hlagrangepoint lagrangePoint;
+	hhabitat habitat;
+	htask local_6;
+	bool local_7 = false;
+	
+	habitat = iHabitat.Cast( location_ );
+	
+	if ( habitat == false )
+	{
+		lagrangePoint = iLagrangePoint.Cast( location_ );
+		
+		if ( lagrangePoint == false )
+		{
+			debug Debug.Error( "iTrafficScenario.Tanker : location hadle passed is neither a habitat or an l-point !" );
+		}
+		
+		debug Debug.PrintString( "iTrafficScenario.Tanker  - location is an l-point, finding a location to generate ships \n" );
+		localSet = Global.Set( "g_filtered_system_habitats" );
+		debug Debug.PrintString( "iTrafficScenario.Tanker L-point is local \n" );
+		habitat = iHabitat.Nearest( localSet, lagrangePoint );
+	}
+	else debug Debug.PrintString( " ITrafficScenario.Tanker - location is not an L-Point \n" );
+	
+	ieAllegiance = iHabitat.Allegiance( habitat );
+	random = Math.RandomInt( 1, local_function_1( habitat ) );
+	
+	switch ( Math.RandomInt( 1, 3 ) )
+	{
+		case 1:
+			group = iShipCreation.GetTraffic( ST_TankerHeavy, ieAllegiance, random );
+			break;
+		
+		case 2:
+			group = iShipCreation.GetTraffic( ST_TankerAll, ieAllegiance, random );
+			break;
+		
+		case 3:
+			group = iShipCreation.GetTraffic( ST_TankerLight, ieAllegiance, random );
+			break;
+	}
+	
+	if ( lagrangePoint != false )
+	{
+		local_7 = local_function_4( Group.NthSim( group, 0 ), lagrangePoint );
+	}
+	else
+	{
+		local_7 = local_function_4( Group.NthSim( group, 0 ), location_ );
+	}
+	
+	if ( random > 1 )
+	{
+		debug Debug.PrintString( " iTrafficScenario.Tanker - Placing  additional tankers in formation \n" );
+		
+		if ( local_7 )
+		{
+			local_function_5( lagrangePoint, 30 );
+			iUtilities.CapsuleJumpGroup( group, lagrangePoint, Math.Random( 1.0, 2.0 ) );
+			iFormation.LineAhead( group, 70.0, false );
+		}
+		else
+		{
+			iFormation.LineAhead( group, 70.0, true );
+		}
+	}
+	else if ( local_7 )
+	{
+		local_function_5( lagrangePoint, 30 );
+		iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iTrafficScenario.Tanker - Assigning tanker orders to list, lead by ship called -  " );
+		Debug.PrintString( Object.StringProperty( Group.NthSim( group, 0 ), "name" ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	local_6 = start iScriptedOrders.Tanker( group );
+	Task.Detach( local_6 );
+}
+
+Official( hmapentity location_ )
+{
+	hhabitat habitat;
+	set localSet;
+	bool local_2 = false;
+	int local_3;
+	hlagrangepoint lagrangePoint;
+	int random_0;
+	hgroup group_0;
+	float gPlayerSensorRange = Global.Float( "g_player_sensor_range" );
+	float random_1;
+	float distance;
+	hship playerShip;
+	int local_11;
+	IeAllegiance ieAllegiance;
+	int local_13 = 1;
+	int local_14 = 0;
+	int local_15 = 0;
+	int local_16 = 0;
+	int local_17 = 0;
+	int local_18 = 0;
+	int random_2;
+	eShipType shipType;
+	string local_21;
+	bool local_22 = false;
+	bool local_23 = false;
+	bool local_24 = false;
+	bool local_25 = false;
+	bool local_26 = false;
+	bool local_27 = false;
+	bool local_28 = false;
+	bool local_29 = false;
+	int local_30;
+	hgroup group_1;
+	htask local_32;
+	bool local_33 = false;
+	bool local_34 = false;
+	
+	debug atomic
+	{
+		Debug.PrintString( String.Join( " iTrafficScenario.official - Created Official Scenario for - ", Object.StringProperty( location_, "name" ) ) );
+		Debug.PrintString( " \n" );
+	}
+	
+	habitat = iHabitat.Cast( location_ );
+	
+	if ( habitat == false )
+	{
+		lagrangePoint = iLagrangePoint.Cast( location_ );
+		debug Debug.PrintString( "iTrafficScenario.Official  - location is an l-point, finding a location to generate ships \n" );
+		localSet = Global.Set( "g_filtered_system_habitats" );
+		local_2 = true;
+		habitat = iHabitat.Nearest( localSet, lagrangePoint );
+		debug Debug.PrintString( "iTrafficScenario.Official - l point is local \n" );
+	}
+	
+	local_11 = iHabitat.Type( habitat );
+	ieAllegiance = iHabitat.Allegiance( habitat );
+	playerShip = iShip.FindPlayerShip();
+	distance = Sim.DistanceBetween( playerShip, iMapEntity.WaypointForEntity( location_ ) );
+	random_1 = Math.Random( gPlayerSensorRange, gPlayerSensorRange + distance );
+	random_0 = Math.RandomInt( 0, local_function_1( habitat ) );
+	
+	if ( random_0 == 0 )
+	{
+		random_0 = 1;
+	}
+	
+	switch ( local_11 )
+	{
+		case 1:
+			local_17 = 1;
+			break;
+		
+		case 44:
+		case 45:
+		case 47:
+		case 49:
+		case 50:
+		case 52:
+		case 82:
+		case 92:
+		case 93:
+		case 94:
+		case 95:
+		case 96:
+		case 86:
+		case 87:
+		case 88:
+		case 89:
+		case 90:
+		case 91:
+			local_14 = 1;
+			local_17 = 1;
+			break;
+		
+		case 56:
+		case 57:
+		case 58:
+			local_16 = 1;
+			break;
+		
+		case 68:
+		case 69:
+			local_13 = 1;
+			local_17 = 1;
+			break;
+		
+		case 72:
+		case 73:
+		case 78:
+		case 80:
+		case 81:
+			local_15 = 1;
+			break;
+	}
+	
+	switch ( ieAllegiance )
+	{
+		case A_Military:
+			local_15 = 1;
+			break;
+		
+		case A_Government:
+			local_13 = 1;
+			local_14 = 1;
+			local_15 = 1;
+			local_17 = 1;
+			break;
+		
+		case A_Stepson:
+		case A_Kong:
+		case A_Marauders:
+		case A_Angels:
+		case A_TheOman:
+		case A_League:
+		case A_CarvaCartel:
+			local_14 = 1;
+			local_15 = 1;
+		
+		case A_MCA:
+			local_14 = 1;
+		
+		case A_Police:
+			local_13 = 1;
+			local_14 = 1;
+			local_16 = 1;
+			local_17 = 1;
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( " iTrafficScenario.Security - Status of security scenrio types is - \n" );
+		Debug.PrintString( "\t\tPolice - " );
+		Debug.PrintInt( local_13 );
+		Debug.PrintString( " \n" );
+		Debug.PrintString( "\t\tGovornment - " );
+		Debug.PrintInt( local_14 );
+		Debug.PrintString( " \n" );
+		Debug.PrintString( "\t\tMilitary - " );
+		Debug.PrintInt( local_15 );
+		Debug.PrintString( " \n" );
+		Debug.PrintString( "\t\tPrison - " );
+		Debug.PrintInt( local_16 );
+		Debug.PrintString( " \n" );
+		Debug.PrintString( "\t\tSpecial Investigations -  " );
+		Debug.PrintInt( local_17 );
+		Debug.PrintString( " \n" );
+	}
+	
+	local_18 = ( local_13 + (local_14 + (local_15 + (local_16 + local_17))) );
+	random_2 = Math.RandomInt( 1, local_18 );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iTrafficScenario.Security - Number of types of security traffic to choose from is - " );
+		Debug.PrintInt( local_18 );
+		Debug.PrintString( " \n" );
+		Debug.PrintString( "iTrafficScenario.Security - Picking random number, which just happens to be - " );
+		Debug.PrintInt( random_2 );
+		Debug.PrintString( " \n" );
+	}
+	
+	while ( !local_33 )
+	{
+		if ( local_13 == 1 )
+		{
+			debug Debug.PrintString( "iTrafficScenario.official - Police is avalaible to pick for type of official scenario.\n" );
+			
+			if ( random_2 == 1 )
+			{
+				debug Debug.PrintString( " iTrafficScenario.official - official Scenario is police.\n" );
+				ieAllegiance = A_Police;
+				
+				switch ( Math.RandomInt( 1, 6 ) )
+				{
+					case 1:
+						debug Debug.PrintString( "iTrafficScenario.Official - This pig is patrolling \n" );
+						shipType = ST_CombatFighter;
+						local_22 = true;
+						local_33 = true;
+						break;
+					
+					case 2:
+						debug Debug.PrintString( "iTrafficScenario.Official - Police vessel system patrolling \n" );
+						shipType = ST_CombatLight;
+						local_23 = true;
+						local_33 = true;
+						break;
+					
+					case 3:
+						debug Debug.PrintString( "iTrafficScenario.Official - Police vessel is investigating \n" );
+						random_0 = 1;
+						shipType = ST_GeneralPurpose;
+						local_24 = true;
+						local_33 = true;
+						break;
+					
+					case 4:
+						debug Debug.PrintString( "iTrafficScenario.Official - Police vessel waiting for someone to bust \n" );
+						random_0 = 1;
+						shipType = ST_CombatAll;
+						local_25 = true;
+						local_33 = true;
+						break;
+					
+					case 5:
+						debug Debug.PrintString( "iTrafficScenario.Official - Police vessel eating donuts \n" );
+						random_0 = 1;
+						shipType = ST_CombatAll;
+						local_26 = true;
+						local_33 = true;
+						break;
+					
+					case 6:
+						debug Debug.PrintString( "iTrafficScenario.Official - Police vessel raiding \n" );
+						shipType = ST_CombatAll;
+						local_27 = true;
+						local_33 = true;
+						break;
+				}
+			}
+			else
+			{
+				random_2 = ( random_2 - 1 );
+			}
+			
+			local_13 = 0;
+		}
+		else if ( local_14 == 1 )
+		{
+			debug Debug.PrintString( "iTrafficScenario.Official - Govornment is avalaible to pick for type of official scenario.\n" );
+			
+			if ( random_2 == 1 )
+			{
+				debug Debug.PrintString( " iTrafficScenario.Official - official Scenario is govornment.\n" );
+				ieAllegiance = A_Government;
+				
+				switch ( Math.RandomInt( 1, 3 ) )
+				{
+					case 1:
+						debug Debug.PrintString( " iTrafficScenario.official - govornment ship is an official visitor. \n" );
+						random_0 = 1;
+						local_30 = ( Math.RandomInt( 0, 3 ) * 2 );
+						shipType = ST_PassengerLight;
+						local_24 = true;
+						local_33 = true;
+						break;
+					
+					case 2:
+						debug Debug.PrintString( " iTrafficScenario.official - govornment ship is a medical visitor. \n" );
+						random_0 = 1;
+						shipType = ST_Medical;
+						local_24 = true;
+						local_33 = true;
+						break;
+					
+					case 3:
+						debug Debug.PrintString( " iTrafficScenario.official - govornment ship is courier. \n" );
+						random_0 = 1;
+						shipType = ST_FreightCourier;
+						local_28 = true;
+						local_33 = true;
+						break;
+				}
+			}
+			else
+			{
+				random_2 = ( random_2 - 1 );
+			}
+			
+			local_14 = 0;
+		}
+		else if ( local_15 == 1 )
+		{
+			debug Debug.PrintString( "iTrafficScenario.official - Military is avalaible to pick for type of official scenario.\n" );
+			
+			if ( random_2 == 1 )
+			{
+				debug Debug.PrintString( " iTrafficScenario.official - official Scenario is military.\n" );
+				ieAllegiance = A_Military;
+				
+				switch ( Math.RandomInt( 1, 4 ) )
+				{
+					case 1:
+						debug Debug.PrintString( " iTrafficScenario.official - military ship is local patrol. \n" );
+						shipType = ST_CombatFighter;
+						local_22 = true;
+						local_33 = true;
+						break;
+					
+					case 2:
+						debug Debug.PrintString( " iTrafficScenario.official - military ship is maneuvre. \n" );
+						shipType = ST_CombatAll;
+						local_29 = true;
+						local_33 = true;
+						break;
+					
+					case 3:
+						debug Debug.PrintString( " iTrafficScenario.official - military ship is waiting. \n" );
+						shipType = ST_CombatAll;
+						local_26 = true;
+						local_33 = true;
+						break;
+					
+					case 4:
+						debug Debug.PrintString( " iTrafficScenario.official - military ship is system patrol. \n" );
+						shipType = ST_CombatLight;
+						local_23 = true;
+						local_33 = true;
+						break;
+				}
+			}
+			else
+			{
+				random_2 = ( random_2 - 1 );
+			}
+			
+			local_15 = 0;
+		}
+		else if ( local_16 == 1 )
+		{
+			debug Debug.PrintString( "iTrafficScenario.official - Prison is avalaible to pick for type of official scenario.\n" );
+			
+			if ( random_2 == 1 )
+			{
+				debug Debug.PrintString( " iTrafficScenario.official - official Scenario is prison.\n" );
+				ieAllegiance = A_Government;
+				shipType = ST_PassengerLight;
+				local_24 = true;
+				local_33 = true;
+			}
+			else
+			{
+				random_2 = ( random_2 - 1 );
+			}
+			
+			local_16 = 0;
+		}
+		else if ( local_17 == 1 )
+		{
+			debug Debug.PrintString( "iTrafficScenario.official - Special Investigations is available to pick for type of official scenario.\n" );
+			
+			if ( random_2 == 1 )
+			{
+				debug Debug.PrintString( " iTrafficScenario.official - official Scenario is special investigations.\n" );
+				shipType = ST_GeneralPurpose;
+				ieAllegiance = A_Government;
+				
+				switch ( Math.RandomInt( 1, 2 ) )
+				{
+					case 1:
+						debug Debug.PrintString( " iTrafficScenario.official - si ship is invetigating. \n" );
+						shipType = ST_GeneralPurpose;
+						local_24 = true;
+						local_33 = true;
+						break;
+					
+					case 2:
+						debug Debug.PrintString( "iTrafficScenario.Official - si ship is staking out \n" );
+						random_0 = 1;
+						shipType = ST_GeneralPurpose;
+						local_25 = true;
+						local_33 = true;
+						break;
+				}
+			}
+			else
+			{
+				random_2 = ( random_2 - 1 );
+			}
+			
+			local_17 = 0;
+		}
+		else
+		{
+			debug Debug.PrintString( " iTrafficScenario.Official - ERROR - could not find a type of Scenario to assign, forcing police as default/n " );
+			local_13 = 1;
+			random_2 = 1;
+		}
+	}
+	
+	group_0 = iShipCreation.GetTraffic( shipType, ieAllegiance, random_0 );
+	
+	if ( lagrangePoint != false )
+	{
+		local_34 = local_function_4( Group.NthSim( group_0, 0 ), lagrangePoint );
+	}
+	else
+	{
+		local_34 = local_function_4( Group.NthSim( group_0, 0 ), location_ );
+	}
+	
+	if ( random_0 > 1 )
+	{
+		debug Debug.PrintString( "iTrafficScenario.Official  - placing additional system patrol ships in formation \n " );
+		
+		if ( local_34 )
+		{
+			local_function_5( lagrangePoint, 30 );
+			iUtilities.CapsuleJumpGroup( group_0, lagrangePoint, Math.Random( 1.0, 2.0 ) );
+			iFormation.Goose( group_0, Math.Random( 10.0, 30.0 ), false );
+		}
+		else
+		{
+			iFormation.Goose( group_0, Math.Random( 10.0, 30.0 ), true );
+		}
+	}
+	else if ( local_34 )
+	{
+		local_function_5( lagrangePoint, 30 );
+		iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group_0 ) ), lagrangePoint );
+	}
+	
+	if ( local_30 > 0 )
+	{
+		debug atomic
+		{
+			Debug.PrintString( String.Join( "iTrafficScenario.official - Number of escorts to create = ", String.FromInt( local_30 ) ) );
+			Debug.PrintString( "\n" );
+		}
+		
+		group_1 = iShipCreation.GetTraffic( ST_CombatLight, ieAllegiance, local_30 );
+		
+		if ( local_30 > 1 )
+		{
+			debug Debug.PrintString( " iTrafficScenario.HaulIn  - placing additional escorts in formation \n " );
+			
+			if ( local_34 )
+			{
+				local_function_5( lagrangePoint, 3 );
+				iUtilities.CapsuleJumpGroup( group_1, lagrangePoint, Math.Random( 1.0, 2.0 ) );
+				iEscort.InFormationGoose( group_1, group_0, 0, 0.0, 100.0, -100.0, 40.0, 8000.0, false );
+			}
+			else
+			{
+				iEscort.InFormationGoose( group_1, group_0, 0, 0.0, 100.0, -100.0, 40.0, 8000.0, true );
+			}
+		}
+		else
+		{
+			if ( local_34 )
+			{
+				local_function_5( lagrangePoint, 3 );
+				iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group_1 ) ), lagrangePoint );
+			}
+			else
+			{
+				Sim.PlaceRelativeTo( Group.Leader( group_1 ), Group.NthSim( group_0, 0 ), 0.0, 100.0, -100.0 );
+			}
+			
+			iAI.GiveEscortOrder( Group.Leader( group_1 ), group_0, 0.0, 100.0, -100.0, 8000.0 );
+		}
+	}
+	else debug Debug.PrintString( "iTrafficScenario.Offical -  No escorts generated \n" );
+	
+	if ( local_22 )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iTrafficScenario.Official - giving local patrol orders \n" );
+			Debug.PrintString( "iTrafficScenario.Official - Assigning local patrol orders to list, lead by ship called -  " );
+			Debug.PrintString( Object.StringProperty( Group.NthSim( group_0, 0 ), "name" ) );
+			Debug.PrintString( "\n" );
+		}
+		
+		local_32 = start iScriptedOrders.LocalPatrol( group_0 );
+		Task.Detach( local_32 );
+		return;
+	}
+	
+	if ( local_23 )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iTrafficScenario.official - Assigning system patrol orders to list, lead by ship called -  " );
+			Debug.PrintString( Object.StringProperty( Group.NthSim( group_0, 0 ), "name" ) );
+			Debug.PrintString( "\n" );
+		}
+		
+		local_32 = start iScriptedOrders.SystemPatrol( group_0 );
+		Task.Detach( local_32 );
+		return;
+	}
+	
+	if ( local_24 )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iTrafficScenario.official - Assigning official visitor orders to list, lead by ship called -  " );
+			Debug.PrintString( Object.StringProperty( Group.NthSim( group_0, 0 ), "name" ) );
+			Debug.PrintString( "\n" );
+		}
+		
+		local_32 = start iScriptedOrders.OfficialVisitor( group_0 );
+		Task.Detach( local_32 );
+		return;
+	}
+	
+	if ( local_25 )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iTrafficScenario.Official - Assigning speed trap orders to list, lead by ship called -  " );
+			Debug.PrintString( Object.StringProperty( Group.NthSim( group_0, 0 ), "name" ) );
+			Debug.PrintString( "\n" );
+		}
+		
+		local_32 = start iScriptedOrders.SpeedTrap( group_0 );
+		Task.Detach( local_32 );
+		return;
+	}
+	
+	if ( local_26 )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iTrafficScenario.Official - Assigning loiter orders to list, lead by ship called -  " );
+			Debug.PrintString( Object.StringProperty( Group.NthSim( group_0, 0 ), "name" ) );
+			Debug.PrintString( "\n" );
+		}
+		
+		local_32 = start iScriptedOrders.Loiter( group_0 );
+		Task.Detach( local_32 );
+		return;
+	}
+	
+	if ( local_27 )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iTrafficScenario.Official - Assigning Police raid orders to list, lead by ship called -  " );
+			Debug.PrintString( Object.StringProperty( Group.NthSim( group_0, 0 ), "name" ) );
+			Debug.PrintString( "\n" );
+		}
+		
+		local_32 = start iScriptedOrders.PoliceRaid( group_0 );
+		Task.Detach( local_32 );
+		return;
+	}
+	
+	if ( local_28 )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iTrafficScenario.Official - giving courier orders\n" );
+			Debug.PrintString( "iTrafficScenario.official - Assigning supply orders to list, lead by ship called -  " );
+			Debug.PrintString( Object.StringProperty( Group.NthSim( group_0, 0 ), "name" ) );
+			Debug.PrintString( "\n" );
+		}
+		
+		local_32 = start iScriptedOrders.Tourist( group_0 );
+		Task.Detach( local_32 );
+		return;
+	}
+	
+	if ( local_29 )
+	{
+		debug atomic
+		{
+			Debug.PrintString( "iTrafficScenario.official - Assigning maneuvre orders to list, lead by ship called -  " );
+			Debug.PrintString( Object.StringProperty( Group.NthSim( group_0, 0 ), "name" ) );
+			Debug.PrintString( "\n" );
+		}
+		
+		local_32 = start iScriptedOrders.Maneuvre( group_0 );
+		Task.Detach( local_32 );
+	}
+}
+
+Maintenance( hmapentity location_ )
+{
+	hhabitat habitat;
+	set localSet;
+	bool local_2 = false;
+	int random_0;
+	hlagrangepoint lagrangePoint;
+	int random_1;
+	hgroup group_0;
+	float gPlayerSensorRange = Global.Float( "g_player_sensor_range" );
+	int local_8;
+	int local_9;
+	int local_10;
+	IeHabitatType ieHabitatType;
+	IeAllegiance ieAllegiance;
+	htask local_13;
+	hgroup group_1;
+	bool local_15 = false;
+	
+	debug atomic
+	{
+		Debug.PrintString( String.Join( " iTrafficScenario - Created Maintenance Scenario for - ", Object.StringProperty( location_, "name" ) ) );
+		Debug.PrintString( " \n" );
+	}
+	
+	habitat = iHabitat.Cast( location_ );
+	
+	if ( habitat == false )
+	{
+		lagrangePoint = iLagrangePoint.Cast( location_ );
+		debug Debug.PrintString( "iTrafficScenario.Maintenance  - location is an l-point, finding a location to generate ships \n" );
+		localSet = Global.Set( "g_filtered_system_habitats" );
+		local_2 = true;
+		habitat = iHabitat.Nearest( localSet, iMapEntity.WaypointForEntity( lagrangePoint ) );
+		debug Debug.PrintString( "iTrafficScenario.Maintenance - l point is local \n" );
+	}
+	
+	ieHabitatType = iHabitat.Type( habitat );
+	ieAllegiance = iHabitat.Allegiance( habitat );
+	
+	if ( !local_2 )
+	{
+		random_0 = Math.RandomInt( 1, 4 );
+	}
+	else
+	{
+		random_0 = 1;
+	}
+	
+	switch ( random_0 )
+	{
+		case 1:
+			debug Debug.PrintString( " iTrafficScenario.Maintenance - creating recovery \n" );
+			random_1 = 1;
+			group_0 = iShipCreation.GetTraffic( ST_Recovery, ieAllegiance, random_1 );
+			local_15 = local_function_4( Group.NthSim( group_0, 0 ), location_ );
+			
+			debug atomic
+			{
+				Debug.PrintString( "iTrafficScenario.Maintenance - Giving orders to recovery ship \n" );
+				Debug.PrintString( "iTrafficScenario.Maintenance - creating Hulk to recover \n " );
+			}
+			
+			group_1 = iShipCreation.GetTraffic( ST_GeneralPurpose, ieAllegiance, 1 );
+			debug Debug.PrintString( "iTrafficScenario.Maintenance - placing Hulk to recover \n " );
+			local_15 = local_function_4( Group.Leader( group_1 ), habitat );
+			
+			debug atomic
+			{
+				Debug.PrintString( "iTrafficScenario.Maintenance - Assigning recovery orders to list, lead by ship called -  " );
+				Debug.PrintString( Object.StringProperty( Group.NthSim( group_0, 0 ), "name" ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			local_13 = start iScriptedOrders.Recovery( group_0, iShip.Cast( Group.NthSim( group_1, 0 ) ) );
+			Task.Detach( local_13 );
+			return;
+		
+		case 2:
+			debug Debug.PrintString( " iTrafficScenario.Maintenance - inspection \n " );
+			random_1 = 1;
+			group_0 = iShipCreation.GetTraffic( ST_GeneralPurpose, ieAllegiance, random_1 );
+			
+			if ( lagrangePoint != false )
+			{
+				local_15 = local_function_4( Group.NthSim( group_0, 0 ), lagrangePoint );
+			}
+			else
+			{
+				local_15 = local_function_4( Group.NthSim( group_0, 0 ), location_ );
+			}
+			
+			if ( local_15 )
+			{
+				local_function_5( lagrangePoint, 30 );
+				iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group_0 ) ), lagrangePoint );
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iTrafficScenario.Maintenance - Assigning inspection orders to list, lead by ship called -  " );
+				Debug.PrintString( Object.StringProperty( Group.NthSim( group_0, 0 ), "name" ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			local_13 = start iScriptedOrders.Inspection( group_0 );
+			Task.Detach( local_13 );
+			return;
+		
+		case 3:
+			debug Debug.PrintString( " iTrafficScenario.Maintenance - creating  construction ships \n" );
+			random_1 = Math.RandomInt( 0, local_function_1( habitat ) );
+			
+			if ( random_1 == 0 )
+			{
+				random_1 = 1;
+			}
+			
+			group_0 = iShipCreation.GetTraffic( ST_GeneralPurpose, ieAllegiance, random_1 );
+			
+			if ( lagrangePoint != false )
+			{
+				local_15 = local_function_4( Group.NthSim( group_0, 0 ), lagrangePoint );
+			}
+			else
+			{
+				local_15 = local_function_4( Group.NthSim( group_0, 0 ), location_ );
+			}
+			
+			if ( random_1 > 1 )
+			{
+				debug Debug.PrintString( " iTrafficScenario.Maintenance - placing additional construction ships in formation \n " );
+				
+				if ( local_15 )
+				{
+					local_function_5( lagrangePoint, 30 );
+					iUtilities.CapsuleJumpGroup( group_0, lagrangePoint, Math.Random( 1.0, 2.0 ) );
+					iFormation.RandomSphere( group_0, Math.Random( 10.0, 30.0 ), false );
+				}
+				else
+				{
+					iFormation.RandomSphere( group_0, Math.Random( 10.0, 30.0 ), true );
+				}
+			}
+			else if ( local_15 )
+			{
+				local_function_5( lagrangePoint, 30 );
+				iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group_0 ) ), lagrangePoint );
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iTrafficScenario.Maintenance - Assigning Station construction orders to list, lead by ship called -  " );
+				Debug.PrintString( Object.StringProperty( Group.NthSim( group_0, 0 ), "name" ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			local_13 = start iScriptedOrders.StationConstruction( group_0 );
+			Task.Detach( local_13 );
+			return;
+		
+		case 4:
+			debug Debug.PrintString( " iTrafficScenario.Maintenance - creating station repair ships. \n " );
+			random_1 = Math.RandomInt( 0, local_function_1( habitat ) );
+			
+			if ( random_1 == 0 )
+			{
+				random_1 = 1;
+			}
+			
+			group_0 = iShipCreation.GetTraffic( ST_Flitter, ieAllegiance, random_1 );
+			
+			if ( lagrangePoint != false )
+			{
+				local_15 = local_function_4( Group.NthSim( group_0, 0 ), lagrangePoint );
+			}
+			else
+			{
+				local_15 = local_function_4( Group.NthSim( group_0, 0 ), location_ );
+			}
+			
+			if ( random_1 > 1 )
+			{
+				debug Debug.PrintString( " iTrafficScenario.Maintaiance  - placing additional station reapair ships in formation \n " );
+				
+				if ( local_15 )
+				{
+					local_function_5( lagrangePoint, 30 );
+					iUtilities.CapsuleJumpGroup( group_0, lagrangePoint, Math.Random( 1.0, 2.0 ) );
+					iFormation.Goose( group_0, Math.Random( 10.0, 30.0 ), false );
+				}
+				else
+				{
+					iFormation.Goose( group_0, Math.Random( 10.0, 30.0 ), true );
+				}
+			}
+			else if ( local_15 )
+			{
+				local_function_5( lagrangePoint, 30 );
+				iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group_0 ) ), lagrangePoint );
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iTrafficScenario.Maintenance - Assigning reapair orders to list, lead by ship called -  " );
+				Debug.PrintString( Object.StringProperty( Group.NthSim( group_0, 0 ), "name" ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			local_13 = start iScriptedOrders.StationRepair( group_0 );
+			Task.Detach( local_13 );
+			debug Debug.PrintString( " iTrafficScenario.Maintaiance - finished placing ships station reapir local patrol \n" );
+			return;
+	}
+}
+
+Mining( hmapentity location_ )
+{
+	hhabitat habitat;
+	set localSet;
+	bool local_2 = false;
+	int local_3;
+	hlagrangepoint lagrangePoint;
+	int local_5;
+	hgroup group;
+	float gPlayerSensorRange = Global.Float( "g_player_sensor_range" );
+	float random;
+	float distance;
+	hship playerShip;
+	IeHabitatType ieHabitatType;
+	IeAllegiance ieAllegiance;
+	bool local_13 = false;
+	bool local_14 = false;
+	int local_15;
+	int local_16;
+	htask local_17;
+	bool local_18 = false;
+	
+	debug atomic
+	{
+		Debug.PrintString( String.Join( " iTrafficScenario - Created Mining Scenario for - ", Object.StringProperty( location_, "name" ) ) );
+		Debug.PrintString( " \n" );
+	}
+	
+	habitat = iHabitat.Cast( location_ );
+	
+	if ( habitat == false )
+	{
+		lagrangePoint = iLagrangePoint.Cast( location_ );
+		debug Debug.PrintString( "iTrafficScenario.Mining  - location is an L-point, finding a location to generate ships \n" );
+		localSet = Global.Set( "g_filtered_system_habitats" );
+		local_2 = true;
+		
+		while ( !local_13 )
+		{
+			habitat = iHabitat.Nearest( localSet, lagrangePoint );
+			debug Debug.PrintString( "iTrafficScenario.Mining - l point is local \n" );
+			ieHabitatType = iHabitat.Type( habitat );
+			local_15 = ieHabitatType;
+			
+			if ( ((local_15 >= 1) && (local_15 <= 20)) || ((local_15 == 53) || (local_15 == 59)) )
+			{
+				debug Debug.PrintString( " iTrafficScenario.Mining - found appropriate location to generate mining Scenario \n " );
+				ieHabitatType = iHabitat.Type( habitat );
+				ieAllegiance = iHabitat.Allegiance( habitat );
+				local_13 = true;
+			}
+			else if ( Set.IsEmpty( localSet ) )
+			{
+				debug Debug.PrintString( " iTrafficScanreo.Mining - No appropriate location in system to generate miner - creating freelacer prosperctor instead \n " );
+				ieHabitatType = HT_Homestead;
+				ieAllegiance = A_Independent;
+				local_13 = true;
+			}
+			else
+			{
+				debug Debug.PrintString( " iTrafficScenario.Mining - location not appropruate for mining Scenario, looking again \n " );
+				Set.Remove( localSet, habitat );
+			}
+		}
+	}
+	else
+	{
+		ieHabitatType = iHabitat.Type( habitat );
+		ieAllegiance = iHabitat.Allegiance( habitat );
+	}
+	
+	playerShip = iShip.FindPlayerShip();
+	distance = Sim.DistanceBetween( playerShip, iMapEntity.WaypointForEntity( location_ ) );
+	random = Math.Random( gPlayerSensorRange, gPlayerSensorRange + distance );
+	
+	switch ( ieHabitatType )
+	{
+		case HT_WaterProcessingPlant:
+			ieHabitatType = HT_WaterMine;
+			break;
+		
+		case HT_OrganicsProcessingPlant:
+			ieHabitatType = HT_OrganicsMine;
+			break;
+		
+		case HT_InorganicsProcessingPlant:
+			ieHabitatType = HT_InorganicsMine;
+			break;
+		
+		case HT_BiomassProcessingPlant:
+			ieHabitatType = HT_BiomassMine;
+			break;
+		
+		case HT_CommonMetalsProcessingPlant:
+			ieHabitatType = HT_CommonMetalsMine;
+			break;
+		
+		case HT_RareMetalsProcessingPlant:
+			ieHabitatType = HT_RareMetalsProcessingPlant;
+			break;
+		
+		case HT_ExoticMetalsProcessingPlant:
+			ieHabitatType = HT_ExoticMetalsMine;
+			break;
+		
+		case HT_RadioactivesProcessingPlant:
+			ieHabitatType = HT_RadioactivesMine;
+			break;
+		
+		case HT_FusionableGasesProcessingPlant:
+			ieHabitatType = HT_FusionableGasesMine;
+			break;
+		
+		case HT_NeutroniumProcessingPlant:
+			ieHabitatType = HT_NeutroniumMine;
+			break;
+		
+		case HT_WaterMine:
+		case HT_OrganicsMine:
+		case HT_InorganicsMine:
+		case HT_BiomassMine:
+		case HT_CommonMetalsMine:
+		case HT_RareMetalsMine:
+		case HT_ExoticMetalsMine:
+		case HT_RadioactivesMine:
+			ieHabitatType = iHabitat.Type( habitat );
+			break;
+		
+		default:
+			local_14 = true;
+			break;
+	}
+	
+	group = iShipCreation.GetTraffic( ST_MiningAll, ieAllegiance, 1 );
+	
+	if ( lagrangePoint != false )
+	{
+		local_18 = local_function_4( Group.NthSim( group, 0 ), lagrangePoint );
+	}
+	else
+	{
+		local_18 = local_function_4( Group.NthSim( group, 0 ), location_ );
+	}
+	
+	if ( local_18 )
+	{
+		local_function_5( lagrangePoint, 30 );
+		iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+	}
+	
+	if ( !local_14 )
+	{
+		if ( Math.RandomInt( 0, 1 ) == 1 )
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iTrafficScenario.Mining - giving minig ship some cargo using " );
+				Debug.PrintString( iUtilities.FromLocationEnum( ieHabitatType ) );
+				Debug.PrintString( " as it's cargo generator\n" );
+			}
+			
+			iShipCreation.CreateHaulageCargo( iShip.Cast( Group.NthSim( group, 0 ) ), ieHabitatType );
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iTrafficScenario.mining - Assigning freelance mining orders to list, lead by ship called -  " );
+		Debug.PrintString( Object.StringProperty( Group.NthSim( group, 0 ), "name" ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	local_17 = start iScriptedOrders.FreelanceMine( group );
+	Task.Detach( local_17 );
+}
+
+Underworld( hmapentity location_ )
+{
+	hship playerShip;
+	hgroup group_0;
+	int local_2;
+	int local_3;
+	hhabitat habitat = iHabitat.Cast( location_ );
+	hlagrangepoint lagrangePoint = iLagrangePoint.Cast( location_ );
+	set localSet;
+	int random_0 = Math.RandomInt( 1, 3 );
+	int random_1;
+	float distance;
+	float gPlayerSensorRange = Global.Float( "g_player_sensor_range" );
+	float random_2;
+	int local_12 = 0;
+	hgroup group_1;
+	htask local_14;
+	hship ship;
+	bool local_16 = false;
+	
+	debug atomic
+	{
+		Debug.PrintString( String.Join( "iTrafficScenario: Created Underworld Scenario for - ", Object.StringProperty( location_, "name" ) ) );
+		Debug.PrintString( " \n" );
+	}
+	
+	localSet = Global.Set( "g_filtered_system_habitats" );
+	playerShip = iShip.FindPlayerShip();
+	distance = Sim.DistanceBetween( playerShip, iMapEntity.WaypointForEntity( location_ ) );
+	random_2 = Math.Random( gPlayerSensorRange, gPlayerSensorRange + distance );
+	
+	if ( habitat == false )
+	{
+		debug Debug.PrintString( "iTrafficScenario.Underworld: L-point is local \n" );
+		habitat = iHabitat.Nearest( localSet, lagrangePoint );
+	}
+	
+	random_1 = Math.RandomInt( 1, 9 );
+	
+	switch ( random_1 )
+	{
+		case 1:
+			debug Debug.PrintString( "iTrafficScenario.Underworld - Creating smuggler.\n" );
+			group_0 = iShipCreation.GetTraffic( ST_FreightAll, A_Independent, 1 );
+			
+			if ( lagrangePoint != false )
+			{
+				local_16 = local_function_4( Group.NthSim( group_0, 0 ), lagrangePoint );
+			}
+			else
+			{
+				local_16 = local_function_4( Group.NthSim( group_0, 0 ), location_ );
+			}
+			
+			if ( local_16 )
+			{
+				local_function_5( lagrangePoint, 30 );
+				iUtilities.CapsuleJumpGroup( group_0, lagrangePoint, Math.Random( 1.0, 2.0 ) );
+				iFormation.RandomSphere( group_0, Math.Random( 10.0, 30.0 ), false );
+			}
+			else
+			{
+				iFormation.RandomSphere( group_0, Math.Random( 10.0, 30.0 ), true );
+			}
+			
+			debug Debug.PrintString( "iTrafficScenario.Underworld - Givnig this smuggler expensive goods - change to smuggled goods later \n" );
+			ship = iShip.Cast( Group.NthSim( group_0, 0 ) );
+			iShipCreation.CreateTradeCargo( ship, "Expensive" );
+			
+			debug atomic
+			{
+				Debug.PrintString( "iTrafficScenario.Underworld - Assigning trade orders to list, lead by Smuggler ship called -  " );
+				Debug.PrintString( Object.StringProperty( Group.NthSim( group_0, 0 ), "name" ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			local_14 = start iScriptedOrders.Trade( group_0 );
+			Task.Detach( local_14 );
+			return;
+		
+		case 2:
+		case 3:
+		case 4:
+			debug Debug.PrintString( "iTrafficScenario.Underworld - Creating gangster \n" );
+			group_0 = iShipCreation.GetTraffic( ST_CombatAll, A_Independent, random_0 );
+			
+			if ( lagrangePoint != false )
+			{
+				local_16 = local_function_4( Group.NthSim( group_0, 0 ), lagrangePoint );
+			}
+			else
+			{
+				local_16 = local_function_4( Group.NthSim( group_0, 0 ), location_ );
+			}
+			
+			if ( local_16 )
+			{
+				local_function_5( lagrangePoint, 30 );
+				iUtilities.CapsuleJumpGroup( group_0, lagrangePoint, Math.Random( 1.0, 2.0 ) );
+				iFormation.RandomSphere( group_0, Math.Random( 10.0, 30.0 ), false );
+			}
+			else
+			{
+				iFormation.RandomSphere( group_0, Math.Random( 10.0, 30.0 ), true );
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iTrafficScenario.underworld - Assigning naughty orders to list, lead by ship called -  " );
+				Debug.PrintString( Object.StringProperty( Group.NthSim( group_0, 0 ), "name" ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			local_14 = start iScriptedOrders.Naughty( group_0 );
+			Task.Detach( local_14 );
+			return;
+		
+		case 5:
+		case 6:
+		case 7:
+			debug Debug.PrintString( "iTrafficScenario.Underworld - Creating pirate \n" );
+			group_0 = iShipCreation.GetTraffic( ST_CombatAll, A_Independent, random_0 );
+			
+			if ( lagrangePoint != false )
+			{
+				local_16 = local_function_4( Group.NthSim( group_0, 0 ), lagrangePoint );
+			}
+			else
+			{
+				local_16 = local_function_4( Group.NthSim( group_0, 0 ), location_ );
+			}
+			
+			if ( local_16 )
+			{
+				local_function_5( lagrangePoint, 30 );
+				iUtilities.CapsuleJumpGroup( group_0, lagrangePoint, Math.Random( 1.0, 2.0 ) );
+				iFormation.RandomSphere( group_0, Math.Random( 10.0, 30.0 ), false );
+			}
+			else
+			{
+				iFormation.RandomSphere( group_0, Math.Random( 10.0, 30.0 ), true );
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iTrafficScenario.underworld - Assigning piracy  orders to list, lead by ship called -  " );
+				Debug.PrintString( Object.StringProperty( Group.NthSim( group_0, 0 ), "name" ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			local_14 = start iScriptedOrders.Piracy( group_0 );
+			Task.Detach( local_14 );
+			return;
+		
+		case 8:
+			debug Debug.PrintString( "iTrafficScenario.Underworld - creating black marketeer\n" );
+			group_0 = iShipCreation.GetTraffic( ST_FreightAll, A_Independent, 1 );
+			
+			if ( lagrangePoint != false )
+			{
+				local_16 = local_function_4( Group.NthSim( group_0, 0 ), lagrangePoint );
+			}
+			else
+			{
+				local_16 = local_function_4( Group.NthSim( group_0, 0 ), location_ );
+			}
+			
+			local_12 = ( Math.RandomInt( 0, 3 ) * 2 );
+			
+			if ( local_16 )
+			{
+				local_function_5( lagrangePoint, 30 );
+				iUtilities.CapsuleJumpGroup( group_0, lagrangePoint, Math.Random( 1.0, 2.0 ) );
+				iFormation.LineAhead( group_0, Math.Random( 10.0, 30.0 ), false );
+			}
+			else
+			{
+				iFormation.LineAhead( group_0, Math.Random( 10.0, 30.0 ), true );
+			}
+			
+			debug Debug.PrintString( "iTrafficScenario.Underworld - giving black maketeer a cargo of expensive goods.\n" );
+			ship = iShip.Cast( Group.NthSim( group_0, 0 ) );
+			iShipCreation.CreateTradeCargo( ship, "Expensive" );
+			
+			if ( local_12 > 0 )
+			{
+				debug atomic
+				{
+					Debug.PrintString( String.Join( "iTrafficUnderworld. - Number of escorts to create = ", String.FromInt( local_12 ) ) );
+					Debug.PrintString( "\n" );
+				}
+				
+				group_1 = iShipCreation.GetTraffic( ST_CombatLight, A_Independent, local_12 );
+				debug Debug.PrintString( " iTrafficScenario.Underworld - Placing lead escort\n" );
+				
+				if ( local_12 > 1 )
+				{
+					debug Debug.PrintString( " iTrafficScenario.HaulIn  - placing additional escorts in formation \n " );
+					
+					if ( local_16 )
+					{
+						local_function_5( lagrangePoint, 3 );
+						iUtilities.CapsuleJumpGroup( group_1, lagrangePoint, Math.Random( 1.0, 2.0 ) );
+						iEscort.InFormationGoose( group_1, group_0, 0, 0.0, 100.0, -100.0, 40.0, 8000.0, false );
+					}
+					else
+					{
+						iEscort.InFormationGoose( group_1, group_0, 0, 0.0, 100.0, -100.0, 40.0, 8000.0, true );
+					}
+				}
+				else
+				{
+					if ( local_16 )
+					{
+						local_function_5( lagrangePoint, 3 );
+						iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group_1 ) ), lagrangePoint );
+					}
+					else
+					{
+						Sim.PlaceRelativeTo( Group.Leader( group_1 ), Group.NthSim( group_0, 0 ), 0.0, 100.0, -100.0 );
+					}
+					
+					iAI.GiveEscortOrder( Group.Leader( group_1 ), group_0, 0.0, 100.0, -100.0, 8000.0 );
+				}
+				
+				Group.AddGroup( group_0, group_1 );
+			}
+			else debug Debug.PrintString( "iTrafficScenario.Underworld -  No escorts generated \n" );
+			
+			debug atomic
+			{
+				Debug.PrintString( "iTrafficScenario.HaulIn - Assigning trade orders to list, lead by black marketeer ship called -  " );
+				Debug.PrintString( Object.StringProperty( Group.NthSim( group_0, 0 ), "name" ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			local_14 = start iScriptedOrders.Trade( group_0 );
+			Task.Detach( local_14 );
+			return;
+		
+		case 9:
+			debug Debug.PrintString( "iTrafficScenario.Underworld - Creating thug \n" );
+			group_0 = iShipCreation.GetTraffic( ST_CombatLight, A_Independent, random_0 );
+			
+			if ( lagrangePoint != false )
+			{
+				local_16 = local_function_4( Group.NthSim( group_0, 0 ), lagrangePoint );
+			}
+			else
+			{
+				local_16 = local_function_4( Group.NthSim( group_0, 0 ), location_ );
+			}
+			
+			if ( local_16 )
+			{
+				local_function_5( lagrangePoint, 30 );
+				iUtilities.CapsuleJumpGroup( group_0, lagrangePoint, Math.Random( 1.0, 2.0 ) );
+				iFormation.RandomSphere( group_0, Math.Random( 10.0, 30.0 ), false );
+			}
+			else
+			{
+				iFormation.RandomSphere( group_0, Math.Random( 10.0, 30.0 ), true );
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iTrafficScenario.underworld - Assigning agressive loiter orders to list, lead by ship called -  " );
+				Debug.PrintString( Object.StringProperty( Group.NthSim( group_0, 0 ), "name" ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			local_14 = start iScriptedOrders.AggressiveLoiter( group_0 );
+			Task.Detach( local_14 );
+			return;
+	}
+}
+
+Oddball( hmapentity location_ )
+{
+	hship playerShip;
+	hgroup group;
+	int local_2;
+	int local_3;
+	hhabitat habitat = iHabitat.Cast( location_ );
+	hlagrangepoint lagrangePoint = iLagrangePoint.Cast( location_ );
+	set localSet;
+	int random_0;
+	float distance;
+	float gPlayerSensorRange = Global.Float( "g_player_sensor_range" );
+	float random_1;
+	htask local_11;
+	bool local_12 = false;
+	
+	debug atomic
+	{
+		Debug.PrintString( String.Join( " iTrafficScenario - Created Oddball Scenario for - ", Object.StringProperty( location_, "name" ) ) );
+		Debug.PrintString( " \n" );
+	}
+	
+	localSet = Global.Set( "g_filtered_system_habitats" );
+	playerShip = iShip.FindPlayerShip();
+	distance = Sim.DistanceBetween( playerShip, iMapEntity.WaypointForEntity( location_ ) );
+	random_1 = Math.Random( gPlayerSensorRange, gPlayerSensorRange + distance );
+	
+	if ( habitat == false )
+	{
+		debug Debug.PrintString( "iTrafficScenario.Oddball: L-point is local \n" );
+		habitat = iHabitat.Nearest( localSet, lagrangePoint );
+	}
+	
+	random_0 = Math.RandomInt( 1, 4 );
+	
+	switch ( random_0 )
+	{
+		case 1:
+			group = iShipCreation.GetTraffic( ST_PassengerAll, A_Independent, 1 );
+			
+			if ( lagrangePoint != false )
+			{
+				local_12 = local_function_4( Group.NthSim( group, 0 ), lagrangePoint );
+			}
+			else
+			{
+				local_12 = local_function_4( Group.NthSim( group, 0 ), location_ );
+			}
+			
+			if ( local_12 )
+			{
+				local_function_5( lagrangePoint, 30 );
+				iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iTrafficScenario.Oddball - Assigning pilgrimage orders to list, lead by ship called -  " );
+				Debug.PrintString( Object.StringProperty( Group.NthSim( group, 0 ), "name" ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			local_11 = start iScriptedOrders.Pilgrimage( group );
+			Task.Detach( local_11 );
+			return;
+		
+		case 2:
+			group = iShipCreation.GetTraffic( ST_GeneralPurpose, A_Independent, 1 );
+			
+			if ( lagrangePoint != false )
+			{
+				local_12 = local_function_4( Group.NthSim( group, 0 ), lagrangePoint );
+			}
+			else
+			{
+				local_12 = local_function_4( Group.NthSim( group, 0 ), location_ );
+			}
+			
+			if ( local_12 )
+			{
+				local_function_5( lagrangePoint, 30 );
+				iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iTrafficScenario.oddball - Assigning unpredicatable orders to list, lead by ship called -  " );
+				Debug.PrintString( Object.StringProperty( Group.NthSim( group, 0 ), "name" ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			local_11 = start iScriptedOrders.Unpredictable( group );
+			Task.Detach( local_11 );
+			return;
+		
+		case 3:
+			group = iShipCreation.GetTraffic( ST_GeneralPurpose, A_Independent, 1 );
+			
+			if ( lagrangePoint != false )
+			{
+				local_12 = local_function_4( Group.NthSim( group, 0 ), lagrangePoint );
+			}
+			else
+			{
+				local_12 = local_function_4( Group.NthSim( group, 0 ), location_ );
+			}
+			
+			if ( local_12 )
+			{
+				local_function_5( lagrangePoint, 30 );
+				iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iTrafficScenario.Oddball - Assigning loiter orders to list, lead by ship called -  " );
+				Debug.PrintString( Object.StringProperty( Group.NthSim( group, 0 ), "name" ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			local_11 = start iScriptedOrders.Loiter( group );
+			Task.Detach( local_11 );
+			return;
+		
+		case 4:
+			group = iShipCreation.GetTraffic( ST_GeneralPurpose, A_Independent, 1 );
+			
+			if ( lagrangePoint != false )
+			{
+				local_12 = local_function_4( Group.NthSim( group, 0 ), lagrangePoint );
+			}
+			else
+			{
+				local_12 = local_function_4( Group.NthSim( group, 0 ), location_ );
+			}
+			
+			debug Debug.PrintString( "iTrafficScenario.Oddball - giving this cheesemaker cheesy orderd\n" );
+			
+			if ( local_12 )
+			{
+				local_function_5( lagrangePoint, 30 );
+				iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iTrafficScenario.oddball - Assigning loiter orders to list, lead by ship called -  " );
+				Debug.PrintString( Object.StringProperty( Group.NthSim( group, 0 ), "name" ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			local_11 = start iScriptedOrders.Loiter( group );
+			Task.Detach( local_11 );
+			return;
+	}
+}
+
+Civilian( hmapentity location_ )
+{
+	hship playerShip;
+	hgroup group;
+	int local_2;
+	int local_3;
+	hhabitat habitat = iHabitat.Cast( location_ );
+	hlagrangepoint lagrangePoint = iLagrangePoint.Cast( location_ );
+	set localSet;
+	int random_0;
+	float distance;
+	float gPlayerSensorRange = Global.Float( "g_player_sensor_range" );
+	float random_1;
+	htask local_11;
+	bool local_12 = false;
+	
+	debug atomic
+	{
+		Debug.PrintString( String.Join( " iTrafficScenario: Created Civilain Scenario for - ", Object.StringProperty( location_, "name" ) ) );
+		Debug.PrintString( " \n" );
+	}
+	
+	localSet = Global.Set( "g_filtered_system_habitats" );
+	playerShip = iShip.FindPlayerShip();
+	distance = Sim.DistanceBetween( playerShip, iMapEntity.WaypointForEntity( location_ ) );
+	random_1 = Math.Random( gPlayerSensorRange, gPlayerSensorRange + distance );
+	
+	if ( habitat == false )
+	{
+		debug Debug.PrintString( "iTrafficScenario.Civilian: L-point is local \n" );
+		habitat = iHabitat.Nearest( localSet, lagrangePoint );
+	}
+	
+	random_0 = Math.RandomInt( 1, 3 );
+	
+	if ( Math.RandomInt( 0, 100 ) == 22 )
+	{
+		random_0 = 4;
+	}
+	
+	switch ( random_0 )
+	{
+		case 1:
+			group = iShipCreation.GetTraffic( ST_Taxi, A_Independent, 1 );
+			
+			if ( lagrangePoint != false )
+			{
+				local_12 = local_function_4( Group.NthSim( group, 0 ), lagrangePoint );
+			}
+			else
+			{
+				local_12 = local_function_4( Group.NthSim( group, 0 ), location_ );
+			}
+			
+			if ( local_12 )
+			{
+				local_function_5( lagrangePoint, 30 );
+				iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iTrafficScenario.Civilian - Assigning  Cabbie orders to list, lead by ship called -  " );
+				Debug.PrintString( Object.StringProperty( Group.NthSim( group, 0 ), "name" ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			local_11 = start iScriptedOrders.Cabbie( group );
+			Task.Detach( local_11 );
+			return;
+		
+		case 2:
+			group = iShipCreation.GetTraffic( ST_Flitter, A_Independent, 1 );
+			
+			if ( lagrangePoint != false )
+			{
+				local_12 = local_function_4( Group.NthSim( group, 0 ), lagrangePoint );
+			}
+			else
+			{
+				local_12 = local_function_4( Group.NthSim( group, 0 ), location_ );
+			}
+			
+			if ( local_12 )
+			{
+				local_function_5( lagrangePoint, 30 );
+				iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iTrafficScenario.Civilian - Assigning Local Wander orders to list, lead by ship called -  " );
+				Debug.PrintString( Object.StringProperty( Group.NthSim( group, 0 ), "name" ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			local_11 = start iScriptedOrders.LocalWander( group );
+			Task.Detach( local_11 );
+			return;
+		
+		case 3:
+			group = iShipCreation.GetTraffic( ST_Taxi, A_Independent, 1 );
+			
+			if ( lagrangePoint != false )
+			{
+				local_12 = local_function_4( Group.NthSim( group, 0 ), lagrangePoint );
+			}
+			else
+			{
+				local_12 = local_function_4( Group.NthSim( group, 0 ), location_ );
+			}
+			
+			Object.AddBoolProperty( Group.Leader( group ), "taxi", true );
+			
+			if ( local_12 )
+			{
+				local_function_5( lagrangePoint, 30 );
+				iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iTrafficScenario.Civilian - Assigning tourist orders to list, lead by ship called -  " );
+				Debug.PrintString( Object.StringProperty( Group.NthSim( group, 0 ), "name" ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			local_11 = start iScriptedOrders.Tourist( group );
+			Task.Detach( local_11 );
+			return;
+		
+		case 4:
+			if ( Global.Exists( "g_hot_rodder_running" ) == 0 )
+			{
+				Global.CreateBool( "g_hot_rodder_running", 1, true );
+				group = iShipCreation.GetTraffic( ST_CombatLight, A_Independent, 1 );
+				
+				if ( lagrangePoint != false )
+				{
+					local_12 = local_function_4( Group.NthSim( group, 0 ), lagrangePoint );
+				}
+				else
+				{
+					local_12 = local_function_4( Group.NthSim( group, 0 ), location_ );
+				}
+				
+				if ( local_12 )
+				{
+					local_function_5( lagrangePoint, 30 );
+					iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+				}
+				
+				debug atomic
+				{
+					Debug.PrintString( "iTrafficScenario.Civilian - Assigning hotrodder orders to list, lead by ship called -  " );
+					Debug.PrintString( Object.StringProperty( Group.NthSim( group, 0 ), "name" ) );
+					Debug.PrintString( "\n" );
+				}
+				
+				local_11 = start iScriptedOrders.HotRodder( group );
+				Task.Detach( local_11 );
+			}
+			else debug Debug.PrintString( "iTrafficScenario.Civilian - Skipping hotrodder one already running\n" );
+			
+			return;
+	}
+}
+
+hfaction local_function_6( hfaction faction_ )
+{
+	list localList = iFaction.All();
+	int itemCount = List.ItemCount( localList );
+	int ii;
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		if ( iFaction.Feeling( iFaction.Cast( List.GetNth( localList, ii ) ), faction_ ) < 0.0 )
+		{
+			return iFaction.Cast( List.GetNth( localList, ii ) );
+		}
+	}
+	
+	return none;
+}
+
+Hostile( hmapentity location_ )
+{
+	hship playerShip;
+	hgroup group;
+	IeHabitatType ieHabitatType;
+	IeAllegiance ieAllegiance;
+	hhabitat habitat = iHabitat.Cast( location_ );
+	hlagrangepoint lagrangePoint = iLagrangePoint.Cast( location_ );
+	set localSet;
+	int random_0;
+	int random_1;
+	int local_9;
+	float distance;
+	float gPlayerSensorRange = Global.Float( "g_player_sensor_range" );
+	float random_2;
+	htask local_13;
+	bool local_14 = false;
+	
+	debug atomic
+	{
+		Debug.PrintString( String.Join( " iTrafficScenario - Created Hostile Scenario for - ", Object.StringProperty( location_, "name" ) ) );
+		Debug.PrintString( " \n" );
+	}
+	
+	localSet = Global.Set( "g_filtered_system_habitats" );
+	playerShip = iShip.FindPlayerShip();
+	distance = Sim.DistanceBetween( playerShip, iMapEntity.WaypointForEntity( location_ ) );
+	random_2 = Math.Random( gPlayerSensorRange, gPlayerSensorRange + distance );
+	
+	if ( habitat == false )
+	{
+		debug Debug.PrintString( "iTrafficScenario.Hostile: L-point is local \n" );
+		habitat = iHabitat.Nearest( localSet, lagrangePoint );
+		random_1 = Math.RandomInt( 1, 3 );
+	}
+	
+	switch ( Math.RandomInt( 0, 1 ) )
+	{
+		case 0:
+			ieHabitatType = iHabitat.Type( habitat );
+			ieAllegiance = iFaction.Allegiance( local_function_6( iFaction.Find( iUtilities.FromAllegianceEnum( iHabitat.Allegiance( habitat ) ) ) ) );
+			local_9 = iHabitat.Population( habitat );
+			local_9 = ( local_9 / 200 );
+			random_1 = Math.RandomInt( local_9 - 3, local_9 + 3 );
+			
+			if ( random_1 > 5 )
+			{
+				random_1 = 5;
+			}
+			
+			debug Debug.PrintString( String.Join( "iTrafficScenario.Hostile: Chosen to create Hostile shipping : ", String.FromInt( random_1 ) ) );
+			group = iShipCreation.GetTraffic( ST_CombatAll, ieAllegiance, random_1 );
+			
+			if ( lagrangePoint != false )
+			{
+				local_14 = local_function_4( Group.NthSim( group, 0 ), lagrangePoint );
+			}
+			else
+			{
+				local_14 = local_function_4( Group.NthSim( group, 0 ), location_ );
+			}
+			
+			random_0 = Math.RandomInt( 1, 3 );
+			
+			if ( local_14 )
+			{
+				local_function_5( lagrangePoint, 30 );
+				iUtilities.CapsuleJumpGroup( group, lagrangePoint, Math.Random( 1.0, 2.0 ) );
+				
+				switch ( random_0 )
+				{
+					case 1:
+						iFormation.Wedge( group, Math.Random( 1.0, 30.0 ), false );
+						break;
+					
+					case 2:
+						iFormation.Goose( group, Math.Random( 1.0, 30.0 ), false );
+						break;
+					
+					case 3:
+						iFormation.Claw( group, Math.Random( 1.0, 30.0 ), false );
+						break;
+				}
+			}
+			else switch ( random_0 )
+			{
+				case 1:
+					iFormation.Wedge( group, Math.Random( 1.0, 30.0 ), true );
+					break;
+				
+				case 2:
+					iFormation.Goose( group, Math.Random( 1.0, 30.0 ), true );
+					break;
+				
+				case 3:
+					iFormation.Claw( group, Math.Random( 1.0, 30.0 ), true );
+					break;
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iTrafficScenario.Hostile - Assigning station assault orders to list, lead by ship called -  " );
+				Debug.PrintString( Object.StringProperty( Group.NthSim( group, 0 ), "name" ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			local_13 = start iScriptedOrders.StationAssault( group );
+			Task.Detach( local_13 );
+			return;
+		
+		case 1:
+			group = iShipCreation.GetTraffic( ST_CombatLight, A_Independent, random_1 );
+			
+			if ( lagrangePoint != false )
+			{
+				local_14 = local_function_4( Group.NthSim( group, 0 ), lagrangePoint );
+			}
+			else
+			{
+				local_14 = local_function_4( Group.NthSim( group, 0 ), location_ );
+			}
+			
+			if ( local_14 )
+			{
+				local_function_5( lagrangePoint, 30 );
+				iUtilities.CapsuleJumpGroup( group, lagrangePoint, Math.Random( 1.0, 2.0 ) );
+				iFormation.RandomSphere( group, Math.Random( 10.0, 30.0 ), false );
+			}
+			else
+			{
+				iFormation.RandomSphere( group, Math.Random( 10.0, 30.0 ), true );
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iTrafficScenario.underworld - Assigning agressive loiter orders to list, lead by ship called -  " );
+				Debug.PrintString( Object.StringProperty( Group.NthSim( group, 0 ), "name" ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			local_13 = start iScriptedOrders.AggressiveLoiter( group );
+			Task.Detach( local_13 );
+			return;
+	}
+}
+
+Scum( hmapentity location_ )
+{
+	hship playerShip;
+	hgroup group;
+	IeHabitatType ieHabitatType;
+	IeAllegiance ieAllegiance;
+	hhabitat habitat = iHabitat.Cast( location_ );
+	hlagrangepoint lagrangePoint = iLagrangePoint.Cast( location_ );
+	int random_0;
+	int random_1;
+	float distance;
+	float gPlayerSensorRange = Global.Float( "g_player_sensor_range" );
+	float random_2;
+	htask local_11;
+	bool local_12 = false;
+	
+	debug atomic
+	{
+		Debug.PrintString( String.Join( "iTrafficScenario: Created Scum Scenario for ", Object.StringProperty( location_, "name" ) ) );
+		Debug.PrintString( " \n" );
+	}
+	
+	if ( habitat == false )
+	{
+		if ( iLagrangePoint.Interstellar( lagrangePoint ) == 1 )
+		{
+			debug Debug.PrintString( "iTraffcScenario.Scum: L-point is interstellar \n" );
+		}
+		else debug Debug.PrintString( "iTrafficScenario.Scum: L-point is local \n" );
+	}
+	else
+	{
+		ieHabitatType = iHabitat.Type( habitat );
+	}
+	
+	ieAllegiance = A_Independent;
+	playerShip = iShip.FindPlayerShip();
+	distance = Sim.DistanceBetween( playerShip, iMapEntity.WaypointForEntity( location_ ) );
+	random_2 = Math.Random( gPlayerSensorRange, gPlayerSensorRange + distance );
+	random_0 = Math.RandomInt( 0, 2 );
+	
+	switch ( random_0 )
+	{
+		case 0:
+			random_1 = Math.RandomInt( 1, 4 );
+			
+			debug atomic
+			{
+				Debug.PrintString( String.Join( "iTrafficScenario.Scum: Chosen to create Scavanger Scum : ", String.FromInt( random_1 ) ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			group = iShipCreation.GetTraffic( ST_GeneralPurpose, ieAllegiance, random_1 );
+			
+			if ( lagrangePoint != false )
+			{
+				local_12 = local_function_4( Group.NthSim( group, 0 ), lagrangePoint );
+			}
+			else
+			{
+				local_12 = local_function_4( Group.NthSim( group, 0 ), location_ );
+			}
+			
+			if ( local_12 )
+			{
+				local_function_5( lagrangePoint, 30 );
+				iUtilities.CapsuleJumpGroup( group, lagrangePoint, Math.Random( 1.0, 2.0 ) );
+				iFormation.RandomSphere( group, Math.Random( 20.0, 40.0 ), false );
+			}
+			else
+			{
+				iFormation.RandomSphere( group, Math.Random( 20.0, 40.0 ), true );
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iTrafficScenario.Scum - Assigning scavanger orders to list, lead by ship called -  " );
+				Debug.PrintString( Object.StringProperty( Group.NthSim( group, 0 ), "name" ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			local_11 = start iScriptedOrders.Scavanger( group );
+			Task.Detach( local_11 );
+			return;
+		
+		case 1:
+			debug atomic
+			{
+				Debug.PrintString( "iTrafficScenario.Scum: Chosen to create KnackardVessel ( tramp steamer )Scum" );
+				Debug.PrintString( "\n" );
+			}
+			
+			group = iShipCreation.GetTraffic( ST_GeneralPurpose, ieAllegiance, 1 );
+			
+			if ( lagrangePoint != false )
+			{
+				local_12 = local_function_4( Group.NthSim( group, 0 ), lagrangePoint );
+			}
+			else
+			{
+				local_12 = local_function_4( Group.NthSim( group, 0 ), location_ );
+			}
+			
+			if ( local_12 )
+			{
+				local_function_5( lagrangePoint, 30 );
+				iSim.CapsuleJumpStaggered( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iTrafficScenario.Scum - Assigning loiter orders to list, lead by ship called -  " );
+				Debug.PrintString( Object.StringProperty( Group.NthSim( group, 0 ), "name" ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			local_11 = start iScriptedOrders.Loiter( group );
+			Task.Detach( local_11 );
+			return;
+		
+		case 2:
+			random_1 = Math.RandomInt( 1, 4 );
+			
+			debug atomic
+			{
+				Debug.PrintString( String.Join( "iTrafficScenario.Scum: Chosen to create Gypsy Scum : ", String.FromInt( random_1 ) ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			group = iShipCreation.GetTraffic( ST_GeneralPurpose, ieAllegiance, random_1 );
+			
+			if ( lagrangePoint != false )
+			{
+				local_12 = local_function_4( Group.NthSim( group, 0 ), lagrangePoint );
+			}
+			else
+			{
+				local_12 = local_function_4( Group.NthSim( group, 0 ), location_ );
+			}
+			
+			if ( local_12 )
+			{
+				local_function_5( lagrangePoint, 30 );
+				iUtilities.CapsuleJumpGroup( group, lagrangePoint, Math.Random( 1.0, 2.0 ) );
+				iFormation.LineAbreast( group, Math.Random( 20.0, 40.0 ), false );
+			}
+			else
+			{
+				iFormation.LineAbreast( group, Math.Random( 1.0, 40.0 ), true );
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iTrafficScenario.Scum - Assigning  Wander  orders to list, lead by ship called -  " );
+				Debug.PrintString( Object.StringProperty( Group.NthSim( group, 0 ), "name" ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			local_11 = start iScriptedOrders.Wander( group );
+			Task.Detach( local_11 );
+			return;
+	}
+}
+

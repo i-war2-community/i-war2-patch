@@ -1,0 +1,144 @@
+package iMissionTracker;
+
+uses Debug,
+     String,
+     Set,
+     List,
+     Global,
+     Math,
+     Task;
+
+provides AddMission,
+         Initialise,
+         Test,
+         RemoveMission;
+
+prototype Initialise();
+prototype local_function_0();
+prototype AddMission( htask my_handle_, int act_number_, int mission_number_ );
+prototype RemoveMission( htask task_to_remove_ );
+prototype task local_function_1();
+prototype Test();
+
+Initialise()
+{
+	Global.CreateString( "g_mt_mstring", 2, "active missions: none" );
+	Global.CreateInt( "g_mt_mtask_counter", 2, 0 );
+}
+
+local_function_0()
+{
+	int ii;
+	int gMtMtaskCounter;
+	htask local_2;
+	string local_3;
+	
+	if ( !Global.Exists( "g_mt_mtask_counter" ) )
+	{
+		Global.CreateString( "g_mt_mstring", 2, "active missions: none" );
+		debug Debug.PrintString( "iMissionTracker.UpdateString called before iMissionTracker.Initialise" );
+		return;
+	}
+	
+	local_3 = "active missions:";
+	gMtMtaskCounter = Global.Int( "g_mt_mtask_counter" );
+	
+	for ( ii = 0; ii < gMtMtaskCounter; ++ii )
+	{
+		local_2 = Task.Cast( Global.Handle( String.Join( "g_mt_mtask_handle", String.FromInt( ii ) ) ) );
+		
+		if ( Task.IsRunning( local_2 ) )
+		{
+			local_3 = String.Join( local_3, Global.String( String.Join( "g_mt_mtask_string", String.FromInt( ii ) ) ) );
+		}
+	}
+	
+	Global.SetString( "g_mt_mstring", local_3 );
+	
+	debug atomic
+	{
+		Debug.PrintString( local_3 );
+		Debug.PrintString( "\n" );
+	}
+}
+
+AddMission( htask my_handle_, int act_number_, int mission_number_ )
+{
+	int gMtMtaskCounter;
+	
+	if ( !Global.Exists( "g_mt_mtask_counter" ) )
+	{
+		debug Debug.PrintString( "iMissionTracker.AddMission called before iMissionTracker.Initialise" );
+		Initialise();
+	}
+	
+	gMtMtaskCounter = Global.Int( "g_mt_mtask_counter" );
+	Global.CreateString( String.Join( "g_mt_mtask_string", String.FromInt( gMtMtaskCounter ) ), 2, String.Join( " ", String.Join( String.FromInt( act_number_ ), String.Join( "-", String.FromInt( mission_number_ ) ) ) ) );
+	Global.CreateHandle( String.Join( "g_mt_mtask_handle", String.FromInt( gMtMtaskCounter ) ), 2, my_handle_ );
+	gMtMtaskCounter = ( gMtMtaskCounter + 1 );
+	Global.SetInt( "g_mt_mtask_counter", gMtMtaskCounter );
+	local_function_0();
+}
+
+RemoveMission( htask task_to_remove_ )
+{
+	int ii;
+	int gMtMtaskCounter;
+	htask local_2;
+	
+	if ( !Global.Exists( "g_mt_mtask_counter" ) )
+	{
+		Global.CreateString( "g_mt_mstring", 2, "active missions: none" );
+		debug Debug.PrintString( "iMissionTracker.UpdateString called before iMissionTracker.Initialise" );
+		return;
+	}
+	
+	gMtMtaskCounter = Global.Int( "g_mt_mtask_counter" );
+	
+	for ( ii = 0; ii < gMtMtaskCounter; ++ii )
+	{
+		local_2 = Task.Cast( Global.Handle( String.Join( "g_mt_mtask_handle", String.FromInt( ii ) ) ) );
+		
+		if ( local_2 == task_to_remove_ )
+		{
+			Global.SetHandle( String.Join( "g_mt_mtask_handle", String.FromInt( ii ) ), none );
+		}
+	}
+	
+	local_function_0();
+}
+
+task local_function_1()
+{
+	int local_0 = 0;
+	
+	while ( 1 )
+	{
+		local_0 = ( local_0 + 1 );
+	}
+}
+
+Test()
+{
+	int ii;
+	int jj;
+	htask local_2;
+	
+	Initialise();
+	
+	for ( ii = 0; ii < 5; ++ii )
+	{
+		for ( jj = 0; jj < 5; ++jj )
+		{
+			local_2 = start local_function_1();
+			AddMission( local_2, ii, jj );
+			
+			if ( Math.Random( 0.0, 4.0 ) > 2.0 )
+			{
+				RemoveMission( local_2 );
+				debug Debug.PrintString( "removed recentmost task in iMissionTracker Test\n" );
+			}
+		}
+	}
+}
+

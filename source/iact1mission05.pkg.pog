@@ -1,0 +1,719 @@
+package iAct1Mission05;
+
+uses Debug,
+     String,
+     Set,
+     List,
+     Global,
+     Sim,
+     Group,
+     Object,
+     State,
+     Task,
+     Text,
+     iSim,
+     iBody,
+     iHabitat,
+     iShip,
+     Subsim,
+     iDockport,
+     iLagrangePoint,
+     iAI,
+     iCargo,
+     iComms,
+     iConversation,
+     GUI,
+     iEmail,
+     MapEnumerations,
+     iFaction,
+     iFormation,
+     CargoTypes,
+     iInventory,
+     iMapEntity,
+     iMissionTracker,
+     iObjectives,
+     iPilotSetup,
+     iRangeCheck,
+     iScriptedOrders,
+     INIFile,
+     iUtilities,
+     Math,
+     iCargoScript,
+     iShipCreation,
+     iWingmen;
+
+provides Main,
+         MissionHandler,
+         Stub;
+
+prototype Main();
+prototype Stub();
+prototype local_function_2( hstate state_ );
+prototype local_function_1();
+prototype task local_function_0();
+prototype task local_function_3( htask param_0_, hstate state_, hship ship_0_, hship ship_1_, hship ship_2_, hship ship_3_, hship ship_4_, hship ship_5_, hship ship_6_, hgroup group_0_, hgroup group_1_, hgroup group_2_, hgroup group_3_, hgroup group_4_, hisim param_14_ );
+prototype task MissionHandler();
+prototype hgroup local_function_4( hmapentity mapentity_ );
+prototype hgroup local_function_5( hisim param_0_, float param_1_ );
+prototype hgroup local_function_8( hsim param_0_, float param_1_, int param_2_ );
+prototype task local_function_7( hship ship_, float param_1_ );
+prototype bool local_function_6( hgroup group_, hship ship_ );
+
+Main()
+{
+	debug Debug.PrintString( "iAct1_Mission05.Main - STARTED\n" );
+	start local_function_0();
+}
+
+Stub()
+{
+	iInventory.Add( CT_AssaultCannon, 1 );
+	iInventory.Add( CT_LDSClass2Drive, 1 );
+	
+	if ( Global.Exists( "g_act1_destroyed_marauder_cache" ) )
+	{
+		Global.SetBool( "g_act1_destroyed_marauder_cache", true );
+	}
+}
+
+local_function_2( hstate state_ )
+{
+	hsim waypointLucreciasBase;
+	hship playerShip = iShip.FindPlayerShip();
+	
+	waypointLucreciasBase = iUtilities.CreateWaypointRelativeTo( iMapEntity.FindByName( "Lucrecia's Base" ), 0.0, 0.0, 900000.0 );
+	Object.AddHandleProperty( playerShip, "restart_waypoint", waypointLucreciasBase );
+	Object.AddHandleProperty( playerShip, "current_mission_state", state_ );
+}
+
+local_function_1()
+{
+	iObjectives.Remove( "a1_m05_objectives_meet" );
+	iObjectives.Remove( "a1_m05_objectives_checkout" );
+}
+
+task local_function_0()
+{
+	while ( iComms.IsInConversation() )
+	{
+		Task.Sleep( Task.Current(), 0.50 );
+	}
+	
+	if ( !iUtilities.SkipMission( "Marauder Cache?" ) )
+	{
+		Task.Detach( start MissionHandler() );
+		return;
+	}
+	
+	Stub();
+}
+
+task local_function_3( htask param_0_, hstate state_, hship ship_0_, hship ship_1_, hship ship_2_, hship ship_3_, hship ship_4_, hship ship_5_, hship ship_6_, hgroup group_0_, hgroup group_1_, hgroup group_2_, hgroup group_3_, hgroup group_4_, hisim param_14_ )
+{
+	schedule
+	{
+		every 1.0:
+		{
+			if ( State.Progress( state_ ) == 100 )
+			{
+				Sim.Destroy( ship_0_ );
+				Sim.Destroy( ship_1_ );
+				Sim.Destroy( ship_2_ );
+				Sim.Destroy( ship_3_ );
+				Sim.Destroy( ship_4_ );
+				Sim.Destroy( ship_5_ );
+				Sim.Destroy( ship_6_ );
+				Sim.Destroy( param_14_ );
+				Sim.Destroy( Sim.FindByName( "a1_m05_waypoint_meeting" ) );
+				Group.Destroy( group_0_, true );
+				Group.Destroy( group_1_, true );
+				Group.Destroy( group_2_, true );
+				Group.Destroy( group_3_, true );
+				Group.Destroy( group_4_, true );
+				
+				atomic
+				{
+					Global.SetBool( "g_skip_locked", false );
+				}
+				
+				Task.Detach( start local_function_0() );
+				local_function_1();
+				State.Destroy( param_0_ );
+				iUtilities.RemoveMissionRestart();
+				iMissionTracker.RemoveMission( Task.Current() );
+				Task.Halt( param_0_ );
+				return;
+			}
+		}
+	}
+}
+
+task MissionHandler()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	hisim simWaypoint_0;
+	hisim simWaypoint_1;
+	hmapentity blackfoot_0;
+	hmapentity blackfoot_1;
+	hmapentity lucreciasBase;
+	hmapentity hoffersGap;
+	hship groupLeader_0;
+	hship ship_0;
+	hship ship_1;
+	hship groupLeader_1;
+	hship ship_2;
+	hship ship_3;
+	hship shipFreighter;
+	hship shipCargoPod_0;
+	hship shipCargoPod_1;
+	hgroup group_0;
+	hgroup group_1;
+	hgroup group_2;
+	hgroup group_3;
+	hgroup group_4;
+	hgroup group_5;
+	hgroup group_6;
+	bool local_23;
+	hstate taskState = State.Find( Task.Current() );
+	hemail email;
+	int simCount;
+	bool local_27 = false;
+	
+	debug Debug.PrintString( "iAct1_Mission05: Mission Started\n" );
+	
+	if ( !taskState )
+	{
+		taskState = State.Create( Task.Current(), 1 );
+	}
+	
+	iMissionTracker.AddMission( Task.Current(), 1, 5 );
+	Text.Add( "csv:/text/act_1/act1_mission05" );
+	email = iEmail.Find( "html:/text/act_1/act1_mission05_email" );
+	
+	if ( !email )
+	{
+		iEmail.SendEmail( "a1_m05_email_sender", "a1_m05_email_subject", "html:/text/act_1/act1_mission05_email", true );
+		debug Debug.PrintString( "iAct1_Mission05.MissionHandler: Email Sent - EXITING\n" );
+		return;
+	}
+	
+	if ( !iEmail.Read( email ) )
+	{
+		debug Debug.PrintString( "iAct1_Mission05.MissionHandler: Email not read yet - EXITING\n" );
+		return;
+	}
+	
+	local_function_2( taskState );
+	debug Debug.PrintString( "iAct1_Mission05.MissionHandler: Checking State\n" );
+	
+	if ( Object.PropertyExists( taskState, "given_obj_1" ) == 0 )
+	{
+		Object.AddIntProperty( taskState, "given_obj_1", 1 );
+		iObjectives.Add( "a1_m05_objectives_meet" );
+	}
+	
+	Task.Detach( start local_function_3( Task.Current(), taskState, groupLeader_0, ship_0, ship_1, groupLeader_1, ship_2, ship_3, shipFreighter, group_0, group_1, group_2, group_3, group_5, simWaypoint_0 ) );
+	lucreciasBase = iMapEntity.FindByNameInSystem( "Lucrecia's Base", "map:/geog/badlands/hoffers_wake" );
+	
+	debug
+	{
+		if ( lucreciasBase == false )
+		{
+			Debug.Error( "Unable to find player base " );
+		}
+	}
+	
+	blackfoot_0 = iMapEntity.FindByNameInSystem( "Blackfoot", "map:/geog/badlands/hoffers_wake" );
+	
+	debug
+	{
+		if ( blackfoot_0 == false )
+		{
+			Debug.Error( "Unable to find blackfoot " );
+		}
+	}
+	
+	blackfoot_1 = iMapEntity.FindByNameInSystem( "Blackfoot", "map:/geog/badlands/hoffers_wake" );
+	
+	debug
+	{
+		if ( blackfoot_1 == false )
+		{
+			Debug.Error( "Unable to find blackfoot " );
+		}
+	}
+	
+	hoffersGap = iMapEntity.FindByNameInSystem( "Hoffer's Gap", "map:/geog/badlands/hoffers_wake" );
+	
+	debug
+	{
+		if ( hoffersGap == false )
+		{
+			Debug.Error( "Unable to find hoffers gap " );
+		}
+	}
+	
+	switch ( State.Progress( taskState ) )
+	{
+		case 1:
+			local_27 = true;
+			
+			if ( !Object.PropertyExists( taskState, "oregon_alive" ) )
+			{
+				Object.AddBoolProperty( taskState, "oregon_alive", true );
+			}
+			
+			iRangeCheck.AddTrafficException( blackfoot_0 );
+			simWaypoint_0 = iSim.Cast( Sim.Create( "ini:/sims/nav/waypoint", "a1_m05_waypoint_meeting" ) );
+			iSim.SetSensorVisibility( simWaypoint_0, true );
+			Sim.SetCullable( simWaypoint_0, false );
+			iUtilities.SimPlaceBetweenExact( simWaypoint_0, blackfoot_1, lucreciasBase, 10000.0 );
+			
+			schedule
+			{
+				every 1.0:
+				{
+					if ( iUtilities.PlayerInRange( simWaypoint_0 ) )
+					{
+						break;
+					}
+				}
+			}
+			
+			group_1 = local_function_4( blackfoot_1 );
+			
+			debug
+			{
+				if ( Group.SimCount( group_1 ) == 0 )
+				{
+					Debug.Error( "Unable to setup miners " );
+				}
+			}
+			
+			groupLeader_0 = iShip.Cast( Group.Leader( group_1 ) );
+			ship_0 = iShip.Cast( Group.NthSim( group_1, 1 ) );
+			ship_1 = iShip.Cast( Group.NthSim( group_1, 2 ) );
+			
+			schedule
+			{
+				every 1.0:
+				{
+					if ( Sim.DistanceBetween( playerShip, simWaypoint_0 ) < 8000.0 )
+					{
+						break;
+					}
+				}
+			}
+			
+			iObjectives.SetState( "a1_m05_objectives_meet", OS_Succeeded );
+			iConversation.OneLiner( groupLeader_0, "", "a1_m05_dialogue_miner_who_goes_there" );
+			iConversation.OneLiner( none, "name_cal", "a1_m05_dialogue_player_its_cal_what_did_you_want" );
+			iConversation.OneLiner( groupLeader_0, "", "a1_m05_dialogue_miner_i_have_some_marauder_info" );
+			iSim.SetSensorVisibility( simWaypoint_0, false );
+			
+			atomic
+			{
+				group_0 = local_function_5( playerShip, 25000.0 );
+				groupLeader_1 = iShip.Cast( Group.Leader( group_0 ) );
+				ship_2 = iShip.Cast( Group.NthSim( group_0, 1 ) );
+				ship_3 = iShip.Cast( Group.NthSim( group_0, 2 ) );
+				
+				debug
+				{
+					if ( group_0 == false )
+					{
+						Debug.Error( "marauder_group is invalid" );
+					}
+				}
+				
+				Sim.PointAt( groupLeader_1, blackfoot_1 );
+				iFormation.V( group_0, 0.0, true );
+				iFormation.V( group_6, 0.0, true );
+			}
+			
+			iConversation.OneLiner( groupLeader_0, "", "a1_m05_dialogue_miner_oh_no_its_the_marauders" );
+			iAI.GiveAttackOrder( groupLeader_1, groupLeader_0 );
+			iAI.GiveAttackOrder( ship_2, ship_0 );
+			iAI.GiveAttackOrder( ship_3, ship_1 );
+			local_23 = false;
+			
+			schedule
+			{
+				every 1.0:
+				{
+					if ( iAI.IsOrderComplete( groupLeader_1 ) || !iAI.HasOrder( groupLeader_1 ) )
+					{
+						iAI.GiveAttackOrder( groupLeader_1, playerShip );
+					}
+					
+					if ( iAI.IsOrderComplete( ship_2 ) || !iAI.HasOrder( ship_2 ) )
+					{
+						iAI.GiveAttackOrder( ship_2, playerShip );
+					}
+					
+					if ( iAI.IsOrderComplete( ship_3 ) || !iAI.HasOrder( ship_3 ) )
+					{
+						iAI.GiveAttackOrder( ship_3, playerShip );
+					}
+					
+					if ( !iUtilities.PlayerInRange( simWaypoint_0 ) )
+					{
+						Sim.Destroy( simWaypoint_0 );
+						Sim.Destroy( blackfoot_1 );
+						Group.Destroy( group_0, false );
+						Group.Destroy( group_1, false );
+						iConversation.Begin();
+						iConversation.Say( groupLeader_0, "", "a1_m05_dialogue_miner_help_the_marauders_are_here" );
+						iConversation.Say( groupLeader_0, "", "a1_m05_dialogue_miner_arrrghhh" );
+						iConversation.Say( none, "name_clay", "a1_m05_dialogue_clay_we_cant_help_him_now" );
+						iConversation.End();
+						Text.Remove( "csv:/text/act_1/act1_mission05" );
+						State.Destroy( Task.Current() );
+						iMissionTracker.RemoveMission( Task.Current() );
+						return;
+					}
+					
+					if ( Sim.IsDead( groupLeader_0 ) && (local_23 == 0) )
+					{
+						local_23 = true;
+						Object.RemoveProperty( taskState, "oregon_alive" );
+						iConversation.Begin();
+						iConversation.Say( none, "name_clay", "a1_m05_dialogue_clay_darn_the_marauders_got_him" );
+						iConversation.Say( none, "name_clay", "a1_m05_dialogue_clay_we_messed_up_there" );
+						iConversation.Say( none, "name_clay", "a1_m05_dialogue_clay_we_cant_help_him_now" );
+						iConversation.End();
+					}
+					
+					if ( Sim.IsAlive( groupLeader_1 ) )
+					{
+						if ( !iUtilities.PlayerInRange( groupLeader_1 ) )
+						{
+							Sim.Destroy( groupLeader_1 );
+						}
+					}
+					
+					if ( Sim.IsAlive( ship_2 ) )
+					{
+						if ( !iUtilities.PlayerInRange( ship_2 ) )
+						{
+							Sim.Destroy( ship_2 );
+						}
+					}
+					
+					if ( Sim.IsAlive( ship_3 ) )
+					{
+						if ( !iUtilities.PlayerInRange( ship_3 ) )
+						{
+							Sim.Destroy( ship_3 );
+						}
+					}
+					
+					if ( Group.SimCount( group_0 ) == 0 )
+					{
+						if ( Sim.IsAlive( groupLeader_0 ) )
+						{
+							iConversation.Begin();
+							iConversation.Say( groupLeader_0, "", "a1_m05_dialogue_miner_thanks" );
+							iConversation.Say( groupLeader_0, "", "a1_m05_dialogue_miner_i_found_a_marauder_supply_cache" );
+							iConversation.Say( groupLeader_0, "", "a1_m05_dialogue_miner_ive_transmitted_you_the_waypoint" );
+							iConversation.End();
+							iObjectives.Add( "a1_m05_objectives_checkout" );
+						}
+						else
+						{
+							iConversation.Begin();
+							iConversation.Say( none, "name_clay", "a1_m05_dialogue_clay_well_we_avenged_him_for_what_its_worth" );
+							iConversation.Say( none, "name_clay", "a1_m05_dialogue_clay_hey_kid_check_your_sensors" );
+							iConversation.End();
+						}
+						
+						break;
+					}
+				}
+			}
+			
+			State.SetProgress( taskState, 2 );
+		
+		case 2:
+			simWaypoint_1 = iSim.Cast( Sim.Create( "ini:/sims/nav/waypoint", "a1_m05_waypoint_cache" ) );
+			Sim.PlaceBetween( simWaypoint_1, blackfoot_1, hoffersGap, 0.40 );
+			iSim.SetSensorVisibility( simWaypoint_1, true );
+			
+			if ( local_27 )
+			{
+				schedule
+				{
+					every 0.10:
+					{
+						if ( Sim.DistanceBetween( playerShip, simWaypoint_0 ) > 150000.0 )
+						{
+							break;
+						}
+					}
+				}
+				
+				if ( Object.PropertyExists( taskState, "oregon_alive" ) && Sim.IsDead( groupLeader_0 ) )
+				{
+					debug Debug.PrintString( "iAct1_Mission05: Naughty player killed oregon, so he'll not get the big reward. \n" );
+					Object.RemoveProperty( taskState, "oregon_alive" );
+				}
+			}
+			
+			if ( Sim.IsAlive( simWaypoint_0 ) )
+			{
+				Sim.Destroy( simWaypoint_0 );
+			}
+			
+			schedule
+			{
+				every 0.10:
+				{
+					if ( Sim.DistanceBetween( playerShip, simWaypoint_1 ) < 250000.0 )
+					{
+						break;
+					}
+				}
+			}
+			
+			iRangeCheck.RemoveTrafficException( blackfoot_0 );
+			Group.Destroy( group_1, false );
+			Group.Destroy( group_0, false );
+			group_2 = Group.Create();
+			group_0 = local_function_5( simWaypoint_1, 3000.0 );
+			Group.AddGroup( group_2, group_0 );
+			iFormation.Goose( group_0, 0.0, true );
+			group_3 = iShipCreation.CreateCargoPods( CT_Hullplates, 7 );
+			group_4 = iShipCreation.CreateCargoPods( CT_AssaultCannonAmmo, 2 );
+			Group.AddGroup( group_3, group_4 );
+			Group.Flatten( group_3 );
+			Group.AddGroup( group_2, group_3 );
+			shipCargoPod_0 = iShip.Create( "ini:/sims/ships/utility/cargo_pod", "" );
+			Object.SetIntProperty( shipCargoPod_0, "cargo", 560 );
+			iSim.SetIndestructable( shipCargoPod_0, true );
+			iUtilities.RenameSim( shipCargoPod_0, iCargo.Name( iCargo.Find( 560 ) ) );
+			Group.AddSim( group_3, shipCargoPod_0 );
+			Sim.PlaceNear( Group.Leader( group_3 ), simWaypoint_1, 500.0 );
+			iFormation.Box( group_3, 100.0, true );
+			iFormation.Jiggle( group_3, 50.0, 90.0 );
+			
+			if ( Object.PropertyExists( taskState, "oregon_alive" ) )
+			{
+				debug Debug.PrintString( "iAct1_Mission05: Oregon's alive, so we're creating the freighter \n" );
+				shipFreighter = iShip.Create( "ini:/sims/ships/utility/freighter", "a1_m05_ship_marauder_freighter" );
+				Group.AddSim( group_2, shipFreighter );
+				iPilotSetup.GenericCargoPod( shipFreighter );
+				iSim.SetFaction( shipFreighter, iFaction.Find( "Marauders" ) );
+				Sim.PlaceNear( shipFreighter, simWaypoint_1, 1500.0 );
+				group_5 = iShipCreation.CreateCargoPods( CT_Hullplates, 4 );
+				Group.AddGroup( group_2, group_5 );
+				shipCargoPod_1 = iShip.Create( "ini:/sims/ships/utility/cargo_pod", "" );
+				Object.SetIntProperty( shipCargoPod_1, "cargo", 216 );
+				iSim.SetIndestructable( shipCargoPod_1, true );
+				iUtilities.RenameSim( shipCargoPod_1, iCargo.Name( iCargo.Find( 216 ) ) );
+				Group.AddSim( group_5, shipCargoPod_1 );
+				local_function_6( group_5, shipFreighter );
+			}
+			
+			simCount = Group.SimCount( group_0 );
+			
+			schedule
+			{
+				every 1.0:
+				{
+					if ( (Sim.DistanceBetween( playerShip, simWaypoint_1 ) < 30000.0) || (Group.SimCount( group_0 ) != simCount) )
+					{
+						break;
+					}
+				}
+			}
+			
+			iAI.GiveAttackOrder( group_0, iWingmen.Group() );
+			iObjectives.SetState( "a1_m05_objectives_checkout", OS_Succeeded );
+			
+			if ( Object.PropertyExists( taskState, "oregon_alive" ) )
+			{
+				iConversation.OneLiner( none, "name_clay", "a1_m05_dialogue_clay_there_it_is" );
+			}
+			
+			if ( Group.SimCount( group_0 ) > 0 )
+			{
+				iConversation.OneLiner( none, "name_clay", "a1_m05_dialogue_clay_uhoh_marauders_ahead" );
+			}
+			
+			if ( Object.PropertyExists( taskState, "oregon_alive" ) )
+			{
+				start local_function_7( shipFreighter, 40.0 );
+			}
+			
+			local_23 = false;
+			
+			schedule
+			{
+				every 1.0:
+				{
+					if ( (Group.SimCount( group_0 ) == 0) && Sim.IsDead( shipFreighter ) )
+					{
+						iConversation.OneLiner( none, "name_clay", "a1_m05_dialogue_clay_that_took_care_of_the_marauders" );
+						break;
+					}
+					
+					if ( Object.PropertyExists( taskState, "oregon_alive" ) )
+					{
+						if ( !iUtilities.PlayerInRange( shipFreighter ) && ((Sim.DistanceBetween( shipFreighter, simWaypoint_1 ) > 200000.0) && (local_23 == 0)) )
+						{
+							if ( Sim.IsAlive( shipFreighter ) )
+							{
+								local_23 = true;
+								iConversation.OneLiner( none, "name_clay", "a1_m05_dialogue_clay_the_freighters_escaped" );
+								iConversation.End();
+							}
+						}
+					}
+					
+					if ( !iUtilities.PlayerInRange( simWaypoint_1 ) )
+					{
+						Sim.Destroy( simWaypoint_1 );
+						iConversation.OneLiner( none, "name_clay", "a1_m05_dialogue_clay_darn_the_beacons_gone" );
+						break;
+					}
+				}
+			}
+			
+			schedule
+			{
+				every 1.0:
+				{
+					if ( Sim.IsDead( simWaypoint_1 ) )
+					{
+						break;
+					}
+					
+					if ( Sim.DistanceBetween( playerShip, simWaypoint_1 ) < 10000.0 )
+					{
+						break;
+					}
+				}
+			}
+			
+			if ( Sim.IsAlive( simWaypoint_1 ) )
+			{
+				Sim.Destroy( simWaypoint_1 );
+			}
+			
+			Group.Destroy( group_2, false );
+			
+			if ( Global.Exists( "g_act1_destroyed_marauder_cache" ) )
+			{
+				Global.SetBool( "g_act1_destroyed_marauder_cache", true );
+			}
+	}
+	
+	State.Destroy( Task.Current() );
+	iMissionTracker.RemoveMission( Task.Current() );
+	iUtilities.RemoveMissionRestart();
+}
+
+hgroup local_function_4( hmapentity mapentity_ )
+{
+	hship shipTruckProspector;
+	hship shipLightminer;
+	hship shipPuffin;
+	hgroup group = Group.Create();
+	
+	shipTruckProspector = iShip.Create( "ini:/sims/ships/utility/truck_prospector", "a1_m05_ship_miner_1" );
+	Group.AddSim( group, shipTruckProspector );
+	iPilotSetup.Marauder( shipTruckProspector );
+	iSim.SetFaction( shipTruckProspector, iFaction.Find( iUtilities.FromAllegianceEnum( A_Independent ) ) );
+	Sim.PlaceNear( shipTruckProspector, mapentity_, 1000.0 );
+	shipLightminer = iShip.Create( "ini:/sims/ships/utility/lightminer", "a1_m05_ship_miner_2" );
+	Group.AddSim( group, shipLightminer );
+	iPilotSetup.GenericCoward( shipLightminer );
+	iSim.SetFaction( shipLightminer, iFaction.Find( iUtilities.FromAllegianceEnum( A_Independent ) ) );
+	Sim.PlaceNear( shipLightminer, mapentity_, 1000.0 );
+	shipPuffin = iShip.Create( "ini:/sims/ships/utility/puffin", "a1_m05_ship_miner_3" );
+	Group.AddSim( group, shipPuffin );
+	iPilotSetup.GenericCoward( shipPuffin );
+	iSim.SetFaction( shipPuffin, iFaction.Find( iUtilities.FromAllegianceEnum( A_Independent ) ) );
+	Sim.PlaceNear( shipPuffin, mapentity_, 1000.0 );
+	start iScriptedOrders.LoiterNearSim( shipTruckProspector, mapentity_ );
+	start iScriptedOrders.LoiterNearSim( shipLightminer, mapentity_ );
+	start iScriptedOrders.LoiterNearSim( shipPuffin, mapentity_ );
+	return group;
+}
+
+hgroup local_function_5( hisim param_0_, float param_1_ )
+{
+	hgroup group = Group.Create();
+	hfaction marauders = iFaction.Find( "Marauders" );
+	hship shipMarauderCutter_0 = iShip.Create( "ini:/sims/ships/marauder/marauder_cutter", "a1_m05_ship_marauder_1" );
+	hship shipMarauderCutter_1 = iShip.Create( "ini:/sims/ships/marauder/marauder_cutter", "a1_m05_ship_marauder_2" );
+	hship shipMarauderCutter_2 = iShip.Create( "ini:/sims/ships/marauder/marauder_cutter", "a1_m05_ship_marauder_3" );
+	
+	Group.AddSim( group, shipMarauderCutter_0 );
+	iPilotSetup.Marauder( shipMarauderCutter_0 );
+	iSim.SetFaction( shipMarauderCutter_0, marauders );
+	Sim.PlaceNear( shipMarauderCutter_0, param_0_, param_1_ );
+	Group.AddSim( group, shipMarauderCutter_1 );
+	iPilotSetup.Marauder( shipMarauderCutter_1 );
+	iSim.SetFaction( shipMarauderCutter_1, marauders );
+	Group.AddSim( group, shipMarauderCutter_2 );
+	iPilotSetup.Marauder( shipMarauderCutter_2 );
+	iSim.SetFaction( shipMarauderCutter_2, marauders );
+	return group;
+}
+
+hgroup local_function_8( hsim param_0_, float param_1_, int param_2_ )
+{
+	hgroup group = Group.Create();
+	hfaction marauders = iFaction.Find( "Marauders" );
+	hship shipFighter;
+	int ii;
+	
+	for ( ii = 0; ii < param_2_; ++ii )
+	{
+		shipFighter = iShip.Create( "ini:/sims/ships/marauder/fighter", iShipCreation.ShipName( "Marauders", -1 ) );
+		Group.AddSim( group, shipFighter );
+		iPilotSetup.Marauder( shipFighter );
+		iSim.SetFaction( shipFighter, marauders );
+		Sim.PlaceNear( shipFighter, param_0_, param_1_ );
+	}
+	
+	return group;
+}
+
+task local_function_7( hship ship_, float param_1_ )
+{
+	hgroup group = Group.Create();
+	
+	Group.AddSim( group, ship_ );
+	Task.Sleep( Task.Current(), param_1_ );
+	
+	if ( Sim.IsDead( ship_ ) )
+	{
+		return;
+	}
+	
+	iConversation.OneLiner( none, "name_clay", "a1_m05_dialogue_clay_the_freighters_running_for_it" );
+	Task.Detach( start iScriptedOrders.LagrangeHandler( group, "Random" ) );
+}
+
+bool local_function_6( hgroup group_, hship ship_ )
+{
+	int simCount = Group.SimCount( group_ );
+	int constant = 5;
+	int ii;
+	
+	if ( simCount > constant )
+	{
+		debug Debug.Error( "ERROR: dock_group - No. dockees > No. free dock ports" );
+		return false;
+	}
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		iShip.Dock( Group.NthSim( group_, ii ), ship_ );
+	}
+	
+	return true;
+}
+

@@ -1,0 +1,744 @@
+package iAct2Mission03;
+
+uses Debug,
+     Set,
+     List,
+     String,
+     Global,
+     Sim,
+     Group,
+     Math,
+     Object,
+     State,
+     Task,
+     Text,
+     iSim,
+     Subsim,
+     iDockport,
+     iBody,
+     iHabitat,
+     iShip,
+     iLagrangePoint,
+     iAI,
+     iConversation,
+     iCutsceneUtilities,
+     iDirector,
+     MapEnumerations,
+     iFaction,
+     iFormation,
+     GUI,
+     CargoTypes,
+     iInventory,
+     iMapEntity,
+     iMissionTracker,
+     iObjectives,
+     iPilotSetup,
+     iRangeCheck,
+     iScore,
+     INIFile,
+     iUtilities,
+     iCargo,
+     iCargoScript,
+     iShipCreation,
+     iWingmen;
+
+provides Main,
+         MissionHandler,
+         Stub;
+
+prototype Main();
+prototype Stub();
+prototype local_function_4( hstate state_ );
+prototype local_function_3();
+prototype task local_function_0();
+prototype task local_function_1();
+prototype task local_function_6( hmapentity mapentity_, hgroup group_0_, hship groupLeader_, hfaction faction_, hgroup group_1_, hship ship_ );
+prototype task local_function_5( htask param_0_, hstate state_, hgroup group_0_, hgroup group_1_, hgroup group_2_, hgroup group_3_, hship ship_0_, hship ship_1_, hship ship_2_, hsim param_9_, hgroup group_4_ );
+prototype hship local_function_9( hship ship_0_ );
+prototype local_function_10( hship ship_ );
+prototype task MissionHandler();
+prototype local_function_2( hgroup group_, hfaction faction_ );
+prototype hgroup local_function_7( hmapentity mapentity_ );
+prototype task local_function_8( hship ship_0_, hgroup group_, float param_2_ );
+
+Main()
+{
+	Task.Detach( start local_function_0() );
+}
+
+Stub()
+{
+	Global.SetBool( "g_act2_badlands_food_sorted", true );
+}
+
+local_function_4( hstate state_ )
+{
+	hsim waypointLucifuge;
+	hship playerShip = iShip.FindPlayerShip();
+	
+	waypointLucifuge = iUtilities.CreateWaypointRelativeTo( iMapEntity.FindByNameInSystem( "Lucifuge", "map:/geog/badlands/eureka" ), 500000.0, 500000.0, 0.0 );
+	Object.AddHandleProperty( playerShip, "restart_waypoint", waypointLucifuge );
+	Object.AddHandleProperty( playerShip, "current_mission_state", state_ );
+	iScore.SetRestartPoint();
+}
+
+local_function_3()
+{
+	iObjectives.Remove( "a2_m03_objectives_investigate" );
+	iObjectives.Remove( "a2_m03_objectives_revisit" );
+	iObjectives.Remove( "a2_m03_objectives_get_mines" );
+	iObjectives.Remove( "a2_m03_objectives_manufacture" );
+	iObjectives.Remove( "a2_m03_objectives_deliver" );
+}
+
+task local_function_0()
+{
+	htask local_0;
+	int local_1;
+	
+	if ( !iUtilities.SkipMission( "Trouble at the Ranch??" ) )
+	{
+		Task.Detach( local_0 = start MissionHandler() );
+		return;
+	}
+	
+	Stub();
+	return;
+}
+
+task local_function_1()
+{
+	iConversation.OneLiner( none, "name_smith", "a2_m03_dialogue_c3_smith_convoy_3rdway" );
+	iConversation.OneLiner( none, "name_clay", "a2_m03_dialogue_c3_clay_avoid_em" );
+	iConversation.OneLiner( none, "name_smith", "a2_m03_dialogue_c3_smith_marauders" );
+}
+
+task local_function_6( hmapentity mapentity_, hgroup group_0_, hship groupLeader_, hfaction faction_, hgroup group_1_, hship ship_ )
+{
+	hgroup group_2 = iCutsceneUtilities.GetKillGroup();
+	
+	iDirector.Begin();
+	iDirector.SetFocus( ship_ );
+	iDirector.SetSecondaryFocus( Group.NthSim( group_1_, 2 ) );
+	iDirector.SetCamera( CAM_TwoShot );
+	start local_function_1();
+	Task.Sleep( Task.Current(), 6.0 );
+	group_0_ = iShipCreation.CreateCharacterGroup( ST_CombatHeavy, "GenericAggressive", 3, faction_, "Random" );
+	groupLeader_ = iShip.Cast( Group.Leader( group_0_ ) );
+	local_function_2( group_0_, faction_ );
+	iUtilities.GroupSetCullable( group_0_, false );
+	Sim.PlaceNear( groupLeader_, ship_, 15000.0 );
+	Sim.PointAt( groupLeader_, ship_ );
+	iFormation.Wedge( group_0_, 100.0, true );
+	iAI.GiveAttackOrder( group_0_, group_1_ );
+	iDirector.SetFocus( ship_ );
+	iDirector.SetSecondaryFocus( groupLeader_ );
+	iDirector.SetCamera( CAM_TwoShot );
+	Task.Sleep( Task.Current(), 3.0 );
+	iDirector.SetFocus( groupLeader_ );
+	iDirector.SetSecondaryFocus( ship_ );
+	iDirector.SetCamera( CAM_TwoShot );
+	Task.Sleep( Task.Current(), 5.0 );
+	iDirector.End();
+}
+
+task local_function_5( htask param_0_, hstate state_, hgroup group_0_, hgroup group_1_, hgroup group_2_, hgroup group_3_, hship ship_0_, hship ship_1_, hship ship_2_, hsim param_9_, hgroup group_4_ )
+{
+	schedule
+	{
+		every 0.10:
+		{
+			if ( State.Progress( state_ ) == 100 )
+			{
+				iWingmen.Purge();
+				Sim.Destroy( ship_0_ );
+				Sim.Destroy( ship_1_ );
+				Sim.Destroy( ship_2_ );
+				Sim.Destroy( param_9_ );
+				Group.Destroy( group_0_, true );
+				Group.Destroy( group_1_, true );
+				Group.Destroy( group_2_, true );
+				Group.Destroy( group_3_, true );
+				Group.Destroy( group_4_, true );
+				
+				atomic
+				{
+					Global.SetBool( "g_skip_locked", false );
+				}
+				
+				Task.Detach( start local_function_0() );
+				local_function_3();
+				State.Destroy( param_0_ );
+				iUtilities.RemoveMissionRestart();
+				iMissionTracker.RemoveMission( Task.Current() );
+				Task.Halt( param_0_ );
+				iScore.GotoRestartPoint();
+				return;
+			}
+		}
+	}
+}
+
+hship local_function_9( hship ship_0_ )
+{
+	list localList = List.FromSet( Sim.Children( ship_0_ ) );
+	hship ship_1;
+	int itemCount = List.ItemCount( localList );
+	int ii;
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		ship_1 = iShip.Cast( List.GetNth( localList, ii ) );
+		
+		if ( Object.IntProperty( ship_1, "cargo" ) == 534 )
+		{
+			return ship_1;
+		}
+	}
+	
+	return none;
+}
+
+local_function_10( hship ship_ )
+{
+	list localList = List.FromSet( iDockport.DockportsOfType( ship_, DT_All, DS_Any ) );
+	int itemCount = List.ItemCount( localList );
+	int ii;
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		iDockport.Disable( iDockport.Cast( List.GetNth( localList, ii ) ) );
+	}
+}
+
+task MissionHandler()
+{
+	hstate taskState;
+	int convoResponse;
+	hmapentity lucifuge = iMapEntity.FindByNameInSystem( "Lucifuge", "map:/geog/badlands/eureka" );
+	hship playerShip;
+	hgroup group_0;
+	hgroup group_1;
+	hgroup group_2;
+	hship groupLeader_0;
+	hship groupLeader_1;
+	hship shipCargoPod = none;
+	int local_10;
+	hmapentity hastur = iMapEntity.FindByNameInSystem( "Hastur", "map:/geog/badlands/eureka" );
+	hmapentity lucreciasBase = iMapEntity.FindByNameInSystem( "Lucrecia's Base", "map:/geog/badlands/hoffers_wake" );
+	hgroup group_3;
+	hfaction theThirdWay = iFaction.Find( "The Third Way" );
+	hfaction player = iFaction.Find( "Player" );
+	hfaction marauders = iFaction.Find( "Marauders" );
+	hfaction underworld = iFaction.Find( "Underworld" );
+	hgroup group_4;
+	hsim local_19;
+	string local_20;
+	int local_21;
+	int ii;
+	htask local_23;
+	htask currentTask = Task.Current();
+	htask local_25;
+	
+	debug Debug.PrintString( "iAc2Mission03.MissionHandler: Started\n" );
+	playerShip = iShip.FindPlayerShip();
+	
+	debug
+	{
+		if ( playerShip == false )
+		{
+			debug Debug.PrintString( "A2M03.MissionHandler: Cannot find player!" );
+		}
+	}
+	
+	if ( lucifuge == false )
+	{
+		debug Debug.PrintString( "A2M03.MissionHandler: Can't find lucifuge l-point. Will wait and re-try\n" );
+		Task.Sleep( Task.Current(), 5.0 );
+	}
+	else debug Debug.PrintString( "A2M03.MissionHandler: found Lucifuge ok, proceeding to next state.\n" );
+	
+	taskState = State.Find( currentTask );
+	
+	if ( !taskState )
+	{
+		taskState = State.Create( currentTask, 1 );
+	}
+	
+	Text.Add( "csv:/text/act_2/act2_mission03" );
+	Text.Add( "csv:/text/act_2/act2_mission03_addendum" );
+	Text.Add( "csv:/text/act_2/act2_mission03_addendum2" );
+	iMissionTracker.AddMission( Task.Current(), 2, 3 );
+	local_function_4( taskState );
+	Task.Detach( local_23 = start local_function_5( currentTask, taskState, group_0, group_1, group_2, group_3, groupLeader_0, groupLeader_1, shipCargoPod, local_19, group_4 ) );
+	
+	do
+	{
+		switch ( State.Progress( taskState ) )
+		{
+			case 1:
+				State.SetProgress( taskState, 2 );
+				break;
+			
+			case 2:
+				State.SetProgress( taskState, 3 );
+				break;
+			
+			case 3:
+				local_function_4( taskState );
+				
+				do
+				{
+					Task.Sleep( Task.Current(), 1.0 );
+				}
+				while ( !( iSim.ActiveWorld() == "map:/geog/badlands/eureka" ) );
+				
+				local_function_4( taskState );
+				debug Debug.PrintString( "A2M03.MissionHandler: Player entered Entered, progressing........\n" );
+				
+				do
+				{
+					if ( iSim.ActiveWorld() == "map:/geog/badlands/eureka" )
+					{
+						debug Debug.PrintString( "A2M03.MissionHandler: waiting for player to get to Lucifuge........\n" );
+						Task.Sleep( Task.Current(), 1.0 );
+						
+						if ( Global.Exists( "g_had_lucifuge_hint" ) )
+						{
+							Global.Destroy( "g_had_lucifuge_hint" );
+							iObjectives.Add( "a2_m03_objectives_investigate" );
+						}
+					}
+					else
+					{
+						Task.Sleep( Task.Current(), 2.0 );
+					}
+				}
+				while ( Sim.DistanceBetween( playerShip, lucifuge ) > 25000.0 );
+				
+				local_function_4( taskState );
+				debug Debug.PrintString( "A2M03.MissionHandler: Player reached Lucifuge, progressing........\n" );
+				iConversation.Begin();
+				iConversation.Say( none, "name_3rdway", "a2_m03_dialogue_c1_3rdway_challenge" );
+				iConversation.Say( none, "name_cal", "a2_m03_dialogue_c1_cal_need_volunteers" );
+				iConversation.Say( none, "name_3rdway", "a2_m03_dialogue_c1_3rdway_no1" );
+				iConversation.Say( none, "name_cal", "a2_m03_dialogue_c1_cal_war_coming" );
+				iConversation.Say( none, "name_3rdway", "a2_m03_dialogue_c1_3rdway_no2" );
+				iConversation.End();
+				State.SetProgress( taskState, 4 );
+				iObjectives.SetState( "a2_m03_objectives_investigate", OS_Succeeded );
+				break;
+			
+			case 4:
+				local_function_4( taskState );
+				
+				do
+				{
+					Task.Sleep( Task.Current(), 0.50 );
+				}
+				while ( Sim.DistanceBetween( playerShip, lucifuge ) < 40000.0 );
+				
+				atomic
+				{
+					group_0 = iShipCreation.CreateCharacterGroup( ST_FreightHeavy, "GenericFreight", 3, theThirdWay, "Random" );
+					iUtilities.GroupSetCullable( group_0, true );
+					
+					for ( ii = 0; ii < 3; ++ii )
+					{
+						iShipCreation.CreateTradeCargo( iShip.Cast( Group.NthSim( group_0, ii ) ), "Medium" );
+					}
+					
+					local_function_2( group_0, theThirdWay );
+					groupLeader_0 = iShip.Cast( Group.Leader( group_0 ) );
+					Sim.PlaceNear( groupLeader_0, playerShip, 45000.0 );
+					Sim.PointAt( groupLeader_0, lucifuge );
+					iSim.SetIndestructable( iSim.Cast( groupLeader_0 ), true );
+					iFormation.LineAhead( group_0, 1500.0, true );
+					group_1 = iShipCreation.CreateCharacterGroup( ST_CombatLight, "GenericAggressive", 3, marauders, "Random" );
+					iUtilities.GroupSetCullable( group_1, true );
+					local_function_2( group_1, marauders );
+					groupLeader_1 = iShip.Cast( Group.Leader( group_1 ) );
+					Sim.PlaceNear( groupLeader_1, groupLeader_0, 10000.0 );
+					iFormation.Goose( group_1, 100.0, true );
+					iAI.GiveAttackOrder( group_1, group_0 );
+				}
+				
+				local_function_4( taskState );
+				Task.Halt( local_23 );
+				Task.Detach( local_23 = start local_function_5( currentTask, taskState, group_0, group_1, group_2, group_3, groupLeader_0, groupLeader_1, shipCargoPod, local_19, group_4 ) );
+				iCutsceneUtilities.HandleAbort( start local_function_6( lucifuge, group_1, groupLeader_1, marauders, group_0, groupLeader_0 ) );
+				iConversation.OneLiner( groupLeader_0, "", "a2_m03_dialogue_c4_freighter_mayday" );
+				
+				do
+				{
+					Task.Sleep( Task.Current(), 0.980 );
+				}
+				while ( (Group.SimCount( group_0 ) > 1) && ((Group.SimCount( group_1 ) > 0) && (Sim.DistanceBetween( groupLeader_1, groupLeader_0 ) < 250000.0)) );
+				
+				local_function_4( taskState );
+				iUtilities.GroupSetCullable( group_1, true );
+				iAI.GiveFleeOrder( group_1, lucifuge );
+				iConversation.OneLiner( none, "name_smith", "a2_m03_dialogue_c5_smith_theyre_doomed" );
+				iSim.SetIndestructable( iSim.Cast( groupLeader_0 ), false );
+				iSim.Kill( iSim.Cast( groupLeader_0 ) );
+				iConversation.OneLiner( none, "name_cal", "a2_m03_dialogue_c5_cal_expletive" );
+				iConversation.OneLiner( none, "name_smith", "a2_m03_dialogue_c5_smith_who_cares" );
+				iConversation.OneLiner( none, "name_cal", "a2_m03_dialogue_cal_still_i" );
+				iConversation.OneLiner( none, "name_smith", "a2_m03_dialogue_smith_suppose" );
+				iObjectives.Add( "a2_m03_objectives_revisit" );
+				State.SetProgress( taskState, 5 );
+			
+			case 5:
+				State.SetProgress( taskState, 6 );
+			
+			case 6:
+				do
+				{
+					Task.Sleep( Task.Current(), 1.0 );
+				}
+				while ( Sim.DistanceBetween( playerShip, lucifuge ) > 24000.0 );
+				
+				local_function_4( taskState );
+				iObjectives.SetState( "a2_m03_objectives_revisit", OS_Succeeded );
+				iConversation.OneLiner( none, "name_3rdway", "a2_m03_dialogue_c2_3rdway_go_away" );
+				iConversation.OneLiner( none, "name_cal", "a2_m03_dialogue_cal_we_couldnt" );
+				iConversation.OneLiner( none, "name_3rdway", "a2_m03_dialogue_c2_3rdway_so_what" );
+				iConversation.OneLiner( none, "name_cal", "a2_m03_dialogue_cal_we_were_just" );
+				iConversation.OneLiner( none, "name_3rdway", "a2_m03_dialogue_c2_3rdway_ha" );
+				iConversation.OneLiner( none, "name_cal", "a2_m03_dialogue_cal_leave_it_to" );
+				iConversation.OneLiner( none, "name_clay", "a2_m03_dialogue_clay_hmmm" );
+				iConversation.OneLiner( none, "name_cal", "a2_m03_dialogue_cal_i_ve" );
+				iConversation.OneLiner( none, "name_cal", "a2_m03_dialogue_cal_jafs_come_in" );
+				iConversation.OneLiner( none, "name_jafs", "a2_m03_dialogue_jafs_jafs_here" );
+				iConversation.OneLiner( none, "name_smith", "a2_m03_dialogue_smith_nice" );
+				iConversation.OneLiner( none, "name_jafs", "a2_m03_dialogue_c6_jafs_shrug" );
+				iObjectives.Add( "a2_m03_objectives_get_mines" );
+				iRangeCheck.AddTrafficException( iMapEntity.Cast( hastur ) );
+				State.SetProgress( taskState, 7 );
+				break;
+			
+			case 7:
+				do
+				{
+					iRangeCheck.AddTrafficException( iMapEntity.Cast( hastur ) );
+					Task.Sleep( Task.Current(), 0.10 );
+				}
+				while ( Sim.DistanceBetween( playerShip, hastur ) > 350000.0 );
+				
+				local_function_4( taskState );
+				
+				atomic
+				{
+					group_4 = local_function_7( hastur );
+				}
+				
+				Task.Halt( local_23 );
+				Task.Detach( local_23 = start local_function_5( currentTask, taskState, group_0, group_1, group_2, group_3, groupLeader_0, groupLeader_1, shipCargoPod, local_19, group_4 ) );
+				iConversation.OneLiner( none, "name_middeon", "a2_m03_dialogue_c7_middeon_come_on_in" );
+				local_25 = start local_function_8( iShip.FindPlayerShip(), group_4, 0.50 );
+				
+				do
+				{
+					Task.Sleep( Task.Current(), 1.0 );
+				}
+				while ( !iSim.IsDockedTo( playerShip, hastur ) );
+				
+				Task.Halt( local_25 );
+				iAI.PurgeOrders( group_4 );
+				local_function_4( taskState );
+				State.SetProgress( taskState, 8 );
+				break;
+			
+			case 8:
+				iConversation.Begin();
+				iConversation.AddResponse( "a2_m03_text_c8_cal_option_ask", "a2_m03_dialogue_c8_cal_ask" );
+				iConversation.AddResponse( "a2_m03_text_c8_cal_option_demand", "a2_m03_dialogue_c8_cal_demand" );
+				convoResponse = iConversation.Ask( none, "name_middeon", "a2_m03_dialogue_c8_middeon_whatdya_want" );
+				
+				if ( convoResponse == 1 )
+				{
+					iConversation.Say( none, "name_middeon", "a2_m03_dialogue_c8_middeon_boast1" );
+					iConversation.Say( none, "name_cal", "a2_m03_dialogue_c8_cal_flatter1" );
+					iConversation.AddResponse( "a2_m03_text_c8_cal_option_really", "a2_m03_dialogue_c8_cal_really" );
+					iConversation.AddResponse( "a2_m03_text_c8_cal_option_no_time", "a2_m03_dialogue_c8_cal_no_time" );
+					convoResponse = iConversation.Ask( none, "name_middeon", "a2_m03_dialogue_c8_middeon_my_folks_are_great" );
+					
+					if ( convoResponse == 1 )
+					{
+						iConversation.Say( none, "name_middeon", "a2_m03_dialogue_c8_middeon_morgan_blackheart" );
+						iConversation.Say( none, "name_cal", "a2_m03_dialogue_c8_cal_gimmie_blueprints" );
+						iConversation.Say( none, "name_middeon", "a2_m03_dialogue_c8_middeon_ok_then" );
+						State.SetProgress( taskState, 10 );
+					}
+					else
+					{
+						iConversation.Say( none, "name_middeon", "a2_m03_dialogue_c8_middeon_get_him" );
+						State.SetProgress( taskState, 9 );
+					}
+				}
+				else
+				{
+					iConversation.Say( none, "name_middeon", "a2_m03_dialogue_c8_middeon_angry" );
+					iConversation.Say( none, "name_smith", "a2_m03_dialogue_c8_smith_haha" );
+					iConversation.Say( none, "name_clay", "a2_m03_dialogue_c8_clay_you_gotta_big_mouth" );
+					State.SetProgress( taskState, 9 );
+				}
+				
+				iConversation.End();
+				local_function_4( taskState );
+				break;
+			
+			case 9:
+				group_3 = iShipCreation.CreateCharacterGroup( ST_CombatAll, "GenericAggressive", 4, underworld, "Random" );
+				local_function_2( group_3, underworld );
+				Sim.PlaceNear( Group.Leader( group_3 ), hastur, 1000.0 );
+				iFormation.RandomSphere( group_3, 500.0, true );
+				iAI.GiveAttackOrder( group_3, playerShip );
+				iShip.Undock( playerShip, hastur );
+				shipCargoPod = iShip.Create( "ini:/sims/ships/utility/cargo_pod", "a2_m03_name_cargopod" );
+				Object.SetIntProperty( shipCargoPod, "cargo", 164 );
+				Sim.SetCullable( shipCargoPod, false );
+				iSim.SetSensorVisibility( shipCargoPod, false );
+				Sim.PlaceNear( shipCargoPod, hastur, 3000.0 );
+				iSim.SetMissionCritical( shipCargoPod, true );
+				local_function_4( taskState );
+				Task.Halt( local_23 );
+				Task.Detach( local_23 = start local_function_5( currentTask, taskState, group_0, group_1, group_2, group_3, groupLeader_0, groupLeader_1, shipCargoPod, local_19, group_4 ) );
+				
+				while ( Group.SimCount( group_3 ) > 0 )
+				{
+					Task.Sleep( Task.Current(), 5.0 );
+				}
+				
+				local_function_4( taskState );
+				Task.Halt( local_23 );
+				Task.Detach( local_23 = start local_function_5( currentTask, taskState, group_0, group_1, group_2, group_3, groupLeader_0, groupLeader_1, shipCargoPod, local_19, group_4 ) );
+				iConversation.OneLiner( none, "name_smith", "a2_m03_dialogue_c9_smith_that_pod" );
+				iSim.SetSensorVisibility( shipCargoPod, true );
+				State.SetProgress( taskState, 11 );
+				break;
+			
+			case 10:
+				local_function_4( taskState );
+				Task.Halt( local_23 );
+				Task.Detach( local_23 = start local_function_5( currentTask, taskState, group_0, group_1, group_2, group_3, groupLeader_0, groupLeader_1, shipCargoPod, local_19, group_4 ) );
+				shipCargoPod = iShip.Create( "ini:/sims/ships/utility/cargo_pod", "a2_m03_name_cargopod" );
+				Object.SetIntProperty( shipCargoPod, "cargo", 164 );
+				Sim.SetCullable( shipCargoPod, false );
+				Sim.PlaceNear( shipCargoPod, hastur, 3000.0 );
+				iSim.SetMissionCritical( shipCargoPod, true );
+				State.SetProgress( taskState, 11 );
+				break;
+			
+			case 11:
+				iObjectives.Add( "a2_m03_objectives_get_mines" );
+				
+				do
+				{
+					if ( (shipCargoPod == false) || Sim.IsDead( shipCargoPod ) )
+					{
+						shipCargoPod = iShip.Create( "ini:/sims/ships/utility/cargo_pod", "a2_m03_name_cargopod" );
+						Object.SetIntProperty( shipCargoPod, "cargo", 164 );
+						Sim.SetCullable( shipCargoPod, false );
+						Sim.PlaceNear( shipCargoPod, hastur, 3000.0 );
+						iSim.SetMissionCritical( shipCargoPod, true );
+					}
+				}
+				while ( iInventory.NumberOfCargoType( CT_SeekerMineBlueprints ) < 1 );
+				
+				local_function_4( taskState );
+				Task.Halt( local_23 );
+				Task.Detach( local_23 = start local_function_5( currentTask, taskState, group_0, group_1, group_2, group_3, groupLeader_0, groupLeader_1, shipCargoPod, local_19, group_4 ) );
+				iRangeCheck.RemoveTrafficException( iMapEntity.Cast( hastur ) );
+				iObjectives.SetState( "a2_m03_objectives_get_mines", OS_Succeeded );
+			
+			case 13:
+				iObjectives.Add( "a2_m03_objectives_manufacture" );
+				
+				while ( Global.Exists( "g_flagged_made_all_mines" ) == 0 )
+				{
+					Task.Sleep( Task.Current(), 15.0 );
+				}
+				
+				State.SetProgress( taskState, 15 );
+				local_function_4( taskState );
+				iObjectives.SetState( "a2_m03_objectives_manufacture", OS_Succeeded );
+			
+			case 15:
+				iObjectives.Add( "a2_m03_objectives_deliver" );
+				
+				do
+				{
+					Task.Sleep( Task.Current(), 2.0 );
+				}
+				while ( Sim.DistanceBetween( playerShip, lucifuge ) > 350000.0 );
+				
+				debug Debug.PrintString( "iAct2Mission03: Player in range of Lucifuge\n" );
+				local_function_4( taskState );
+				State.SetProgress( taskState, 16 );
+				break;
+			
+			case 16:
+				shipCargoPod = local_function_9( playerShip );
+				group_2 = iShipCreation.CreateCharacterGroup( ST_CombatLight, "GenericAggressive", 3, marauders, "Random" );
+				local_function_2( group_2, marauders );
+				Sim.PlaceNear( Group.Leader( group_2 ), playerShip, 100000.0 );
+				iFormation.Goose( group_2, 100.0, true );
+				iAI.GiveAttackOrder( group_2, playerShip );
+				local_function_4( taskState );
+				Task.Halt( local_23 );
+				Task.Detach( local_23 = start local_function_5( currentTask, taskState, group_0, group_1, group_2, group_3, groupLeader_0, groupLeader_1, shipCargoPod, local_19, group_4 ) );
+				iConversation.OneLiner( none, "name_smith", "a2_m03_dialogue_c12_smith_lots_of_ships" );
+				
+				while ( Group.SimCount( group_2 ) > 0 )
+				{
+					Task.Sleep( Task.Current(), 2.0 );
+					
+					if ( Sim.IsDead( shipCargoPod ) && (shipCargoPod != false) )
+					{
+						iConversation.OneLiner( none, "name_smith", "a2_m03_dialogue_c13_smith_lost_pod" );
+						shipCargoPod = none;
+					}
+				}
+				
+				iObjectives.Add( "a2_m03_objectives_deliver" );
+				
+				while ( Sim.DistanceBetween( playerShip, lucifuge ) > 8000.0 )
+				{
+					Task.Sleep( Task.Current(), 2.0 );
+				}
+				
+				local_function_4( taskState );
+				
+				if ( Sim.IsDead( shipCargoPod ) )
+				{
+					iConversation.OneLiner( none, "name_3rdway", "a2_m03_dialogue_c14_3rdway" );
+					State.SetProgress( taskState, 13 );
+				}
+				else
+				{
+					State.SetProgress( taskState, 17 );
+					iObjectives.SetState( "a2_m03_objectives_deliver", OS_Succeeded );
+					
+					atomic
+					{
+						iShip.Undock( shipCargoPod, playerShip );
+						local_function_10( shipCargoPod );
+					}
+				}
+				
+				local_function_4( taskState );
+				break;
+			
+			case 17:
+				iConversation.OneLiner( none, "name_3rdway", "a2_m03_dialogue_c16_3rdway_thankyou" );
+				iConversation.OneLiner( none, "name_cal", "a2_m03_dialogue_c16_cal_what_about_me" );
+				iConversation.OneLiner( none, "name_3rdway", "a2_m03_dialogue_c16_3rdway_who_cares" );
+				iConversation.OneLiner( none, "name_3rdway", "a2_m03_dialogue_c16_3rdway_there_will_be_pilots" );
+				iConversation.OneLiner( none, "name_3rdway", "a2_m03_dialogue_c16_3rdway_go_home_happy" );
+				iInventory.Remove( CT_SeekerMines, 9 );
+				State.SetProgress( taskState, 18 );
+				break;
+			
+			case 18:
+				iUtilities.RemoveMissionRestart();
+				Global.SetBool( "g_act2_badlands_food_sorted", true );
+				Text.Remove( "csv:/text/act2/act2_mission03" );
+				Text.Remove( "csv:/text/act_2/act2_mission03_addendum" );
+				Text.Remove( "csv:/text/act_2/act2_mission03_addendum2" );
+				State.Destroy( Task.Current() );
+				iMissionTracker.RemoveMission( Task.Current() );
+				return;
+			
+			default:
+				debug Debug.Error( "Act2Mission03.MissionHandler - task has incorrect progress setting in state\n#" );
+		}
+	}
+	while ( 1 );
+	
+	debug Debug.PrintString( "iAc2Mission03.MissionHandler: Terminated.\n" );
+}
+
+local_function_2( hgroup group_, hfaction faction_ )
+{
+	int ii;
+	
+	for ( ii = 0; ii < Group.SimCount( group_ ); ++ii )
+	{
+		iSim.SetFaction( iSim.Cast( Group.NthSim( group_, ii ) ), faction_ );
+	}
+}
+
+hgroup local_function_7( hmapentity mapentity_ )
+{
+	hfaction marauders = iFaction.Find( "Marauders" );
+	hgroup group = Group.Create();
+	hship shipFudgeMine;
+	int constant = 50;
+	int ii;
+	
+	for ( ii = 0; ii < constant; ++ii )
+	{
+		shipFudgeMine = iShip.Create( "ini:/sims/custom/act2_mission03/fudge_mine", "a2_m03_name_mine" );
+		iSim.SetFaction( iSim.Cast( shipFudgeMine ), marauders );
+		Group.AddSim( group, shipFudgeMine );
+		Sim.PlaceNear( shipFudgeMine, mapentity_, 6000.0 + Math.Random( -500.0, 500.0 ) );
+		Sim.SetOrientationEuler( shipFudgeMine, Math.Random( 10.0, 360.0 ), Math.Random( 10.0, 360.0 ), Math.Random( 10.0, 360.0 ) );
+		iSim.SetIndestructable( iSim.Cast( shipFudgeMine ), false );
+		Object.SetStringProperty( shipFudgeMine, "death_script", "iDeathScript.Explosives" );
+		Object.AddFloatProperty( shipFudgeMine, "explosive_damage", 300.0 );
+		Object.AddFloatProperty( shipFudgeMine, "explosive_radius", 400.0 );
+		Object.SetBoolProperty( shipFudgeMine, "ignore_speed_limit", true );
+	}
+	
+	return group;
+}
+
+task local_function_8( hship ship_0_, hgroup group_, float param_2_ )
+{
+	hship ship_1;
+	hfaction marauders = iFaction.Find( "Marauders" );
+	hfaction independent = iFaction.Find( "Independent" );
+	bool local_3 = true;
+	int simCount = Group.SimCount( group_ );
+	int ii;
+	
+	do
+	{
+		if ( Object.FloatProperty( ship_0_, "hit_points" ) <= 0.0 )
+		{
+			iSim.Kill( iSim.Cast( ship_0_ ) );
+			iAI.PurgeOrders( group_ );
+			return;
+		}
+		else for ( ii = 0; ii < simCount; ++ii )
+		{
+			ship_1 = iShip.Cast( Group.NthSim( group_, ii ) );
+			
+			if ( (Sim.DistanceBetween( ship_0_, ship_1 ) < 5000.0) || iAI.IsOrderComplete( ship_1 ) )
+			{
+				if ( Sim.DistanceBetween( ship_0_, ship_1 ) < 250.0 )
+				{
+					iSim.Kill( iSim.Cast( ship_1 ) );
+				}
+				else if ( !Object.PropertyExists( ship_1, "triggered" ) )
+				{
+					Object.AddIntProperty( ship_1, "triggered", 1 );
+					iPilotSetup.GenericCargoPod( ship_1 );
+					iSim.SetFaction( ship_1, marauders );
+					iAI.GiveApproachOrderAdvanced( ship_1, ship_0_, 0.0, 0.0, false );
+				}
+			}
+			else if ( Object.PropertyExists( ship_1, "triggered" ) && iAI.IsOrderComplete( ship_1 ) )
+			{
+				Object.RemoveProperty( ship_1, "triggered" );
+				iShip.RemovePilot( ship_1 );
+				iSim.SetFaction( ship_1, independent );
+			}
+		}
+		
+		Task.Sleep( Task.Current(), param_2_ );
+	}
+	while ( local_3 );
+}
+

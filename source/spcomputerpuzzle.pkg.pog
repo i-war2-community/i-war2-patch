@@ -1,0 +1,737 @@
+package spcomputerpuzzle;
+
+uses GUI,
+     Set,
+     List,
+     String,
+     Global,
+     Math,
+     Task,
+     Text,
+     iBaseGUI,
+     iConversation,
+     iGUI,
+     CargoTypes,
+     iInventory,
+     Group,
+     Sim,
+     MapEnumerations,
+     iFaction,
+     iMapEntity,
+     iSim,
+     iBody,
+     iHabitat,
+     iShip,
+     iLoadout;
+
+provides Main,
+         Calculate,
+         OnBeginEditBoxEditing,
+         OnFinishEditBoxEditing,
+         OnIncrement,
+         OnDecrement,
+         OnBack;
+
+prototype local_function_2( int param_0_, hwindow window_0_, int param_2_, string param_3_, int param_4_, int param_5_, list localList_ );
+prototype local_function_3( int param_0_, hwindow window_0_, string param_2_, int param_3_, int param_4_ );
+prototype local_function_0();
+prototype local_function_4();
+prototype local_function_5();
+prototype local_function_1();
+prototype Main();
+prototype task local_function_7( string param_0_, string param_1_ );
+prototype OnBeginEditBoxEditing();
+prototype OnFinishEditBoxEditing();
+prototype OnIncrement();
+prototype OnDecrement();
+prototype OnBack();
+prototype string local_function_6( int param_0_ );
+prototype task local_function_8();
+prototype Calculate();
+
+local_function_2( int param_0_, hwindow window_0_, int param_2_, string param_3_, int param_4_, int param_5_, list localList_ )
+{
+	hwindow window_1;
+	string local_1 = "88";
+	
+	if ( param_2_ == 4 )
+	{
+		local_1 = "8888";
+	}
+	
+	window_1 = GUI.CreateEditBox( param_0_, 0, param_4_, param_5_, window_0_, false, local_1, true );
+	GUI.SetEditBoxMaxCharLength( window_1, param_2_ );
+	GUI.SetWindowFont( window_1, Global.String( "type_font" ) );
+	GUI.SetWindowStateColours( window_1, Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_selected_red" ), Global.Float( "GUI_selected_green" ), Global.Float( "GUI_selected_blue" ) );
+	GUI.SetEditBoxOverrides( window_1, "SPComputerPuzzle.OnBeginEditBoxEditing", "", "SPComputerPuzzle.OnFinishEditBoxEditing" );
+	GUI.SetInputOverrideFunctions( window_1, "SPComputerPuzzle.OnDecrement", "", "SPComputerPuzzle.OnIncrement", "", "", "", "", "", "" );
+	Global.SetHandle( param_3_, window_1 );
+	List.AddTail( localList_, window_1 );
+}
+
+local_function_3( int param_0_, hwindow window_0_, string param_2_, int param_3_, int param_4_ )
+{
+	hwindow window_1 = GUI.CreateStaticWindow( param_0_, 0, param_3_, param_4_, window_0_ );
+	
+	GUI.SetWindowFont( window_1, Global.String( "type_font" ) );
+	GUI.SetWindowTextFormatting( window_1, true, 0 );
+	GUI.SetWindowStateColours( window_1, Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ), Global.Float( "GUI_focused_red" ), Global.Float( "GUI_focused_green" ), Global.Float( "GUI_focused_blue" ) );
+	GUI.SetWindowTitle( window_1, param_2_ );
+}
+
+local_function_0()
+{
+	hwindow gTimeHrTxt;
+	hwindow gTimeMinTxt;
+	hwindow gDateDayTxt;
+	hwindow gDateMonthTxt;
+	hwindow gDateYearTxt;
+	string local_5;
+	string local_6;
+	string local_7;
+	string local_8;
+	string local_9;
+	int local_10;
+	int local_11;
+	int local_12;
+	int local_13;
+	int local_14;
+	bool local_15;
+	int local_16;
+	
+	gTimeHrTxt = GUI.Cast( Global.Handle( "g_time_hr_txt" ) );
+	gTimeMinTxt = GUI.Cast( Global.Handle( "g_time_min_txt" ) );
+	gDateDayTxt = GUI.Cast( Global.Handle( "g_date_day_txt" ) );
+	gDateMonthTxt = GUI.Cast( Global.Handle( "g_date_month_txt" ) );
+	gDateYearTxt = GUI.Cast( Global.Handle( "g_date_year_txt" ) );
+	local_5 = GUI.EditBoxValue( gTimeHrTxt );
+	local_6 = GUI.EditBoxValue( gTimeMinTxt );
+	local_7 = GUI.EditBoxValue( gDateDayTxt );
+	local_8 = GUI.EditBoxValue( gDateMonthTxt );
+	local_9 = GUI.EditBoxValue( gDateYearTxt );
+	local_10 = String.ToInt( local_5 );
+	local_11 = String.ToInt( local_6 );
+	local_12 = String.ToInt( local_7 );
+	local_13 = String.ToInt( local_8 );
+	local_14 = String.ToInt( local_9 );
+	
+	if ( local_10 < 0 )
+	{
+		local_10 = 0;
+	}
+	else if ( local_10 > 23 )
+	{
+		local_10 = 23;
+	}
+	
+	if ( local_11 < 0 )
+	{
+		local_11 = 0;
+	}
+	else if ( local_11 > 59 )
+	{
+		local_11 = 59;
+	}
+	
+	if ( local_14 < 2320 )
+	{
+		local_14 = 2320;
+	}
+	else if ( local_14 > 2350 )
+	{
+		local_14 = 2350;
+	}
+	
+	local_15 = false;
+	
+	if ( (local_14 % 4) == 0 )
+	{
+		if ( (local_14 % 100) != 0 )
+		{
+			local_15 = true;
+		}
+		else if ( (local_14 % 400) == 0 )
+		{
+			local_15 = true;
+		}
+	}
+	
+	if ( local_13 < 1 )
+	{
+		local_13 = 1;
+	}
+	else if ( local_13 > 12 )
+	{
+		local_13 = 12;
+	}
+	
+	local_16 = 31;
+	
+	if ( (local_13 == 9) || ((local_13 == 4) || ((local_13 == 6) || (local_13 == 11))) )
+	{
+		local_16 = 30;
+	}
+	else if ( local_13 == 2 )
+	{
+		local_16 = 28;
+		
+		if ( local_15 )
+		{
+			local_16 = ( local_16 + 1 );
+		}
+	}
+	
+	if ( local_12 < 1 )
+	{
+		local_12 = 1;
+	}
+	else if ( local_12 > local_16 )
+	{
+		local_12 = local_16;
+	}
+	
+	Global.SetInt( "g_time_hr", local_10 );
+	Global.SetInt( "g_time_min", local_11 );
+	Global.SetInt( "g_date_day", local_12 );
+	Global.SetInt( "g_date_month", local_13 );
+	Global.SetInt( "g_date_year", local_14 );
+	local_5 = String.FromInt( local_10 );
+	local_6 = String.FromInt( local_11 );
+	local_7 = String.FromInt( local_12 );
+	local_8 = String.FromInt( local_13 );
+	local_9 = String.FromInt( local_14 );
+	
+	if ( local_10 < 10 )
+	{
+		local_5 = String.Join( "0", local_5 );
+	}
+	
+	if ( local_11 < 10 )
+	{
+		local_6 = String.Join( "0", local_6 );
+	}
+	
+	if ( local_12 < 10 )
+	{
+		local_7 = String.Join( "0", local_7 );
+	}
+	
+	if ( local_13 < 10 )
+	{
+		local_8 = String.Join( "0", local_8 );
+	}
+	
+	GUI.SetEditBoxValue( gTimeHrTxt, local_5 );
+	GUI.SetEditBoxValue( gTimeMinTxt, local_6 );
+	GUI.SetEditBoxValue( gDateDayTxt, local_7 );
+	GUI.SetEditBoxValue( gDateMonthTxt, local_8 );
+	GUI.SetEditBoxValue( gDateYearTxt, local_9 );
+}
+
+local_function_4()
+{
+	hwindow gTimeHrTxt;
+	hwindow gTimeMinTxt;
+	hwindow gDateDayTxt;
+	hwindow gDateMonthTxt;
+	hwindow gDateYearTxt;
+	string local_5;
+	string local_6;
+	string local_7;
+	string local_8;
+	string local_9;
+	
+	gTimeHrTxt = GUI.Cast( Global.Handle( "g_time_hr_txt" ) );
+	gTimeMinTxt = GUI.Cast( Global.Handle( "g_time_min_txt" ) );
+	gDateDayTxt = GUI.Cast( Global.Handle( "g_date_day_txt" ) );
+	gDateMonthTxt = GUI.Cast( Global.Handle( "g_date_month_txt" ) );
+	gDateYearTxt = GUI.Cast( Global.Handle( "g_date_year_txt" ) );
+	local_5 = String.FromInt( Global.Int( "g_time_hr" ) );
+	local_6 = String.FromInt( Global.Int( "g_time_day" ) );
+	local_7 = String.FromInt( Global.Int( "g_date_day" ) );
+	local_8 = String.FromInt( Global.Int( "g_date_month" ) );
+	local_9 = String.FromInt( Global.Int( "g_date_year" ) );
+	GUI.SetEditBoxValue( gTimeHrTxt, local_5 );
+	GUI.SetEditBoxValue( gTimeMinTxt, local_6 );
+	GUI.SetEditBoxValue( gDateDayTxt, local_7 );
+	GUI.SetEditBoxValue( gDateMonthTxt, local_8 );
+	GUI.SetEditBoxValue( gDateYearTxt, local_9 );
+	local_function_0();
+}
+
+local_function_5()
+{
+	hwindow gResultWindow = GUI.Cast( Global.Handle( "g_result_window" ) );
+	
+	if ( gResultWindow )
+	{
+		GUI.SetWindowTitle( gResultWindow, "" );
+	}
+	
+	GUI.SetWindowStateColours( gResultWindow, Global.Float( "GUI_neutral_red" ), Global.Float( "GUI_neutral_green" ), Global.Float( "GUI_neutral_blue" ), Global.Float( "GUI_listbox_focused_red" ), Global.Float( "GUI_listbox_focused_green" ), Global.Float( "GUI_listbox_focused_blue" ), Global.Float( "GUI_selected_red" ), Global.Float( "GUI_selected_green" ), Global.Float( "GUI_selected_blue" ) );
+}
+
+local_function_1()
+{
+	Global.CreateInt( "g_time_hr", 2, 0 );
+	Global.CreateInt( "g_time_min", 2, 0 );
+	Global.CreateInt( "g_date_day", 2, 1 );
+	Global.CreateInt( "g_date_month", 2, 1 );
+	Global.CreateInt( "g_date_year", 2, 2320 );
+	Global.CreateHandle( "g_time_hr_txt", 2, none );
+	Global.CreateHandle( "g_time_min_txt", 2, none );
+	Global.CreateHandle( "g_date_day_txt", 2, none );
+	Global.CreateHandle( "g_date_month_txt", 2, none );
+	Global.CreateHandle( "g_date_year_txt", 2, none );
+}
+
+Main()
+{
+	hwindow window_0;
+	hwindow window_1;
+	hwindow window_2;
+	hwindow window_3;
+	hwindow window_4;
+	int local_5;
+	list localList_0;
+	list localList_1;
+	int local_8 = ( Global.Int( "GUI_alignment_offset" ) + Global.Int( "GUI_fancyborder_alignmentoffset" ) );
+	int gUIInversebuttonWidth = Global.Int( "GUI_inversebutton_width" );
+	int gUIInversebuttonHeight = Global.Int( "GUI_inversebutton_height" );
+	int constant_0 = 10;
+	int local_12 = ( constant_0 * 2 );
+	int local_13 = 0;
+	int local_14 = 0;
+	int constant_1 = 10;
+	int constant_2 = 9;
+	
+	Text.Add( "csv:/text/geog/hoffers_wake" );
+	local_function_1();
+	GUI.SetDefaultFont( Global.String( "GUI_title_font" ) );
+	window_0 = iGUI.CreateShadyBar();
+	iGUI.AddBackButtons( window_0, "SPComputerPuzzle.OnBack", "SPComputerPuzzle.OnBack" );
+	iGUI.AddTitle( window_0, Text.Field( "basemenu_triangulation", FT_Text ) );
+	local_13 = ( local_13 + (Global.Int( "GUI_title_yoffset" ) + (Global.Int( "GUI_fancybutton_height" ) + constant_1)) );
+	window_3 = GUI.CreateWindow( 0, 0, gUIInversebuttonWidth, gUIInversebuttonHeight, none );
+	List.AddTail( localList_1, window_3 );
+	window_2 = iGUI.CreateWindowListInSplitter( window_0, localList_1, local_8, local_13, Text.Field( "triangulation_time", FT_Text ) );
+	GUI.DeleteWindow( window_3 );
+	local_13 = ( local_13 + (GUI.WindowCanvasHeight( window_2 ) + constant_1) );
+	window_1 = GUI.SplitterWindowBottomWindow( window_2 );
+	local_14 = constant_2;
+	local_function_2( local_14, window_1, 2, "g_time_hr_txt", local_12, gUIInversebuttonHeight, localList_0 );
+	local_14 = ( local_14 + local_12 );
+	local_function_3( local_14, window_1, ":", constant_0, gUIInversebuttonHeight );
+	local_14 = ( local_14 + constant_0 );
+	local_function_2( local_14, window_1, 2, "g_time_min_txt", local_12, gUIInversebuttonHeight, localList_0 );
+	local_14 = ( local_14 + local_12 );
+	local_14 = constant_2;
+	window_3 = GUI.CreateWindow( 0, 0, gUIInversebuttonWidth, gUIInversebuttonHeight, none );
+	List.RemoveAll( localList_1 );
+	List.AddTail( localList_1, window_3 );
+	window_2 = iGUI.CreateWindowListInSplitter( window_0, localList_1, local_8, local_13, Text.Field( "triangulation_date", FT_Text ) );
+	GUI.DeleteWindow( window_3 );
+	local_13 = ( local_13 + (GUI.WindowCanvasHeight( window_2 ) + constant_1) );
+	window_1 = GUI.SplitterWindowBottomWindow( window_2 );
+	local_function_2( local_14, window_1, 2, "g_date_day_txt", local_12, gUIInversebuttonHeight, localList_0 );
+	local_14 = ( local_14 + local_12 );
+	local_function_3( local_14, window_1, "/", constant_0, gUIInversebuttonHeight );
+	local_14 = ( local_14 + constant_0 );
+	local_function_2( local_14, window_1, 2, "g_date_month_txt", local_12, gUIInversebuttonHeight, localList_0 );
+	local_14 = ( local_14 + local_12 );
+	local_function_3( local_14, window_1, "/", constant_0, gUIInversebuttonHeight );
+	local_14 = ( local_14 + constant_0 );
+	local_function_2( local_14, window_1, 4, "g_date_year_txt", local_12 * 2, gUIInversebuttonHeight, localList_0 );
+	local_14 = ( local_14 + (local_12 * 2) );
+	local_function_4();
+	window_4 = iGUI.CreateAndInitialiseFancyButton( window_0, local_13, Text.Field( "triangulation_calculate", FT_Text ), "SPComputerPuzzle.Calculate" );
+	List.AddTail( localList_0, window_4 );
+	local_13 = ( local_13 + (Global.Int( "GUI_fancybutton_height" ) + constant_1) );
+	Global.CreateHandle( "g_shady_bar", 2, window_0 );
+	Global.CreateInt( "g_shady_bar_y_offset", 2, local_13 );
+	GUI.SetFirstControlFocus( GUI.Cast( List.Head( localList_0 ) ) );
+	iGUI.SetCyclicControlFocusPath( localList_0 );
+	GUI.SetControlFocusCancelFunction( "SPComputerPuzzle.OnBack" );
+}
+
+task local_function_7( string param_0_, string param_1_ )
+{
+	iConversation.OneLiner( none, param_0_, param_1_ );
+}
+
+OnBeginEditBoxEditing()
+{
+	int local_0;
+	
+	local_function_5();
+}
+
+OnFinishEditBoxEditing()
+{
+	hwindow window;
+	
+	local_function_0();
+	window = GUI.FocusedWindow();
+	window = GUI.WindowNextFocus( window );
+	GUI.SetFocus( window );
+}
+
+OnIncrement()
+{
+	hwindow window;
+	string local_1;
+	int local_2;
+	
+	window = GUI.FocusedWindow();
+	local_1 = GUI.EditBoxValue( window );
+	local_2 = String.ToInt( local_1 );
+	local_2 = ( local_2 + 1 );
+	local_1 = String.FromInt( local_2 );
+	GUI.SetEditBoxValue( window, local_1 );
+	local_function_0();
+	local_function_5();
+}
+
+OnDecrement()
+{
+	hwindow window;
+	string local_1;
+	int local_2;
+	
+	window = GUI.FocusedWindow();
+	local_1 = GUI.EditBoxValue( window );
+	local_2 = String.ToInt( local_1 );
+	local_2 = ( local_2 + -1 );
+	local_1 = String.FromInt( local_2 );
+	GUI.SetEditBoxValue( window, local_1 );
+	local_function_0();
+	local_function_5();
+}
+
+OnBack()
+{
+	htask gCalculateTask = Task.Cast( Global.Handle( "g_calculate_task" ) );
+	
+	if ( gCalculateTask != false )
+	{
+		Task.Halt( gCalculateTask );
+	}
+	
+	Global.Destroy( "g_time_hr" );
+	Global.Destroy( "g_time_min" );
+	Global.Destroy( "g_date_day" );
+	Global.Destroy( "g_date_month" );
+	Global.Destroy( "g_date_year" );
+	Global.Destroy( "g_time_hr_txt" );
+	Global.Destroy( "g_time_min_txt" );
+	Global.Destroy( "g_date_day_txt" );
+	Global.Destroy( "g_date_month_txt" );
+	Global.Destroy( "g_date_year_txt" );
+	Global.Destroy( "g_calculate_task" );
+	Global.Destroy( "g_shady_bar" );
+	Global.Destroy( "g_shady_bar_y_offset" );
+	Global.Destroy( "g_result_window" );
+	Global.Destroy( "g_got_match" );
+	GUI.RemoveLastOverlay();
+}
+
+string local_function_6( int param_0_ )
+{
+	switch ( param_0_ )
+	{
+		case 0:
+			return Text.Field( "Griffon", FT_Text );
+		
+		case 1:
+			return Text.Field( "Samarakand", FT_Text );
+		
+		case 2:
+			return Text.Field( "Greydog City", FT_Text );
+		
+		case 3:
+			return Text.Field( "Petra", FT_Text );
+		
+		case 4:
+			return Text.Field( "Timbuktu", FT_Text );
+		
+		case 5:
+			return Text.Field( "Shangri-La", FT_Text );
+		
+		case 6:
+			return Text.Field( "The Effrit", FT_Text );
+		
+		case 7:
+			return Text.Field( "Touchdown", FT_Text );
+		
+		case 8:
+			return Text.Field( "Greenback", FT_Text );
+		
+		case 9:
+			return Text.Field( "Hope", FT_Text );
+		
+		case 10:
+			return Text.Field( "Twinkle", FT_Text );
+		
+		case 11:
+			return Text.Field( "Pit", FT_Text );
+		
+		case 12:
+			return Text.Field( "Zira", FT_Text );
+		
+		case 13:
+			return Text.Field( "Henge", FT_Text );
+		
+		case 14:
+			return Text.Field( "Blackfoot", FT_Text );
+		
+		case 15:
+			return Text.Field( "Skavey", FT_Text );
+		
+		case 16:
+			return Text.Field( "Tunnel", FT_Text );
+		
+		case 17:
+			return Text.Field( "Galan", FT_Text );
+		
+		case 18:
+			return Text.Field( "Freetown", FT_Text );
+		
+		case 19:
+			return Text.Field( "Patchwork", FT_Text );
+		
+		case 20:
+			return Text.Field( "Kirk", FT_Text );
+		
+		case 21:
+			return Text.Field( "Blight", FT_Text );
+		
+		case 22:
+			return Text.Field( "Gabriel", FT_Text );
+		
+		case 23:
+			return Text.Field( "Topov", FT_Text );
+		
+		case 24:
+			return Text.Field( "Andre", FT_Text );
+		
+		case 25:
+			return Text.Field( "Eustace", FT_Text );
+		
+		case 26:
+			return Text.Field( "Grimwald", FT_Text );
+		
+		case 27:
+			return Text.Field( "Camel Back", FT_Text );
+		
+		case 28:
+			return Text.Field( "Cavanerri", FT_Text );
+		
+		case 29:
+			return Text.Field( "Malvem", FT_Text );
+		
+		case 30:
+			return Text.Field( "Tremour", FT_Text );
+		
+		case 31:
+			return Text.Field( "Gavin's Rock", FT_Text );
+		
+		case 32:
+			return Text.Field( "Le Verrier", FT_Text );
+		
+		case 33:
+			return Text.Field( "Ariane", FT_Text );
+		
+		case 34:
+			return Text.Field( "Enclave", FT_Text );
+		
+		case 35:
+			return Text.Field( "Zion", FT_Text );
+		
+		case 36:
+			return Text.Field( "Scallywag", FT_Text );
+		
+		case 37:
+			return Text.Field( "Rebecca", FT_Text );
+		
+		case 38:
+			return Text.Field( "Buddokan", FT_Text );
+		
+		case 39:
+			return Text.Field( "Moonmist", FT_Text );
+		
+		case 40:
+			return Text.Field( "Covenant", FT_Text );
+		
+		case 41:
+			return Text.Field( "Stanu", FT_Text );
+		
+		case 42:
+			return Text.Field( "Aldo", FT_Text );
+		
+		case 43:
+			return Text.Field( "Stockade", FT_Text );
+		
+		case 44:
+			return Text.Field( "Ursus", FT_Text );
+		
+		case 45:
+			return Text.Field( "Milo", FT_Text );
+		
+		case 46:
+			return Text.Field( "Torridan", FT_Text );
+		
+		case 47:
+			return Text.Field( "Faraday", FT_Text );
+		
+		case 48:
+			return Text.Field( "Gretchin", FT_Text );
+		
+		case 49:
+			return Text.Field( "Pebble", FT_Text );
+		
+		case 50:
+			return Text.Field( "Les Campanas", FT_Text );
+		
+		case 51:
+			return Text.Field( "Alexander", FT_Text );
+		
+		case 52:
+			return Text.Field( "Cleitus", FT_Text );
+		
+		case 53:
+			return Text.Field( "Darius", FT_Text );
+		
+		case 54:
+			return Text.Field( "Bessus", FT_Text );
+		
+		case 55:
+			return Text.Field( "Memnon", FT_Text );
+		
+		case 56:
+			return Text.Field( "Blackeye", FT_Text );
+		
+		case 57:
+			return Text.Field( "Danzig", FT_Text );
+		
+		case 58:
+			return Text.Field( "Krakow", FT_Text );
+		
+		case 59:
+			return Text.Field( "Hoffer's Wake Beta", FT_Text );
+		
+		case 60:
+			return Text.Field( "Corinthia", FT_Text );
+		
+		case 61:
+			return Text.Field( "YellowRock", FT_Text );
+		
+		case 62:
+			return Text.Field( "Gimble", FT_Text );
+		
+		case 63:
+			return Text.Field( "Hoffer's Heel", FT_Text );
+	}
+	
+	return "dummy";
+}
+
+task local_function_8()
+{
+	hwindow gShadyBar;
+	int gShadyBarYOffset;
+	int constant_0 = 10;
+	float constant_1 = 0.50;
+	int constant_2 = 10;
+	bool local_5 = false;
+	hwindow gResultWindow;
+	float constant_3 = 0.050;
+	int ii;
+	int constant_4 = 64;
+	int local_10;
+	string local_11;
+	int local_12 = ( Global.Int( "GUI_alignment_offset" ) + (Global.Int( "GUI_fancyborder_alignmentoffset" ) + (Global.Int( "GUI_fancyborder_width" ) + Global.Int( "GUI_inversebutton_textoffset" ))) );
+	int random;
+	bool local_14;
+	int local_15;
+	int local_16;
+	
+	if ( (Global.Int( "g_time_hr" ) == 17) && ((Global.Int( "g_time_min" ) == 24) && ((Global.Int( "g_date_day" ) == 4) && ((Global.Int( "g_date_month" ) == 3) && (Global.Int( "g_date_year" ) == 2331)))) )
+	{
+		local_14 = true;
+	}
+	else
+	{
+		local_14 = false;
+	}
+	
+	gResultWindow = GUI.Cast( Global.Handle( "g_result_window" ) );
+	
+	if ( gResultWindow == false )
+	{
+		gShadyBar = GUI.Cast( Global.Handle( "g_shady_bar" ) );
+		gShadyBarYOffset = Global.Int( "g_shady_bar_y_offset" );
+		gResultWindow = iGUI.CreateAndInitialiseStaticWindow( local_12, gShadyBarYOffset, GUI.WindowCanvasWidth( gShadyBar ) - local_12, 15, gShadyBar, Global.String( "GUI_subtitle_font" ), "" );
+		GUI.SetWindowTextFormatting( gResultWindow, false, 0 );
+		Global.CreateHandle( "g_result_window", 2, gResultWindow );
+	}
+	
+	local_function_5();
+	random = Math.RandomInt( 0, constant_4 - 1 );
+	local_10 = ( constant_4 / 3 );
+	
+	if ( !local_14 )
+	{
+		local_10 = ( local_10 * 2 );
+	}
+	
+	for ( ii = 0; ii < local_10; ++ii )
+	{
+		local_11 = local_function_6( (random + ii) % constant_4 );
+		local_11 = String.UpperCase( local_11 );
+		GUI.SetWindowTitle( gResultWindow, local_11 );
+		Task.Sleep( Task.Current(), constant_3 );
+	}
+	
+	GUI.SetWindowStateColours( gResultWindow, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0 );
+	
+	if ( local_14 )
+	{
+		GUI.PlaySound( S_Confirm );
+		local_11 = Text.Field( "triangulation_matchfound", FT_Text );
+		GUI.SetWindowTitle( gResultWindow, local_11 );
+		
+		if ( !Global.Exists( "g_got_match" ) )
+		{
+			Task.Detach( start local_function_7( "name_smith", "a1_master_smith_thats_right" ) );
+			Global.CreateBool( "g_got_position", 1, true );
+			Global.SetBool( "g_act1_puzzle_active", false );
+			Task.Detach( start local_function_7( "name_lori", "a1_master_lori_look_outside" ) );
+			iLoadout.RemoveTurretFighters();
+			local_15 = iInventory.NumberOfCargoType( CT_TurretFighter );
+			Global.CreateInt( "g_num_hidden_turret_fighters", 2, local_15 );
+			iInventory.Remove( CT_TurretFighter, local_15 );
+			local_16 = iInventory.NumberOfCargoType( CT_TurretFighterBlueprints );
+			iInventory.Remove( CT_TurretFighterBlueprints, local_16 );
+		}
+		
+		iBaseGUI.SetTriangulationScreenEnabled( false );
+		Global.CreateBool( "g_got_match", 2, true );
+		return;
+	}
+	
+	GUI.PlaySound( S_Error );
+	local_11 = Text.Field( "triangulation_nomatches", FT_Text );
+	GUI.SetWindowTitle( gResultWindow, local_11 );
+}
+
+Calculate()
+{
+	htask local_0;
+	
+	if ( !Global.Exists( "g_calculate_task" ) )
+	{
+		local_0 = start local_function_8();
+		Task.Detach( local_0 );
+	}
+}
+

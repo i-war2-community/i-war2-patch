@@ -1,0 +1,232 @@
+package iPowerUp;
+
+uses Debug,
+     String,
+     Set,
+     List,
+     Global,
+     iCargo,
+     GUI,
+     iEmail,
+     MapEnumerations,
+     iFaction,
+     CargoTypes,
+     iInventory,
+     iTrade;
+
+provides GiveEverything,
+         GiveAllCargo,
+         GiveAllShips,
+         GiveTug,
+         GiveFastAttackShip,
+         GiveHeavyCorvette,
+         EquipForPlayerBaseTesting;
+
+prototype GiveEverything();
+prototype GiveAllShips();
+prototype GiveAllCargo();
+prototype local_function_0();
+prototype GiveTug();
+prototype GiveFastAttackShip();
+prototype GiveHeavyCorvette();
+prototype EquipForPlayerBaseTesting();
+
+GiveEverything()
+{
+	debug Debug.PrintString( "iPowerUp.GiveEveryThing: STARTED\n" );
+	GiveAllShips();
+	GiveAllCargo();
+	debug Debug.PrintString( "iPowerUp.GiveEveryThing: COMPLETED\n" );
+}
+
+GiveAllShips()
+{
+	debug Debug.PrintString( "iPowerUp.GiveAllShips: Adding All Ships\n" );
+	
+	if ( iInventory.GotTug() && (iInventory.GotFastAttackShip() && iInventory.GotHeavyCorvette()) )
+	{
+		debug Debug.PrintString( "iPowerUp.GiveHeavyCorvette: Already got it.\n" );
+		return;
+	}
+	
+	iInventory.AddTug();
+	iInventory.AddFastAttackShip();
+	iInventory.AddHeavyCorvette();
+	iInventory.Add( CT_LDSClass2Drive, 1 );
+	iInventory.Add( CT_DeltaHeatSink, 1 );
+	iInventory.Add( CT_LongRangePassiveSensors, 1 );
+	iInventory.Add( CT_LongRangeActiveSensors, 1 );
+	iInventory.Add( CT_AssaultShield, 2 );
+	iInventory.Add( CT_CuttingBeam, 1 );
+	iInventory.Add( CT_QuadLightPBC, 3 );
+	iInventory.Add( CT_AssaultCannon, 1 );
+	iInventory.Add( CT_AssaultCannonAmmo, 2 );
+	iInventory.Add( CT_AssaultCannonAmmoRound, 100 );
+	iInventory.Add( CT_DeadshotMissiles, 5 );
+	iInventory.Add( CT_LDSi3000Missiles, 5 );
+	iInventory.Add( CT_QuadpackMissileLauncher, 1 );
+	iInventory.Add( CT_Decoys, 5 );
+	iInventory.Add( CT_TurretFighter, 2 );
+}
+
+GiveAllCargo()
+{
+	int local_0 = iInventory.NumberOfCargoTypes();
+	hcargo cargo;
+	eCargoType ii;
+	
+	if ( iInventory.NumberOfCargoType( CT_Weasels ) > 90 )
+	{
+		debug Debug.PrintString( "iPowerUp.GiveAllCargo: Too many weasels. No more cargo added." );
+		return;
+	}
+	
+	debug Debug.PrintString( "iPowerUp.GiveAllCargo: Adding All Cargo..." );
+	
+	for ( ii = CT_Invalid; ii < local_0; ii = ( ii + 1 ) )
+	{
+		cargo = iCargo.Find( ii );
+		
+		if ( cargo != false )
+		{
+			iInventory.Add( ii, 100 );
+		}
+	}
+	
+	debug Debug.PrintString( "iPowerUp.GiveAllCargo: Done adding cargo.\n" );
+}
+
+local_function_0()
+{
+	if ( Global.Exists( "g_powerup_ships" ) )
+	{
+		debug Debug.PrintString( "iPowerUp.GiveAllShips: Destroying Ship powerup global.\n" );
+		Global.Destroy( "g_powerup_ships" );
+		return;
+	}
+	
+	if ( Global.Exists( "g_powerup_cargo" ) )
+	{
+		debug Debug.PrintString( "iPowerUp.GiveAllShips: Destroying Cargo powerup global.\n" );
+		Global.Destroy( "g_powerup_cargo" );
+		return;
+	}
+}
+
+GiveTug()
+{
+	if ( iInventory.GotTug() )
+	{
+		debug Debug.PrintString( "iPowerUp.GiveTug: Already got it.\n" );
+		return;
+	}
+	
+	iInventory.AddTug();
+	iInventory.Add( CT_LDSClass1Drive, 1 );
+	iInventory.Add( CT_AlphaHeatSink, 1 );
+	iInventory.Add( CT_PowerPlant, 1 );
+	iInventory.Add( CT_Accumulators, 1 );
+	iInventory.Add( CT_ShortrangePassiveSensors, 1 );
+	iInventory.Add( CT_LightDefenceShield, 1 );
+	iInventory.Add( CT_ParticleBeamCannon, 1 );
+	iInventory.Add( CT_CommunicationsLaser, 1 );
+	iInventory.Add( CT_GnatRockets, 1 );
+	iInventory.Add( CT_HarrowerMissiles, 1 );
+	iInventory.Add( CT_TwinPackMissileLauncher, 2 );
+	iInventory.Add( CT_TurretFighter, 2 );
+}
+
+GiveFastAttackShip()
+{
+	if ( iInventory.GotFastAttackShip() )
+	{
+		debug Debug.PrintString( "iPowerUp.GiveFastAttackShip: Already got it.\n" );
+		return;
+	}
+	
+	iInventory.AddFastAttackShip();
+	iInventory.Add( CT_LDSClass2Drive, 1 );
+	iInventory.Add( CT_BetaHeatSink, 1 );
+	iInventory.Add( CT_LongRangePassiveSensors, 1 );
+	iInventory.Add( CT_LongRangeActiveSensors, 1 );
+	iInventory.Add( CT_DefenceShield, 2 );
+	iInventory.Add( CT_ParticleBeamCannon, 1 );
+	iInventory.Add( CT_LightPBC, 1 );
+	iInventory.Add( CT_AssaultCannon, 1 );
+	iInventory.Add( CT_AssaultCannonAmmo, 2 );
+	iInventory.Add( CT_AssaultCannonAmmoRound, 100 );
+	iInventory.Add( CT_SeekerMissiles, 2 );
+	iInventory.Add( CT_LDSiMissiles, 1 );
+	iInventory.Add( CT_TripackMissileLauncher, 2 );
+	iInventory.Add( CT_Decoys, 1 );
+	iInventory.Add( CT_TurretFighter, 2 );
+}
+
+GiveHeavyCorvette()
+{
+	if ( iInventory.GotHeavyCorvette() )
+	{
+		debug Debug.PrintString( "iPowerUp.GiveHeavyCorvette: Already got it.\n" );
+		return;
+	}
+	
+	iInventory.AddHeavyCorvette();
+	iInventory.Add( CT_LDSClass2Drive, 1 );
+	iInventory.Add( CT_DeltaHeatSink, 1 );
+	iInventory.Add( CT_LongRangePassiveSensors, 1 );
+	iInventory.Add( CT_LongRangeActiveSensors, 1 );
+	iInventory.Add( CT_AssaultShield, 2 );
+	iInventory.Add( CT_ParticleBeamCannon, 1 );
+	iInventory.Add( CT_LightPBC, 1 );
+	iInventory.Add( CT_AssaultCannon, 1 );
+	iInventory.Add( CT_AssaultCannonAmmo, 2 );
+	iInventory.Add( CT_AssaultCannonAmmoRound, 100 );
+	iInventory.Add( CT_DeadshotMissiles, 5 );
+	iInventory.Add( CT_DeadshotMissiles, 5 );
+	iInventory.Add( CT_LDSi3000Missiles, 5 );
+	iInventory.Add( CT_QuadpackMissileLauncher, 3 );
+	iInventory.Add( CT_Decoys, 1 );
+	iInventory.Add( CT_TurretFighter, 2 );
+}
+
+EquipForPlayerBaseTesting()
+{
+	iInventory.Add( CT_AssaultCannon, 2 );
+	iInventory.Add( CT_TurretFighter, 1 );
+	iInventory.Add( CT_AssaultCannonAmmoRound, 10000 );
+	iInventory.Add( CT_PointDefenceTurret, 3 );
+	iInventory.Add( CT_DockOnAutoTurret, 4 );
+	iInventory.Add( CT_ArmouredHullPlates, 5 );
+	iInventory.Add( CT_ShipMemoryModule, 6 );
+	iInventory.Add( CT_MatchVelocityAutopilot, 7 );
+	iInventory.Add( CT_StealthProgram, 8 );
+	iInventory.Add( CT_RemoteFighter, 9 );
+	iInventory.Add( CT_GnatBlueprint, 10 );
+	iInventory.Add( CT_DrinkingWater, 20000 );
+	iInventory.Add( CT_ShortRangeActiveSensors, 11 );
+	iInventory.Add( CT_CapsuleDrive, 12 );
+	iInventory.Add( CT_SensorDisruptor, 13 );
+	iInventory.Add( CT_MilitaryAggressorShields, 14 );
+	iInventory.Add( CT_HeatSinkSupercooler, 15 );
+	iInventory.Add( CT_ActiveCooler, 16 );
+	iInventory.Add( CT_InternalMissileMagazine, 17 );
+	iInventory.Add( CT_HighYieldFusionInjector, 18 );
+	iInventory.Add( CT_RemoteFighter, 19 );
+	iInventory.Add( CT_TwinPackMissileLauncher, 20 );
+	iInventory.Add( CT_RapidFirePBC, 21 );
+	iInventory.Add( CT_BlizzardRocketPod, 22 );
+	iInventory.Add( CT_HarrowerMissiles, 23 );
+	iInventory.AddFastAttackShip();
+	iInventory.AddHeavyCorvette();
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Independent" ), 484, 1, 90, 3, 0 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoCategory( iFaction.Find( "Independent" ), 483, 1, 39, 10, 0 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Independent" ), 490, 1, 26, 10, 0 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Independent" ), 298, 1, 24, 5, 0 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Independent" ), 498, 1, 258, 5, 0 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Independent" ), 488, 1, 268, 5, 0 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Independent" ), 492, 1, 293, 5, 0 ) );
+	iTrade.OfferTrade( iTrade.CreateTradeForCargoType( iFaction.Find( "Independent" ), 563, 1, 313, 5, 0 ) );
+	iEmail.SendEmail( "a0_master_lucrecia_mail_sender", "a0_master_story0.30_mail_subject", "html:/text/act_0/act0_master_lucreciamail_1", true );
+	iEmail.SendEmail( "a0_master_lucrecia_mail_sender", "a0_master_story0.30_mail_subject", "html:/Act1_Mission10_email_FR", true );
+}
+

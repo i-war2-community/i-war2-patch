@@ -1,0 +1,316 @@
+package iPilotSetup;
+
+uses Debug,
+     Set,
+     List,
+     Object,
+     Group,
+     Sim,
+     String,
+     MapEnumerations,
+     iFaction,
+     iMapEntity,
+     iSim,
+     iBody,
+     iHabitat,
+     iShip;
+
+provides Generic,
+         GenericAggressive,
+         GenericCoward,
+         GenericSupply,
+         GenericTrade,
+         GenericFreight,
+         GenericCargoPod,
+         GenericPolice,
+         GenericMilitary,
+         GenericOfficial,
+         GenericUnderworld,
+         GenericScum,
+         GangsterAggressive,
+         GangsterCoward,
+         PoliceHeroic,
+         MilitaryAggressive,
+         MilitarySupply,
+         TradeAggressive,
+         TradeCoward,
+         CourierSecure,
+         Marauder,
+         StringDescription;
+
+prototype Generic( hship ship_ );
+prototype GenericAggressive( hship ship_ );
+prototype GenericCoward( hship ship_ );
+prototype GenericSupply( hship ship_ );
+prototype GenericTrade( hship ship_ );
+prototype GenericFreight( hship ship_ );
+prototype GenericCargoPod( hship ship_ );
+prototype GenericPolice( hship ship_ );
+prototype GenericMilitary( hship ship_ );
+prototype GenericOfficial( hship ship_ );
+prototype GenericUnderworld( hship ship_ );
+prototype GenericScum( hship ship_ );
+prototype GangsterAggressive( hship ship_ );
+prototype GangsterCoward( hship ship_ );
+prototype PoliceHeroic( hship ship_ );
+prototype MilitaryAggressive( hship ship_ );
+prototype MilitarySupply( hship ship_ );
+prototype TradeAggressive( hship ship_ );
+prototype TradeCoward( hship ship_ );
+prototype CourierSecure( hship ship_ );
+prototype Marauder( hship ship_ );
+prototype StringDescription( hship ship_, string pilot_type_ );
+
+Generic( hship ship_ )
+{
+	iShip.InstallAIPilot( ship_, 0.40, 2.0, 0.40, "iIgnore.WarnVessel", "", "", "" );
+}
+
+GenericAggressive( hship ship_ )
+{
+	iShip.InstallAIPilot( ship_, 0.20, 3.50, 0.30, "iIgnore.WarnVessel", "", "", "" );
+}
+
+GenericCoward( hship ship_ )
+{
+	iShip.InstallAIPilot( ship_, 0.10, 1.0, 0.60, "iIgnore.WarnVessel", "", "", "" );
+}
+
+GenericSupply( hship ship_ )
+{
+	iShip.InstallAIPilot( ship_, 0.40, 1.0, 0.50, "iIgnore.WarnVessel", "", "iSelfPreservation.Surrender", "iSelfPreservation.Surrender" );
+}
+
+GenericTrade( hship ship_ )
+{
+	iShip.InstallAIPilot( ship_, 0.40, 1.0, 0.50, "iIgnore.WarnVessel", "", "iSelfPreservation.Surrender", "iSelfPreservation.Surrender" );
+}
+
+GenericFreight( hship ship_ )
+{
+	iShip.InstallAIPilot( ship_, 0.30, 1.0, 0.50, "iIgnore.WarnVessel", "", "iSelfPreservation.Surrender", "iSelfPreservation.Surrender" );
+}
+
+GenericCargoPod( hship ship_ )
+{
+	iShip.InstallAIPilot( ship_, 2000.0, 2000.0, -50.0, "", "", "", "" );
+}
+
+GenericPolice( hship ship_ )
+{
+	Object.AddBoolProperty( ship_, "hard_dude", true );
+	iShip.InstallAIPilot( ship_, 0.10, 2.0, 0.30, "", "iFight.PoliceCallForBackup", "iFlee.CivilianRunForHelp", "iFlee.CivilianRunForHelp" );
+}
+
+GenericMilitary( hship ship_ )
+{
+	Object.AddBoolProperty( ship_, "hard_dude", true );
+	iShip.InstallAIPilot( ship_, 0.10, 3.50, 0.20, "", "", "", "" );
+}
+
+GenericOfficial( hship ship_ )
+{
+	iShip.InstallAIPilot( ship_, 0.30, 2.0, 0.50, "", "", "", "" );
+}
+
+GenericUnderworld( hship ship_ )
+{
+	iShip.InstallAIPilot( ship_, 0.40, 2.0, 0.30, "iIgnore.WarnVessel", "iFight.GangsterCallForBackup", "", "iFlee.GangsterRunForHelp" );
+}
+
+GenericScum( hship ship_ )
+{
+	iShip.InstallAIPilot( ship_, 0.30, 150.0, 0.30, "iIgnore.WarnVessel", "iFight.GangsterCallForBackup", "iFlee.GangsterRunForHelp", "iFlee.GangsterRunForHelp" );
+}
+
+GangsterAggressive( hship ship_ )
+{
+	iShip.InstallAIPilot( ship_, 0.10, 4.0, 0.20, "", "iFight.GangsterCallForBackup", "", "iFlee.GangsterRunForHelp" );
+}
+
+GangsterCoward( hship ship_ )
+{
+	iShip.InstallAIPilot( ship_, 0.250, 1.0, 0.550, "iIgnore.WarnVessel", "iFight.GangsterCallForBackup", "", "iFlee.GangsterRunForHelp" );
+}
+
+PoliceHeroic( hship ship_ )
+{
+	Object.AddBoolProperty( ship_, "hard_dude", true );
+	iShip.InstallAIPilot( ship_, 0.150, 50.0, 0.20, "", "iFight.PoliceCallForBackup", "iFlee.CivilianRunForHelp", "iFlee.CivilianRunForHelp" );
+}
+
+MilitaryAggressive( hship ship_ )
+{
+	Object.AddBoolProperty( ship_, "hard_dude", true );
+	iShip.InstallAIPilot( ship_, 0.20, 5.0, 0.20, "", "iFight.MilitaryCallForBackup", "", "" );
+}
+
+MilitarySupply( hship ship_ )
+{
+	iShip.InstallAIPilot( ship_, 0.50, 1.50, 0.30, "iIgnore.WarnVessel", "", "iSelfPreservation.Surrender", "iSelfPreservation.Surrender" );
+}
+
+TradeAggressive( hship ship_ )
+{
+	iShip.InstallAIPilot( ship_, 0.20, 2.0, 0.20, "iIgnore.WarnVessel", "", "iSelfPreservation.Surrender", "iSelfPreservation.Surrender" );
+}
+
+TradeCoward( hship ship_ )
+{
+	iShip.InstallAIPilot( ship_, 0.30, 1.0, 0.50, "iIgnore.WarnVessel", "", "iSelfPreservation.Surrender", "iSelfPreservation.Surrender" );
+}
+
+CourierSecure( hship ship_ )
+{
+	iShip.InstallAIPilot( ship_, 2.0, 5.0, 0.30, "iIgnore.WarnVessel", "", "iSelfPreservation.Surrender", "iSelfPreservation.Surrender" );
+}
+
+Marauder( hship ship_ )
+{
+	iShip.InstallAIPilot( ship_, 0.10, 5.0, 0.010, "", "", "", "" );
+}
+
+StringDescription( hship ship_, string pilot_type_ )
+{
+	if ( pilot_type_ == "Generic" )
+	{
+		Generic( ship_ );
+		return;
+	}
+	
+	if ( pilot_type_ == "GenericAggressive" )
+	{
+		GenericAggressive( ship_ );
+		return;
+	}
+	
+	if ( pilot_type_ == "GenericCoward" )
+	{
+		GenericCoward( ship_ );
+		return;
+	}
+	
+	if ( pilot_type_ == "GenericSupply" )
+	{
+		GenericSupply( ship_ );
+		return;
+	}
+	
+	if ( pilot_type_ == "GenericTrade" )
+	{
+		GenericTrade( ship_ );
+		return;
+	}
+	
+	if ( pilot_type_ == "GenericFreight" )
+	{
+		GenericFreight( ship_ );
+		return;
+	}
+	
+	if ( pilot_type_ == "GenericCargoPod" )
+	{
+		GenericCargoPod( ship_ );
+		return;
+	}
+	
+	if ( pilot_type_ == "GenericPolice" )
+	{
+		GenericPolice( ship_ );
+		return;
+	}
+	
+	if ( pilot_type_ == "GenericMilitary" )
+	{
+		GenericMilitary( ship_ );
+		return;
+	}
+	
+	if ( pilot_type_ == "GenericOfficial" )
+	{
+		GenericOfficial( ship_ );
+		return;
+	}
+	
+	if ( pilot_type_ == "GenericUnderworld" )
+	{
+		GenericUnderworld( ship_ );
+		return;
+	}
+	
+	if ( pilot_type_ == "GenericScum" )
+	{
+		GenericScum( ship_ );
+		return;
+	}
+	
+	if ( pilot_type_ == "GangsterAggressive" )
+	{
+		GangsterAggressive( ship_ );
+		return;
+	}
+	
+	if ( pilot_type_ == "GangsterCoward" )
+	{
+		GangsterCoward( ship_ );
+		return;
+	}
+	
+	if ( pilot_type_ == "PoliceHeroic" )
+	{
+		PoliceHeroic( ship_ );
+		return;
+	}
+	
+	if ( pilot_type_ == "MilitaryAggessive" )
+	{
+		MilitaryAggressive( ship_ );
+		return;
+	}
+	
+	if ( pilot_type_ == "MilitarySupply" )
+	{
+		MilitarySupply( ship_ );
+		return;
+	}
+	
+	if ( pilot_type_ == "TradeAggressive" )
+	{
+		TradeAggressive( ship_ );
+		return;
+	}
+	
+	if ( pilot_type_ == "TradeCoward" )
+	{
+		TradeCoward( ship_ );
+		return;
+	}
+	
+	if ( pilot_type_ == "CourierSecure" )
+	{
+		CourierSecure( ship_ );
+		return;
+	}
+	
+	if ( pilot_type_ == "Marauder" )
+	{
+		Marauder( ship_ );
+		return;
+	}
+	
+	if ( pilot_type_ == "None" )
+	{
+		debug Debug.PrintString( "iPilotSetup.StringDescription: Not installing and AI pilot...\n" );
+		return;
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iPilotSetup.StringDescription: ERROR - The string - " );
+		Debug.PrintString( pilot_type_ );
+		Debug.PrintString( " cannot be found as a pilot type, using generic pilot type instead. So there. \n" );
+	}
+	
+	Generic( ship_ );
+}
+

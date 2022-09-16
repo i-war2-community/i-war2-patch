@@ -1,0 +1,2901 @@
+package iUtilities;
+
+uses Debug,
+     Set,
+     List,
+     String,
+     Global,
+     Sim,
+     Group,
+     INIFile,
+     Math,
+     Object,
+     State,
+     Task,
+     Text,
+     iComms,
+     iConversation,
+     MapEnumerations,
+     iFaction,
+     iGame,
+     iSim,
+     iMapEntity,
+     iBody,
+     iHabitat,
+     GUI,
+     CargoTypes,
+     iInventory,
+     iLagrangePoint,
+     iShip,
+     iTrade;
+
+provides FilterOnFriendlyHabitats,
+         FilterOnFriendlySims,
+         FromAllegianceEnum,
+         FromLocationEnum,
+         FromAllegianceEnumNoSpace,
+         FindNumberOfINIEntries,
+         GetCargoNameFromINI,
+         PickRandomLocationOfType,
+         GetZoneOfControl,
+         GetLargestShipRadius,
+         PlayerInRange,
+         PlayerInRangeOfGroup,
+         KillListOfSims,
+         JettisonCargo,
+         CreateWaypointRelativeTo,
+         CreateWaypointBetween,
+         CreateWaypointRelativeToPlayer,
+         CreateWaypointAt,
+         CreateWaypointNear,
+         MakeWaypointVisible,
+         ReturnHullStructure,
+         RenameSim,
+         GetSurfaceLocationsFromOrbital,
+         CleanInactiveMapEntities,
+         ReleaseError,
+         AllowMissionSkipping,
+         SkipMission,
+         SkipAct,
+         SkipWaitForBool,
+         SkipDialogue,
+         JumpSystem,
+         SimPlaceBetweenExact,
+         TaskSkipMission,
+         WaitOnSkipMission,
+         GroupSetCullable,
+         CapsuleJumpPlayer,
+         CapsuleJumpGroup,
+         ListFromCompoundGroup,
+         NearToGroup,
+         FarFromGroup,
+         CreateWaypointBetweenExact,
+         CreatePlayer,
+         StartInGagarinCluster,
+         ConvertSecondsToTime,
+         Timer,
+         GroupSetFaction,
+         SuperSkip,
+         RandomCentreWeighted,
+         SendStoryElement,
+         GMDelayedDisabler,
+         CriticalShipMonitor,
+         RemoveMissionRestart,
+         GroupSetLocalVelocity;
+
+prototype set CleanInactiveMapEntities();
+prototype set FilterOnFriendlyHabitats( set habitats_, IeAllegiance faction_ );
+prototype set FilterOnFriendlySims( set sims_to_filter_, hsim checker_ );
+prototype string FromLocationEnum( IeHabitatType location_ );
+prototype string FromAllegianceEnum( IeAllegiance allegiance_ );
+prototype string FromAllegianceEnumNoSpace( IeAllegiance allegiance_ );
+prototype int FindNumberOfINIEntries( hinifile ini_, string subsection_, string entry_ );
+prototype string GetCargoNameFromINI( string ini_name_ );
+prototype string PickRandomLocationOfType( string location_type_ );
+prototype float GetZoneOfControl( hmapentity location_ );
+prototype float GetLargestShipRadius( hgroup group_ );
+prototype bool PlayerInRange( hsim checker_ );
+prototype bool PlayerInRangeOfGroup( hgroup group_ );
+prototype KillListOfSims( list sim_stuff_ );
+prototype task JettisonCargo( list cargo_list_, hship requestor_ship_ );
+prototype hsim CreateWaypointRelativeTo( hsim location_, float x_, float y_, float z_ );
+prototype hsim CreateWaypointBetween( hsim location1_, hsim location2_, float distance_ );
+prototype hsim CreateWaypointRelativeToPlayer( float x_, float y_, float z_ );
+prototype hsim CreateWaypointAt( hsim location_ );
+prototype hsim CreateWaypointNear( hsim location_, float radius_ );
+prototype MakeWaypointVisible( hsim waypoint_, bool switcher_, string name_ );
+prototype float ReturnHullStructure( hsim checker_ );
+prototype bool RenameSim( hsim sim_to_rename_, string name_ );
+prototype set GetSurfaceLocationsFromOrbital( hhabitat location_ );
+prototype ReleaseError( string message_ );
+prototype AllowMissionSkipping();
+prototype local_function_0();
+prototype local_function_1();
+prototype bool local_function_10( string param_0_ );
+prototype bool SkipAct( string mission_descriptor_, int act_number_ );
+prototype bool SkipMission( string mission_descriptor_ );
+prototype task GMDelayedDisabler();
+prototype SuperSkip();
+prototype task TaskSkipMission( string mission_descriptor_, string global_to_set_ );
+prototype bool WaitOnSkipMission( htask skipper_, string global_ );
+prototype SkipWaitForBool( string bool_text_key_, string bool_name_, bool value_ );
+prototype SkipDialogue();
+prototype task local_function_3();
+prototype JumpSystem();
+prototype SimPlaceBetweenExact( hsim sim_to_place_, hsim sim1_, hsim sim2_, float distance_ );
+prototype GroupSetCullable( hgroup group_to_set_, bool cullable_ );
+prototype CapsuleJumpPlayer( hisim location_ );
+prototype task local_function_11( list localList_, hisim param_1_, float param_2_ );
+prototype local_function_5( hgroup group_ );
+prototype local_function_4( hship ship_ );
+prototype CapsuleJumpGroup( hgroup group_to_jump_, hisim destination_, float initial_delay_ );
+prototype list ListFromCompoundGroup( hgroup the_group_ );
+prototype hisim NearToGroup( hisim check_sim_, hgroup check_group_, float within_range_, bool process_subgroups_ );
+prototype hisim FarFromGroup( hisim check_sim_, hgroup check_group_, float outside_range_, bool process_subgroups_ );
+prototype hsim CreateWaypointBetweenExact( hsim location1_, hsim location2_, float distance_ );
+prototype CreatePlayer( string template_, hsim start_point_ );
+prototype StartInGagarinCluster();
+prototype int local_function_6( int param_0_ );
+prototype int local_function_7( int param_0_, int param_1_ );
+prototype string ConvertSecondsToTime( int passed_seconds_ );
+prototype task Timer( string identifier_, float duration_ );
+prototype GroupSetFaction( hgroup group_to_set_, hfaction faction_ );
+prototype float local_function_8( float param_0_ );
+prototype float local_function_9( float param_0_, float param_1_, float param_2_ );
+prototype float RandomCentreWeighted( float min_, float max_ );
+prototype bool SendStoryElement( string global_name_, int act_, int mission_number_ );
+prototype task CriticalShipMonitor( hship ship_, float shout_delay_ );
+prototype RemoveMissionRestart();
+prototype GroupSetLocalVelocity( hgroup group_, float xvel_, float yvel_, float zvel_, bool kill_angular_, bool process_subgroups_ );
+prototype local_function_2();
+
+set CleanInactiveMapEntities()
+{
+	set localSet_0;
+	set localSet_1 = Global.Set( "g_filtered_system_habitats" );
+	hmapentity mapEntity;
+	int local_3;
+	hhabitat habitat;
+	int local_5;
+	int local_6;
+	int local_7;
+	int itemCount = Set.ItemCount( localSet_1 );
+	
+	do
+	{
+		mapEntity = iMapEntity.Cast( Set.FirstElement( localSet_1 ) );
+		habitat = iHabitat.Cast( mapEntity );
+		
+		if ( habitat != false )
+		{
+			if ( iHabitat.Type( habitat ) == HT_Disused )
+			{
+				debug atomic
+				{
+					Debug.PrintString( "iUtilities.CleanInactiveHabitats: Removing disused location: " );
+					Debug.PrintString( iMapEntity.Name( mapEntity ) );
+					Debug.PrintString( "\n" );
+				}
+				
+				Set.Remove( localSet_1, mapEntity );
+			}
+			else
+			{
+				Set.Add( localSet_0, mapEntity );
+				Set.Remove( localSet_1, mapEntity );
+			}
+		}
+		else
+		{
+			Set.Add( localSet_0, mapEntity );
+			Set.Remove( localSet_1, mapEntity );
+		}
+	}
+	while ( !Set.IsEmpty( localSet_1 ) );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iUtilities.CleanInactiveHabitats: Number of original habitats = " );
+		Debug.PrintString( String.FromInt( itemCount ) );
+		Debug.PrintString( "\n" );
+		Debug.PrintString( "Number of cleaned habitats = " );
+		Debug.PrintString( String.FromInt( Set.ItemCount( localSet_0 ) ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	return localSet_0;
+}
+
+set FilterOnFriendlyHabitats( set habitats_, IeAllegiance faction_ )
+{
+	int local_0;
+	list localList = List.FromSet( habitats_ );
+	
+	if ( Set.IsEmpty( habitats_ ) )
+	{
+		debug Debug.PrintString( "iUtilities.FilterOnFriendlyHabitats : I've been passesd an empty set of habitats !\n" );
+		return habitats_;
+	}
+	
+	do
+	{
+		if ( iHabitat.Cast( List.GetNth( localList, local_0 ) ) == false )
+		{
+			debug Debug.Error( "iUtilities.FilterOnfreindlyHabitats : An entry in the passed set is not a habitat !" );
+		}
+		
+		if ( iHabitat.Allegiance( iHabitat.Cast( List.GetNth( localList, local_0 ) ) ) != faction_ )
+		{
+			List.RemoveNth( localList, local_0 );
+		}
+		else
+		{
+			local_0 = ( local_0 + 1 );
+		}
+	}
+	while ( local_0 < List.ItemCount( localList ) );
+	
+	return Set.FromList( localList );
+}
+
+set FilterOnFriendlySims( set sims_to_filter_, hsim checker_ )
+{
+	int ii;
+	int itemCount;
+	list localList_0;
+	list localList_1 = List.FromSet( sims_to_filter_ );
+	int local_4;
+	
+	itemCount = List.ItemCount( localList_1 );
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		if ( iFaction.Feeling( iSim.Faction( iSim.Cast( checker_ ) ), iSim.Faction( iSim.Cast( List.GetNth( localList_1, ii ) ) ) ) >= 0.10 )
+		{
+			List.AddTail( localList_0, List.GetNth( localList_1, ii ) );
+		}
+	}
+	
+	return Set.FromList( localList_0 );
+}
+
+string FromLocationEnum( IeHabitatType location_ )
+{
+	switch ( location_ )
+	{
+		case HT_Invalid:
+			debug Debug.Error( "LocationEnum: Warning - location passed has an invalid usage type!" );
+			return "Invalid!";
+		
+		case HT_Disused:
+			return "Disused";
+		
+		case HT_WaterMine:
+			return "WaterMine";
+		
+		case HT_OrganicsMine:
+			return "OrganicsMine";
+		
+		case HT_InorganicsMine:
+			return "InorganicsMine";
+		
+		case HT_BiomassMine:
+			return "BiomassMine";
+		
+		case HT_CommonMetalsMine:
+			return "CommonMetalsMine";
+		
+		case HT_RareMetalsMine:
+			return "RareMetalsMine";
+		
+		case HT_ExoticMetalsMine:
+			return "ExoticMetalsMine";
+		
+		case HT_RadioactivesMine:
+			return "RadioactivesMine";
+		
+		case HT_FusionableGasesMine:
+			return "FusionableGasesMine";
+		
+		case HT_NeutroniumMine:
+			return "NeutroniumMine";
+		
+		case HT_WaterProcessingPlant:
+			return "WaterProcessingPlant";
+		
+		case HT_OrganicsProcessingPlant:
+			return "OrganicsProcessingPlant";
+		
+		case HT_InorganicsProcessingPlant:
+			return "InorganicsProcessingPlant";
+		
+		case HT_BiomassProcessingPlant:
+			return "BiomassProcessingPlant";
+		
+		case HT_CommonMetalsProcessingPlant:
+			return "CommonMetalsProcessingPlant";
+		
+		case HT_RareMetalsProcessingPlant:
+			return "RareMetalsProcessingPlant";
+		
+		case HT_ExoticMetalsProcessingPlant:
+			return "ExoticMetalsProcessingPlant";
+		
+		case HT_RadioactivesProcessingPlant:
+			return "RadioactivesProcessingPlant";
+		
+		case HT_FusionableGasesProcessingPlant:
+			return "FusionableGasesProcessingPlant";
+		
+		case HT_NeutroniumProcessingPlant:
+			return "NeutroniumProcessingPlant";
+		
+		case HT_HeavyManufacturingPlant:
+			return "HeavyManufacturingPlant";
+		
+		case HT_BiologicalManufacturingPlant:
+			return "BiologicalManufacturingPlant";
+		
+		case HT_WetwareManufacturingPlant:
+			return "WetwareManufacturingPlant";
+		
+		case HT_HiTechManufacturingPlant:
+			return "HiTechManufacturingPlant";
+		
+		case HT_ElectronicsManufacturingPlant:
+			return "ElectronicsManufacturingPlant";
+		
+		case HT_WeaponsManufacturingPlant:
+			return "WeaponsManufacturingPlant";
+		
+		case HT_PharmaceuticalsManufacturingPlant:
+			return "PharmaceuticalsManufacturingPlant";
+		
+		case HT_PlasticsManufacturingPlant:
+			return "PlasticsManufacturingPlant";
+		
+		case HT_FusionReactorsManufacturingPlant:
+			return "FusionReactorsManufacturingPlant";
+		
+		case HT_EnergyCellsManufacturingPlant:
+			return "EnergyCellsManufacturingPlant";
+		
+		case HT_StationFabricationManufacturingPlant:
+			return "StationFabricationManufacturingPlant";
+		
+		case HT_LuxuriesManufacturingPlant:
+			return "LuxuriesManufacturingPlant";
+		
+		case HT_ResearchAndDevelopmentLab:
+			return "ResearchAndDevelopmentLab";
+		
+		case HT_ResearchStation:
+			return "ResearchStation";
+		
+		case HT_BlackBudgetResearchStation:
+			return "BlackBudgetResearchStation";
+		
+		case HT_SensitiveResearchStation:
+			return "SensitiveResearchStation";
+		
+		case HT_University:
+			return "University";
+		
+		case HT_MadScientistLab:
+			return "MadScientistLab";
+		
+		case HT_TerraformingStation:
+			return "TerraformingStation";
+		
+		case HT_NavalResearchFacility:
+			return "NavalResearchFacility";
+		
+		case HT_NavalTestingSite:
+			return "NavalTestingSite";
+		
+		case HT_FinancialCentre:
+			return "FinancialCentre";
+		
+		case HT_RegionalHQ:
+			return "RegionalHQ";
+		
+		case HT_PlanetaryAdministration:
+			return "PlanetaryAdministration";
+		
+		case HT_SystemAdministration:
+			return "SystemAdministration";
+		
+		case HT_ClusterAdministration:
+			return "ClusterAdministration";
+		
+		case HT_RegionalDepartment:
+			return "RegionalDepartment";
+		
+		case HT_STCHQ:
+			return "STCHQ";
+		
+		case HT_CentralHQ:
+			return "CentralHQ";
+		
+		case HT_TransferStation:
+			return "TransferStation";
+		
+		case HT_Beanstalk:
+			return "Beanstalk";
+		
+		case HT_Resort:
+			return "Resort";
+		
+		case HT_LuxuryResort:
+			return "LuxuryResort";
+		
+		case HT_LeisureComplex:
+			return "LeisureComplex";
+		
+		case HT_EntertainmentStation:
+			return "EntertainmentStation";
+		
+		case HT_ViceDen:
+			return "ViceDen";
+		
+		case HT_Casino:
+			return "Casino";
+		
+		case HT_MedicalFacility:
+			return "MedicalFacility";
+		
+		case HT_MedicalResearchCentre:
+			return "MedicalResearchCentre";
+		
+		case HT_Asylum:
+			return "Asylum";
+		
+		case HT_Hospice:
+			return "Hospice";
+		
+		case HT_TradingPost:
+			return "TradingPost";
+		
+		case HT_BlackMarket:
+			return "BlackMarket";
+		
+		case HT_NavalAcademy:
+			return "NavalAcademy";
+		
+		case HT_NavalTrainingBase:
+			return "NavalTrainingBase";
+		
+		case HT_SystemDefenceStation:
+			return "SystemDefenceStation";
+		
+		case HT_SystemDefenceDock:
+			return "SystemDefenceDock";
+		
+		case HT_JumpFortress:
+			return "JumpFortress";
+		
+		case HT_DefenceStation:
+			return "DefenceStation";
+		
+		case HT_SecurityStation:
+			return "SecurityStation";
+		
+		case HT_Fortress:
+			return "Fortress";
+		
+		case HT_PoliceBase:
+			return "PoliceBase";
+		
+		case HT_PoliceOutpost:
+			return "PoliceOutpost";
+		
+		case HT_HighSecurityPrison:
+			return "HighSecurityPrison";
+		
+		case HT_LowSecurityPrison:
+			return "LowSecurityPrison";
+		
+		case HT_HardLabourPrison:
+			return "HardLabourPrison";
+		
+		case HT_SupplyDepot:
+			return "SupplyDepot";
+		
+		case HT_RepairDock:
+			return "RepairDock";
+		
+		case HT_DryDock:
+			return "DryDock";
+		
+		case HT_RepairStation:
+			return "RepairStation";
+		
+		case HT_STCPost:
+			return "STCPost";
+		
+		case HT_Outpost:
+			return "Outpost";
+		
+		case HT_Base:
+			return "Base";
+		
+		case HT_Waystation:
+			return "Waystation";
+		
+		case HT_MarineBarracks:
+			return "MarineBarracks";
+		
+		case HT_FTLArray:
+			return "FTLArray";
+		
+		case HT_FTLInterchange:
+			return "FTLInterchange";
+		
+		case HT_STLTranceiver:
+			return "STLTranceiver";
+		
+		case HT_STLInterchange:
+			return "STLInterchange";
+		
+		case HT_Garden:
+			return "Garden";
+		
+		case HT_Ark:
+			return "Ark";
+		
+		case HT_Hermitage:
+			return "Hermitage";
+		
+		case HT_AgriculturalSettlement:
+			return "AgriculturalSettlement";
+		
+		case HT_Habitat:
+			return "Habitat";
+		
+		case HT_CollectiveSettlement:
+			return "CollectiveSettlement";
+		
+		case HT_Settlement:
+			return "Settlement";
+		
+		case HT_Homestead:
+			return "Homestead";
+		
+		case HT_Villa:
+			return "Villa";
+		
+		case HT_BoxTown:
+			return "BoxTown";
+		
+		case HT_ReligiousCentre:
+			return "ReligiousCentre";
+		
+		case HT_Warehousing:
+			return "Warehousing";
+		
+		case HT_OreTransferStation:
+			return "OreTransferStation";
+		
+		case HT_Shipyard:
+			return "Shipyard";
+		
+		case HT_DockingStation:
+			return "DockingStation";
+		
+		case HT_BioBomber:
+			return "BioBomber";
+		
+		case HT_MercenaryBase:
+			return "MercenaryBase";
+		
+		case HT_PirateBase:
+			return "PirateBase";
+		
+		case HT_PirateCove:
+			return "PirateCove";
+		
+		case HT_PirateOutpost:
+			return "PirateOutpost";
+		
+		case HT_GangsterHideout:
+			return "GangsterHideout";
+		
+		case HT_Hideout:
+			return "Hideout";
+		
+		case HT_Junkyard:
+			return "Junkyard";
+		
+		case HT_AsteroidSculptures:
+			return "AsteroidSculptures";
+		
+		case HT_JumpAccelerator:
+			return "JumpAccelerator";
+		
+		case HT_HoffersGap:
+			return "HoffersGap";
+		
+		case HT_HoffersHeel:
+			return "HoffersHeel";
+		
+		default:
+			return "Dont Know!";
+	}
+	
+	return "old mcdonald had a farm on on that farm there was a mary and mary had a little lamb until the british govenment burned it to death cos the guys down the road had foot and mouth and now mary just keeps turnips and mcdonald has sold the ancestral land to cover his debts.";
+}
+
+string FromAllegianceEnum( IeAllegiance allegiance_ )
+{
+	switch ( allegiance_ )
+	{
+		case A_Neutral:
+			return "Neutral";
+		
+		case A_Independent:
+			return "Independent";
+		
+		case A_Exile:
+			return "Exile";
+		
+		case A_Military:
+			return "Military";
+		
+		case A_Underworld:
+			return "Underworld";
+		
+		case A_Government:
+			return "Government";
+		
+		case A_Transient:
+			return "Transient";
+		
+		case A_Society:
+			return "Society";
+		
+		case A_Invalid:
+			return "Invalid";
+		
+		case A_Stepson:
+			return "Stepson";
+		
+		case A_Kong:
+			return "Kong";
+		
+		case A_MAASCorporation:
+			return "MAAS Corporation";
+		
+		case A_CarvaCartel:
+			return "Carva Cartel";
+		
+		case A_Junkers:
+			return "Junkers";
+		
+		case A_Police:
+			return "Police";
+		
+		case A_NOMEXCorporation:
+			return "NOMEX Corporation";
+		
+		case A_NSOLaplace:
+			return "NSO Laplace";
+		
+		case A_Marauders:
+			return "Marauders";
+		
+		case A_Angels:
+			return "Angels";
+		
+		case A_TheOman:
+			return "The Oman";
+		
+		case A_MCA:
+			return "M.C.A.";
+		
+		case A_Player:
+			return "Player";
+		
+		case A_League:
+			return "League";
+		
+		case A_TrimannShipping:
+			return "Trimann Shipping";
+		
+		case A_RhondusGasMining:
+			return "Rhondus Gas Mining";
+		
+		case A_AshantiInvestment:
+			return "Ashanti Investment";
+		
+		case A_CrosspointMinerals:
+			return "Crosspoint Minerals";
+		
+		case A_HeliosMining:
+			return "Helios Mining";
+		
+		case A_JardinTerraforming:
+			return "Jardin Terraforming";
+		
+		case A_ChonBodifule:
+			return "Chon Bodifule";
+		
+		case A_OrionProducts:
+			return "Orion Products";
+		
+		case A_VonShellingIndustries:
+			return "Von Shelling Industries";
+		
+		case A_MegalithCorp:
+			return "Megalith Corporation";
+		
+		case A_HibatshPMC:
+			return "Hibatsh PMC";
+		
+		case A_DesterCorporation:
+			return "Dester Corporation";
+		
+		case A_WhindWeaponsSystems:
+			return "Whind Weapons Systems";
+		
+		case A_AdvancedSecurityCorp:
+			return "Advanced Security Corporation";
+		
+		case A_Network54:
+			return "Network 54";
+		
+		case A_Infonet:
+			return "Infonet";
+		
+		case A_StellarNet:
+			return "Stellar Net";
+		
+		case A_WordsworthTechnology:
+			return "Wordsworth Technology";
+		
+		case A_NetcomSA:
+			return "Netcom SA";
+		
+		case A_CoventryEngineeringResearch:
+			return "Coventry Engineering Research";
+		
+		case A_NINEXWetware:
+			return "NINEX Wetware";
+		
+		case A_UniversalConsumerProducts:
+			return "Universal Consumer Products";
+		
+		case A_HighlifeProducts:
+			return "High Life Products";
+		
+		case A_LowOrbitRecovery:
+			return "Low Orbit Recovery";
+		
+		case A_KIMOShipping:
+			return "KIMO Shipping";
+		
+		case A_DatagonTechnologies:
+			return "Datagon Technologies";
+		
+		case A_MicoriaCommunications:
+			return "Micoria Communications";
+		
+		case A_LOMAXEngines:
+			return "LOMAX Engines";
+		
+		case A_LOMAXTechnologies:
+			return "LOMAX Technologies";
+		
+		case A_NumikoProducts:
+			return "Numiko Products";
+		
+		case A_Aliens:
+			return "Aliens";
+		
+		default:
+			return "none";
+	}
+	
+	return "there was an old woman who swallowed a horse";
+}
+
+string FromAllegianceEnumNoSpace( IeAllegiance allegiance_ )
+{
+	switch ( allegiance_ )
+	{
+		case A_Neutral:
+			return "Neutral";
+		
+		case A_Independent:
+			return "Independent";
+		
+		case A_Exile:
+			return "Exile";
+		
+		case A_Military:
+			return "Military";
+		
+		case A_Underworld:
+			return "Underworld";
+		
+		case A_Government:
+			return "Government";
+		
+		case A_Transient:
+			return "Transient";
+		
+		case A_Society:
+			return "Society";
+		
+		case A_Invalid:
+			return "Invalid";
+		
+		case A_Stepson:
+			return "Stepson";
+		
+		case A_Kong:
+			return "Kong";
+		
+		case A_MAASCorporation:
+			return "MaasCorporation";
+		
+		case A_CarvaCartel:
+			return "CarvaCartel";
+		
+		case A_Junkers:
+			return "Junkers";
+		
+		case A_Police:
+			return "Police";
+		
+		case A_NOMEXCorporation:
+			return "NomexCorporation";
+		
+		case A_NSOLaplace:
+			return "NsoLaplace";
+		
+		case A_Marauders:
+			return "Marauders";
+		
+		case A_Angels:
+			return "Angels";
+		
+		case A_TheOman:
+			return "TheOman";
+		
+		case A_MCA:
+			return "Mca";
+		
+		case A_Player:
+			return "Player";
+		
+		case A_League:
+			return "League";
+		
+		case A_TrimannShipping:
+			return "TrimannShipping";
+		
+		case A_RhondusGasMining:
+			return "RhondusGasMining";
+		
+		case A_AshantiInvestment:
+			return "AshantiInvestment";
+		
+		case A_CrosspointMinerals:
+			return "CrosspointMinerals";
+		
+		case A_HeliosMining:
+			return "HeliosMining";
+		
+		case A_JardinTerraforming:
+			return "JardinTerraforming";
+		
+		case A_ChonBodifule:
+			return "ChonBodifule";
+		
+		case A_OrionProducts:
+			return "OrionProducts";
+		
+		case A_VonShellingIndustries:
+			return "VonShellingIndustries";
+		
+		case A_MegalithCorp:
+			return "MegalithCorporation";
+		
+		case A_HibatshPMC:
+			return "HibatshPmc";
+		
+		case A_DesterCorporation:
+			return "DesterCorporation";
+		
+		case A_WhindWeaponsSystems:
+			return "WhindWeaponsSystems";
+		
+		case A_AdvancedSecurityCorp:
+			return "AdvancedSecurityCorporation";
+		
+		case A_Network54:
+			return "Network54";
+		
+		case A_Infonet:
+			return "Infonet";
+		
+		case A_StellarNet:
+			return "StellarNet";
+		
+		case A_WordsworthTechnology:
+			return "WordsworthTechnology";
+		
+		case A_NetcomSA:
+			return "NetcomSa";
+		
+		case A_CoventryEngineeringResearch:
+			return "CoventryEngineeringResearch";
+		
+		case A_NINEXWetware:
+			return "NinexWetware";
+		
+		case A_UniversalConsumerProducts:
+			return "UniversalConsumerProducts";
+		
+		case A_HighlifeProducts:
+			return "HighLifeProducts";
+		
+		case A_LowOrbitRecovery:
+			return "LowOrbitRecovery";
+		
+		case A_KIMOShipping:
+			return "KimoShipping";
+		
+		case A_DatagonTechnologies:
+			return "DatagonTechnologies";
+		
+		case A_MicoriaCommunications:
+			return "MicoriaCommunications";
+		
+		case A_LOMAXEngines:
+			return "LomaxEngines";
+		
+		case A_LOMAXTechnologies:
+			return "LomaxTechnologies";
+		
+		case A_NumikoProducts:
+			return "NumikoProducts";
+		
+		case A_Aliens:
+			return "Aliens";
+		
+		default:
+			return "none";
+	}
+	
+	return "dummy string la la la";
+}
+
+int FindNumberOfINIEntries( hinifile ini_, string subsection_, string entry_ )
+{
+	bool local_0 = false;
+	int local_1 = 0;
+	
+	do
+	{
+		local_0 = INIFile.NumberedExists( ini_, subsection_, entry_, local_1 );
+		
+		if ( local_0 )
+		{
+			local_1 = ( local_1 + 1 );
+		}
+	}
+	while ( local_0 == 1 );
+	
+	return local_1;
+}
+
+string GetCargoNameFromINI( string ini_name_ )
+{
+	hinifile inifile;
+	string local_1;
+	
+	inifile = INIFile.Create( ini_name_ );
+	
+	if ( inifile == false )
+	{
+		debug Debug.Error( String.Join( "iShipCreation.GetCargoName: ERROR: unable to open requested ini: ", ini_name_ ) );
+	}
+	
+	local_1 = INIFile.String( inifile, "General_info", "Name", "None" );
+	
+	if ( local_1 == "None" )
+	{
+		debug Debug.Error( String.Join( "iShipCreation.GetCargoName: ERROR: Unable to retrieve name from ini file: ", ini_name_ ) );
+	}
+	
+	INIFile.Destroy( inifile );
+	return local_1;
+}
+
+string PickRandomLocationOfType( string location_type_ )
+{
+	list localList = List.FromSet( iMapEntity.SystemHabitats() );
+	int ii;
+	
+	for ( ii = 0; ii < List.ItemCount( localList ); ++ii )
+	{
+		if ( !( FromLocationEnum( iHabitat.Type( iHabitat.Cast( List.GetNth( localList, ii ) ) ) ) == location_type_ ) )
+		{
+			List.RemoveNth( localList, ii );
+			
+			if ( List.ItemCount( localList ) != 0 )
+			{
+				ii = ( ii + -1 );
+			}
+			else
+			{
+				debug Debug.Error( String.Join( "iMissionGenerator.PickLocation: Unable to find location of specified type: ", location_type_ ) );
+				break;
+			}
+		}
+	}
+	
+	return iMapEntity.Name( iMapEntity.Cast( iHabitat.Random( Set.FromList( localList ) ) ) );
+}
+
+float GetZoneOfControl( hmapentity location_ )
+{
+	float local_0;
+	
+	if ( iLagrangePoint.Cast( location_ ) == false )
+	{
+		local_0 = iMapEntity.RadiusOfInfluence( location_ );
+		debug Debug.PrintString( "iUtilities.GetZoneOfControl: This object is a habitat, getting the zone of influence from database. \n " );
+	}
+	else
+	{
+		local_0 = 250.0;
+		
+		debug atomic
+		{
+			Debug.PrintString( String.Join( "iUtilities.GetZoneOfControl: Assigning made up zone of influence for this lagrainge point, which is set to - ", String.FromFloat( local_0 ) ) );
+			Debug.PrintString( "\n" );
+		}
+	}
+	
+	return local_0;
+}
+
+float GetLargestShipRadius( hgroup group_ )
+{
+	int ii;
+	int simCount;
+	float local_2 = 0.0;
+	float radius = 0.0;
+	hsim groupIter;
+	
+	simCount = Group.SimCount( group_ );
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		groupIter = Group.NthSim( group_, ii );
+		radius = Object.FloatProperty( groupIter, "radius" );
+		
+		if ( radius > local_2 )
+		{
+			local_2 = radius;
+		}
+	}
+	
+	return local_2;
+}
+
+bool PlayerInRange( hsim checker_ )
+{
+	float gPlayerSensorRange = Global.Float( "g_player_sensor_range" );
+	float constant;
+	hship playerShip = iShip.FindPlayerShip();
+	int local_3;
+	
+	if ( Sim.Cast( checker_ ) == false )
+	{
+		debug Debug.PrintString( "iUtilities.PlayerInRange: Invalid sim passed to check!\n" );
+		return false;
+	}
+	
+	constant = 2000.0;
+	
+	if ( Sim.DistanceBetween( checker_, playerShip ) <= (gPlayerSensorRange + constant) )
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+	
+	return false;
+}
+
+bool PlayerInRangeOfGroup( hgroup group_ )
+{
+	hship playerShip = iShip.FindPlayerShip();
+	float gPlayerSensorRange = Global.Float( "g_player_sensor_range" );
+	float constant = 2000.0;
+	int simCount = Group.SimCount( group_ );
+	int local_4;
+	int ii;
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		if ( Sim.DistanceBetween( Group.NthSim( group_, ii ), playerShip ) <= (gPlayerSensorRange + constant) )
+		{
+			local_4 = ( local_4 + 1 );
+		}
+	}
+	
+	if ( local_4 > 0 )
+	{
+		return true;
+	}
+	
+	return false;
+}
+
+KillListOfSims( list sim_stuff_ )
+{
+	int ii;
+	
+	for ( ii = 0; ii < List.ItemCount( sim_stuff_ ); ++ii )
+	{
+		Sim.Destroy( Sim.Cast( List.GetNth( sim_stuff_, ii ) ) );
+	}
+}
+
+task JettisonCargo( list cargo_list_, hship requestor_ship_ )
+{
+	hship ship_1;
+	float constant = 9.0;
+	int ii;
+	
+	if ( Sim.Cast( requestor_ship_ ) == false )
+	{
+		debug Debug.Error( "iUtilities.JettisonCargo: Invalid ship passed to jettison cargo from!" );
+	}
+	
+	for ( ii = 0; ii < List.ItemCount( cargo_list_ ); ++ii )
+	{
+		ship_1 = iShip.Cast( List.GetNth( cargo_list_, ii ) );
+		iShip.Undock( ship_1, requestor_ship_ );
+	}
+}
+
+hsim CreateWaypointRelativeTo( hsim location_, float x_, float y_, float z_ )
+{
+	hsim simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "default" );
+	
+	Sim.SetCullable( simWaypoint, false );
+	Sim.PlaceRelativeTo( simWaypoint, location_, x_, y_, z_ );
+	return simWaypoint;
+}
+
+hsim CreateWaypointBetween( hsim location1_, hsim location2_, float distance_ )
+{
+	hsim simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "default" );
+	
+	Sim.SetCullable( simWaypoint, false );
+	Sim.PlaceBetween( simWaypoint, location1_, location2_, distance_ );
+	return simWaypoint;
+}
+
+hsim CreateWaypointRelativeToPlayer( float x_, float y_, float z_ )
+{
+	hsim simWaypoint;
+	hship playerShip = iShip.FindPlayerShip();
+	
+	simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "default" );
+	Sim.SetCullable( simWaypoint, false );
+	Sim.PlaceRelativeTo( simWaypoint, playerShip, x_, y_, z_ );
+	return simWaypoint;
+}
+
+hsim CreateWaypointAt( hsim location_ )
+{
+	hsim simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "default" );
+	
+	Sim.SetCullable( simWaypoint, false );
+	Sim.PlaceAt( simWaypoint, location_ );
+	return simWaypoint;
+}
+
+hsim CreateWaypointNear( hsim location_, float radius_ )
+{
+	hsim simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "default" );
+	
+	Sim.SetCullable( simWaypoint, false );
+	Sim.PlaceNear( simWaypoint, location_, radius_ );
+	return simWaypoint;
+}
+
+MakeWaypointVisible( hsim waypoint_, bool switcher_, string name_ )
+{
+	if ( switcher_ == 0 )
+	{
+		iSim.SetSensorVisibility( iSim.Cast( waypoint_ ), false );
+		return;
+		return;
+	}
+	
+	Object.SetStringProperty( waypoint_, "name", name_ );
+	iSim.SetSensorVisibility( iSim.Cast( waypoint_ ), true );
+}
+
+float ReturnHullStructure( hsim checker_ )
+{
+	float maxHitPoints;
+	float hitPoints;
+	
+	if ( Sim.Cast( checker_ ) == false )
+	{
+		debug Debug.Error( "iUtilities.ReturnHullStructure: Invalid ship passed to check hull structure of!" );
+	}
+	
+	maxHitPoints = Object.FloatProperty( checker_, "max_hit_points" );
+	hitPoints = Object.FloatProperty( checker_, "hit_points" );
+	return hitPoints / maxHitPoints;
+}
+
+bool RenameSim( hsim sim_to_rename_, string name_ )
+{
+	if ( Sim.IsDead( sim_to_rename_ ) )
+	{
+		return false;
+	}
+	
+	if ( !Object.PropertyExists( sim_to_rename_, "name" ) )
+	{
+		return false;
+	}
+	
+	Object.SetStringProperty( sim_to_rename_, "name", name_ );
+	return true;
+}
+
+set GetSurfaceLocationsFromOrbital( hhabitat location_ )
+{
+	hmapentity mapentity;
+	set localSet_0;
+	set localSet_1;
+	set localSet_2;
+	
+	localSet_0 = iMapEntity.SystemHabitats();
+	mapentity = iMapEntity.Parent( iMapEntity.Cast( location_ ) );
+	
+	debug atomic
+	{
+		Debug.PrintString( " iUtilites.GetSurfaceLocationFromOrbital : Looking for all surface habitats on the location - " );
+		Debug.PrintString( iMapEntity.Name( mapentity ) );
+		Debug.PrintString( " \n" );
+	}
+	
+	while ( !Set.IsEmpty( localSet_0 ) )
+	{
+		if ( iMapEntity.Parent( iMapEntity.Cast( Set.FirstElement( localSet_0 ) ) ) == mapentity )
+		{
+			Set.Add( localSet_1, Set.FirstElement( localSet_0 ) );
+		}
+		
+		Set.Remove( localSet_0, Set.FirstElement( localSet_0 ) );
+	}
+	
+	localSet_2 = iHabitat.FilterOrbiting( localSet_1 );
+	Set.Difference( localSet_1, localSet_2 );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iUtilities.GetsurfacelocationsFromOrbital : Found " );
+		Debug.PrintInt( Set.ItemCount( localSet_1 ) );
+		Debug.PrintString( " surface locations around parent location " );
+		Debug.PrintString( iMapEntity.Name( mapentity ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	return localSet_1;
+}
+
+ReleaseError( string message_ )
+{
+}
+
+AllowMissionSkipping()
+{
+	debug Debug.PrintString( "iUtilites.AllowMissionSkipping: called.\n" );
+	
+	if ( (Global.Exists( "g_setup_skipper_already" ) == 1) && (Global.Bool( "g_setup_skipper_already" ) == 1) )
+	{
+		debug Debug.PrintString( "iUtilities.AllowMissionSkipping ignored - it's been done once already.\n" );
+		return;
+	}
+	
+	Global.CreateBool( "g_skip_ok", 2, true );
+	Global.CreateBool( "g_skip_to_specific", 2, false );
+	Global.CreateString( "g_skip_to_mission", 2, "none" );
+	Global.CreateInt( "g_skip_to_mission_number", 2, 0 );
+	Global.CreateInt( "g_skip_to_act", 2, 1 );
+	Global.CreateBool( "g_skip_locked", 2, false );
+	Global.CreateBool( "g_skip_missions_is_ok", 2, false );
+	Global.CreateBool( "g_setup_skipper_already", 2, true );
+}
+
+local_function_0()
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	
+	atomic
+	{
+		if ( Global.Bool( "g_skip_locked" ) == 0 )
+		{
+			Global.SetBool( "g_skip_locked", true );
+			debug Debug.PrintString( "iUtilities.pog: locking the skipper.\n" );
+			local_1 = true;
+		}
+	}
+	
+	if ( local_1 == 0 )
+	{
+		do
+		{
+			do
+			{
+				debug Debug.PrintString( "iUtilities.pog: waiting to set skipping lock.\n" );
+				Task.Sleep( Task.Current(), 2.0 );
+			}
+			while ( Global.Bool( "g_skip_locked" ) == 1 );
+			
+			atomic
+			{
+				if ( Global.Bool( "g_skip_locked" ) == 0 )
+				{
+					Global.SetBool( "g_skip_locked", true );
+					debug Debug.PrintString( "iUtilities.pog: locking the skipper.\n" );
+					local_0 = false;
+				}
+				else
+				{
+					local_0 = true;
+				}
+			}
+		}
+		while ( local_0 == 1 );
+	}
+	
+	debug Debug.PrintString( "iUtilities.pog: skipper now locked.\n" );
+}
+
+local_function_1()
+{
+	debug Debug.PrintString( "iUtilites.pog: unlocking the skipper.\n" );
+	
+	atomic
+	{
+		Global.SetBool( "g_skip_locked", false );
+	}
+	
+	debug Debug.PrintString( "iUtilites.pog: unlocked the skipper.\n" );
+}
+
+bool local_function_10( string param_0_ )
+{
+	int convoResponse;
+	
+	iConversation.Begin();
+	iConversation.AddResponse( "utils_text_no_ta", "utils_dial_no_ta" );
+	iConversation.AddResponse( "utils_text_sure_thing", "utils_dial_sure_thing" );
+	convoResponse = iConversation.Ask( none, "utils_particle_employee", String.Join( "utils_dial_wanna_skip", param_0_ ) );
+	iConversation.End();
+	Text.Remove( "csv:/text/utils" );
+	
+	if ( convoResponse == 2 )
+	{
+		debug Debug.PrintString( "skipping next mission!" );
+		return true;
+	}
+	
+	return false;
+}
+
+bool SkipAct( string mission_descriptor_, int act_number_ )
+{
+	local_function_0();
+	
+	debug
+	{
+		if ( Global.Exists( "g_skip_ok" ) && (Global.Bool( "g_skip_ok" ) == 1) )
+		{
+			Text.Add( "csv:/text/utils" );
+			
+			if ( Global.Bool( "g_skip_to_specific" ) == 1 )
+			{
+				if ( Global.Int( "g_skip_to_act" ) > act_number_ )
+				{
+					local_function_1();
+					return true;
+				}
+				else
+				{
+					local_function_1();
+					return false;
+				}
+			}
+		}
+	}
+	
+	local_function_1();
+	debug Debug.PrintString( "iUtilities.SkipAct: not skipping act because skipper disabled.\n" );
+	return false;
+}
+
+bool SkipMission( string mission_descriptor_ )
+{
+	bool local_0 = false;
+	
+	debug Debug.PrintString( "lubdushumubdig!\n" );
+	
+	debug
+	{
+		local_function_0();
+		
+		if ( Global.Exists( "g_skip_ok" ) && ((Global.Bool( "g_skip_ok" ) == 1) && (Global.Bool( "g_skip_missions_is_ok" ) == 1)) )
+		{
+			Text.Add( "csv:/text/utils" );
+			
+			if ( Global.Bool( "g_skip_to_specific" ) == 1 )
+			{
+				debug atomic
+				{
+					Debug.PrintString( "iUtilities.SkipMission: checking strings for match -" );
+					Debug.PrintString( mission_descriptor_ );
+					Debug.PrintString( "&" );
+					Debug.PrintString( Global.String( "g_skip_to_mission" ) );
+					Debug.PrintString( "\n" );
+				}
+				
+				if ( mission_descriptor_ == Global.String( "g_skip_to_mission" ) )
+				{
+					Global.SetBool( "g_skip_to_specific", false );
+					Global.SetBool( "g_skip_ok", false );
+					iConversation.OneLiner( none, "utils_particle_employee", "utils_skipper_got_there" );
+					local_0 = false;
+					local_function_2();
+				}
+				else
+				{
+					iConversation.OneLiner( none, "utils_particle_employee", String.Join( "utils_skipper_not_yet+ +", mission_descriptor_ ) );
+					local_0 = true;
+				}
+			}
+			else
+			{
+				debug
+				{
+					if ( Global.Bool( "g_skip_ok" ) == 1 )
+					{
+						Debug.PrintString( "g_skip_ok is true! \n" );
+					}
+					else
+					{
+						Debug.PrintString( "g_skip_ok is false! \n" );
+					}
+				}
+				
+				Global.SetBool( "g_skip_ok", false );
+				Task.Detach( start GMDelayedDisabler() );
+				
+				while ( 1 )
+				{
+					Task.Sleep( Task.Current(), 0.10 );
+				}
+			}
+			
+			Text.Remove( "csv:/text/utils" );
+			
+			if ( local_0 == 0 )
+			{
+				Task.Detach( start GMDelayedDisabler() );
+			}
+			else
+			{
+				local_function_1();
+			}
+		}
+		else
+		{
+			debug Debug.PrintString( "iUtilities.SkipMission: no option to skip mission, bundling on.\n" );
+			local_function_1();
+		}
+	}
+	
+	return local_0;
+}
+
+task GMDelayedDisabler()
+{
+	hstate taskState = State.Find( Task.Current() );
+	
+	if ( taskState == false )
+	{
+		debug Debug.PrintString( "iUtilities.GMDelayedDisable: entered the delayed disabler.\n" );
+		State.Create( Task.Current(), 1 );
+		
+		do
+		{
+			Task.Sleep( Task.Current(), 100.0 );
+		}
+		while ( 1 );
+		
+		return;
+	}
+	
+	debug Debug.PrintString( "iUtiltites.GMDelayedDisable: ditching mission skipper altogether.\n" );
+	local_function_1();
+}
+
+SuperSkip()
+{
+	int convoResponse_0;
+	int convoResponse_1;
+	
+	local_function_0();
+	
+	debug
+	{
+		Text.Add( "csv:/text/utils" );
+		iConversation.Begin();
+		iConversation.AddResponse( "no ta.", "no ta." );
+		iConversation.AddResponse( "yes please.", "yes please." );
+		convoResponse_0 = iConversation.Ask( none, "utils_particle_employee", "utils_want_to_super_skip" );
+		
+		if ( convoResponse_0 == 1 )
+		{
+			iConversation.End();
+			Global.SetBool( "g_skip_ok", false );
+			local_function_1();
+			debug Debug.PrintString( "iUtilties.SuperSkip: super skip has been declined.\n" );
+			
+			if ( Global.Bool( "g_skip_ok" ) == 1 )
+			{
+				Debug.PrintString( "SuperSkip: g_skip_ok is true! \n" );
+			}
+			else
+			{
+				Debug.PrintString( "SuperSkip: g_skip_ok is false! \n" );
+			}
+			
+			return;
+		}
+		
+		iConversation.Say( none, "utils_particle_employee", "utils_super_welcome" );
+		iConversation.AddResponse( "act zero", "act zero please" );
+		iConversation.AddResponse( "act one", "act one please" );
+		iConversation.AddResponse( "act two", "act two please" );
+		iConversation.AddResponse( "act three", "act three please" );
+		convoResponse_0 = iConversation.Ask( none, "utils_particle_employee", "utils_super_which_act" );
+		
+		switch ( convoResponse_0 )
+		{
+			case 1:
+				iConversation.AddResponse( "Home Sweet Home", "Home sweet home" );
+				iConversation.AddResponse( "Proving Grounds", "proving grounds" );
+				iConversation.AddResponse( "Errand Boy", "Errand Boy" );
+				iConversation.AddResponse( "Steal Reactor", "Steal Reactor" );
+				iConversation.AddResponse( "Hoffers Wake Tour?", "Hoffers Wake Tour?" );
+				iConversation.AddResponse( "Nemesis", "Nemesis" );
+				convoResponse_1 = iConversation.Ask( none, "utils_particle_employee", "utils_super_which_mission" );
+				
+				switch ( convoResponse_1 )
+				{
+					case 1:
+						Global.SetInt( "g_skip_to_act", 0 );
+						Global.SetInt( "g_skip_to_mission_number", 10 );
+						Global.SetString( "g_skip_to_mission", "Home Sweet Home?" );
+						break;
+					
+					case 2:
+						Global.SetInt( "g_skip_to_act", 0 );
+						Global.SetInt( "g_skip_to_mission_number", 20 );
+						Global.SetString( "g_skip_to_mission", "Proving Grounds?" );
+						break;
+					
+					case 3:
+						Global.SetInt( "g_skip_to_act", 0 );
+						Global.SetInt( "g_skip_to_mission_number", 40 );
+						Global.SetString( "g_skip_to_mission", "Errand Boy?" );
+						break;
+					
+					case 4:
+						Global.SetInt( "g_skip_to_act", 0 );
+						Global.SetInt( "g_skip_to_mission_number", 50 );
+						Global.SetString( "g_skip_to_mission", "Steal reactor?" );
+						break;
+					
+					case 5:
+						Global.SetInt( "g_skip_to_act", 0 );
+						Global.SetInt( "g_skip_to_mission_number", 55 );
+						Global.SetString( "g_skip_to_mission", "Hoffers Wake Tour?" );
+						break;
+					
+					case 6:
+						Global.SetInt( "g_skip_to_act", 0 );
+						Global.SetInt( "g_skip_to_mission_number", 60 );
+						Global.SetString( "g_skip_to_mission", "Nemesis?" );
+						break;
+				}
+				
+				break;
+			
+			case 2:
+				iConversation.AddResponse( "The great escape", "the great escape" );
+				iConversation.AddResponse( "stepson initiation", "stepson initiation" );
+				iConversation.AddResponse( "steal turret fighters", "steal turret fighters" );
+				iConversation.AddResponse( "marauder cache", "marauder cache" );
+				iConversation.AddResponse( "Joint forces", "Joint Forces??" );
+				iConversation.AddResponse( "gunstar sweep", "gunstar sweep" );
+				iConversation.AddResponse( "battle of hoffers wake", "battle of hoffers wake" );
+				iConversation.AddResponse( "league initiation", "league initiation" );
+				iConversation.AddResponse( "LOR platform", "LOR platform" );
+				iConversation.AddResponse( "treasure hunt", "treasure hunt" );
+				convoResponse_1 = iConversation.Ask( none, "utils_particle_employee", "utils_super_which_mission" );
+				
+				switch ( convoResponse_1 )
+				{
+					case 1:
+						Global.SetInt( "g_skip_to_act", 1 );
+						Global.SetInt( "g_skip_to_mission_number", 1 );
+						Global.SetString( "g_skip_to_mission", "The Great Escape?" );
+						break;
+					
+					case 2:
+						Global.SetInt( "g_skip_to_act", 1 );
+						Global.SetInt( "g_skip_to_mission_number", 2 );
+						Global.SetString( "g_skip_to_mission", "Stepson Initiation?" );
+						break;
+					
+					case 3:
+						Global.SetInt( "g_skip_to_act", 1 );
+						Global.SetInt( "g_skip_to_mission_number", 4 );
+						Global.SetString( "g_skip_to_mission", "Steal the Turret Fighters?" );
+						break;
+					
+					case 4:
+						Global.SetInt( "g_skip_to_act", 1 );
+						Global.SetInt( "g_skip_to_mission_number", 5 );
+						Global.SetString( "g_skip_to_mission", "Marauder Cache?" );
+						break;
+					
+					case 5:
+						Global.SetInt( "g_skip_to_act", 1 );
+						Global.SetInt( "g_skip_to_mission_number", 3 );
+						Global.SetString( "g_skip_to_mission", "Joint Forces??" );
+						break;
+					
+					case 6:
+						Global.SetInt( "g_skip_to_act", 1 );
+						Global.SetInt( "g_skip_to_mission_number", 6 );
+						Global.SetString( "g_skip_to_mission", "Gunstar Supermarket Sweep ?" );
+						break;
+					
+					case 7:
+						Global.SetInt( "g_skip_to_act", 1 );
+						Global.SetInt( "g_skip_to_mission_number", 7 );
+						Global.SetString( "g_skip_to_mission", "Battle Of Hoffers Gap?" );
+						break;
+					
+					case 8:
+						Global.SetInt( "g_skip_to_act", 1 );
+						Global.SetInt( "g_skip_to_mission_number", 8 );
+						Global.SetString( "g_skip_to_mission", "League Initiation?" );
+						break;
+					
+					case 9:
+						Global.SetInt( "g_skip_to_act", 1 );
+						Global.SetInt( "g_skip_to_mission_number", 9 );
+						Global.SetString( "g_skip_to_mission", "LOR Platform??" );
+						break;
+					
+					case 10:
+						Global.SetInt( "g_skip_to_act", 1 );
+						Global.SetInt( "g_skip_to_mission_number", 10 );
+						Global.SetString( "g_skip_to_mission", "Treasure Hunt?" );
+						break;
+				}
+				
+				break;
+			
+			case 3:
+				iConversation.AddResponse( "Picking up the pieces", "Picking up the pieces" );
+				iConversation.AddResponse( "Oman Initiation", "Oman Initiation??" );
+				iConversation.AddResponse( "Trouble at Ranch", "Trouble at the Ranch?" );
+				iConversation.AddResponse( "High Noon", "High Noon" );
+				iConversation.AddResponse( "Blockade Runner", "Blockade Runner" );
+				iConversation.AddResponse( "Corporate Holdings", "Corporate Holdings" );
+				iConversation.AddResponse( "Marauder Base", "Marauder Base" );
+				iConversation.AddResponse( "Grassy Knoll", "Grassy Knoll" );
+				iConversation.AddResponse( "Unification", "Unfication" );
+				iConversation.AddResponse( "Kong Fracture", "Kong Fracture" );
+				iConversation.AddResponse( "Momma Wolf", "Momma Wolf?" );
+				iConversation.AddResponse( "Wolfs Lair", "Wolf's Lair??" );
+				iConversation.AddResponse( "Marauder War", "Marauder War?" );
+				iConversation.AddResponse( "Ambassador Encounter", "Ambassador Encounter" );
+				iConversation.AddResponse( "Battle of Mwari", "Battle of Mwari" );
+				iConversation.AddResponse( "Hide n Seek", "Hide n Seek" );
+				convoResponse_1 = iConversation.Ask( none, "utils_particle_employee", "utils_super_which_mission" );
+				
+				switch ( convoResponse_1 )
+				{
+					case 1:
+						Global.SetInt( "g_skip_to_act", 2 );
+						Global.SetInt( "g_skip_to_mission_number", 1 );
+						Global.SetString( "g_skip_to_mission", "Picking up the pieces??" );
+						break;
+					
+					case 2:
+						Global.SetInt( "g_skip_to_act", 2 );
+						Global.SetInt( "g_skip_to_mission_number", 2 );
+						Global.SetString( "g_skip_to_mission", "Oman Initiation??" );
+						break;
+					
+					case 3:
+						Global.SetInt( "g_skip_to_act", 2 );
+						Global.SetInt( "g_skip_to_mission_number", 3 );
+						Global.SetString( "g_skip_to_mission", "Trouble at the Ranch??" );
+						break;
+					
+					case 4:
+						Global.SetInt( "g_skip_to_act", 2 );
+						Global.SetInt( "g_skip_to_mission_number", 4 );
+						Global.SetString( "g_skip_to_mission", "High Noon??" );
+						break;
+					
+					case 5:
+						Global.SetInt( "g_skip_to_act", 2 );
+						Global.SetInt( "g_skip_to_mission_number", 5 );
+						Global.SetString( "g_skip_to_mission", "Blockade Runner" );
+						break;
+					
+					case 6:
+						Global.SetInt( "g_skip_to_act", 2 );
+						Global.SetInt( "g_skip_to_mission_number", 8 );
+						Global.SetString( "g_skip_to_mission", "Corporate Holdings??" );
+						break;
+					
+					case 7:
+						Global.SetInt( "g_skip_to_act", 2 );
+						Global.SetInt( "g_skip_to_mission_number", 9 );
+						Global.SetString( "g_skip_to_mission", "Marauder Base?" );
+						break;
+					
+					case 8:
+						Global.SetInt( "g_skip_to_act", 2 );
+						Global.SetInt( "g_skip_to_mission_number", 10 );
+						Global.SetString( "g_skip_to_mission", " Grassy Knoll??" );
+						break;
+					
+					case 9:
+						Global.SetInt( "g_skip_to_act", 2 );
+						Global.SetInt( "g_skip_to_mission_number", 11 );
+						Global.SetString( "g_skip_to_mission", "Unification??" );
+						break;
+					
+					case 10:
+						Global.SetInt( "g_skip_to_act", 2 );
+						Global.SetInt( "g_skip_to_mission_number", 13 );
+						Global.SetString( "g_skip_to_mission", "Kong Fracture?" );
+						break;
+					
+					case 11:
+						Global.SetInt( "g_skip_to_act", 2 );
+						Global.SetInt( "g_skip_to_mission_number", 18 );
+						Global.SetString( "g_skip_to_mission", "Momma Wolf?" );
+						break;
+					
+					case 12:
+						Global.SetInt( "g_skip_to_act", 2 );
+						Global.SetInt( "g_skip_to_mission_number", 22 );
+						Global.SetString( "g_skip_to_mission", "Wolf's Lair??" );
+						break;
+					
+					case 13:
+						Global.SetInt( "g_skip_to_act", 2 );
+						Global.SetInt( "g_skip_to_mission_number", 25 );
+						Global.SetString( "g_skip_to_mission", "Marauder War?" );
+						break;
+					
+					case 14:
+						Global.SetInt( "g_skip_to_act", 2 );
+						Global.SetInt( "g_skip_to_mission_number", 7 );
+						Global.SetString( "g_skip_to_mission", "Ambassador Encounter??" );
+						break;
+					
+					case 15:
+						Global.SetInt( "g_skip_to_act", 2 );
+						Global.SetInt( "g_skip_to_mission_number", 27 );
+						Global.SetString( "g_skip_to_mission", "Battle of Mwari" );
+						break;
+					
+					case 16:
+						Global.SetInt( "g_skip_to_act", 2 );
+						Global.SetInt( "g_skip_to_mission_number", 28 );
+						Global.SetString( "g_skip_to_mission", "Hide and Seek?" );
+						break;
+				}
+				
+				break;
+			
+			case 4:
+				iConversation.AddResponse( "Corporates on the run", "Corporates on the run" );
+				iConversation.AddResponse( "Clash of the titans", "Clash of the titans" );
+				iConversation.AddResponse( "Scavenger", "Scavenger?" );
+				iConversation.AddResponse( "Capture the Accelerator", "Capture the Accelerator" );
+				iConversation.AddResponse( "Deep Cover", "Deep Cover??" );
+				iConversation.AddResponse( "Smokescreen", "Smokescreen??" );
+				iConversation.AddResponse( "Hoffers Resuce", " ( Hoffers Rescue )" );
+				iConversation.AddResponse( "Antimatter Cordon", " ( Antimatter Codron )" );
+				iConversation.AddResponse( "The End", "The Finale??" );
+				convoResponse_1 = iConversation.Ask( none, "utils_particle_employee", "utils_super_which_mission" );
+				
+				switch ( convoResponse_1 )
+				{
+					case 1:
+						Global.SetInt( "g_skip_to_act", 3 );
+						Global.SetInt( "g_skip_to_mission_number", 1 );
+						Global.SetString( "g_skip_to_mission", "Corporates On The Run" );
+						break;
+					
+					case 2:
+						Global.SetInt( "g_skip_to_act", 3 );
+						Global.SetInt( "g_skip_to_mission_number", 2 );
+						Global.SetString( "g_skip_to_mission", " ( Clash of the titans )" );
+						break;
+					
+					case 3:
+						Global.SetInt( "g_skip_to_act", 3 );
+						Global.SetInt( "g_skip_to_mission_number", 3 );
+						Global.SetString( "g_skip_to_mission", "Scavenger?" );
+						break;
+					
+					case 4:
+						Global.SetInt( "g_skip_to_act", 3 );
+						Global.SetInt( "g_skip_to_mission_number", 4 );
+						Global.SetString( "g_skip_to_mission", "Capture the Jump Accelerator?" );
+						break;
+					
+					case 5:
+						Global.SetInt( "g_skip_to_act", 3 );
+						Global.SetInt( "g_skip_to_mission_number", 5 );
+						Global.SetString( "g_skip_to_mission", "Deep Cover??" );
+						break;
+					
+					case 6:
+						Global.SetInt( "g_skip_to_act", 3 );
+						Global.SetInt( "g_skip_to_mission_number", 6 );
+						Global.SetString( "g_skip_to_mission", "Smokescreen??" );
+						break;
+					
+					case 7:
+						Global.SetInt( "g_skip_to_act", 3 );
+						Global.SetInt( "g_skip_to_mission_number", 8 );
+						Global.SetString( "g_skip_to_mission", " ( Hoffers Rescue )" );
+						break;
+					
+					case 8:
+						Global.SetInt( "g_skip_to_act", 3 );
+						Global.SetInt( "g_skip_to_mission_number", 9 );
+						Global.SetString( "g_skip_to_mission", " ( Antimatter Cordon )" );
+						break;
+					
+					case 9:
+						Global.SetInt( "g_skip_to_act", 3 );
+						Global.SetInt( "g_skip_to_mission_number", 10 );
+						Global.SetString( "g_skip_to_mission", "The Finale??" );
+						break;
+				}
+				
+				break;
+		}
+		
+		Global.SetBool( "g_skip_to_specific", true );
+		Global.SetBool( "g_skip_missions_is_ok", true );
+		iConversation.End();
+		Text.Remove( "csv:/text/utils" );
+	}
+	
+	local_function_1();
+}
+
+task TaskSkipMission( string mission_descriptor_, string global_to_set_ )
+{
+	int convoResponse;
+	
+	debug
+	{
+		if ( Global.Exists( "g_skip_ok" ) )
+		{
+			if ( Global.Bool( "g_skip_ok" ) == 1 )
+			{
+				Text.Add( "csv:/text/utils" );
+				iConversation.Begin();
+				iConversation.AddResponse( "utils_text_no_ta", "utils_dial_no_ta" );
+				iConversation.AddResponse( "utils_text_sure_thing", "utils_dial_sure_thing" );
+				convoResponse = iConversation.Ask( none, "utils_particle_employee", String.Join( "utils_dial_wanna_skip+", mission_descriptor_ ) );
+				iConversation.End();
+				Text.Remove( "csv:/text/utils" );
+				
+				if ( convoResponse == 2 )
+				{
+					debug Debug.PrintString( "skipping next mission!" );
+					
+					if ( !Global.Exists( global_to_set_ ) )
+					{
+						Global.CreateBool( global_to_set_, 1, true );
+					}
+					else
+					{
+						Global.SetBool( global_to_set_, true );
+					}
+					
+					return;
+				}
+			}
+		}
+	}
+	
+	Global.SetBool( global_to_set_, false );
+}
+
+bool WaitOnSkipMission( htask skipper_, string global_ )
+{
+	while ( Task.IsRunning( skipper_ ) )
+	{
+		Task.Sleep( Task.Current(), 1.0 );
+	}
+	
+	if ( Global.Exists( global_ ) )
+	{
+		if ( Global.Bool( global_ ) == 1 )
+		{
+			return true;
+		}
+	}
+	
+	return false;
+}
+
+SkipWaitForBool( string bool_text_key_, string bool_name_, bool value_ )
+{
+	int convoResponse;
+	
+	local_function_0();
+	
+	debug
+	{
+		if ( Global.Exists( "g_skip_ok" ) && (Global.Bool( "g_skip_ok" ) == 1) )
+		{
+			if ( Global.Bool( "g_skip_to_specific" ) == 1 )
+			{
+				if ( Global.Exists( bool_name_ ) )
+				{
+					Global.SetBool( bool_name_, value_ );
+				}
+				else
+				{
+					Global.CreateBool( bool_name_, 1, value_ );
+				}
+				
+				local_function_1();
+				return;
+			}
+			
+			Text.Add( "csv:/text/utils" );
+			iConversation.Begin();
+			iConversation.AddResponse( "utils_text_no_ta", "utils_dial_no_ta" );
+			iConversation.AddResponse( "utils_text_sure_thing", "utils_dial_sure_thing" );
+			convoResponse = iConversation.Ask( none, "utils_particle_employee", bool_text_key_ );
+			iConversation.End();
+			Text.Remove( "csv:/text/utils" );
+			
+			if ( convoResponse == 2 )
+			{
+				if ( Global.Exists( bool_name_ ) )
+				{
+					Global.SetBool( bool_name_, value_ );
+				}
+				else
+				{
+					Global.CreateBool( bool_name_, 1, value_ );
+				}
+			}
+		}
+	}
+	
+	local_function_1();
+}
+
+SkipDialogue()
+{
+	iConversation.End();
+}
+
+task local_function_3()
+{
+	int convoResponse;
+	hship playerShip = iShip.FindPlayerShip();
+	hisim chickasawLPoint = iSim.FindByNameInSystem( "Chickasaw L-Point", "map:/geog/badlands/coyote" );
+	hisim kiriBiLPoint = iSim.FindByNameInSystem( "Kiri-Bi L-Point", "map:/geog/badlands/santa_romera" );
+	hisim dagdaDelta2LPoint = iSim.FindByNameInSystem( "Dagda Delta 2 L-Point", "map:/geog/badlands/dagda" );
+	hisim toadSkinLPoint = iSim.FindByNameInSystem( "Toad Skin L-Point", "map:/geog/badlands/mwari" );
+	hisim belialLPoint = iSim.FindByNameInSystem( "Belial L-Point", "map:/geog/badlands/eureka" );
+	hisim squareRockLPoint = iSim.FindByNameInSystem( "Square Rock L-Point", "map:/geog/badlands/firefrost" );
+	hisim baalLPoint = iSim.FindByNameInSystem( "Baal L-Point", "map:/geog/badlands/kompira" );
+	hisim lucreciasBase = iSim.FindByNameInSystem( "Lucrecia's Base", "map:/geog/badlands/hoffers_wake" );
+	hisim faustAlphaLPoint = iSim.FindByNameInSystem( "Faust-Alpha L-Point", "map:/geog/badlands/dante" );
+	hisim nurnbergLPoint = iSim.FindByNameInSystem( "Nurnberg L-Point", "map:/geog/gagarin/new_bavaria" );
+	hisim carlottisCrumbsLPoint = iSim.FindByNameInSystem( "Carlotti's Crumbs L-Point", "map:/geog/gagarin/osprey" );
+	hisim florenceLPoint = iSim.FindByNameInSystem( "Florence L-Point", "map:/geog/gagarin/formhault" );
+	hisim thisTimeLPoint = iSim.FindByNameInSystem( "This Time L-Point", "map:/geog/gagarin/batatas" );
+	hisim stPetersburgLPoint = iSim.FindByNameInSystem( "St Petersburg L-Point", "map:/geog/gagarin/drake" );
+	hisim haitsuchiLPoint = iSim.FindByNameInSystem( "Haitsuchi L-Point", "map:/geog/gagarin/ishime" );
+	hisim marshallSystemLPoint = iSim.FindByNameInSystem( "Marshall System L-Point", "map:/geog/gagarin/owens_star" );
+	
+	iConversation.Begin();
+	iConversation.AddResponse( "Lucrecia's Base ( Hoffers Wake )", "Lucrecia's Base" );
+	iConversation.AddResponse( "Coyote", "Coyote" );
+	iConversation.AddResponse( "Santa Romera", "Santa Romera" );
+	iConversation.AddResponse( "Dagda", "Dagda" );
+	iConversation.AddResponse( "Mwari", "Mwari" );
+	iConversation.AddResponse( "Eureka", "Eureka" );
+	iConversation.AddResponse( "Firefrost", "Firefrost" );
+	iConversation.AddResponse( "Kompira", "Kompira" );
+	iConversation.AddResponse( "Dante", "Dante" );
+	iConversation.AddResponse( "New Bavaria", "New Bavaria" );
+	iConversation.AddResponse( "Osprey", "Osprey" );
+	iConversation.AddResponse( "Formhault", "Formhault" );
+	iConversation.AddResponse( "Batatas", " Batatas" );
+	iConversation.AddResponse( "Drake", "Drake" );
+	iConversation.AddResponse( "Ishime", "Ishime" );
+	iConversation.AddResponse( "Owen's Star", "Owen's Star" );
+	iConversation.AddResponse( "None", "None" );
+	convoResponse = iConversation.Ask( none, "Particle employee", "Jump to?" );
+	
+	if ( convoResponse == 1 )
+	{
+		iConversation.Say( none, "Particle employee", "SHAZAM !" );
+		iConversation.End();
+		iSim.CapsuleJump( playerShip, lucreciasBase );
+	}
+	
+	if ( convoResponse == 2 )
+	{
+		iConversation.Say( none, "Particle employee", "SHAZAM !" );
+		iConversation.End();
+		iSim.CapsuleJump( playerShip, chickasawLPoint );
+	}
+	
+	if ( convoResponse == 3 )
+	{
+		iConversation.Say( none, "Particle employee", "SHAZAM !" );
+		iConversation.End();
+		iSim.CapsuleJump( playerShip, kiriBiLPoint );
+	}
+	
+	if ( convoResponse == 4 )
+	{
+		iConversation.Say( none, "Particle employee", "SHAZAM !" );
+		iConversation.End();
+		iSim.CapsuleJump( playerShip, dagdaDelta2LPoint );
+	}
+	
+	if ( convoResponse == 5 )
+	{
+		iConversation.Say( none, "Particle employee", "SHAZAM !" );
+		iConversation.End();
+		iSim.CapsuleJump( playerShip, toadSkinLPoint );
+	}
+	
+	if ( convoResponse == 6 )
+	{
+		iConversation.Say( none, "Particle employee", "SHAZAM !" );
+		iConversation.End();
+		iSim.CapsuleJump( playerShip, belialLPoint );
+	}
+	
+	if ( convoResponse == 7 )
+	{
+		iConversation.Say( none, "Particle employee", "SHAZAM !" );
+		iConversation.End();
+		iSim.CapsuleJump( playerShip, squareRockLPoint );
+	}
+	
+	if ( convoResponse == 8 )
+	{
+		iConversation.Say( none, "Particle employee", "SHAZAM !" );
+		iConversation.End();
+		iSim.CapsuleJump( playerShip, baalLPoint );
+	}
+	
+	if ( convoResponse == 9 )
+	{
+		iConversation.Say( none, "Particle employee", "SHAZAM !" );
+		iConversation.End();
+		iSim.CapsuleJump( playerShip, faustAlphaLPoint );
+	}
+	
+	if ( convoResponse == 10 )
+	{
+		iConversation.Say( none, "Particle employee", "SHAZAM !" );
+		iConversation.End();
+		iSim.CapsuleJump( playerShip, nurnbergLPoint );
+	}
+	
+	if ( convoResponse == 11 )
+	{
+		iConversation.Say( none, "Particle employee", "SHAZAM !" );
+		iConversation.End();
+		iSim.CapsuleJump( playerShip, carlottisCrumbsLPoint );
+	}
+	
+	if ( convoResponse == 12 )
+	{
+		iConversation.Say( none, "Particle employee", "SHAZAM !" );
+		iConversation.End();
+		iSim.CapsuleJump( playerShip, florenceLPoint );
+	}
+	
+	if ( convoResponse == 13 )
+	{
+		iConversation.Say( none, "Particle employee", "SHAZAM !" );
+		iConversation.End();
+		iSim.CapsuleJump( playerShip, thisTimeLPoint );
+	}
+	
+	if ( convoResponse == 14 )
+	{
+		iConversation.Say( none, "Particle employee", "SHAZAM !" );
+		iConversation.End();
+		iSim.CapsuleJump( playerShip, stPetersburgLPoint );
+	}
+	
+	if ( convoResponse == 15 )
+	{
+		iConversation.Say( none, "Particle employee", "SHAZAM !" );
+		iConversation.End();
+		iSim.CapsuleJump( playerShip, haitsuchiLPoint );
+	}
+	
+	if ( convoResponse == 16 )
+	{
+		iConversation.Say( none, "Particle employee", "SHAZAM !" );
+		iConversation.End();
+		iSim.CapsuleJump( playerShip, marshallSystemLPoint );
+	}
+	
+	if ( convoResponse == 17 )
+	{
+		iConversation.Say( none, "Particle Employee", "As you wish" );
+		iConversation.End();
+	}
+}
+
+JumpSystem()
+{
+	start local_function_3();
+}
+
+SimPlaceBetweenExact( hsim sim_to_place_, hsim sim1_, hsim sim2_, float distance_ )
+{
+	float distance_1 = Sim.DistanceBetween( sim1_, sim2_ );
+	
+	if ( distance_1 == 0.0 )
+	{
+		Sim.PlaceAt( sim_to_place_, sim1_ );
+		return;
+	}
+	
+	Sim.PlaceBetween( sim_to_place_, sim1_, sim2_, distance_ / distance_1 );
+}
+
+GroupSetCullable( hgroup group_to_set_, bool cullable_ )
+{
+	int simCount = Group.SimCount( group_to_set_ );
+	int ii;
+	
+	if ( simCount != 0 )
+	{
+		for ( ii = 0; ii < simCount; ++ii )
+		{
+			Sim.SetCullable( Group.NthSim( group_to_set_, ii ), cullable_ );
+		}
+	}
+	
+	simCount = Group.GroupCount( group_to_set_ );
+	
+	if ( simCount == 0 )
+	{
+		return;
+	}
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		GroupSetCullable( Group.NthGroup( group_to_set_, ii ), cullable_ );
+	}
+}
+
+CapsuleJumpPlayer( hisim location_ )
+{
+	hship playerShip = iShip.FindPlayerShip();
+	string name = iSim.WorldName( location_ );
+	
+	iSim.CapsuleJump( iSim.Cast( playerShip ), location_ );
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 0.50 );
+	}
+	while ( !( iSim.ActiveWorld() == name ) );
+}
+
+task local_function_11( list localList_, hisim param_1_, float param_2_ )
+{
+	float gPlayerSensorRange = Global.Float( "g_player_sensor_range" );
+	int ii;
+	int itemCount = List.ItemCount( localList_ );
+	hisim local_3;
+	
+	debug
+	{
+		Debug.PrintString( "iUtilities.CapsuleJumpGroup Preparing to capsule jump " );
+		Debug.PrintInt( itemCount );
+		Debug.PrintString( " Sims after a delay...\n" );
+	}
+	
+	Task.Sleep( Task.Current(), param_2_ );
+	debug Debug.PrintString( "iUtilities.CapsuleJumpGroup starting multiple capsule jumps\n" );
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		local_3 = iSim.Cast( List.GetNth( localList_, ii ) );
+		
+		debug
+		{
+			Debug.PrintString( "iUtilities:CapsuleJumpGroup Now capsule jumping delayed sim [" );
+			
+			if ( Object.PropertyExists( local_3, "name" ) )
+			{
+				Debug.PrintString( Object.StringProperty( local_3, "name" ) );
+			}
+			else
+			{
+				Debug.PrintString( "no name" );
+			}
+			
+			Debug.PrintString( "] ... " );
+		}
+		
+		iSim.CapsuleJumpStaggered( local_3, param_1_ );
+		debug Debug.PrintString( "done. \n" );
+		Task.Sleep( Task.Current(), Math.Random( 1.50, 2.50 ) );
+	}
+	
+	do
+	{
+		if ( Sim.IsDead( local_3 ) )
+		{
+			break;
+		}
+		
+		Task.Sleep( Task.Current(), 0.10 );
+	}
+	while ( iSim.IsCapsuleJumping( local_3 ) );
+	
+	debug Debug.PrintString( "iUtilities.CapsuleJumpGroup completed multiple capsule jumps\n" );
+}
+
+local_function_5( hgroup group_ )
+{
+	int simCount = Group.SimCount( group_ );
+	int ii;
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		iShip.SetFreeWithoutPilot( iShip.Cast( Group.NthSim( group_, ii ) ), false );
+	}
+}
+
+local_function_4( hship ship_ )
+{
+	do
+	{
+		Task.Sleep( Task.Current(), 0.10 );
+	}
+	while ( iSim.IsCapsuleJumping( ship_ ) && iShip.IsFreeWithoutPilot( ship_ ) );
+	
+	iShip.SetFreeWithoutPilot( ship_, true );
+	
+	if ( Object.PropertyExists( ship_, "mega_freighter" ) == 1 )
+	{
+		Task.Sleep( Task.Current(), Math.Random( 1.0, 2.0 ) );
+	}
+	else if ( iSim.Type( ship_ ) == T_Freighter )
+	{
+		Task.Sleep( Task.Current(), Math.Random( 0.70, 1.40 ) );
+	}
+	
+	Task.Sleep( Task.Current(), Math.Random( 0.30, 0.70 ) );
+}
+
+CapsuleJumpGroup( hgroup group_to_jump_, hisim destination_, float initial_delay_ )
+{
+	int local_0;
+	int ii;
+	hship ship;
+	list localList;
+	
+	debug atomic
+	{
+		Debug.PrintString( "iUtilities.CapsuleJumpGroup: Waiting " );
+		Debug.PrintFloat( initial_delay_ );
+		Debug.PrintString( " seconds before jumping group.\n" );
+		Debug.PrintString( "iUtilities.CapsuleJumpGroup: Sims = " );
+		Debug.PrintInt( Group.TotalSimCount( group_to_jump_ ) );
+		Debug.PrintString( " Destination = " );
+		Debug.PrintString( Object.StringProperty( destination_, "name" ) );
+		Debug.PrintString( " \n" );
+	}
+	
+	local_0 = Group.SimCount( group_to_jump_ );
+	
+	if ( local_0 != 0 )
+	{
+		atomic
+		{
+			for ( ii = 0; ii < local_0; ++ii )
+			{
+				ship = iShip.Cast( Group.NthSim( group_to_jump_, ii ) );
+				
+				if ( Sim.IsAlive( ship ) )
+				{
+					debug
+					{
+						Debug.PrintString( "iUtilities.CapsuleJumpGroup: Adding sim no. " );
+						Debug.PrintInt( ii + 1 );
+						Debug.PrintString( " (" );
+						Debug.PrintString( Object.StringProperty( ship, "name" ) );
+						Debug.PrintString( ") to the jump list. \n" );
+					}
+					
+					List.AddTail( localList, ship );
+				}
+				else
+				{
+					debug Debug.PrintString( "iUtilities.CapsuleJumpGroup: ERROR: sim no. " );
+					debug Debug.PrintInt( ii );
+					debug Debug.PrintString( " is dead / null. Not adding to list.\n" );
+				}
+			}
+		}
+		
+		local_0 = List.ItemCount( localList );
+		Task.Sleep( Task.Current(), initial_delay_ );
+		
+		for ( ii = 0; ii < local_0; ++ii )
+		{
+			ship = iShip.Cast( List.GetNth( localList, ii ) );
+			
+			if ( Sim.IsAlive( ship ) )
+			{
+				debug
+				{
+					Debug.PrintString( "iUtilities.CapsuleJumpGroup: Jumping sim no. " );
+					Debug.PrintInt( ii + 1 );
+					Debug.PrintString( " name = " );
+					Debug.PrintString( Object.StringProperty( ship, "name" ) );
+					Debug.PrintString( " to " );
+					Debug.PrintString( Object.StringProperty( destination_, "name" ) );
+					Debug.PrintString( " \n" );
+				}
+				
+				iSim.CapsuleJumpStaggered( ship, destination_ );
+				local_function_4( ship );
+			}
+			else
+			{
+				debug Debug.PrintString( "iUtilities.CapsuleJumpGroup: ERROR: sim no. " );
+				debug Debug.PrintInt( ii );
+				debug Debug.PrintString( " is dead / null. Can't jump.\n" );
+			}
+		}
+	}
+	
+	local_function_5( group_to_jump_ );
+	local_0 = Group.GroupCount( group_to_jump_ );
+	
+	if ( local_0 == 0 )
+	{
+		return;
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iUtilities.CapsuleJumpGroup: Processing " );
+		Debug.PrintInt( local_0 );
+		Debug.PrintString( " subgroup(s).\n" );
+	}
+	
+	for ( ii = 0; ii < local_0; ++ii )
+	{
+		CapsuleJumpGroup( Group.NthGroup( group_to_jump_, ii ), destination_, initial_delay_ );
+	}
+}
+
+list ListFromCompoundGroup( hgroup the_group_ )
+{
+	list localList;
+	int local_1;
+	int simCount;
+	int ii;
+	int groupCount;
+	int jj;
+	
+	atomic
+	{
+		groupCount = Group.GroupCount( the_group_ );
+		simCount = Group.SimCount( the_group_ );
+		
+		for ( ii = 0; ii < simCount; ++ii )
+		{
+			List.AddHead( localList, Group.NthSim( the_group_, ii ) );
+		}
+		
+		for ( jj = 0; jj < groupCount; ++jj )
+		{
+			List.Append( localList, ListFromCompoundGroup( Group.NthGroup( the_group_, jj ) ) );
+		}
+	}
+	
+	return localList;
+}
+
+hisim NearToGroup( hisim check_sim_, hgroup check_group_, float within_range_, bool process_subgroups_ )
+{
+	hisim local_0;
+	int simCount = Group.SimCount( check_group_ );
+	int groupCount = Group.GroupCount( check_group_ );
+	int ii;
+	
+	if ( (simCount == 0) && (groupCount == 0) )
+	{
+		return none;
+	}
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		local_0 = iSim.Cast( Group.NthSim( check_group_, ii ) );
+		
+		if ( Sim.DistanceBetween( check_sim_, local_0 ) < within_range_ )
+		{
+			return local_0;
+		}
+	}
+	
+	if ( process_subgroups_ && (groupCount > 0) )
+	{
+		for ( ii = 0; ii < groupCount; ++ii )
+		{
+			local_0 = NearToGroup( check_sim_, Group.NthGroup( check_group_, ii ), within_range_, process_subgroups_ );
+			
+			if ( local_0 != false )
+			{
+				return local_0;
+			}
+		}
+	}
+	
+	return none;
+}
+
+hisim FarFromGroup( hisim check_sim_, hgroup check_group_, float outside_range_, bool process_subgroups_ )
+{
+	hisim local_0;
+	int simCount = Group.SimCount( check_group_ );
+	int groupCount = Group.GroupCount( check_group_ );
+	int ii;
+	
+	if ( (simCount == 0) && (groupCount == 0) )
+	{
+		return none;
+	}
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		local_0 = iSim.Cast( Group.NthSim( check_group_, ii ) );
+		
+		if ( Sim.DistanceBetween( check_sim_, local_0 ) > outside_range_ )
+		{
+			return local_0;
+		}
+	}
+	
+	if ( process_subgroups_ && (groupCount > 0) )
+	{
+		for ( ii = 0; ii < groupCount; ++ii )
+		{
+			local_0 = FarFromGroup( check_sim_, Group.NthGroup( check_group_, ii ), outside_range_, process_subgroups_ );
+			
+			if ( local_0 != false )
+			{
+				return local_0;
+			}
+		}
+	}
+	
+	return none;
+}
+
+hsim CreateWaypointBetweenExact( hsim location1_, hsim location2_, float distance_ )
+{
+	hsim simWaypoint = Sim.Create( "ini:/sims/nav/waypoint", "default" );
+	
+	Sim.SetCullable( simWaypoint, false );
+	SimPlaceBetweenExact( simWaypoint, location1_, location2_, distance_ );
+	return simWaypoint;
+}
+
+CreatePlayer( string template_, hsim start_point_ )
+{
+	hship playerShip = iShip.FindPlayerShip();
+	string local_1 = Global.String( "g_player_ship_name" );
+	
+	debug atomic
+	{
+		if ( start_point_ == false )
+		{
+			Debug.Error( "iUtilities.CreatePlayer: Bad start point" );
+		}
+	}
+	
+	if ( template_ == "" )
+	{
+		playerShip = iShip.CreatePlayerShip( local_1 );
+	}
+	else
+	{
+		playerShip = iShip.Create( template_, local_1 );
+	}
+	
+	iShip.InstallPlayerPilot( playerShip );
+	iSim.SetFaction( playerShip, iFaction.Find( "Player" ) );
+	Object.SetStringProperty( playerShip, "death_script", "iDeathScript.PlayerDeathScript" );
+	
+	if ( start_point_ != false )
+	{
+		if ( start_point_ == iMapEntity.FindByName( "Hoffer's Gap" ) )
+		{
+			Sim.PlaceRelativeTo( playerShip, start_point_, 7000.0, 10000.0, -19000.0 );
+			Sim.CopyOrientation( playerShip, start_point_ );
+			Sim.PointAt( playerShip, start_point_ );
+			return;
+		}
+		
+		Sim.PlaceNear( playerShip, start_point_, 5000.0 );
+	}
+}
+
+StartInGagarinCluster()
+{
+	iGame.MovePlayerBase( "map:/geog/gagarin/formhault" );
+}
+
+int local_function_6( int param_0_ )
+{
+	return param_0_ / 60;
+}
+
+int local_function_7( int param_0_, int param_1_ )
+{
+	return param_1_ - (60 * param_0_);
+}
+
+string ConvertSecondsToTime( int passed_seconds_ )
+{
+	int local_0;
+	int local_1;
+	string local_2;
+	
+	local_0 = local_function_6( passed_seconds_ );
+	local_2 = String.Join( String.FromInt( local_0 ), ":" );
+	local_1 = local_function_7( local_0, passed_seconds_ );
+	
+	if ( local_1 < 10 )
+	{
+		local_2 = String.Join( local_2, String.Join( "0", String.FromInt( local_1 ) ) );
+	}
+	else
+	{
+		local_2 = String.Join( local_2, String.FromInt( local_1 ) );
+	}
+	
+	return local_2;
+}
+
+task Timer( string identifier_, float duration_ )
+{
+	debug
+	{
+		Debug.PrintString( "Timer " );
+		Debug.PrintString( identifier_ );
+		Debug.PrintString( " started. Duration: " );
+		Debug.PrintFloat( duration_ );
+		Debug.PrintString( " seconds.\n" );
+	}
+	
+	Task.Sleep( Task.Current(), duration_ );
+	
+	debug
+	{
+		Debug.PrintString( "Timer " );
+		Debug.PrintString( identifier_ );
+		Debug.PrintString( " completed \n" );
+	}
+}
+
+GroupSetFaction( hgroup group_to_set_, hfaction faction_ )
+{
+	int simCount = Group.SimCount( group_to_set_ );
+	int ii;
+	
+	if ( simCount != 0 )
+	{
+		for ( ii = 0; ii < simCount; ++ii )
+		{
+			iSim.SetFaction( iSim.Cast( Group.NthSim( group_to_set_, ii ) ), faction_ );
+		}
+	}
+	
+	simCount = Group.GroupCount( group_to_set_ );
+	
+	if ( simCount == 0 )
+	{
+		return;
+	}
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		GroupSetFaction( Group.NthGroup( group_to_set_, ii ), faction_ );
+	}
+}
+
+float local_function_8( float param_0_ )
+{
+	if ( param_0_ < 0.50 )
+	{
+		return 2.0 * (param_0_ * param_0_);
+	}
+	else
+	{
+		return 1.0 - (2.0 * ((1.0 - param_0_) * (1.0 - param_0_)));
+	}
+	
+	return 1.0;
+}
+
+float local_function_9( float param_0_, float param_1_, float param_2_ )
+{
+	return (param_0_ * param_2_) + (param_1_ * (1.0 - param_2_));
+}
+
+float RandomCentreWeighted( float min_, float max_ )
+{
+	float random = Math.Random( 0.0, 1.0 );
+	
+	return local_function_9( min_, max_, local_function_8( random ) );
+}
+
+bool SendStoryElement( string global_name_, int act_, int mission_number_ )
+{
+	if ( Global.Exists( "g_skip_to_specific" ) && (Global.Bool( "g_skip_to_specific" ) == 1) )
+	{
+		if ( (mission_number_ != Global.Int( "g_skip_to_mission_number" )) || (act_ != Global.Int( "g_skip_to_act" )) )
+		{
+			Global.SetInt( global_name_, 2 );
+			return false;
+		}
+	}
+	
+	Global.SetInt( global_name_, 1 );
+	return true;
+}
+
+task CriticalShipMonitor( hship ship_, float shout_delay_ )
+{
+	hobject local_0;
+	int random_0 = Math.RandomInt( 0, 3 );
+	int random_1 = Math.RandomInt( 0, 3 );
+	bool local_3 = false;
+	
+	if ( shout_delay_ < 0.0 )
+	{
+		shout_delay_ == 1.0;
+	}
+	
+	if ( Sim.IsDead( ship_ ) || (iSim.IsDying( ship_ ) || (ship_ == false)) )
+	{
+		debug Debug.PrintString( "iUtilities.CriticalShipMonitor: " );
+		debug Debug.PrintString( Object.StringProperty( ship_, "name" ) );
+		debug Debug.PrintString( " is invalid. Not monitoring\n" );
+		return;
+	}
+	
+	if ( !iSim.IsMissionCritical( ship_ ) )
+	{
+		debug Debug.PrintString( "iUtilities.CriticalShipMonitor: " );
+		debug Debug.PrintString( Object.StringProperty( ship_, "name" ) );
+		debug Debug.PrintString( " is not a critical ship. Not monitoring\n" );
+		return;
+	}
+	
+	debug Debug.PrintString( "iUtilities.CriticalShipMonitor: Monitoring critical ship - " );
+	debug Debug.PrintString( Object.StringProperty( ship_, "name" ) );
+	debug Debug.PrintString( "\n" );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( Sim.IsDead( ship_ ) || iSim.IsDying( ship_ ) )
+			{
+				return;
+			}
+			
+			if ( !iSim.IsMissionCritical( ship_ ) )
+			{
+				debug Debug.PrintString( "iUtilities.CriticalShipMonitor: " );
+				debug Debug.PrintString( Object.StringProperty( ship_, "name" ) );
+				debug Debug.PrintString( " is no longer a critical ship. Monitoring terminated\n" );
+			}
+			
+			if ( iShip.Attacked( ship_ ) )
+			{
+				if ( !iComms.IsBusy() )
+				{
+					if ( iShip.LastAttacker( ship_ ) == local_0 )
+					{
+						random_0 = ( random_0 + 1 );
+						
+						if ( random_0 > 3 )
+						{
+							random_0 = 0;
+						}
+						
+						switch ( random_0 )
+						{
+							case 0:
+								iComms.Shout( none, "name_clay", "stock_clay_critical_player_attack_1" );
+								break;
+							
+							case 1:
+								iComms.Shout( none, "name_clay", "stock_clay_critical_player_attack_2" );
+								break;
+							
+							case 2:
+								iComms.Shout( none, "name_clay", "stock_clay_critical_player_attack_3" );
+								break;
+							
+							case 3:
+								iComms.Shout( none, "name_clay", "stock_clay_critical_player_attack_4" );
+								break;
+						}
+						
+						Task.Sleep( Task.Current(), shout_delay_ );
+					}
+					else
+					{
+						random_1 = ( random_1 + 1 );
+						
+						if ( random_1 > 3 )
+						{
+							random_1 = 0;
+						}
+						
+						switch ( random_1 )
+						{
+							case 0:
+								iComms.Shout( none, "name_clay", "stock_clay_critical_enemy_attack_1" );
+								break;
+							
+							case 1:
+								iComms.Shout( none, "name_clay", "stock_clay_critical_enemy_attack_2" );
+								break;
+							
+							case 2:
+								iComms.Shout( none, "name_clay", "stock_clay_critical_enemy_attack_3" );
+								break;
+							
+							case 3:
+								iComms.Shout( none, "name_clay", "stock_clay_critical_enemy_attack_4" );
+								break;
+								Task.Sleep( Task.Current(), shout_delay_ );
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+RemoveMissionRestart()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	
+	Sim.Destroy( Sim.Cast( Object.HandleProperty( playerShip, "restart_waypoint" ) ) );
+	Object.RemoveProperty( playerShip, "restart_waypoint" );
+	Object.RemoveProperty( playerShip, "current_mission_state" );
+}
+
+GroupSetLocalVelocity( hgroup group_, float xvel_, float yvel_, float zvel_, bool kill_angular_, bool process_subgroups_ )
+{
+	int ii = 0;
+	int groupCount;
+	hgroup group_1;
+	
+	for ( ii = 0; ii < Group.SimCount( group_ ); ++ii )
+	{
+		Sim.SetVelocityLocalToSim( Group.NthSim( group_, ii ), xvel_, yvel_, zvel_ );
+		
+		if ( kill_angular_ )
+		{
+			Sim.SetAngularVelocityEuler( Group.NthSim( group_, ii ), 0.0, 0.0, 0.0 );
+		}
+	}
+	
+	if ( !process_subgroups_ )
+	{
+		return;
+	}
+	
+	groupCount = Group.GroupCount( group_1 );
+	
+	if ( groupCount == 0 )
+	{
+		return;
+	}
+	
+	for ( ii = 0; ii < groupCount; ++ii )
+	{
+		GroupSetLocalVelocity( Group.NthGroup( group_1, ii ), xvel_, yvel_, zvel_, kill_angular_, process_subgroups_ );
+	}
+}
+
+local_function_2()
+{
+	int ii;
+	htrade trade;
+	int local_2;
+	eCargoType cargoType;
+	
+	for ( ii = ( iTrade.NumTrades() - 1 ); ii >= 0; --ii )
+	{
+		trade = iTrade.NthTrade( ii );
+		local_2 = iTrade.NumOffers( trade );
+		cargoType = iInventory.CargoTypeFromName( iTrade.Offered( trade ) );
+		
+		if ( Object.StringProperty( trade, "generated_mission" ) == "" )
+		{
+			if ( local_2 <= 0 )
+			{
+				iInventory.Add( cargoType, 5 );
+			}
+			else
+			{
+				iInventory.Add( cargoType, local_2 );
+				iTrade.RemoveTrade( trade );
+			}
+		}
+	}
+}
+

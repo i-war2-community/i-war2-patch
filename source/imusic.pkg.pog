@@ -1,0 +1,837 @@
+package iMusic;
+
+uses Debug,
+     Set,
+     List,
+     String,
+     Global,
+     Math,
+     Group,
+     Sim,
+     Stream,
+     Task,
+     MapEnumerations,
+     iFaction,
+     iSim,
+     iMapEntity,
+     iBody,
+     iHabitat,
+     iShip;
+
+provides Initialise,
+         Terminate,
+         SetSuite,
+         SetMood,
+         Pause,
+         Resume,
+         Play,
+         SetAmbientEnvironment,
+         monitor;
+
+enum eMusicSuite
+{
+	MS_Down = 0x00000000,
+	MS_Corporate = 0x00000001,
+	MS_AlienThreat = 0x00000002,
+	eMusicSuiteCount = 0x00000003
+};
+
+enum eMusicMood
+{
+	MM_Theme = 0x00000000,
+	MM_Ambient = 0x00000001,
+	MM_Discovery = 0x00000002,
+	MM_Tension = 0x00000003,
+	MM_Action = 0x00000004,
+	eMusicMoodCount = 0x00000005
+};
+
+enum eMusicEvent
+{
+	ME_ShortCymbal = 0x00000000,
+	ME_LongCymbal = 0x00000001,
+	ME_SoftTimpani = 0x00000002,
+	ME_LoudTimpani = 0x00000003,
+	eMusicEventCount = 0x00000004
+};
+
+enum eAmbientEnvironment
+{
+	AE_DeepSpace = 0x00000000,
+	AE_Effrit = 0x00000001,
+	AE_Aliens = 0x00000002,
+	eAmbientEnvironmentCount = 0x00000003
+};
+
+prototype local_function_9();
+prototype string local_function_7( int param_0_, int param_1_ );
+prototype int local_function_3( string param_0_ );
+prototype int local_function_2( int param_0_ );
+prototype bool local_function_0( list localList_, float param_1_ );
+prototype bool local_function_1( float param_0_ );
+prototype int local_function_5( int param_0_, bool param_1_ );
+prototype int local_function_4( int param_0_ );
+prototype int local_function_8( int param_0_ );
+prototype task monitor();
+prototype Initialise();
+prototype Terminate();
+prototype SetSuite( eMusicSuite suite_ );
+prototype SetMood( eMusicMood mood_ );
+prototype Play( string track_, bool crossfade_, bool loop_ );
+prototype local_function_6( int param_0_ );
+prototype Pause();
+prototype Resume();
+prototype SetAmbientEnvironment( eAmbientEnvironment ae_ );
+
+local_function_9()
+{
+	Stream.Stop( 0, true );
+	Stream.Stop( 1, true );
+	Stream.Stop( 2, true );
+}
+
+string local_function_7( int param_0_, int param_1_ )
+{
+	string local_0;
+	
+	switch ( param_0_ )
+	{
+		case 0:
+			switch ( param_1_ )
+			{
+				case 0:
+					local_0 = "sound:/audio/music/a1_theme";
+					break;
+				
+				case 1:
+					local_0 = "sound:/audio/music/a1_ambient";
+					break;
+				
+				case 2:
+					local_0 = "sound:/audio/music/a1_discovery";
+					break;
+				
+				case 3:
+					local_0 = "sound:/audio/music/a1_tension";
+					break;
+				
+				case 4:
+					local_0 = "sound:/audio/music/a1_action";
+					break;
+			}
+			
+			break;
+		
+		case 1:
+			switch ( param_1_ )
+			{
+				case 0:
+					local_0 = "sound:/audio/music/a2_theme";
+					break;
+				
+				case 1:
+					local_0 = "sound:/audio/music/a2_ambient";
+					break;
+				
+				case 2:
+					local_0 = "sound:/audio/music/a2_discovery";
+					break;
+				
+				case 3:
+					local_0 = "sound:/audio/music/a2_tension";
+					break;
+				
+				case 4:
+					local_0 = "sound:/audio/music/a2_action";
+					break;
+			}
+			
+			break;
+		
+		case 2:
+			switch ( param_1_ )
+			{
+				case 0:
+					local_0 = "sound:/audio/music/a4_theme";
+					break;
+				
+				case 1:
+					local_0 = "sound:/audio/music/a4_ambient";
+					break;
+				
+				case 2:
+					local_0 = "sound:/audio/music/a4_discovery";
+					break;
+				
+				case 3:
+					local_0 = "sound:/audio/music/a4_tension";
+					break;
+				
+				case 4:
+					local_0 = "sound:/audio/music/a4_action";
+					break;
+			}
+			
+			break;
+	}
+	
+	return local_0;
+}
+
+int local_function_3( string param_0_ )
+{
+	if ( param_0_ == "map:/geog/badlands/hoffers_wake" )
+	{
+		return 0;
+	}
+	
+	if ( param_0_ == "map:/geog/badlands/mwari" )
+	{
+		return 0;
+	}
+	
+	if ( param_0_ == "map:/geog/badlands/coyote" )
+	{
+		return 0;
+	}
+	
+	if ( param_0_ == "map:/geog/badlands/firefrost" )
+	{
+		return 0;
+	}
+	
+	if ( param_0_ == "map:/geog/badlands/e3_system" )
+	{
+		return 0;
+	}
+	
+	if ( param_0_ == "map:/geog/badlands/santa_romera" )
+	{
+		return 1;
+	}
+	
+	if ( param_0_ == "map:/geog/badlands/kompira" )
+	{
+		return 1;
+	}
+	
+	if ( param_0_ == "map:/geog/badlands/eureka" )
+	{
+		return 1;
+	}
+	
+	if ( param_0_ == "map:/geog/badlands/dagda" )
+	{
+		return 1;
+	}
+	
+	if ( param_0_ == "map:/geog/badlands/dante" )
+	{
+		return 1;
+	}
+	
+	return 2;
+}
+
+int local_function_2( int param_0_ )
+{
+	switch ( param_0_ )
+	{
+		case 0:
+		case 1:
+		case 2:
+		case 6:
+		case 9:
+		case 10:
+		case 12:
+		case 19:
+		case 20:
+		case 13:
+		case 5:
+		case 21:
+		case 22:
+			return 0;
+		
+		case 3:
+		case 11:
+		case 7:
+		case 14:
+		case 15:
+		case 16:
+		case 23:
+		case 24:
+		case 25:
+		case 26:
+		case 27:
+		case 28:
+		case 29:
+		case 30:
+		case 31:
+		case 32:
+		case 33:
+		case 34:
+		case 35:
+		case 36:
+		case 37:
+		case 38:
+		case 39:
+		case 40:
+		case 41:
+		case 42:
+		case 43:
+		case 44:
+		case 45:
+		case 46:
+		case 47:
+		case 48:
+		case 49:
+		case 50:
+		case 51:
+		case 52:
+			return 1;
+		
+		case 4:
+		case 8:
+		case 17:
+		case 18:
+		case 53:
+		case 54:
+			return 2;
+		
+		default:
+			return 0;
+	}
+	
+	return 0;
+}
+
+bool local_function_0( list localList_, float param_1_ )
+{
+	int itemCount;
+	hship playerShip = iShip.FindPlayerShip();
+	int ii;
+	hisim local_3;
+	
+	itemCount = List.ItemCount( localList_ );
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		local_3 = iSim.Cast( List.GetNth( localList_, ii ) );
+		
+		if ( Sim.DistanceBetween( playerShip, local_3 ) < param_1_ )
+		{
+			return true;
+		}
+	}
+	
+	return false;
+}
+
+bool local_function_1( float param_0_ )
+{
+	list localList = Global.List( "g_active_location_list" );
+	hship playerShip = iShip.FindPlayerShip();
+	hfaction faction = iSim.Faction( playerShip );
+	int ii;
+	int itemCount = List.ItemCount( localList );
+	hhabitat habitat;
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		habitat = iHabitat.Cast( List.GetNth( localList, ii ) );
+		
+		if ( habitat )
+		{
+			if ( iFaction.Feeling( faction, iSim.Faction( habitat ) ) < -0.20 )
+			{
+				if ( Sim.DistanceBetween( habitat, playerShip ) < param_0_ )
+				{
+					return true;
+				}
+			}
+		}
+	}
+	
+	return false;
+}
+
+int local_function_5( int param_0_, bool param_1_ )
+{
+	float random = Math.Random( 0.0, 1.0 );
+	int local_1 = param_0_;
+	list localList = List.FromSet( iSim.PlayerHostilesInRadius( 200000.0, 536842240 ) );
+	
+	switch ( param_0_ )
+	{
+		case 0:
+		case 2:
+		case 1:
+			if ( local_function_0( localList, 20000.0 ) )
+			{
+				local_1 = 4;
+				break;
+			}
+			
+			if ( local_function_0( localList, 100000.0 ) )
+			{
+				local_1 = 3;
+				break;
+			}
+			
+			break;
+		
+		case 3:
+			if ( List.IsEmpty( localList ) )
+			{
+				local_1 = 1;
+				break;
+			}
+			
+			if ( local_function_0( localList, 20000.0 ) )
+			{
+				local_1 = 4;
+				break;
+			}
+			
+			break;
+		
+		case 4:
+			if ( List.IsEmpty( localList ) )
+			{
+				local_1 = 1;
+				break;
+			}
+			
+			if ( !local_function_0( localList, 100000.0 ) )
+			{
+				local_1 = 3;
+				break;
+			}
+			
+			break;
+	}
+	
+	if ( (local_1 != 4) && (local_1 != 3) )
+	{
+		if ( local_function_1( 1000000.0 ) )
+		{
+			local_1 = 3;
+		}
+	}
+	
+	return local_1;
+}
+
+int local_function_4( int param_0_ )
+{
+	list localList = Global.List( "g_active_location_list" );
+	int local_1;
+	int local_2;
+	int local_3;
+	int ii;
+	int itemCount = List.ItemCount( localList );
+	hhabitat habitat;
+	int local_7;
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		habitat = iHabitat.Cast( List.GetNth( localList, ii ) );
+		
+		if ( habitat )
+		{
+			local_7 = local_function_2( iFaction.Allegiance( iSim.Faction( habitat ) ) );
+			
+			switch ( local_7 )
+			{
+				case 0:
+					local_1 = ( local_1 + 1 );
+					break;
+				
+				case 1:
+					local_2 = ( local_2 + 1 );
+					break;
+				
+				case 2:
+					local_3 = ( local_3 + 1 );
+					break;
+			}
+		}
+	}
+	
+	if ( (local_3 == 0) && ((local_2 == 0) && (local_1 == 0)) )
+	{
+		return param_0_;
+	}
+	
+	if ( local_3 >= local_2 )
+	{
+		if ( local_3 >= local_1 )
+		{
+			local_7 = 2;
+		}
+		else
+		{
+			local_7 = 0;
+		}
+	}
+	else if ( local_1 >= local_2 )
+	{
+		local_7 = 0;
+	}
+	else
+	{
+		local_7 = 1;
+	}
+	
+	return local_7;
+}
+
+int local_function_8( int param_0_ )
+{
+	int constant_0;
+	int constant_1;
+	
+	switch ( param_0_ )
+	{
+		case 0:
+			return 0;
+		
+		case 1:
+			return 0;
+		
+		case 2:
+			constant_0 = 5;
+			constant_1 = 9;
+			break;
+		
+		default:
+			return 0;
+	}
+	
+	return Math.RandomInt( constant_0, constant_1 );
+}
+
+task monitor()
+{
+	int gMusicMood;
+	int gMusicSuite;
+	int local_2;
+	int local_3;
+	string local_4;
+	string local_5;
+	string name;
+	int local_7;
+	float local_8;
+	float random_0;
+	bool local_10;
+	bool local_11 = false;
+	bool local_12;
+	int gMusicAmbientEnvironment = 0;
+	float random_1;
+	int local_15;
+	
+	schedule
+	{
+		every 1.0:
+		{
+			gMusicMood = Global.Int( "g_music_mood" );
+			local_2 = gMusicMood;
+			gMusicSuite = Global.Int( "g_music_suite" );
+			local_3 = gMusicSuite;
+			local_4 = Global.String( "g_music_current" );
+			local_8 = ( local_8 - 1.0 );
+			random_0 = Math.Random( 0.0, 1.0 );
+			local_10 = false;
+			local_12 = false;
+			gMusicSuite = Global.Int( "g_music_suite" );
+			
+			if ( !( name == iMapEntity.SystemName() ) )
+			{
+				name = iMapEntity.SystemName();
+				local_3 = local_function_3( name );
+				
+				if ( random_0 > 0.50 )
+				{
+					local_2 = 0;
+				}
+				else
+				{
+					local_2 = 2;
+				}
+			}
+			else if ( local_8 < 0.0 )
+			{
+				local_3 = local_function_4( gMusicSuite );
+			}
+			
+			if ( Global.Int( "g_music_ambient_environment" ) != gMusicAmbientEnvironment )
+			{
+				gMusicAmbientEnvironment = Global.Int( "g_music_ambient_environment" );
+				
+				switch ( gMusicAmbientEnvironment )
+				{
+					case 0:
+						debug Debug.PrintString( "iMusic.monitor: Entering deep space\n" );
+						Stream.Stop( 2, true );
+						break;
+					
+					case 1:
+						debug Debug.PrintString( "iMusic.monitor: Entering Effrit environment\n" );
+						Stream.Stop( 2, true );
+						break;
+					
+					case 2:
+						debug Debug.PrintString( "iMusic.monitor: Entering aliens' environment\n" );
+						Stream.Play( 2, "sound:/audio/ambient/alien_loop", true, true );
+						local_2 = 6;
+						break;
+					
+					default:
+						debug Debug.PrintString( "iMusic.monitor: Unknown ambient environment\n" );
+						Stream.Stop( 2, true );
+				}
+				
+				random_1 = 0.0;
+			}
+			
+			if ( (Stream.IsPlaying( 0 ) == 0) && (gMusicMood != 6) )
+			{
+				debug Debug.PrintString( "iMusic.monitor: Track finished - deciding what mood to play next\n" );
+				local_2 = local_function_5( gMusicMood, true );
+				
+				if ( (local_2 == 4) && (gMusicMood == 4) )
+				{
+					if ( local_11 == 1 )
+					{
+						local_12 = true;
+						local_11 = false;
+					}
+					else
+					{
+						local_11 = true;
+					}
+				}
+				
+				local_10 = true;
+			}
+			else if ( local_2 == gMusicMood )
+			{
+				local_2 = local_function_5( gMusicMood, false );
+			}
+			
+			if ( local_3 != gMusicSuite )
+			{
+				debug atomic
+				{
+					Debug.PrintString( "iMusic.monitor: Changing suite (" );
+					Debug.PrintInt( local_3 );
+					Debug.PrintString( ")\n" );
+				}
+				
+				Global.SetInt( "g_music_suite", local_3 );
+				local_8 = 20.0;
+				local_10 = true;
+			}
+			
+			if ( local_2 != gMusicMood )
+			{
+				debug atomic
+				{
+					Debug.PrintString( "iMusic.monitor: Changing mood (" );
+					Debug.PrintInt( local_2 );
+					Debug.PrintString( ")\n" );
+				}
+				
+				Global.SetInt( "g_music_mood", local_2 );
+				local_10 = true;
+				
+				if ( (local_2 == 4) || (local_2 == 3) )
+				{
+					if ( random_0 > 0.70 )
+					{
+						local_function_6( 4 );
+					}
+					else if ( random_0 > 0.30 )
+					{
+						local_function_6( 3 );
+					}
+				}
+			}
+			
+			if ( local_10 )
+			{
+				if ( local_2 == 6 )
+				{
+					Stream.Stop( 0, true );
+				}
+				else
+				{
+					if ( local_12 )
+					{
+						debug Debug.PrintString( "iMusic.monitor: Forcing change to tension track\n" );
+						local_5 = local_function_7( local_3, 3 );
+					}
+					else
+					{
+						local_5 = local_function_7( local_3, local_2 );
+					}
+					
+					debug atomic
+					{
+						Debug.PrintString( "iMusic.monitor: Changing to track " );
+						Debug.PrintString( local_5 );
+						Debug.PrintString( " (suite=" );
+						Debug.PrintInt( local_3 );
+						Debug.PrintString( " mood=" );
+						Debug.PrintInt( local_2 );
+						Debug.PrintString( ")\n" );
+					}
+					
+					Global.SetString( "g_music_current", local_5 );
+					Stream.Play( 0, local_5, true, local_2 == 1 );
+				}
+			}
+			
+			if ( gMusicAmbientEnvironment != 0 )
+			{
+				if ( !Stream.IsPlaying( 1 ) )
+				{
+					if ( random_1 < 0.0 )
+					{
+						debug Debug.PrintString( "iMusic.monitor: Playing ambient effect\n" );
+						local_15 = local_function_8( gMusicAmbientEnvironment );
+						
+						if ( local_15 != 0 )
+						{
+							local_function_6( local_15 );
+						}
+						
+						random_1 = Math.Random( 0.0, 30.0 );
+					}
+					else
+					{
+						random_1 = ( random_1 - 1.0 );
+					}
+				}
+			}
+		}
+	}
+}
+
+Initialise()
+{
+	string local_0;
+	
+	Global.CreateInt( "g_music_suite", 2, 0 );
+	Global.CreateInt( "g_music_mood", 2, 1 );
+	Global.CreateString( "g_music_current", 2, local_0 );
+	Global.CreateInt( "g_music_ambient_environment", 2, 0 );
+	Global.CreateHandle( "g_music_monitor", 2, start monitor() );
+	local_function_9();
+}
+
+Terminate()
+{
+	Global.Destroy( "g_music_suite" );
+	Global.Destroy( "g_music_mood" );
+	Global.Destroy( "g_music_current" );
+	Global.Destroy( "g_music_ambient_environment" );
+	Task.Halt( Task.Cast( Global.Handle( "g_music_monitor" ) ) );
+	Global.Destroy( "g_music_monitor" );
+	local_function_9();
+}
+
+SetSuite( eMusicSuite suite_ )
+{
+	Global.SetInt( "g_music_suite", suite_ );
+}
+
+SetMood( eMusicMood mood_ )
+{
+	Global.SetInt( "g_music_mood", mood_ );
+}
+
+Play( string track_, bool crossfade_, bool loop_ )
+{
+	Stream.Play( 0, track_, crossfade_, loop_ );
+}
+
+local_function_6( int param_0_ )
+{
+	string local_0;
+	
+	if ( Stream.IsPlaying( 1 ) )
+	{
+		return;
+	}
+	
+	switch ( param_0_ )
+	{
+		case 0:
+			return;
+		
+		case 1:
+			local_0 = "sound:/audio/music/short_cymbal";
+			break;
+		
+		case 2:
+			local_0 = "sound:/audio/music/long_cymbal";
+			break;
+		
+		case 3:
+			local_0 = "sound:/audio/music/soft_timpani";
+			break;
+		
+		case 4:
+			local_0 = "sound:/audio/music/loud_timpani";
+			break;
+		
+		case 5:
+			local_0 = "sound:/audio/ambient/alien_moan_1";
+			break;
+		
+		case 6:
+			local_0 = "sound:/audio/ambient/alien_moan_2";
+			break;
+		
+		case 7:
+			local_0 = "sound:/audio/ambient/alien_roar_1";
+			break;
+		
+		case 8:
+			local_0 = "sound:/audio/ambient/alien_roar_2";
+			break;
+		
+		case 9:
+			local_0 = "sound:/audio/ambient/alien_grumble";
+			break;
+		
+		default:
+			debug Debug.PrintString( "iMusic.PlayEvent: Unknown event\n" );
+			return;
+	}
+	
+	Stream.Play( 1, local_0, false, false );
+}
+
+Pause()
+{
+	htask gMusicMonitor = Task.Cast( Global.Handle( "g_music_monitor" ) );
+	
+	Task.Suspend( gMusicMonitor );
+	local_function_9();
+}
+
+Resume()
+{
+	htask gMusicMonitor = Task.Cast( Global.Handle( "g_music_monitor" ) );
+	
+	Task.Resume( gMusicMonitor );
+	local_function_9();
+}
+
+SetAmbientEnvironment( eAmbientEnvironment ae_ )
+{
+	Global.SetInt( "g_music_ambient_environment", ae_ );
+}
+

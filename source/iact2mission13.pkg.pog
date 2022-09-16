@@ -1,0 +1,1724 @@
+package iAct2Mission13;
+
+uses Debug,
+     GUI,
+     Set,
+     List,
+     String,
+     Global,
+     Sim,
+     Group,
+     Math,
+     Object,
+     State,
+     Subsim,
+     Task,
+     Text,
+     iSim,
+     iShip,
+     iDockport,
+     iLagrangePoint,
+     iAI,
+     iBackToBase,
+     iComms,
+     iConversation,
+     iCutsceneUtilities,
+     iDeathScript,
+     iDirector,
+     iEmail,
+     iEscort,
+     MapEnumerations,
+     iFaction,
+     iFormation,
+     iGame,
+     iMapEntity,
+     iBody,
+     iHabitat,
+     iMissionTracker,
+     iMusic,
+     iObjectives,
+     iPilotSetup,
+     iRangeCheck,
+     iRegion,
+     INIFile,
+     iUtilities,
+     CargoTypes,
+     iCargoScript,
+     iCargo,
+     iShipCreation,
+     iStation,
+     iWingmen;
+
+provides Main,
+         MissionHandler,
+         Stub;
+
+prototype Main();
+prototype Stub();
+prototype local_function_3( hstate state_ );
+prototype local_function_1();
+prototype task local_function_0();
+prototype task local_function_4( htask param_0_, hstate state_, hgroup group_0_, hgroup group_1_, hgroup group_2_, hgroup group_3_, hship ship_0_, hship ship_1_, hship ship_2_, hship ship_3_, hship ship_4_, hship ship_5_, hgroup group_4_ );
+prototype task MissionHandler();
+prototype hgroup local_function_5( hmapentity mapentity_ );
+prototype local_function_6( hgroup group_ );
+prototype local_function_2( hship ship_0_ );
+prototype local_function_14( hisim param_0_, hgroup group_0_, hgroup group_1_ );
+prototype hgroup local_function_10( hsim param_0_ );
+prototype local_function_9( hstate state_ );
+prototype local_function_18( hstate state_ );
+prototype local_function_19( hstate state_ );
+prototype local_function_20( hstate state_ );
+prototype local_function_21( hstate state_ );
+prototype local_function_25( hstate state_ );
+prototype local_function_22( hstate state_ );
+prototype local_function_23( hstate state_ );
+prototype local_function_24( hstate state_ );
+prototype local_function_8( hgroup group_, bool param_1_ );
+prototype local_function_15( hgroup group_, hfaction faction_ );
+prototype local_function_11( hgroup group_ );
+prototype local_function_13( hgroup group_, bool param_1_ );
+prototype task local_function_7( hship ship_0_, hship ship_1_, hship ship_2_, hgroup group_0_, hisim param_4_ );
+prototype task local_function_12( hship ship_0_, hship ship_1_, hship ship_2_, hship ship_3_, hship ship_4_, hship ship_5_, hship ship_6_, hisim param_7_, hgroup group_0_, hgroup group_1_, hgroup group_2_, hisim param_11_ );
+prototype task local_function_16( hship ship_0_, hgroup group_, hisim param_2_, hship ship_1_ );
+prototype task local_function_17( hmapentity mapentity_, hship ship_ );
+
+Main()
+{
+	Task.Detach( start local_function_0() );
+}
+
+Stub()
+{
+	Global.SetBool( "g_act2_kong_fracture_complete", true );
+	Global.SetBool( "g_act2_kong_fracture_success", true );
+}
+
+local_function_3( hstate state_ )
+{
+	hsim waypointHoffersPortOrbital;
+	hship playerShip = iShip.FindPlayerShip();
+	
+	waypointHoffersPortOrbital = iUtilities.CreateWaypointRelativeTo( iMapEntity.FindByNameInSystem( "Hoffers Port Orbital", "map:/geog/badlands/hoffers_wake" ), 300000.0, 300000.0, 0.0 );
+	Object.AddHandleProperty( playerShip, "restart_waypoint", waypointHoffersPortOrbital );
+	Object.AddHandleProperty( playerShip, "current_mission_state", state_ );
+}
+
+local_function_1()
+{
+	iObjectives.Remove( "a2_m13_objectives_travel" );
+	iObjectives.Remove( "a2_m13_objectives_head" );
+	iObjectives.Remove( "a2_m13_objectives_stop" );
+	iObjectives.Remove( "a2_m13_objective_dock_to_base" );
+	iObjectives.Remove( "a2_m13_objectives_eliminate" );
+}
+
+task local_function_0()
+{
+	htask local_0;
+	int local_1;
+	
+	while ( iComms.IsInConversation() )
+	{
+		Task.Sleep( Task.Current(), 0.50 );
+	}
+	
+	if ( iUtilities.SkipMission( "Kong Fracture?" ) )
+	{
+		Stub();
+		return;
+		return;
+	}
+	
+	local_0 = start MissionHandler();
+	Task.Detach( local_0 );
+}
+
+task local_function_4( htask param_0_, hstate state_, hgroup group_0_, hgroup group_1_, hgroup group_2_, hgroup group_3_, hship ship_0_, hship ship_1_, hship ship_2_, hship ship_3_, hship ship_4_, hship ship_5_, hgroup group_4_ )
+{
+	schedule
+	{
+		every 0.10:
+		{
+			if ( State.Progress( state_ ) == 100 )
+			{
+				iWingmen.Purge();
+				iSim.SetFaction( iShip.FindPlayerShip(), iFaction.Find( "Player" ) );
+				
+				if ( Global.Exists( "g_added_disruptor" ) )
+				{
+					Subsim.Destroy( Sim.FindSubsimByName( iShip.FindPlayerShip(), "Cargo_DisruptorMissile" ) );
+					Global.Destroy( "g_added_disruptor" );
+				}
+				
+				Sim.Destroy( ship_0_ );
+				Sim.Destroy( ship_1_ );
+				Sim.Destroy( ship_2_ );
+				Sim.Destroy( ship_3_ );
+				Sim.Destroy( ship_4_ );
+				Sim.Destroy( ship_5_ );
+				Group.Destroy( group_0_, true );
+				Group.Destroy( group_1_, true );
+				Group.Destroy( group_2_, true );
+				Group.Destroy( group_3_, true );
+				Group.Destroy( group_4_, true );
+				
+				atomic
+				{
+					Global.SetBool( "g_skip_locked", false );
+				}
+				
+				Task.Detach( start local_function_0() );
+				local_function_1();
+				State.Destroy( param_0_ );
+				iUtilities.RemoveMissionRestart();
+				iMissionTracker.RemoveMission( param_0_ );
+				Task.Halt( param_0_ );
+				return;
+			}
+		}
+	}
+}
+
+task MissionHandler()
+{
+	hemail email;
+	hstate taskState = State.Find( Task.Current() );
+	hmapentity hoffersPortOrbital = iMapEntity.FindByNameInSystem( "Hoffers Port Orbital", "map:/geog/badlands/hoffers_wake" );
+	hmapentity alexanderLPoint = iMapEntity.FindByNameInSystem( "Alexander L-Point", "map:/geog/badlands/hoffers_wake" );
+	hmapentity hoffersWakePoliceHeadquarters = iMapEntity.FindByNameInSystem( "Hoffers Wake Police Headquarters", "map:/geog/badlands/hoffers_wake" );
+	hmapentity freetownShipPark = iMapEntity.FindByNameInSystem( "Freetown Ship Park", "map:/geog/badlands/hoffers_wake" );
+	hmapentity touchdownLPoint = iMapEntity.FindByNameInSystem( "Touchdown L-Point", "map:/geog/badlands/hoffers_wake" );
+	hmapentity alexanderSentryStation = iMapEntity.FindByNameInSystem( "Alexander Sentry Station", "map:/geog/badlands/hoffers_wake" );
+	hmapentity courierTransmissionStation = iMapEntity.FindByNameInSystem( "Courier Transmission Station", "map:/geog/badlands/hoffers_wake" );
+	hsim waypoint;
+	hfaction government = iFaction.Find( "Government" );
+	hfaction kong = iFaction.Find( "Kong" );
+	hgroup group_0 = Group.Create();
+	hgroup group_1 = Group.Create();
+	hgroup group_2 = Group.Create();
+	hgroup group_3;
+	hgroup group_4;
+	hgroup group_5;
+	hgroup group_6;
+	hship shipInterceptorMk2;
+	hship playerShip = iShip.FindPlayerShip();
+	hship shipCutter;
+	hship shipFreighter;
+	hship groupLeader;
+	hship shipTugArmed_0;
+	hship shipTugArmed_1;
+	hship shipTugArmed_2;
+	hsubsim cargo_DisruptorMissile;
+	hregion region;
+	int local_29;
+	int ii;
+	int local_31;
+	int local_32;
+	int local_33;
+	int local_34;
+	bool local_35 = false;
+	bool local_36 = false;
+	bool local_37 = false;
+	bool local_38 = true;
+	int local_39;
+	htask local_40;
+	
+	if ( !taskState )
+	{
+		taskState = State.Create( Task.Current(), 0 );
+	}
+	
+	email = iEmail.Find( "html:/text/act_2/act2_mission13_email" );
+	
+	if ( !email )
+	{
+		iEmail.SendEmail( "a2_m13_email_sender", "a2_m13_email_subject", "html:/text/act_2/act2_mission13_email", true );
+		debug Debug.PrintString( "iAct2_Mission13.MissionHandler: Email Sent - EXITING\n" );
+		return;
+	}
+	
+	if ( !iEmail.Read( email ) )
+	{
+		debug Debug.PrintString( "iAct2_Mission13.MissionHandler: Email not read yet - EXITING\n" );
+		return;
+	}
+	
+	group_3 = iWingmen.Group();
+	Text.Add( "csv:/text/act_2/act2_mission13" );
+	Text.Add( "csv:/text/act_2/act2_mission15" );
+	iMissionTracker.AddMission( Task.Current(), 2, 13 );
+	iStation.DisableReactiveInArea( iHabitat.Cast( alexanderSentryStation ), 10000000.0 );
+	iStation.DisableReactiveInArea( iHabitat.Cast( hoffersPortOrbital ), 10000000.0 );
+	iStation.DisableReactiveInArea( iHabitat.Cast( courierTransmissionStation ), 10000000.0 );
+	iStation.DisableReactiveInArea( iHabitat.Cast( freetownShipPark ), 10000000.0 );
+	iRangeCheck.AddTrafficExceptionsInArea( iMapEntity.Cast( hoffersPortOrbital ), 10000000.0 );
+	iRangeCheck.AddTrafficExceptionsInArea( iMapEntity.Cast( alexanderLPoint ), 10000000.0 );
+	iRangeCheck.AddTrafficExceptionsInArea( iMapEntity.Cast( alexanderSentryStation ), 10000000.0 );
+	iRangeCheck.AddTrafficExceptionsInArea( iMapEntity.Cast( courierTransmissionStation ), 10000000.0 );
+	iRangeCheck.AddTrafficExceptionsInArea( iMapEntity.Cast( freetownShipPark ), 10000000.0 );
+	
+	debug
+	{
+		if ( hoffersPortOrbital == false )
+		{
+			Debug.Error( "iAct2_Mission13: Unable to find port orbital" );
+			return;
+		}
+		
+		if ( alexanderLPoint == false )
+		{
+			Debug.Error( "iAct2_Mission13: Unable to find Alexander L-Point" );
+			return;
+		}
+		
+		if ( hoffersWakePoliceHeadquarters == false )
+		{
+			Debug.Error( "iAct2_Mission13: Unable to find police hq" );
+			return;
+		}
+		
+		if ( freetownShipPark == false )
+		{
+			Debug.Error( "iAct2_Mission13: Unable to find freetown" );
+			return;
+		}
+		
+		if ( touchdownLPoint == false )
+		{
+			Debug.Error( "iAct2_Mission13: Unable to find touchdown l-point" );
+			return;
+		}
+	}
+	
+	shipCutter = iShip.Create( "ini:/sims/ships/independent/cutter", "a2_m13_shipname_kong_leader" );
+	Sim.SetCullable( shipCutter, false );
+	iSim.SetFaction( shipCutter, kong );
+	iPilotSetup.GenericCargoPod( shipCutter );
+	Group.AddSim( group_0, shipCutter );
+	Object.AddHandleProperty( taskState, "jet_handle", shipCutter );
+	iShip.SetFreeWithoutPilot( shipCutter, true );
+	shipFreighter = iShip.Create( "ini:/sims/ships/utility/freighter", "a2_m13_shipname_kong_freighter" );
+	Sim.SetCullable( shipFreighter, false );
+	iSim.SetFaction( shipFreighter, kong );
+	iPilotSetup.GenericCargoPod( shipFreighter );
+	local_function_2( shipFreighter );
+	iSim.SetMissionCritical( shipFreighter, true );
+	Object.SetStringProperty( shipFreighter, "death_script", "iDeathScript.CriticalShipDeath" );
+	shipTugArmed_0 = iShip.Create( "ini:/sims/ships/independent/tug_armed", "a2_m13_shipname_kong_escort_one" );
+	Sim.SetCullable( shipTugArmed_0, false );
+	iSim.SetFaction( shipTugArmed_0, kong );
+	iPilotSetup.GenericCargoPod( shipTugArmed_0 );
+	Group.AddSim( group_0, shipTugArmed_0 );
+	shipTugArmed_1 = iShip.Create( "ini:/sims/ships/independent/tug_armed", "a2_m13_shipname_kong_escort_two" );
+	Sim.SetCullable( shipTugArmed_1, false );
+	iSim.SetFaction( shipTugArmed_1, kong );
+	iPilotSetup.GenericCargoPod( shipTugArmed_1 );
+	Group.AddSim( group_0, shipTugArmed_1 );
+	Object.AddHandleProperty( taskState, "jing_handle", shipTugArmed_1 );
+	shipTugArmed_2 = iShip.Create( "ini:/sims/ships/independent/tug_armed", "a2_m13_shipname_kong_escort_three" );
+	Sim.SetCullable( shipTugArmed_2, false );
+	iSim.SetFaction( shipTugArmed_2, kong );
+	iPilotSetup.GenericCargoPod( shipTugArmed_2 );
+	Group.AddSim( group_0, shipTugArmed_2 );
+	iShip.SetFreeWithoutPilot( shipTugArmed_2, true );
+	Object.AddHandleProperty( taskState, "chang_handle", shipTugArmed_2 );
+	shipTugArmed_0 = iShip.Create( "ini:/sims/ships/independent/tug_armed", "a2_m13_shipname_kong_escort_four" );
+	Sim.SetCullable( shipTugArmed_0, false );
+	iSim.SetFaction( shipTugArmed_0, kong );
+	iPilotSetup.GenericCargoPod( shipTugArmed_0 );
+	Group.AddSim( group_0, shipTugArmed_0 );
+	iShip.SetFreeWithoutPilot( shipTugArmed_0, true );
+	local_function_3( taskState );
+	
+	switch ( State.Progress( taskState ) )
+	{
+		case 0:
+			State.SetProgress( taskState, 1 );
+			break;
+	}
+	
+	Task.Detach( local_40 = start local_function_4( Task.Current(), taskState, group_0, group_4, group_1, group_5, shipInterceptorMk2, shipCutter, shipFreighter, groupLeader, shipTugArmed_0, shipTugArmed_1, group_2 ) );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( local_35 )
+			{
+				local_29 = ( local_29 + 5 );
+			}
+			
+			switch ( State.Progress( taskState ) )
+			{
+				case 0:
+					local_function_3( taskState );
+					debug Debug.Error( "iAct2_Mission13: Reached main scheduler in MS_Start state!" );
+					State.SetProgress( taskState, 1 );
+					break;
+				
+				case 1:
+					local_function_3( taskState );
+					iObjectives.Add( "a2_m13_objectives_travel" );
+					iSim.SetSensorVisibility( iSim.Cast( hoffersPortOrbital ), true );
+					
+					if ( iUtilities.PlayerInRange( hoffersPortOrbital ) )
+					{
+						group_5 = local_function_5( hoffersPortOrbital );
+						shipInterceptorMk2 = iShip.Create( "ini:/sims/ships/cops/interceptor_mk2", "a2_m13_shipname_special_investigator" );
+						Object.AddHandleProperty( taskState, "hewitt_handle", shipInterceptorMk2 );
+						Sim.SetCullable( shipInterceptorMk2, false );
+						iSim.SetMissionCritical( shipInterceptorMk2, true );
+						Object.SetStringProperty( shipInterceptorMk2, "death_script", "iDeathScript.CriticalShipDeath" );
+						iSim.SetFaction( shipInterceptorMk2, iFaction.Find( "Player" ) );
+						iPilotSetup.GenericCoward( shipInterceptorMk2 );
+						Sim.PlaceNear( shipInterceptorMk2, hoffersPortOrbital, 3000.0 );
+						Task.Halt( local_40 );
+						Task.Detach( local_40 = start local_function_4( Task.Current(), taskState, group_0, group_4, group_1, group_5, shipInterceptorMk2, shipCutter, shipFreighter, groupLeader, shipTugArmed_0, shipTugArmed_1, group_2 ) );
+						iConversation.Begin();
+						iConversation.Say( hoffersPortOrbital, "a2_m13_character_blake", "a2_m13_dialogue_blake_glad_you_are_here" );
+						iConversation.End();
+						iObjectives.SetState( "a2_m13_objectives_travel", OS_Succeeded );
+						iObjectives.Add( "a2_m13_objective_dock_to_base" );
+						State.SetProgress( taskState, 2 );
+						local_function_3( taskState );
+					}
+					
+					break;
+				
+				case 2:
+					if ( iSim.IsDockedToStructure( playerShip, iSim.Cast( hoffersPortOrbital ) ) )
+					{
+						iSim.SetDockingLock( playerShip, iSim.Cast( hoffersPortOrbital ), true );
+						iObjectives.SetState( "a2_m13_objective_dock_to_base", OS_Succeeded );
+						cargo_DisruptorMissile = Sim.FindSubsimByName( playerShip, "Cargo_DisruptorMissile" );
+						
+						if ( cargo_DisruptorMissile == false )
+						{
+							Global.CreateBool( "g_added_disruptor", 1, true );
+							cargo_DisruptorMissile = Subsim.Create( "ini:/subsims/systems/player/custom_a2m13_disruptor_missile_launcher" );
+							GUI.PlaySound( S_MechConfirm );
+							
+							if ( !Sim.AddSubsim( playerShip, cargo_DisruptorMissile ) )
+							{
+								debug Debug.Error( "Unable to add launcher subsim to player ship!" );
+							}
+							
+							if ( iSim.Type( playerShip ) == T_Tug )
+							{
+								Subsim.Place( cargo_DisruptorMissile, 2.60, -14.60, 13.0 );
+							}
+							
+							if ( iSim.Type( playerShip ) == T_Patcom )
+							{
+								Subsim.Place( cargo_DisruptorMissile, 11.0, 5.50, 6.50 );
+							}
+						}
+						
+						Object.SetIntProperty( cargo_DisruptorMissile, "max_ammo", 6 );
+						Object.SetIntProperty( cargo_DisruptorMissile, "ammo", 6 );
+						Task.Halt( local_40 );
+						Task.Detach( local_40 = start local_function_4( Task.Current(), taskState, group_0, group_4, group_1, group_5, shipInterceptorMk2, shipCutter, shipFreighter, groupLeader, shipTugArmed_0, shipTugArmed_1, group_2 ) );
+						iConversation.Begin();
+						iConversation.Say( hoffersPortOrbital, "a2_m13_character_blake", "a2_m13_dialogue_blake_special_officer_james_hewitt_earl" );
+						iConversation.Say( shipInterceptorMk2, "", "a2_m13_dialogue_james_greetings" );
+						iConversation.Say( none, "name_cal", "a2_m13_dialogue_cal_er_yeah" );
+						iConversation.Say( none, "name_smith", "a2_m13_dialogue_smith_no_time_to_faf" );
+						iConversation.Say( shipInterceptorMk2, "", "a2_m13_dialogue_james_head_for_alexander" );
+						iConversation.Say( none, "name_clay", "a2_m13_dialogue_clay_hey_youve_never_been_esteemed_before" );
+						iConversation.Say( none, "name_cal", "a2_m13_dialogue_cal_or_a_gentleman" );
+						iConversation.Say( none, "name_smith", "a2_m13_dialogue_smith_shut_it" );
+						iConversation.End();
+						iObjectives.Add( "a2_m13_objectives_head" );
+						iSim.SetDockingLock( playerShip, iSim.Cast( hoffersPortOrbital ), false );
+						
+						do
+						{
+							Task.Sleep( Task.Current(), 1.0 );
+						}
+						while ( iSim.IsDockedToStructure( playerShip, iSim.Cast( hoffersPortOrbital ) ) );
+						
+						Task.Sleep( Task.Current(), 2.0 );
+						iBackToBase.Inhibit();
+						State.SetProgress( taskState, 3 );
+						local_function_3( taskState );
+						local_29 = 0;
+						local_35 = true;
+						iAI.GiveFormateOrder( shipInterceptorMk2, playerShip, 300.0, 0.0, 0.0 );
+						local_function_6( group_5 );
+						iSim.SetStandardSensorVisibility( iSim.Cast( hoffersPortOrbital ), true );
+						iSim.SetSensorVisibility( iSim.Cast( alexanderLPoint ), true );
+					}
+					
+					break;
+				
+				case 3:
+					Task.Sleep( Task.Current(), 2.0 );
+					
+					if ( local_29 >= 600 )
+					{
+						local_29 = 0;
+						State.SetProgress( taskState, 4 );
+						local_function_3( taskState );
+						iSim.SetStandardSensorVisibility( iSim.Cast( alexanderLPoint ), true );
+						
+						if ( !iUtilities.PlayerInRange( alexanderLPoint ) )
+						{
+							iObjectives.SetState( "a2_m13_objectives_head", OS_Failed );
+							iConversation.Begin();
+							iConversation.Say( shipInterceptorMk2, "", "a2_m13_dialogue_james_what_are_you_doing" );
+							iConversation.End();
+							State.SetProgress( taskState, 10 );
+							break;
+						}
+						else
+						{
+							iObjectives.SetState( "a2_m13_objectives_head", OS_Succeeded );
+							iObjectives.Add( "a2_m13_objectives_stop" );
+							iMusic.Pause();
+							iMusic.Play( "sound:/audio/music/a2_action", true, false );
+							iCutsceneUtilities.HandleAbort( start local_function_7( playerShip, shipInterceptorMk2, shipFreighter, group_0, iSim.Cast( alexanderLPoint ) ) );
+							
+							atomic
+							{
+								iMusic.Resume();
+								Sim.PlaceRelativeTo( shipFreighter, alexanderLPoint, 0.0, 0.0, 10000.0 );
+								Sim.CopyOrientation( shipFreighter, alexanderLPoint );
+								iShip.SetFreeWithoutPilot( shipFreighter, false );
+								iSim.SetMissionCritical( shipFreighter, true );
+								Sim.PlaceRelativeTo( Group.Leader( group_0 ), shipFreighter, 0.0, 0.0, -1000.0 );
+								Sim.PointAt( Group.Leader( group_0 ), shipFreighter );
+								
+								for ( ii = Group.SimCount( group_0 ); ii >= 0; --ii )
+								{
+									iShip.SetFreeWithoutPilot( iShip.Cast( Group.NthSim( group_0, ii ) ), false );
+									iSim.SetMissionCritical( iShip.Cast( Group.NthSim( group_0, ii ) ), true );
+									Object.SetStringProperty( iShip.Cast( Group.NthSim( group_0, ii ) ), "death_script", "iDeathScript.CriticalShipDeath" );
+								}
+								
+								iAI.GiveFormateOrder( shipCutter, shipFreighter, 0.0, 0.0, -1000.0 );
+								iFormation.Claw( group_0, 0.0, true );
+								Sim.PlaceRelativeTo( playerShip, shipFreighter, 5000.0, 200.0, -2000.0 );
+								Sim.PointAt( playerShip, shipFreighter );
+								iEscort.Goose( iWingmen.Group(), 0.0, 5000.0, true );
+								iUtilities.GroupSetLocalVelocity( iWingmen.Group(), 0.0, 0.0, 0.0, false, true );
+								Sim.PlaceRelativeTo( shipInterceptorMk2, playerShip, 1000.0, 500.0, 500.0 );
+								Sim.PointAt( shipInterceptorMk2, shipFreighter );
+								Sim.SetVelocity( shipInterceptorMk2, 0.0, 0.0, 0.0 );
+								Sim.SetVelocityLocalToSim( shipFreighter, 0.0, 0.0, 500.0 );
+								iUtilities.GroupSetLocalVelocity( group_0, 0.0, 0.0, 500.0, false, true );
+								iShip.DisruptLDSDrive( shipFreighter, 120.0 );
+								iAI.GiveApproachOrder( shipFreighter, hoffersWakePoliceHeadquarters );
+							}
+						}
+					}
+					
+					if ( Sim.DistanceBetween( playerShip, alexanderLPoint ) < 10000.0 )
+					{
+						local_29 = ( local_29 + 40 );
+					}
+					
+					break;
+				
+				case 4:
+					local_36 = false;
+					
+					for ( ii = 0; ii < Group.SimCount( group_0 ); ++ii )
+					{
+						if ( iShip.IsDisrupted( iShip.Cast( Group.NthSim( group_0, ii ) ) ) )
+						{
+							local_36 = true;
+						}
+					}
+					
+					if ( iShip.IsDisrupted( shipFreighter ) || local_36 )
+					{
+						local_35 = false;
+						State.SetProgress( taskState, 5 );
+					}
+					
+					if ( Group.SimCount( group_0 ) > 0 )
+					{
+						if ( (Sim.DistanceBetween( Group.Leader( group_0 ), hoffersWakePoliceHeadquarters ) <= 100000.0) && (iAI.CurrentOrderType( iShip.Cast( Group.Leader( group_0 ) ) ) == OT_Escort) )
+						{
+							iAI.GiveApproachOrder( group_0, freetownShipPark );
+							local_function_8( group_0, true );
+						}
+					}
+					
+					if ( (Sim.DistanceBetween( shipFreighter, hoffersWakePoliceHeadquarters ) < 100000.0) || (Sim.DistanceBetween( playerShip, shipFreighter ) > 10000000.0) )
+					{
+						iObjectives.SetState( "a2_m13_objectives_stop", OS_Failed );
+						State.SetProgress( taskState, 10 );
+					}
+					
+					break;
+				
+				case 5:
+					local_function_3( taskState );
+					iObjectives.SetState( "a2_m13_objectives_stop", OS_Succeeded );
+					iDirector.Begin();
+					iDirector.FadeOut( 0.0, 0.0, 0.0, 0.0 );
+					iMusic.Pause();
+					iMusic.Play( "sound:/audio/music/a2_ambient", true, true );
+					
+					atomic
+					{
+						iAI.PurgeOrders( group_0 );
+						iAI.PurgeOrders( shipFreighter );
+						iAI.PurgeOrders( group_3 );
+						
+						for ( ii = 1; ii < Group.SimCount( group_3 ); ++ii )
+						{
+							iShip.LockDownWeapons( iShip.Cast( Group.NthSim( group_3, ii ) ) );
+						}
+						
+						iAI.ClearAutopilot();
+						Sim.SetVelocity( shipFreighter, 0.0, 0.0, 0.0 );
+						iUtilities.GroupSetLocalVelocity( group_0, 0.0, 0.0, 0.0, true, true );
+						iUtilities.GroupSetLocalVelocity( iWingmen.Group(), 0.0, 0.0, 0.0, true, true );
+						Sim.PlaceRelativeTo( shipFreighter, Group.Leader( group_0 ), 200.0, 400.0, -500.0 );
+						iAI.GiveEscortOrder( shipCutter, shipFreighter, 0.0, 100.0, 0.0, 5000.0 );
+						iFormation.Claw( group_0, 0.0, true );
+						iAI.PurgeOrders( group_0 );
+						iShip.DisruptLDSDrive( shipFreighter, 1.0 );
+						Sim.PlaceRelativeTo( playerShip, shipFreighter, 1000.0, -200.0, 100.0 );
+						Sim.PointAt( playerShip, shipFreighter );
+						iFormation.Goose( group_3, 0.0, true );
+						iAI.PurgeOrders( group_3 );
+						Sim.PlaceRelativeTo( shipInterceptorMk2, playerShip, 500.0, 200.0, 100.0 );
+						Sim.PointAt( shipInterceptorMk2, shipFreighter );
+					}
+					
+					iDirector.SetCamera( CAM_DistantBridgeShot );
+					iDirector.FadeIn( 1.0, 0.0, 0.0, 0.0 );
+					Task.Sleep( Task.Current(), 1.0 );
+					local_function_9( taskState );
+					iDirector.End();
+					iMusic.Resume();
+					iMusic.SetMood( MM_Tension );
+					break;
+				
+				case 6:
+					local_function_3( taskState );
+					iDirector.Begin();
+					iDirector.FadeOut( 0.0, 0.0, 0.0, 0.0 );
+					
+					atomic
+					{
+						iAI.PurgeOrders( group_0 );
+						iAI.PurgeOrders( shipFreighter );
+						iAI.PurgeOrders( iWingmen.Group() );
+						iAI.ClearAutopilot();
+						Sim.SetVelocity( shipFreighter, 0.0, 0.0, 0.0 );
+						iUtilities.GroupSetLocalVelocity( group_0, 0.0, 0.0, 0.0, true, true );
+						iUtilities.GroupSetLocalVelocity( iWingmen.Group(), 0.0, 0.0, 0.0, true, true );
+						Sim.PlaceRelativeTo( shipFreighter, Group.Leader( group_0 ), 200.0, 400.0, -500.0 );
+						iAI.GiveEscortOrder( shipCutter, shipFreighter, 0.0, 100.0, 0.0, 5000.0 );
+						iFormation.Claw( group_0, 0.0, true );
+						iAI.PurgeOrders( group_0 );
+						iShip.DisruptLDSDrive( shipFreighter, 1.0 );
+						Sim.PlaceRelativeTo( playerShip, shipFreighter, 1000.0, -200.0, 100.0 );
+						Sim.PointAt( playerShip, shipFreighter );
+						iFormation.Goose( iWingmen.Group(), 0.0, true );
+						iAI.PurgeOrders( iWingmen.Group() );
+						Sim.PlaceRelativeTo( shipInterceptorMk2, playerShip, 500.0, 200.0, 100.0 );
+						Sim.PointAt( shipInterceptorMk2, shipFreighter );
+						waypoint = iUtilities.CreateWaypointRelativeTo( freetownShipPark, 20000.0, 0.0, 0.0 );
+						group_4 = local_function_10( waypoint );
+						groupLeader = iShip.Cast( Group.Leader( group_4 ) );
+						region = iRegion.CreateLDSI( waypoint, 200000.0 );
+						
+						for ( ii = 0; ii < Group.SimCount( group_0 ); ++ii )
+						{
+							shipTugArmed_0 = iShip.Cast( Group.NthSim( group_0, ii ) );
+							iSim.SetMissionCritical( shipTugArmed_0, false );
+							Object.SetStringProperty( shipTugArmed_0, "death_script", "" );
+						}
+						
+						local_function_11( group_0 );
+						iSim.SetMissionCritical( shipFreighter, false );
+						Sim.SetCullable( shipFreighter, false );
+						Object.SetStringProperty( shipFreighter, "death_script", "" );
+						iSim.SetIndestructable( shipCutter, true );
+					}
+					
+					iCutsceneUtilities.HandleAbort( start local_function_12( playerShip, shipFreighter, shipInterceptorMk2, shipCutter, shipTugArmed_2, shipTugArmed_1, groupLeader, iSim.Cast( freetownShipPark ), group_1, group_0, group_2, iSim.Cast( alexanderLPoint ) ) );
+					
+					atomic
+					{
+						iGame.EnableBlackout( true );
+						Group.Destroy( group_1, true );
+						Group.Destroy( group_2, true );
+						iAI.PurgeOrders( group_0 );
+						iAI.PurgeOrders( shipFreighter );
+						iAI.PurgeOrders( iWingmen.Group() );
+						iAI.ClearAutopilot();
+						Sim.SetVelocity( shipFreighter, 0.0, 0.0, 0.0 );
+						Sim.SetVelocity( shipInterceptorMk2, 0.0, 0.0, 0.0 );
+						iUtilities.GroupSetLocalVelocity( group_0, 0.0, 0.0, 0.0, true, true );
+						iUtilities.GroupSetLocalVelocity( iWingmen.Group(), 0.0, 0.0, 0.0, true, true );
+						iUtilities.SimPlaceBetweenExact( shipFreighter, freetownShipPark, shipFreighter, 20000.0 );
+						Sim.PointAt( shipFreighter, freetownShipPark );
+						Sim.PlaceRelativeTo( Group.Leader( group_0 ), shipFreighter, 200.0, 400.0, -500.0 );
+						iAI.GiveEscortOrder( shipCutter, shipFreighter, 0.0, 100.0, 0.0, 5000.0 );
+						iFormation.Claw( group_0, 0.0, true );
+						iAI.PurgeOrders( group_0 );
+						Sim.PlaceRelativeTo( playerShip, shipFreighter, 1000.0, -500.0, 100.0 );
+						Sim.CopyOrientation( playerShip, shipFreighter );
+						iFormation.Goose( iWingmen.Group(), 0.0, true );
+						iAI.PurgeOrders( iWingmen.Group() );
+						Sim.PlaceRelativeTo( shipInterceptorMk2, playerShip, 500.0, 200.0, 100.0 );
+						Sim.CopyOrientation( shipInterceptorMk2, playerShip );
+						iUtilities.GroupSetLocalVelocity( group_0, 0.0, 0.0, 500.0, true, true );
+						local_function_13( group_0, false );
+						iUtilities.GroupSetLocalVelocity( iWingmen.Group(), 0.0, 0.0, 500.0, true, true );
+						local_function_13( iWingmen.Group(), false );
+						Sim.SetVelocityLocalToSim( shipInterceptorMk2, 0.0, 0.0, 500.0 );
+						iShip.SetFreeWithoutPilot( shipInterceptorMk2, false );
+						Sim.SetVelocityLocalToSim( shipFreighter, 0.0, 0.0, 500.0 );
+						iShip.SetFreeWithoutPilot( shipFreighter, false );
+						iAI.GiveAttackOrder( group_1, group_2 );
+						iAI.GiveFleeOrder( shipFreighter, iSim.Cast( freetownShipPark ) );
+						Sim.SetCullable( shipFreighter, true );
+						group_1 = Group.Create();
+						group_2 = Group.Create();
+					}
+					
+					Task.Sleep( Task.Current(), 0.20 );
+					local_function_14( freetownShipPark, group_1, group_2 );
+					Task.Sleep( Task.Current(), 1.0 );
+					iGame.EnableBlackout( false );
+					iAI.GiveAttackOrder( group_0, groupLeader );
+					local_function_15( group_1, iFaction.Find( "Marauders" ) );
+					iAI.GiveGenericAttackOrder( group_2 );
+					iAI.GiveGenericAttackOrder( group_1 );
+					local_32 = 500;
+					local_33 = 500;
+					local_34 = 500;
+					
+					for ( ii = 0; ii < Group.SimCount( group_1 ); ++ii )
+					{
+						iAI.GiveEscortOrder( iShip.Cast( Group.NthSim( group_1, ii ) ), group_4, local_32, local_33, local_34, 10000.0 );
+						local_32 = ( local_32 + 500 );
+						local_33 = ( local_33 + 500 );
+						local_34 = ( local_34 + 500 );
+					}
+					
+					State.SetProgress( taskState, 7 );
+					local_function_3( taskState );
+					iObjectives.Add( "a2_m13_objectives_eliminate" );
+					break;
+				
+				case 7:
+					if ( Sim.DistanceBetween( playerShip, freetownShipPark ) > 100000.0 )
+					{
+						iShip.DisruptLDSDrive( playerShip, 100.0 );
+						Sim.SetVelocity( playerShip, 0.0, 0.0, 0.0 );
+						Object.AddStringProperty( freetownShipPark, "death_script", "iDeathScript.CriticalShipDeath" );
+						iSim.Kill( iSim.Cast( freetownShipPark ) );
+					}
+					
+					if ( (iUtilities.ReturnHullStructure( groupLeader ) < 0.250) && (local_37 == 0) )
+					{
+						local_37 = true;
+						iPilotSetup.Marauder( groupLeader );
+						iAI.GiveFleeOrder( groupLeader, iSim.Cast( freetownShipPark ) );
+						debug Debug.Error( "iAct2_Mission13: Akela running" );
+						iRegion.Destroy( region );
+						iDirector.Begin();
+						iDirector.FadeOut( 0.0, 0.0, 0.0, 0.0 );
+						
+						atomic
+						{
+							Group.AddSim( group_1, groupLeader );
+							Group.PromoteSim( group_1, Group.SimCount( group_1 ) - 1 );
+							Sim.PointAway( groupLeader, freetownShipPark );
+							iAI.PurgeOrders( group_1 );
+							iFormation.RandomRectangle( group_1, 0.0, true );
+							Sim.PlaceNear( playerShip, groupLeader, 100000.0 );
+						}
+						
+						iCutsceneUtilities.HandleAbort( start local_function_16( groupLeader, group_1, iSim.Cast( freetownShipPark ), shipCutter ) );
+						
+						atomic
+						{
+							Group.Destroy( group_4, true );
+							Group.Destroy( group_1, true );
+							Sim.PlaceNear( playerShip, freetownShipPark, 10000.0 );
+							Sim.PointAt( playerShip, freetownShipPark );
+							iFormation.Goose( group_3, 0.0, true );
+							iAI.PurgeOrders( group_3 );
+							iSim.SetIndestructable( shipCutter, false );
+							Object.SetStringProperty( shipCutter, "death_script", "iDeathScript.CriticalShipDeath" );
+							Sim.PlaceNear( Group.Leader( group_0 ), playerShip, 2000.0 );
+							Sim.PointAt( Group.Leader( group_0 ), playerShip );
+							iFormation.RandomRectangle( group_0, 0.0, true );
+							iAI.PurgeOrders( group_0 );
+							Sim.PlaceNear( shipInterceptorMk2, playerShip, 2000.0 );
+						}
+						
+						iObjectives.SetState( "a2_m13_objectives_eliminate", OS_Succeeded );
+						iConversation.Begin();
+						iConversation.Say( shipCutter, "a2_m13_character_jet", "a2_m13_dialogue_jet_thank_you" );
+						iConversation.Say( none, "name_cal", "a2_m13_dialogue_cal_it_was_nothing" );
+						iConversation.Say( shipCutter, "a2_m13_character_jet", "a2_m13_dialogue_jet_i_owe_you" );
+						iAI.GiveApproachOrder( group_0, freetownShipPark );
+						local_function_8( group_0, true );
+						iConversation.Say( shipInterceptorMk2, "a2_m13_character_james", "a2_m13_dialogue_james_my_thanks_also" );
+						iConversation.Say( shipInterceptorMk2, "a2_m13_character_james", "a2_m13_dialogue_james_im_leaving_now" );
+						Sim.SetCullable( shipInterceptorMk2, true );
+						iAI.GiveApproachOrder( shipInterceptorMk2, hoffersWakePoliceHeadquarters );
+						
+						if ( iWingmen.Count() > 0 )
+						{
+							iConversation.Say( List.Head( iWingmen.TrueWingmanList() ), "", "a2_m13_dialogue_wingman_heading_home" );
+						}
+						
+						group_6 = iWingmen.PurgeToGroup();
+						
+						if ( Group.SimCount( group_6 ) > 0 )
+						{
+							if ( Group.SimCount( group_6 ) > 1 )
+							{
+								iFormation.Goose( group_6, 0.0, false );
+							}
+							
+							iAI.GiveApproachOrder( Group.Leader( group_6 ), hoffersPortOrbital );
+						}
+						
+						local_function_8( group_6, true );
+						local_function_8( group_2, true );
+						iConversation.End();
+						State.SetProgress( taskState, 12 );
+					}
+					
+					break;
+				
+				case 8:
+					local_function_3( taskState );
+					
+					for ( ii = Group.SimCount( group_0 ); ii >= 0; --ii )
+					{
+						iSim.SetMissionCritical( iShip.Cast( Group.NthSim( group_0, ii ) ), false );
+						Object.SetStringProperty( iShip.Cast( Group.NthSim( group_0, ii ) ), "death_script", "" );
+					}
+					
+					iSim.SetMissionCritical( shipFreighter, false );
+					iAI.GiveAttackOrder( group_0, group_3 );
+					Sim.SetCullable( shipFreighter, true );
+					iAI.GiveApproachOrder( shipFreighter, freetownShipPark );
+					iSim.SetMissionCritical( shipFreighter, false );
+					iSim.SetFaction( shipInterceptorMk2, government );
+					iAI.GiveApproachOrder( shipInterceptorMk2, hoffersWakePoliceHeadquarters );
+					State.SetProgress( taskState, 9 );
+					local_function_3( taskState );
+					break;
+				
+				case 9:
+					Task.Sleep( Task.Current(), 5.0 );
+					State.SetProgress( taskState, 11 );
+					break;
+				
+				case 10:
+					iGame.EnableBlackout( true );
+					
+					atomic
+					{
+						iAI.ClearAutopilot();
+						iShip.DisruptLDSDrive( playerShip, 100.0 );
+						Sim.PlaceNear( playerShip, hoffersWakePoliceHeadquarters, 100000.0 );
+						Sim.SetVelocity( playerShip, 0.0, 0.0, 0.0 );
+						iAI.PurgeOrders( shipFreighter );
+						iShip.DisruptLDSDrive( playerShip, 1.0 );
+						Sim.SetVelocity( shipFreighter, 0.0, 0.0, 0.0 );
+						Sim.SetAngularVelocityEuler( shipFreighter, 0.0, 0.0, 0.0 );
+						Group.Destroy( group_0, true );
+						group_5 = iWingmen.PurgeToGroup();
+						Group.Destroy( group_5, true );
+						Sim.Destroy( shipInterceptorMk2 );
+						iUtilities.SimPlaceBetweenExact( shipFreighter, hoffersWakePoliceHeadquarters, alexanderLPoint, 5000.0 );
+						Sim.PointAt( shipFreighter, hoffersWakePoliceHeadquarters );
+						Object.SetStringProperty( shipFreighter, "death_script", "" );
+					}
+					
+					iCutsceneUtilities.HandleAbort( start local_function_17( hoffersWakePoliceHeadquarters, shipFreighter ) );
+					Sim.SetVelocityLocalToSim( playerShip, 0.0, 0.0, 500.0 );
+					iGame.EnableBlackout( false );
+				
+				case 11:
+					group_6 = iWingmen.PurgeToGroup();
+					
+					if ( Group.SimCount( group_6 ) > 0 )
+					{
+						if ( Group.SimCount( group_6 ) > 1 )
+						{
+							iFormation.Goose( group_6, 0.0, false );
+						}
+						
+						iAI.GiveApproachOrder( Group.Leader( group_6 ), hoffersPortOrbital );
+					}
+					
+					local_function_8( group_6, true );
+					local_function_8( group_1, true );
+					local_function_8( group_0, true );
+					local_function_8( group_4, true );
+					State.Destroy( Task.Current() );
+					iMissionTracker.RemoveMission( Task.Current() );
+					iUtilities.RemoveMissionRestart();
+					Object.AddBoolProperty( playerShip, "destroy_sim", false );
+					Object.AddStringProperty( playerShip, "death_caption", "caption_failed_generic" );
+					Task.Detach( start iDeathScript.PlayerDeathScript( playerShip ) );
+					return;
+				
+				case 12:
+					iBackToBase.Allow();
+					iStation.EnableReactiveInArea( iHabitat.Cast( alexanderSentryStation ), 10000000.0 );
+					iStation.EnableReactiveInArea( iHabitat.Cast( hoffersPortOrbital ), 10000000.0 );
+					iStation.EnableReactiveInArea( iHabitat.Cast( courierTransmissionStation ), 10000000.0 );
+					iStation.EnableReactiveInArea( iHabitat.Cast( freetownShipPark ), 10000000.0 );
+					iRangeCheck.RemoveTrafficExceptionsInArea( iMapEntity.Cast( hoffersPortOrbital ), 10000000.0 );
+					iRangeCheck.RemoveTrafficExceptionsInArea( iMapEntity.Cast( alexanderLPoint ), 10000000.0 );
+					iRangeCheck.RemoveTrafficExceptionsInArea( iMapEntity.Cast( alexanderSentryStation ), 1000000.0 );
+					iRangeCheck.RemoveTrafficExceptionsInArea( iMapEntity.Cast( courierTransmissionStation ), 1000000.0 );
+					iRangeCheck.RemoveTrafficExceptionsInArea( iMapEntity.Cast( freetownShipPark ), 10000000.0 );
+					State.Destroy( Task.Current() );
+					Global.SetBool( "g_act2_kong_fracture_complete", true );
+					Global.SetBool( "g_act2_kong_fracture_success", true );
+					iMissionTracker.RemoveMission( Task.Current() );
+					iUtilities.RemoveMissionRestart();
+					return;
+			}
+		}
+	}
+}
+
+hgroup local_function_5( hmapentity mapentity_ )
+{
+	hship shipCutter;
+	hgroup group = Group.Create();
+	hfaction league = iFaction.Find( "League" );
+	
+	shipCutter = iShip.Create( "ini:/sims/ships/independent/cutter", iShipCreation.ShipName( "League", -1 ) );
+	Sim.SetCullable( shipCutter, false );
+	iSim.SetFaction( shipCutter, league );
+	iPilotSetup.GenericCargoPod( shipCutter );
+	Group.AddSim( group, shipCutter );
+	Sim.PlaceNear( shipCutter, mapentity_, 3000.0 );
+	shipCutter = iShip.Create( "ini:/sims/ships/independent/cutter", iShipCreation.ShipName( "League", -1 ) );
+	Sim.SetCullable( shipCutter, false );
+	iSim.SetFaction( shipCutter, league );
+	iPilotSetup.GenericCargoPod( shipCutter );
+	Group.AddSim( group, shipCutter );
+	shipCutter = iShip.Create( "ini:/sims/ships/independent/cutter", iShipCreation.ShipName( "League", -1 ) );
+	Sim.SetCullable( shipCutter, false );
+	iSim.SetFaction( shipCutter, league );
+	iPilotSetup.GenericCargoPod( shipCutter );
+	Group.AddSim( group, shipCutter );
+	shipCutter = iShip.Create( "ini:/sims/ships/independent/cutter", iShipCreation.ShipName( "League", -1 ) );
+	Sim.SetCullable( shipCutter, false );
+	iSim.SetFaction( shipCutter, league );
+	iPilotSetup.GenericCargoPod( shipCutter );
+	Group.AddSim( group, shipCutter );
+	iFormation.LineAbreast( group, 50.0, true );
+	return group;
+}
+
+local_function_6( hgroup group_ )
+{
+	iWingmen.FromGroup( group_, true );
+	iWingmen.DefendPlayer();
+}
+
+local_function_2( hship ship_0_ )
+{
+	hgroup group;
+	hship ship_1;
+	int constant = 5;
+	int ii;
+	
+	group = iShipCreation.CreateCargoPods( CT_Antimatter, constant );
+	
+	for ( ii = 0; ii < constant; ++ii )
+	{
+		ship_1 = iShip.Cast( Group.NthSim( group, ii ) );
+		iShip.Dock( ship_1, ship_0_ );
+		Object.AddStringProperty( ship_1, "death_script", "iDeathScript.Antimatter" );
+	}
+}
+
+local_function_14( hisim param_0_, hgroup group_0_, hgroup group_1_ )
+{
+	hfaction police = iFaction.Find( "Police" );
+	hfaction league = iFaction.Find( "League" );
+	hship shipAdvancedPatcomMk1;
+	int ii;
+	
+	for ( ii = 0; ii < 8; ++ii )
+	{
+		shipAdvancedPatcomMk1 = iShip.Create( "ini:/sims/ships/navy/advanced_patcom_mk1", iShipCreation.ShipName( "Police", -1 ) );
+		iSim.SetFaction( shipAdvancedPatcomMk1, police );
+		Sim.PlaceNear( shipAdvancedPatcomMk1, param_0_, Math.Random( 1000.0, 3000.0 ) );
+		iPilotSetup.Marauder( shipAdvancedPatcomMk1 );
+		Group.AddSim( group_0_, shipAdvancedPatcomMk1 );
+	}
+	
+	for ( ii = 0; ii < 4; ++ii )
+	{
+		shipAdvancedPatcomMk1 = iShip.Create( "ini:/sims/ships/navy/patcom", iShipCreation.ShipName( "League", -1 ) );
+		iSim.SetFaction( shipAdvancedPatcomMk1, league );
+		Sim.PlaceNear( shipAdvancedPatcomMk1, param_0_, Math.Random( 1000.0, 3000.0 ) );
+		iPilotSetup.Marauder( shipAdvancedPatcomMk1 );
+		Group.AddSim( group_1_, shipAdvancedPatcomMk1 );
+	}
+}
+
+hgroup local_function_10( hsim param_0_ )
+{
+	hfaction marauders = iFaction.Find( "Marauders" );
+	hgroup group_0 = Group.Create();
+	hgroup group_1 = Group.Create();
+	hgroup group_2 = Group.Create();
+	hgroup group_3 = Group.Create();
+	hgroup group_4 = Group.Create();
+	hship shipLdsiFreighter;
+	int local_7;
+	int local_8;
+	int local_9;
+	int local_10;
+	int local_11;
+	int local_12;
+	hship shipLdsiAntenna;
+	hship shipMegapod;
+	int ii;
+	
+	debug Debug.PrintString( "iAct2Mission13,setup_ldsi_ship: Creating LDSI ship\n" );
+	Group.AddGroup( group_0, group_2 );
+	Group.AddGroup( group_0, group_3 );
+	Group.AddGroup( group_0, group_4 );
+	shipLdsiFreighter = iShip.Create( "ini:/sims/custom/act2_mission18/ldsi_freighter", "a2_m15_shipname_akela" );
+	Group.AddSim( group_0, shipLdsiFreighter );
+	iSim.SetIndestructable( shipLdsiFreighter, true );
+	
+	for ( ii = 0; ii < 6; ++ii )
+	{
+		shipLdsiAntenna = iShip.Create( "ini:/sims/custom/act2_mission18/ldsi_antenna", "LDSi Antenna" );
+		iSim.Dock( shipLdsiAntenna, shipLdsiFreighter );
+		Group.AddSim( group_4, shipLdsiAntenna );
+		iSim.SetIndestructable( shipLdsiAntenna, true );
+	}
+	
+	for ( ii = 0; ii < 24; ++ii )
+	{
+		shipMegapod = iShip.Create( "ini:/sims/ships/utility/megapod", "Megapod" );
+		iSim.Dock( shipMegapod, shipLdsiFreighter );
+		Group.AddSim( group_3, shipMegapod );
+		iSim.SetIndestructable( shipMegapod, true );
+	}
+	
+	iUtilities.GroupSetCullable( group_0, false );
+	iUtilities.GroupSetFaction( group_0, iFaction.Find( "Marauders" ) );
+	Sim.PlaceAt( shipLdsiFreighter, param_0_ );
+	return group_0;
+}
+
+local_function_9( hstate state_ )
+{
+	int convoResponse;
+	hship playerShip = iShip.FindPlayerShip();
+	hship jetHandle = iShip.Cast( Object.HandleProperty( state_, "jet_handle" ) );
+	hship jingHandle = iShip.Cast( Object.HandleProperty( state_, "jing_handle" ) );
+	hship hewittHandle = iShip.Cast( Object.HandleProperty( state_, "hewitt_handle" ) );
+	int local_5;
+	int local_6;
+	
+	iDirector.SetFocus( jetHandle );
+	iDirector.SetSecondaryFocus( playerShip );
+	iConversation.Begin();
+	iConversation.AddResponse( "a2_m13_text_diplomacy_cal_a1", "a2_m13_dialogue_diplomacy_cal_a1" );
+	iConversation.AddResponse( "a2_m13_text_diplomacy_cal_a2", "a2_m13_dialogue_diplomacy_cal_a2" );
+	iConversation.AddResponse( "a2_m13_text_diplomacy_cal_a3", "a2_m13_dialogue_diplomacy_cal_a3" );
+	convoResponse = iConversation.Ask( none, "a2_m13_character_jet", "a2_m13_dialogue_jet_ok_we_will_talk" );
+	
+	switch ( convoResponse )
+	{
+		case 1:
+			iDirector.SetFocus( jetHandle );
+			iDirector.SetSecondaryFocus( playerShip );
+			iConversation.Say( none, "a2_m13_character_jet", "a2_m13_dialogue_diplomacy_jet_a1" );
+			local_function_18( state_ );
+			break;
+		
+		case 2:
+			local_function_19( state_ );
+			break;
+		
+		case 3:
+			iDirector.SetFocus( jetHandle );
+			iDirector.SetSecondaryFocus( playerShip );
+			iConversation.Say( none, "a2_m13_character_jet", "a2_m13_dialogue_diplomacy_jet_a3" );
+			iDirector.SetFocus( playerShip );
+			iDirector.SetSecondaryFocus( jetHandle );
+			iConversation.Say( none, "name_cal", "a2_m13_dialogue_diplomacy_cal_2_a3" );
+			iDirector.SetFocus( jetHandle );
+			iDirector.SetSecondaryFocus( playerShip );
+			iConversation.Say( none, "a2_m13_character_jet", "a2_m13_dialogue_diplomacy_jet_2_a3" );
+			local_function_20( state_ );
+			break;
+	}
+	
+	iConversation.End();
+	iDirector.End();
+	iCutsceneUtilities.DisablePlayerAutopilot();
+}
+
+local_function_18( hstate state_ )
+{
+	int convoResponse;
+	hship playerShip = iShip.FindPlayerShip();
+	hship jetHandle = iShip.Cast( Object.HandleProperty( state_, "jet_handle" ) );
+	hship jingHandle = iShip.Cast( Object.HandleProperty( state_, "jing_handle" ) );
+	hship hewittHandle = iShip.Cast( Object.HandleProperty( state_, "hewitt_handle" ) );
+	hship changHandle = iShip.Cast( Object.HandleProperty( state_, "chang_handle" ) );
+	
+	iDirector.SetFocus( jingHandle );
+	iDirector.SetSecondaryFocus( playerShip );
+	iConversation.AddResponse( "a2_m13_text_diplomacy_cal_a1_b1", "a2_m13_dialogue_diplomacy_cal_a1_b1" );
+	iConversation.AddResponse( "a2_m13_text_diplomacy_cal_a1_b2", "a2_m13_dialogue_diplomacy_cal_a1_b2" );
+	iConversation.AddResponse( "a2_m13_text_diplomacy_cal_a1_b3", "a2_m13_dialogue_diplomacy_cal_a1_b3" );
+	convoResponse = iConversation.Ask( none, "a2_m13_character_jing", "a2_m13_dialogue_diplomacy_jing_a1" );
+	
+	switch ( convoResponse )
+	{
+		case 1:
+			iDirector.SetFocus( jetHandle );
+			iDirector.SetSecondaryFocus( playerShip );
+			iConversation.Say( none, "a2_m13_character_jet", "a2_m13_dialogue_diplomacy_jet_a1_b1" );
+			local_function_21( state_ );
+			return;
+		
+		case 2:
+			iDirector.SetFocus( jetHandle );
+			iDirector.SetSecondaryFocus( playerShip );
+			iConversation.Say( none, "a2_m13_character_jet", "a2_m13_dialogue_diplomacy_jet_a1_b2" );
+			iDirector.SetFocus( jingHandle );
+			iDirector.SetSecondaryFocus( playerShip );
+			iConversation.Say( none, "a2_m13_character_jing", "a2_m13_dialogue_diplomacy_jing_a1_b2" );
+			State.SetProgress( state_, 8 );
+			return;
+		
+		case 3:
+			iDirector.SetFocus( jetHandle );
+			iDirector.SetSecondaryFocus( playerShip );
+			iConversation.Say( none, "a2_m13_character_jet", "a2_m13_dialogue_diplomacy_jet_a1_b3" );
+			iDirector.SetFocus( changHandle );
+			iDirector.SetSecondaryFocus( playerShip );
+			iConversation.Say( none, "a2_m13_character_chang", "a2_m13_dialogue_diplomacy_chang_a1_b3" );
+			iDirector.SetFocus( jetHandle );
+			iDirector.SetSecondaryFocus( playerShip );
+			iConversation.Say( none, "a2_m13_character_jet", "a2_m13_dialogue_diplomacy_jet_2_a1_b3" );
+			State.SetProgress( state_, 8 );
+			return;
+	}
+}
+
+local_function_19( hstate state_ )
+{
+	int local_0;
+	hship playerShip = iShip.FindPlayerShip();
+	hship jetHandle = iShip.Cast( Object.HandleProperty( state_, "jet_handle" ) );
+	hship jingHandle = iShip.Cast( Object.HandleProperty( state_, "jing_handle" ) );
+	hship hewittHandle = iShip.Cast( Object.HandleProperty( state_, "hewitt_handle" ) );
+	
+	iDirector.SetFocus( jetHandle );
+	iDirector.SetSecondaryFocus( playerShip );
+	iConversation.Say( none, "a2_m13_character_jet", "a2_m13_dialogue_diplomacy_jet_a2" );
+	iDirector.SetFocus( playerShip );
+	iDirector.SetSecondaryFocus( jetHandle );
+	iConversation.Say( none, "name_cal", "a2_m13_dialogue_diplomacy_cal_a2_b1" );
+	iDirector.SetFocus( jetHandle );
+	iDirector.SetSecondaryFocus( playerShip );
+	iConversation.Say( none, "a2_m13_character_jet", "a2_m13_dialogue_diplomacy_jet_a2_b1" );
+	iDirector.SetFocus( hewittHandle );
+	iDirector.SetSecondaryFocus( jetHandle );
+	iConversation.Say( none, "a2_m13_character_james", "a2_m13_dialogue_diplomacy_james_a2_b1" );
+	iDirector.SetFocus( jingHandle );
+	iDirector.SetSecondaryFocus( hewittHandle );
+	iConversation.Say( none, "a2_m13_character_jing", "a2_m13_dialogue_diplomacy_jing_a2_b1" );
+	local_function_22( state_ );
+}
+
+local_function_20( hstate state_ )
+{
+	int convoResponse;
+	hship playerShip = iShip.FindPlayerShip();
+	hship jetHandle = iShip.Cast( Object.HandleProperty( state_, "jet_handle" ) );
+	hship jingHandle = iShip.Cast( Object.HandleProperty( state_, "jing_handle" ) );
+	hship hewittHandle = iShip.Cast( Object.HandleProperty( state_, "hewitt_handle" ) );
+	
+	iDirector.SetFocus( jingHandle );
+	iDirector.SetSecondaryFocus( playerShip );
+	iConversation.AddResponse( "a2_m13_text_diplomacy_cal_a3_b1", "a2_m13_dialogue_diplomacy_cal_a3_b1" );
+	iConversation.AddResponse( "a2_m13_text_diplomacy_cal_a3_b2", "a2_m13_dialogue_diplomacy_cal_a3_b2" );
+	iConversation.AddResponse( "a2_m13_text_diplomacy_cal_a3_b3", "a2_m13_dialogue_diplomacy_cal_a3_b3" );
+	convoResponse = iConversation.Ask( none, "a2_m13_character_jing", "a2_m13_dialogue_diplomacy_jing_a3" );
+	
+	switch ( convoResponse )
+	{
+		case 1:
+			iDirector.SetFocus( hewittHandle );
+			iDirector.SetSecondaryFocus( playerShip );
+			iConversation.Say( none, "a2_m13_character_james", "a2_m13_dialogue_diplomacy_james_a3_b1" );
+			iDirector.SetFocus( jingHandle );
+			iDirector.SetSecondaryFocus( hewittHandle );
+			iConversation.Say( none, "a2_m13_character_jing", "a2_m13_dialogue_diplomacy_jing_a3_b1" );
+			iDirector.SetFocus( jetHandle );
+			iDirector.SetSecondaryFocus( hewittHandle );
+			iConversation.Say( none, "a2_m13_character_jet", "a2_m13_dialogue_diplomacy_jet_a3_b1" );
+			local_function_23( state_ );
+			return;
+		
+		case 2:
+			local_function_24( state_ );
+			return;
+		
+		case 3:
+			iDirector.SetFocus( jetHandle );
+			iDirector.SetSecondaryFocus( playerShip );
+			iConversation.Say( none, "a2_m13_character_jet", "a2_m13_dialogue_diplomacy_jet_a3_b3" );
+			iDirector.SetFocus( hewittHandle );
+			iDirector.SetSecondaryFocus( playerShip );
+			iConversation.Say( none, "a2_m13_character_james", "a2_m13_dialogue_diplomacy_james_a3_b3" );
+			State.SetProgress( state_, 6 );
+			return;
+	}
+}
+
+local_function_21( hstate state_ )
+{
+	int convoResponse;
+	hship playerShip = iShip.FindPlayerShip();
+	hship jetHandle = iShip.Cast( Object.HandleProperty( state_, "jet_handle" ) );
+	hship jingHandle = iShip.Cast( Object.HandleProperty( state_, "jing_handle" ) );
+	hship hewittHandle = iShip.Cast( Object.HandleProperty( state_, "hewitt_handle" ) );
+	
+	iDirector.SetFocus( jetHandle );
+	iDirector.SetSecondaryFocus( playerShip );
+	iConversation.AddResponse( "a2_m13_text_diplomacy_cal_a1_b1_c1", "a2_m13_dialogue_diplomacy_cal_a1_b1_c1" );
+	iConversation.AddResponse( "a2_m13_text_diplomacy_cal_a1_b1_c2", "a2_m13_dialogue_diplomacy_cal_a1_b1_c2" );
+	iConversation.AddResponse( "a2_m13_text_diplomacy_cal_a1_b1_c3", "a2_m13_dialogue_diplomacy_cal_a1_b1_c3" );
+	convoResponse = iConversation.Ask( none, "a2_m13_character_jet", "a2_m13_dialogue_diplomacy_jet_2_a1_b1" );
+	
+	switch ( convoResponse )
+	{
+		case 1:
+			iDirector.SetFocus( jetHandle );
+			iDirector.SetSecondaryFocus( playerShip );
+			iConversation.Say( none, "a2_m13_character_jet", "a2_m13_dialogue_diplomacy_jet_a1_b1_c1" );
+			iDirector.SetFocus( hewittHandle );
+			iDirector.SetSecondaryFocus( jetHandle );
+			iConversation.Say( none, "a2_m13_character_james", "a2_m13_dialogue_diplomacy_james_a1_b1_c1" );
+			iDirector.SetFocus( jingHandle );
+			iDirector.SetSecondaryFocus( hewittHandle );
+			iConversation.Say( none, "a2_m13_character_jing", "a2_m13_dialogue_diplomacy_jing_a2_b1" );
+			local_function_22( state_ );
+			return;
+		
+		case 2:
+			iDirector.SetFocus( jetHandle );
+			iDirector.SetSecondaryFocus( playerShip );
+			iConversation.Say( none, "a2_m13_character_jet", "a2_m13_dialogue_diplomacy_jet_a1_b1_c2" );
+			iDirector.SetFocus( jingHandle );
+			iDirector.SetSecondaryFocus( hewittHandle );
+			iConversation.Say( none, "a2_m13_character_jing", "a2_m13_dialogue_diplomacy_jing_a1_b1_c2" );
+			iDirector.SetFocus( hewittHandle );
+			iDirector.SetSecondaryFocus( jingHandle );
+			iConversation.Say( none, "a2_m13_character_james", "a2_m13_dialogue_diplomacy_james_a1_b1_c2" );
+			iDirector.SetFocus( jingHandle );
+			iDirector.SetSecondaryFocus( hewittHandle );
+			iConversation.Say( none, "a2_m13_character_jing", "a2_m13_dialogue_diplomacy_jing_2_a1_b1_c2" );
+			local_function_22( state_ );
+			return;
+		
+		case 3:
+			iDirector.SetFocus( jetHandle );
+			iDirector.SetSecondaryFocus( playerShip );
+			iConversation.Say( none, "a2_m13_character_jet", "a2_m13_dialogue_diplomacy_jet_a1_b1_c3" );
+			iDirector.SetFocus( jingHandle );
+			iDirector.SetSecondaryFocus( jetHandle );
+			iConversation.Say( none, "a2_m13_character_jing", "a2_m13_dialogue_diplomacy_jing_a1_b1_c3" );
+			local_function_25( state_ );
+			return;
+	}
+}
+
+local_function_25( hstate state_ )
+{
+	int convoResponse;
+	hship playerShip = iShip.FindPlayerShip();
+	hship jetHandle = iShip.Cast( Object.HandleProperty( state_, "jet_handle" ) );
+	hship jingHandle = iShip.Cast( Object.HandleProperty( state_, "jing_handle" ) );
+	hship hewittHandle = iShip.Cast( Object.HandleProperty( state_, "hewitt_handle" ) );
+	hship changHandle = iShip.Cast( Object.HandleProperty( state_, "chang_handle" ) );
+	
+	iDirector.SetFocus( jetHandle );
+	iDirector.SetSecondaryFocus( playerShip );
+	iConversation.AddResponse( "a2_m13_text_diplomacy_cal_a1_b1_c3_d1", "a2_m13_dialogue_diplomacy_cal_a1_b1_c3_d1" );
+	iConversation.AddResponse( "a2_m13_text_diplomacy_cal_a1_b1_c3_d2", "a2_m13_dialogue_diplomacy_cal_a1_b1_c3_d2" );
+	iConversation.AddResponse( "a2_m13_text_diplomacy_cal_a1_b1_c3_d3", "a2_m13_dialogue_diplomacy_cal_a1_b1_c3_d3" );
+	convoResponse = iConversation.Ask( none, "a2_m13_character_jet", "a2_m13_dialogue_diplomacy_jet_2_a1_b1_c3" );
+	
+	switch ( convoResponse )
+	{
+		case 1:
+			iConversation.Say( none, "name_cal", "a2_m13_dialogue_diplomacy_cal_a1_b1_c3_d1" );
+			State.SetProgress( state_, 8 );
+			return;
+		
+		case 2:
+			iDirector.SetFocus( jetHandle );
+			iDirector.SetSecondaryFocus( playerShip );
+			iConversation.Say( none, "a2_m13_character_jet", "a2_m13_dialogue_diplomacy_jet_a1_b1_c3_d2" );
+			iDirector.SetFocus( hewittHandle );
+			iDirector.SetSecondaryFocus( jetHandle );
+			iConversation.Say( none, "a2_m13_character_james", "a2_m13_dialogue_diplomacy_james_a1_b1_c3_d2" );
+			iDirector.SetFocus( jingHandle );
+			iDirector.SetSecondaryFocus( hewittHandle );
+			iConversation.Say( none, "a2_m13_character_jing", "a2_m13_dialogue_diplomacy_jing_a2_b1" );
+			local_function_22( state_ );
+			return;
+		
+		case 3:
+			iDirector.SetFocus( changHandle );
+			iDirector.SetSecondaryFocus( playerShip );
+			iConversation.Say( none, "a2_m13_character_chang", "a2_m13_dialogue_diplomacy_chang_a1_b1_c3_d3" );
+			iDirector.SetFocus( jingHandle );
+			iDirector.SetSecondaryFocus( playerShip );
+			iConversation.Say( none, "a2_m13_character_jing", "a2_m13_dialogue_diplomacy_jing_a1_b1_c3_d3" );
+			State.SetProgress( state_, 8 );
+			return;
+	}
+}
+
+local_function_22( hstate state_ )
+{
+	int convoResponse;
+	hship playerShip = iShip.FindPlayerShip();
+	hship jetHandle = iShip.Cast( Object.HandleProperty( state_, "jet_handle" ) );
+	hship jingHandle = iShip.Cast( Object.HandleProperty( state_, "jing_handle" ) );
+	hship hewittHandle = iShip.Cast( Object.HandleProperty( state_, "hewitt_handle" ) );
+	hship changHandle = iShip.Cast( Object.HandleProperty( state_, "chang_handle" ) );
+	
+	iDirector.SetFocus( hewittHandle );
+	iDirector.SetSecondaryFocus( changHandle );
+	iConversation.AddResponse( "a2_m13_text_diplomacy_cal_a2_b1_c1", ". . ." );
+	iConversation.AddResponse( "a2_m13_text_diplomacy_cal_a2_b1_c2", "a2_m13_dialogue_diplomacy_cal_a2_b1_c2" );
+	iConversation.AddResponse( "a2_m13_text_diplomacy_cal_a2_b1_c3", "a2_m13_dialogue_diplomacy_cal_a2_b1_c3" );
+	convoResponse = iConversation.Ask( none, "a2_m13_character_james", "a2_m13_dialogue_diplomacy_james_2_a2_b1" );
+	
+	switch ( convoResponse )
+	{
+		case 1:
+			iDirector.SetFocus( hewittHandle );
+			iDirector.SetSecondaryFocus( changHandle );
+			iConversation.Say( none, "a2_m13_character_james", "a2_m13_dialogue_diplomacy_james_a2_b1_c1" );
+			iDirector.SetFocus( changHandle );
+			iDirector.SetSecondaryFocus( hewittHandle );
+			iConversation.Say( none, "a2_m13_character_chang", "a2_m13_dialogue_diplomacy_chang_a2_b1_c1" );
+			iDirector.SetFocus( jingHandle );
+			iDirector.SetSecondaryFocus( hewittHandle );
+			iConversation.Say( none, "a2_m13_character_jing", "a2_m13_dialogue_diplomacy_jing_a2_b1_c1" );
+			State.SetProgress( state_, 8 );
+			return;
+		
+		case 2:
+			iDirector.SetFocus( jingHandle );
+			iDirector.SetSecondaryFocus( playerShip );
+			iConversation.Say( none, "a2_m13_character_jing", "a2_m13_dialogue_diplomacy_jing_a2_b1_c2" );
+			iDirector.SetFocus( jetHandle );
+			iDirector.SetSecondaryFocus( jingHandle );
+			iConversation.Say( none, "a2_m13_character_jet", "a2_m13_dialogue_diplomacy_jet_a2_b1_c2" );
+			iDirector.SetFocus( hewittHandle );
+			iDirector.SetSecondaryFocus( playerShip );
+			iConversation.Say( none, "a2_m13_character_james", "a2_m13_dialogue_diplomacy_james_a2_b1_c2" );
+			State.SetProgress( state_, 6 );
+			return;
+		
+		case 3:
+			State.SetProgress( state_, 8 );
+			return;
+	}
+}
+
+local_function_23( hstate state_ )
+{
+	int convoResponse;
+	hship playerShip = iShip.FindPlayerShip();
+	hship jetHandle = iShip.Cast( Object.HandleProperty( state_, "jet_handle" ) );
+	hship jingHandle = iShip.Cast( Object.HandleProperty( state_, "jing_handle" ) );
+	hship hewittHandle = iShip.Cast( Object.HandleProperty( state_, "hewitt_handle" ) );
+	
+	iDirector.SetFocus( hewittHandle );
+	iDirector.SetSecondaryFocus( playerShip );
+	iConversation.AddResponse( "a2_m13_text_diplomacy_cal_a3_b1_c1", "a2_m13_dialogue_diplomacy_cal_a3_b1_c1" );
+	iConversation.AddResponse( "a2_m13_text_diplomacy_cal_a3_b1_c2", "a2_m13_dialogue_diplomacy_cal_a3_b1_c2" );
+	convoResponse = iConversation.Ask( none, "a2_m13_character_james", "a2_m13_dialogue_diplomacy_james_2_a3_b1" );
+	
+	switch ( convoResponse )
+	{
+		case 1:
+			iDirector.SetFocus( jetHandle );
+			iDirector.SetSecondaryFocus( playerShip );
+			iConversation.Say( none, "a2_m13_character_jet", "a2_m13_dialogue_diplomacy_jet_a3_b3" );
+			iDirector.SetFocus( hewittHandle );
+			iDirector.SetSecondaryFocus( playerShip );
+			iConversation.Say( none, "a2_m13_character_james", "a2_m13_dialogue_diplomacy_james_a3_b3" );
+			State.SetProgress( state_, 6 );
+			return;
+		
+		case 2:
+			iDirector.SetFocus( jingHandle );
+			iDirector.SetSecondaryFocus( playerShip );
+			iConversation.Say( none, "a2_m13_character_jing", "a2_m13_dialogue_diplomacy_jing_a3_b1_c2" );
+			State.SetProgress( state_, 8 );
+			return;
+	}
+}
+
+local_function_24( hstate state_ )
+{
+	int convoResponse;
+	hship playerShip = iShip.FindPlayerShip();
+	hship jetHandle = iShip.Cast( Object.HandleProperty( state_, "jet_handle" ) );
+	hship jingHandle = iShip.Cast( Object.HandleProperty( state_, "jing_handle" ) );
+	hship hewittHandle = iShip.Cast( Object.HandleProperty( state_, "hewitt_handle" ) );
+	
+	iDirector.SetFocus( jetHandle );
+	iDirector.SetSecondaryFocus( playerShip );
+	iConversation.AddResponse( "a2_m13_text_diplomacy_cal_a3_b2_c1", "a2_m13_dialogue_diplomacy_cal_a3_b2_c1" );
+	iConversation.AddResponse( "a2_m13_text_diplomacy_cal_a3_b2_c2", "a2_m13_dialogue_diplomacy_cal_a3_b2_c2" );
+	iConversation.AddResponse( "a2_m13_text_diplomacy_cal_a3_b2_c3", "a2_m13_dialogue_diplomacy_cal_a3_b2_c3" );
+	convoResponse = iConversation.Ask( none, "a2_m13_character_jet", "a2_m13_dialogue_diplomacy_jet_a3_b2" );
+	
+	switch ( convoResponse )
+	{
+		case 1:
+			iDirector.SetFocus( jetHandle );
+			iDirector.SetSecondaryFocus( playerShip );
+			iConversation.Say( none, "a2_m13_character_jet", "a2_m13_dialogue_diplomacy_jet_a3_b2_c1" );
+			iDirector.SetFocus( playerShip );
+			iDirector.SetSecondaryFocus( jetHandle );
+			iConversation.Say( none, "Cal", "a2_m13_dialogue_diplomacy_cal_2_a3_b2_c1" );
+			iDirector.SetFocus( jetHandle );
+			iDirector.SetSecondaryFocus( playerShip );
+			iConversation.Say( none, "a2_m13_character_jet", "a2_m13_dialogue_diplomacy_jet_2_a3_b2_c1" );
+			State.SetProgress( state_, 6 );
+			return;
+		
+		case 2:
+			iDirector.SetFocus( jetHandle );
+			iDirector.SetSecondaryFocus( playerShip );
+			iConversation.Say( none, "a2_m13_character_jet", "a2_m13_dialogue_diplomacy_jet_a3_b2_c2" );
+			State.SetProgress( state_, 8 );
+			return;
+		
+		case 3:
+			iDirector.SetFocus( jetHandle );
+			iDirector.SetSecondaryFocus( playerShip );
+			iConversation.Say( none, "a2_m13_character_jet", "a2_m13_dialogue_diplomacy_jet_a3_b2_c3" );
+			State.SetProgress( state_, 8 );
+			return;
+	}
+}
+
+local_function_8( hgroup group_, bool param_1_ )
+{
+	int ii;
+	
+	for ( ii = 0; ii < Group.SimCount( group_ ); ++ii )
+	{
+		Sim.SetCullable( Group.NthSim( group_, ii ), param_1_ );
+	}
+}
+
+local_function_15( hgroup group_, hfaction faction_ )
+{
+	int ii;
+	
+	for ( ii = 0; ii < Group.SimCount( group_ ); ++ii )
+	{
+		iSim.SetFaction( iSim.Cast( Group.NthSim( group_, ii ) ), faction_ );
+	}
+}
+
+local_function_11( hgroup group_ )
+{
+	int ii;
+	
+	for ( ii = 0; ii < Group.SimCount( group_ ); ++ii )
+	{
+		Object.SetIntProperty( Group.NthSim( group_, ii ), "ignore_speed_limit", 1 );
+	}
+}
+
+local_function_13( hgroup group_, bool param_1_ )
+{
+	int ii;
+	
+	for ( ii = 0; ii < Group.SimCount( group_ ); ++ii )
+	{
+		iShip.SetFreeWithoutPilot( iShip.Cast( Group.NthSim( group_, ii ) ), param_1_ );
+		Sim.AvatarAddChannel( Group.NthSim( group_, ii ), "lz", 1.0 );
+		Sim.AvatarSetChannel( Group.NthSim( group_, ii ), "lz", 1.0 );
+	}
+}
+
+task local_function_7( hship ship_0_, hship ship_1_, hship ship_2_, hgroup group_0_, hisim param_4_ )
+{
+	hship ship_3;
+	hsim local_1;
+	hsim waypoint;
+	hgroup group_1 = iCutsceneUtilities.GetKillGroup();
+	int ii;
+	
+	iDirector.Begin();
+	iDirector.FadeOut( 0.0, 0.0, 0.0, 0.0 );
+	iAI.ClearAutopilot();
+	iAI.PurgeOrders( iWingmen.Group() );
+	Sim.PlaceRelativeTo( ship_0_, param_4_, 3000.0, 2000.0, 8000.0 );
+	iFormation.Goose( iWingmen.Group(), 0.0, true );
+	local_1 = iDirector.CreateDolly();
+	waypoint = iUtilities.CreateWaypointAt( param_4_ );
+	Sim.PlaceRelativeTo( waypoint, param_4_, 0.0, 0.0, 30000.0 );
+	Sim.PlaceRelativeTo( local_1, param_4_, 50.0, -300.0, 1000.0 );
+	Group.AddSim( group_1, local_1 );
+	iDirector.SetDollyCamera( local_1 );
+	iDirector.SetFocus( param_4_ );
+	iDirector.FadeIn( 1.0, 0.0, 0.0, 0.0 );
+	Task.Sleep( Task.Current(), 1.0 );
+	iComms.Shout( none, "name_smith", "a2_m13_dialogue_smith_there_they_are" );
+	
+	for ( ii = Group.SimCount( group_0_ ); ii >= 0; --ii )
+	{
+		ship_3 = iShip.Cast( Group.NthSim( group_0_, ii ) );
+		iSim.CapsuleJumpStaggered( ship_3, param_4_ );
+		
+		do
+		{
+			Task.Sleep( Task.Current(), 0.10 );
+		}
+		while ( iSim.IsCapsuleJumping( ship_3 ) );
+		
+		iShip.SetFreeWithoutPilot( ship_3, true );
+		Sim.SetVelocityLocalToSim( ship_3, 0.0, 0.0, 500.0 );
+		Task.Sleep( Task.Current(), Math.Random( 1.0, 2.0 ) );
+	}
+	
+	iSim.CapsuleJump( ship_2_, param_4_ );
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 0.010 );
+	}
+	while ( iSim.IsCapsuleJumping( ship_2_ ) );
+	
+	iShip.SetFreeWithoutPilot( ship_2_, true );
+	Sim.SetVelocityLocalToSim( ship_2_, 0.0, 0.0, 400.0 );
+	iDirector.SetFocus( ship_2_ );
+	Task.Sleep( Task.Current(), 2.0 );
+	iDirector.SetFocus( ship_2_ );
+	Task.Sleep( Task.Current(), 6.0 );
+	iCutsceneUtilities.DisablePlayerAutopilot();
+	iDirector.End();
+}
+
+task local_function_12( hship ship_0_, hship ship_1_, hship ship_2_, hship ship_3_, hship ship_4_, hship ship_5_, hship ship_6_, hisim param_7_, hgroup group_0_, hgroup group_1_, hgroup group_2_, hisim param_11_ )
+{
+	hgroup group_3 = iCutsceneUtilities.GetKillGroup();
+	
+	iDirector.SetCamera( CAM_DistantBridgeShot );
+	iDirector.SetFocus( ship_3_ );
+	iDirector.FadeIn( 0.0, 0.0, 0.0, 0.0 );
+	iConversation.OneLiner( ship_3_, "a2_m13_character_jet", "a2_m13_dialogue_diplomacy_jet_formate_with_me" );
+	iDirector.FadeOut( 0.0, 0.0, 0.0, 0.0 );
+	
+	atomic
+	{
+		local_function_13( group_1_, true );
+		local_function_13( iWingmen.Group(), true );
+		iUtilities.GroupSetLocalVelocity( group_1_, 0.0, 0.0, 500.0, true, true );
+		iUtilities.GroupSetLocalVelocity( iWingmen.Group(), 0.0, 0.0, 500.0, true, true );
+		iShip.SetFreeWithoutPilot( ship_2_, true );
+		Sim.SetVelocityLocalToSim( ship_2_, 0.0, 0.0, 500.0 );
+		iShip.SetFreeWithoutPilot( ship_1_, true );
+		Sim.SetVelocityLocalToSim( ship_1_, 0.0, 0.0, 500.0 );
+		Sim.PlaceRelativeTo( ship_1_, param_11_, 2000.0, 4000.0, 10000.0 );
+		Sim.PointAway( ship_1_, param_11_ );
+		Sim.PlaceRelativeTo( Group.Leader( group_1_ ), ship_1_, 200.0, 400.0, -500.0 );
+		iAI.GiveEscortOrder( ship_3_, ship_1_, 0.0, 100.0, 0.0, 5000.0 );
+		iFormation.Claw( group_1_, 0.0, true );
+		iAI.PurgeOrders( group_1_ );
+		Sim.PlaceRelativeTo( ship_0_, ship_1_, 1000.0, -500.0, 100.0 );
+		Sim.CopyOrientation( ship_0_, ship_1_ );
+		iFormation.Goose( iWingmen.Group(), 0.0, true );
+		iAI.PurgeOrders( iWingmen.Group() );
+		Sim.PlaceRelativeTo( ship_2_, ship_0_, 500.0, 200.0, 100.0 );
+		Sim.CopyOrientation( ship_2_, ship_0_ );
+		iAI.PurgeOrders( ship_2_ );
+		iUtilities.GroupSetLocalVelocity( group_1_, 0.0, 0.0, 500.0, true, true );
+		iUtilities.GroupSetLocalVelocity( iWingmen.Group(), 0.0, 0.0, 500.0, true, true );
+		Sim.SetVelocityLocalToSim( ship_2_, 0.0, 0.0, 500.0 );
+		Sim.SetVelocityLocalToSim( ship_1_, 0.0, 0.0, 500.0 );
+		iDirector.SetFocus( ship_1_ );
+		iDirector.SetCamera( CAM_Flyby );
+	}
+	
+	iDirector.FadeIn( 0.0, 0.0, 0.0, 0.0 );
+	Task.Sleep( Task.Current(), 7.0 );
+	iDirector.FadeOut( 1.0, 0.0, 0.0, 0.0 );
+	Task.Sleep( Task.Current(), 1.0 );
+	
+	atomic
+	{
+		Sim.PlaceRelativeTo( ship_1_, param_7_, 1000.0, 2000.0, 40000.0 );
+		Sim.PointAt( ship_1_, param_7_ );
+		Sim.PlaceRelativeTo( Group.Leader( group_1_ ), ship_1_, 200.0, 400.0, -500.0 );
+		iAI.GiveEscortOrder( ship_3_, ship_1_, 0.0, 100.0, 0.0, 5000.0 );
+		iFormation.Claw( group_1_, 0.0, true );
+		iAI.PurgeOrders( group_1_ );
+		Sim.PlaceRelativeTo( ship_0_, ship_1_, 1000.0, -500.0, 100.0 );
+		Sim.CopyOrientation( ship_0_, ship_1_ );
+		iFormation.Goose( iWingmen.Group(), 0.0, true );
+		iAI.PurgeOrders( iWingmen.Group() );
+		Sim.PlaceRelativeTo( ship_2_, ship_0_, 500.0, 200.0, 100.0 );
+		Sim.CopyOrientation( ship_2_, ship_0_ );
+		iAI.PurgeOrders( ship_2_ );
+		iUtilities.GroupSetLocalVelocity( group_1_, 0.0, 0.0, 500.0, true, true );
+		iUtilities.GroupSetLocalVelocity( iWingmen.Group(), 0.0, 0.0, 500.0, true, true );
+		Sim.SetVelocityLocalToSim( ship_2_, 0.0, 0.0, 500.0 );
+		Sim.SetVelocityLocalToSim( ship_1_, 0.0, 0.0, 500.0 );
+	}
+	
+	iDirector.SetFocus( ship_1_ );
+	iDirector.SetCamera( CAM_Flyby );
+	iDirector.FadeIn( 1.0, 0.0, 0.0, 0.0 );
+	Task.Sleep( Task.Current(), 1.0 );
+	iComms.Shout( ship_4_, "a2_m13_character_chang", "a2_m13_dialogue_chang_strange_ldsi_is_too_strong" );
+	Task.Sleep( Task.Current(), 7.0 );
+	iDirector.FadeOut( 1.0, 0.0, 0.0, 0.0 );
+	Task.Sleep( Task.Current(), 1.0 );
+	
+	atomic
+	{
+		Sim.PlaceRelativeTo( ship_1_, param_7_, 500.0, 1000.0, 30000.0 );
+		Sim.PointAt( ship_1_, param_7_ );
+		Sim.PlaceRelativeTo( Group.Leader( group_1_ ), ship_1_, 200.0, 400.0, -500.0 );
+		iAI.GiveEscortOrder( ship_2_, ship_1_, 0.0, 100.0, 0.0, 5000.0 );
+		iFormation.Claw( group_1_, 0.0, true );
+		iAI.PurgeOrders( group_1_ );
+		Sim.PlaceRelativeTo( ship_0_, ship_1_, 1000.0, -500.0, 100.0 );
+		Sim.CopyOrientation( ship_0_, ship_1_ );
+		iFormation.Goose( iWingmen.Group(), 0.0, true );
+		iAI.PurgeOrders( iWingmen.Group() );
+		Sim.PlaceRelativeTo( ship_2_, ship_0_, 500.0, 200.0, 100.0 );
+		Sim.CopyOrientation( ship_2_, ship_0_ );
+		iAI.PurgeOrders( ship_2_ );
+		iUtilities.GroupSetLocalVelocity( group_1_, 0.0, 0.0, 0.0, true, true );
+		iUtilities.GroupSetLocalVelocity( iWingmen.Group(), 0.0, 0.0, 0.0, true, true );
+		Sim.SetVelocityLocalToSim( ship_2_, 0.0, 0.0, 0.0 );
+		Sim.SetVelocityLocalToSim( ship_1_, 0.0, 0.0, 0.0 );
+		local_function_14( param_7_, group_0_, group_2_ );
+		Group.AddGroup( group_3, group_0_ );
+		Group.AddGroup( group_3, group_2_ );
+	}
+	
+	iAI.GiveGenericAttackOrder( group_0_ );
+	iAI.GiveGenericAttackOrder( group_2_ );
+	Task.Sleep( Task.Current(), 2.0 );
+	iDirector.SetCamera( CAM_External );
+	iDirector.SetFocus( param_7_ );
+	iDirector.FadeIn( 0.0, 0.0, 0.0, 0.0 );
+	iConversation.Begin();
+	iConversation.Say( param_7_, "", "a2_m13_dialogue_freetown_distress_signal" );
+	iDirector.SetCamera( CAM_DistantBridgeShot );
+	iConversation.Say( ship_3_, "", "a2_m13_dialogue_jet_on_our_way" );
+	iDirector.SetFocus( Group.Leader( group_0_ ) );
+	iDirector.SetSecondaryFocus( param_7_ );
+	iDirector.SetCamera( CAM_TacticalNoHUD );
+	iConversation.Say( param_7_, "", "a2_m13_dialogue_freetown_they_are_police" );
+	iDirector.SetCamera( CAM_DistantBridgeShot );
+	iDirector.SetFocus( ship_2_ );
+	iConversation.Say( ship_2_, "", "a2_m13_dialogue_james_but" );
+	iDirector.SetFocus( ship_5_ );
+	iConversation.Say( ship_5_, "", "a2_m13_dialogue_jing_told_you_so" );
+	iDirector.SetFocus( ship_3_ );
+	iConversation.Say( ship_3_, "", "a2_m13_dialogue_jet_this_was_a_low_deception" );
+	iDirector.SetFocus( ship_0_ );
+	iConversation.Say( none, "name_cal", "a2_m13_dialogue_diplomacy_two_cal_a3" );
+	iDirector.SetFocus( ship_3_ );
+	iConversation.Say( ship_3_, "", "a2_m13_dialogue_diplomacy_two_jet_a3_b1" );
+	iDirector.SetFocus( ship_2_ );
+	iConversation.Say( ship_2_, "", "a2_m13_dialogue_diplomacy_two_james_a1" );
+	iDirector.SetCamera( CAM_External );
+	iDirector.SetFocus( ship_6_ );
+	iConversation.Say( none, "name_smith", "a2_m13_dialogue_smith_theres_something_big_out_there" );
+	iConversation.Say( ship_2_, "", "a2_m13_dialogue_james_i_can_see_clearly_now" );
+	iDirector.SetCamera( CAM_DistantBridgeShot );
+	iDirector.SetFocus( ship_0_ );
+	iConversation.Say( none, "name_cal", "a2_m13_dialogue_diplomacy_two_cal_2_a1_b3" );
+	iDirector.SetFocus( ship_4_ );
+	iConversation.Say( ship_4_, "", "a2_m13_dialogue_diplomacy_two_chang_a1_b3_c3" );
+	iDirector.SetFocus( ship_2_ );
+	iConversation.Say( ship_2_, "", "a2_m13_dialogue_diplomacy_two_james_a1_b3_c3" );
+	iDirector.SetFocus( ship_3_ );
+	iConversation.Say( ship_3_, "", "a2_m13_dialogue_diplomacy_two_jet_a1_b3_c1" );
+	iDirector.SetFocus( ship_2_ );
+	iConversation.Say( ship_2_, "", "a2_m13_dialogue_diplomacy_two_james_a1_b3_c1" );
+	iDirector.SetFocus( ship_0_ );
+	iConversation.Say( none, "name_cal", "a2_m13_dialogue_cal_maybe_if_we_attack_the_akela" );
+	iDirector.SetFocus( ship_3_ );
+	iConversation.Say( ship_3_, "", "a2_m13_dialogue_diplomacy_two_jet_2_a1_b3_c1" );
+	iDirector.End();
+}
+
+task local_function_16( hship ship_0_, hgroup group_, hisim param_2_, hship ship_1_ )
+{
+	int local_0;
+	
+	atomic
+	{
+		Sim.PointAway( ship_0_, param_2_ );
+		Group.AddSim( group_, ship_0_ );
+		iAI.PurgeOrders( group_ );
+		Group.PromoteSim( group_, Group.SimCount( group_ ) - 1 );
+		iFormation.RandomRectangle( group_, 0.0, ship_0_ );
+		iUtilities.GroupSetLocalVelocity( group_, 0.0, 0.0, 2000.0, false, false );
+	}
+	
+	iDirector.SetCamera( CAM_Flyby );
+	iDirector.SetFocus( ship_0_ );
+	iDirector.FadeIn( 1.0, 0.0, 0.0, 0.0 );
+	Task.Sleep( Task.Current(), 1.0 );
+	iConversation.OneLiner( ship_1_, "a2_m13_character_jet", "a2_m13_dialogue_jet_we_won" );
+	Task.Sleep( Task.Current(), 2.0 );
+	iDirector.End();
+}
+
+task local_function_17( hmapentity mapentity_, hship ship_ )
+{
+	iDirector.Begin();
+	iDirector.SetFocus( ship_ );
+	iDirector.SetSecondaryFocus( mapentity_ );
+	iDirector.SetCamera( CAM_Conversation );
+	iGame.EnableBlackout( false );
+	iDirector.SetCaption( Object.StringProperty( mapentity_, "name" ), 5.0 );
+	Task.Sleep( Task.Current(), 3.0 );
+	Sim.PlaceAt( Sim.Create( "ini:/sims/explosions/10km_antimatter_explosion", "" ), ship_ );
+	Task.Sleep( Task.Current(), 1.0 );
+	Sim.Destroy( ship_ );
+	Sim.PlaceAt( Sim.Create( "ini:/sims/explosions/10km_antimatter_explosion", "" ), mapentity_ );
+	iSim.StopExplosion( iSim.Cast( mapentity_ ), SE_Normal, true );
+	Task.Sleep( Task.Current(), 5.0 );
+	iDirector.End();
+}
+

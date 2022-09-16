@@ -1,0 +1,2195 @@
+package iWingmen;
+
+uses Debug,
+     Set,
+     List,
+     String,
+     Global,
+     Sim,
+     Group,
+     Math,
+     Object,
+     Subsim,
+     Task,
+     iMapEntity,
+     iSim,
+     iDockport,
+     iBody,
+     iHabitat,
+     iShip,
+     iLagrangePoint,
+     iAI,
+     iComms,
+     MapEnumerations,
+     iFaction,
+     iHUD;
+
+provides Initialise,
+         Terminate,
+         SetupKeys,
+         Group,
+         AddWingman,
+         RemoveWingman,
+         FromGroup,
+         Count,
+         Purge,
+         PurgeToGroup,
+         ReportStatus,
+         DefendPlayer,
+         AttackTarget,
+         DefendTarget,
+         DockToTarget,
+         Halt,
+         AddTFighters,
+         TFighterAttachDetach,
+         TFighterAttackTarget,
+         TFighterFireAtWill,
+         TFighterCeaseFire,
+         GetAllTFighters,
+         GetAttachedTFighters,
+         GetDetachedTFighters,
+         GetLiveTFighter,
+         TFighterCount,
+         CreateTestTFighters,
+         TFightersAttach,
+         TFightersDetach,
+         GetAz,
+         GetLori,
+         WingmanDeathScript,
+         TFighterDeathScript,
+         AttackDeathScript,
+         EscortDeathScript,
+         EscortShip,
+         TFighterWarn,
+         TFightersEnabled,
+         TrueWingmanList;
+
+prototype Initialise();
+prototype Terminate( bool destroy_sims_ );
+prototype SetupKeys();
+prototype hgroup Group();
+prototype int Count();
+prototype AddWingman( hship wingman_ );
+prototype RemoveWingman( hship wingman_ );
+prototype local_function_0( hship ship_ );
+prototype FromGroup( hgroup new_wingman_group_, bool destroy_group_ );
+prototype Purge();
+prototype hgroup PurgeToGroup();
+prototype ReportStatus();
+prototype DefendPlayer();
+prototype AttackTarget();
+prototype DefendTarget();
+prototype DockToTarget();
+prototype Halt();
+prototype EscortShip( hgroup wingman_group_, hship escorted_ship_ );
+prototype local_function_5( hgroup group_ );
+prototype AddTFighters( hship player_ship_, list turret_fighters_ );
+prototype TFighterAttachDetach();
+prototype list GetAttachedTFighters();
+prototype list GetDetachedTFighters();
+prototype list GetAllTFighters();
+prototype TFighterAttackTarget();
+prototype TFighterFireAtWill();
+prototype TFighterCeaseFire();
+prototype task local_function_11( hship ship_0_, hship ship_1_ );
+prototype local_function_2( hsim param_0_, string param_1_, string param_2_ );
+prototype task local_function_13( hship ship_, string param_1_, string param_2_ );
+prototype bool local_function_7( hship ship_0_, hship ship_1_ );
+prototype int TFighterCount();
+prototype hship GetLiveTFighter();
+prototype list CreateTestTFighters( int number_ );
+prototype hship local_function_8( string param_0_ );
+prototype TFightersAttach();
+prototype local_function_10( hship ship_0_, hship ship_1_, hdockport dockport_0_ );
+prototype TFightersDetach();
+prototype local_function_12( hship ship_0_, hship ship_1_, float param_2_ );
+prototype hship GetAz();
+prototype hship GetLori();
+prototype task WingmanDeathScript( hship wingman_ );
+prototype task TFighterDeathScript( hship tfighter_ );
+prototype local_function_9( hship ship_, string param_1_, int random_ );
+prototype task AttackDeathScript( hship ship_0_ );
+prototype task EscortDeathScript( hisim param_0_ );
+prototype local_function_6( hisim param_0_, string param_1_ );
+prototype local_function_4();
+prototype task TFighterWarn();
+prototype bool TFightersEnabled();
+prototype local_function_3();
+prototype local_function_1();
+prototype list TrueWingmanList();
+
+Initialise()
+{
+	debug Debug.PrintString( "iWingmen.Initialise: ERROR: THIS ROUTINE IS NO LONGER USED. PLEASE REMOVE FROM YOUR SCRIPT.\n" );
+}
+
+Terminate( bool destroy_sims_ )
+{
+	debug Debug.PrintString( "iWingmen.Terminate: ERROR: THIS ROUTINE IS NO LONGER USED. PLEASE REMOVE FROM YOUR SCRIPT.\n" );
+}
+
+SetupKeys()
+{
+	debug Debug.PrintString( "iWingmen.SetupKeys: ERROR: THIS ROUTINE IS NO LONGER USED. PLEASE REMOVE FROM YOUR SCRIPT.\n" );
+}
+
+hgroup Group()
+{
+	hgroup wingmenGroup;
+	hship playerShip = iShip.FindPlayerShip();
+	
+	if ( playerShip == false )
+	{
+		debug Debug.PrintString( "iWingmen.Group: Can't find player ship. Wingman support not available.\n" );
+		return none;
+	}
+	
+	atomic
+	{
+		if ( !Object.PropertyExists( playerShip, "wingmen_group" ) )
+		{
+			debug Debug.PrintString( "iWingmen.Group: Initialising wingmen & t-fighters group.\n" );
+			wingmenGroup = Group.Create();
+			Group.AddSim( wingmenGroup, playerShip );
+			Object.AddHandleProperty( playerShip, "wingmen_group", wingmenGroup );
+		}
+		else
+		{
+			wingmenGroup = Group.Cast( Object.HandleProperty( playerShip, "wingmen_group" ) );
+			
+			if ( wingmenGroup == false )
+			{
+				debug Debug.PrintString( "iWingmen.Group: ERROR: Wingman group handle is invalid ( probably destroyed by a script). Re-initialising." );
+				wingmenGroup = Group.Create();
+				Group.AddSim( wingmenGroup, playerShip );
+				Object.SetHandleProperty( playerShip, "wingmen_group", wingmenGroup );
+			}
+			
+			if ( Sim.Group( playerShip ) != wingmenGroup )
+			{
+				debug Debug.PrintString( "iWingmen.Group: ERROR: Player is not the leader of the wingman group! Re-Adding. \n" );
+				
+				atomic
+				{
+					Group.AddSim( wingmenGroup, playerShip );
+					Group.PromoteSim( wingmenGroup, Group.SimCount( wingmenGroup ) - 1 );
+				}
+			}
+			
+			debug atomic
+			{
+				Debug.PrintString( "iWingmen.Group: Returning wingmen group containing the player and " );
+				Debug.PrintInt( Group.SimCount( wingmenGroup ) - 1 );
+				Debug.PrintString( " wingmen.\n" );
+			}
+		}
+	}
+	
+	return wingmenGroup;
+}
+
+int Count()
+{
+	int itemCount;
+	int simCount;
+	
+	atomic
+	{
+		itemCount = List.ItemCount( GetDetachedTFighters() );
+		simCount = Group.SimCount( Group() );
+		
+		if ( itemCount > 0 )
+		{
+			debug Debug.PrintString( "iWingmen.Count: Removing " );
+			debug Debug.PrintInt( itemCount );
+			debug Debug.PrintString( " Detached TFighters from wingmen count. \n" );
+			simCount = ( simCount - itemCount );
+		}
+		
+		simCount = ( simCount + -1 );
+		debug Debug.PrintString( "iWingmen.Count: Count of true wingmen = " );
+		debug Debug.PrintInt( simCount );
+		debug Debug.PrintString( " \n" );
+	}
+	
+	return simCount;
+}
+
+AddWingman( hship wingman_ )
+{
+	hgroup group = Group();
+	
+	if ( Sim.IsDead( wingman_ ) )
+	{
+		debug Debug.PrintString( "iWingmen.AddWingman: ERROR - Wingman is invalid. Cannot add to group. \n" );
+		return;
+	}
+	
+	if ( group == false )
+	{
+		debug Debug.PrintString( "iWingmen.AddWingman: ERROR - Wingmen group handle is invalid.\n" );
+		return;
+	}
+	
+	if ( Sim.Group( wingman_ ) == group )
+	{
+		debug Debug.PrintString( "iWingmen.AddWingman: Wingman is already a member of the wingmen group\n" );
+		return;
+	}
+	
+	Group.AddSim( group, wingman_ );
+	Sim.SetCullable( wingman_, false );
+	Object.AddHandleProperty( wingman_, "original_faction", iSim.Faction( wingman_ ) );
+	
+	if ( Object.StringProperty( wingman_, "death_script" ) == "" )
+	{
+		Object.SetStringProperty( wingman_, "death_script", "iWingmen.WingmanDeathScript" );
+	}
+	
+	iSim.SetFaction( wingman_, iSim.Faction( iShip.FindPlayerShip() ) );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iWingmen.AddWingman: Wingman " );
+		Debug.PrintString( Object.StringProperty( wingman_, "name" ) );
+		Debug.PrintString( " added. Total wingmen = " );
+		Debug.PrintString( String.FromInt( Group.SimCount( group ) - 1 ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	if ( !Object.PropertyExists( wingman_, "tfighter" ) )
+	{
+		iHUD.Print( String.Join( "wingmen_new_wingman", String.Join( "+ - +", Object.StringProperty( wingman_, "name" ) ) ) );
+	}
+}
+
+RemoveWingman( hship wingman_ )
+{
+	hgroup group = Group();
+	hship playerShip = iShip.FindPlayerShip();
+	
+	if ( wingman_ == playerShip )
+	{
+		debug Debug.PrintString( "iWingmen.RemoveWingman: ERROR: Cannot remove player from wingman group\n" );
+		return;
+	}
+	
+	if ( Object.PropertyExists( wingman_, "tfighter" ) )
+	{
+		debug Debug.PrintString( "iWingmen.RemoveWingman: ERROR: Cannot remove Turret fighter from wingman group\n" );
+		return;
+	}
+	
+	local_function_0( wingman_ );
+}
+
+local_function_0( hship ship_ )
+{
+	hgroup group = Group();
+	
+	if ( Sim.IsDead( ship_ ) )
+	{
+		debug Debug.PrintString( "iWingmen.remove_wingman: ERROR - Wingman is invalid. No need to remove. \n" );
+		return;
+	}
+	
+	if ( group == false )
+	{
+		debug Debug.PrintString( "iWingmen.remove_wingman: ERROR - Wingmen group handle is invalid.\n" );
+		return;
+	}
+	
+	if ( Sim.Group( ship_ ) != group )
+	{
+		debug
+		{
+			Debug.PrintString( "iWingmen.remove_wingman: ERROR: Wingman " );
+			Debug.PrintString( Object.StringProperty( ship_, "name" ) );
+			Debug.PrintString( " is not part of the wingman group.\n" );
+		}
+		
+		return;
+	}
+	
+	Group.RemoveSim( group, ship_ );
+	Sim.SetCullable( ship_, true );
+	
+	if ( !Object.PropertyExists( ship_, "original_faction" ) )
+	{
+		debug
+		{
+			Debug.PrintString( "iWingmen.remove_wingman: WARNING - original_faction property doesn't exist for wingman: " );
+			Debug.PrintString( Object.StringProperty( ship_, "name" ) );
+			Debug.PrintString( ". Cannot restore original faction.\n" );
+		}
+	}
+	else if ( !Object.PropertyExists( ship_, "original_faction" ) )
+	{
+		debug
+		{
+			Debug.PrintString( "iWingmen.remove_wingman: WARNING - original_faction property handle doesn't exist for wingman: " );
+			Debug.PrintString( Object.StringProperty( ship_, "name" ) );
+			Debug.PrintString( ". Cannot restore original faction.\n" );
+		}
+	}
+	else if ( Object.HandleProperty( ship_, "original_faction" ) == none )
+	{
+		debug
+		{
+			Debug.PrintString( "iWingmen.remove_wingman: WARNING - original_faction property handle is invalid for wingman: " );
+			Debug.PrintString( Object.StringProperty( ship_, "name" ) );
+			Debug.PrintString( ". Cannot restore original faction.\n" );
+		}
+	}
+	else
+	{
+		iSim.SetFaction( ship_, iFaction.Cast( Object.HandleProperty( ship_, "original_faction" ) ) );
+		Object.RemoveProperty( ship_, "original_faction" );
+	}
+	
+	if ( Object.StringProperty( ship_, "death_script" ) == "iWingmen.WingmanDeathScript" )
+	{
+		Object.SetStringProperty( ship_, "death_script", "" );
+	}
+	
+	iAI.PurgeOrders( ship_ );
+	iShip.LockDownWeapons( ship_ );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iWingmen.remove_wingman: Wingman " );
+		Debug.PrintString( Object.StringProperty( ship_, "name" ) );
+		Debug.PrintString( " removed. Total wingmen = " );
+		Debug.PrintString( String.FromInt( Group.SimCount( group ) - 1 ) );
+		Debug.PrintString( "\n" );
+	}
+	
+	if ( !Object.PropertyExists( ship_, "tfighter" ) )
+	{
+		iHUD.Print( String.Join( "wingmen_wingman_removed", String.Join( "+ - +", Object.StringProperty( ship_, "name" ) ) ) );
+	}
+}
+
+FromGroup( hgroup new_wingman_group_, bool destroy_group_ )
+{
+	hgroup group_1 = Group();
+	hship groupLeader;
+	int ii;
+	int simCount;
+	
+	if ( group_1 == false )
+	{
+		debug Debug.PrintString( "iWingmen.FromGroup: ERROR - Wingmen group handle is invalid.\n" );
+		return;
+	}
+	
+	if ( new_wingman_group_ == false )
+	{
+		debug Debug.PrintString( "iWingmen.FromGroup: ERROR - New wingmen group handle is invalid.\n" );
+		return;
+	}
+	
+	if ( new_wingman_group_ == group_1 )
+	{
+		debug Debug.PrintString( "iWingmen.FromGroup: ERROR - Attempt to add wingmen group to itself (ignoring).\n" );
+		return;
+	}
+	
+	simCount = Group.SimCount( new_wingman_group_ );
+	
+	if ( simCount < 1 )
+	{
+		debug Debug.PrintString( "iWingmen.FromGroup: ERROR - No sims in new wingmen group.\n" );
+		return;
+	}
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		groupLeader = iShip.Cast( Group.Leader( new_wingman_group_ ) );
+		AddWingman( groupLeader );
+	}
+	
+	if ( destroy_group_ == 1 )
+	{
+		Group.Destroy( new_wingman_group_, true );
+	}
+}
+
+Purge()
+{
+	hgroup group = Group();
+	hship ship;
+	int ii;
+	int local_3;
+	
+	if ( group == false )
+	{
+		debug Debug.PrintString( "iWingmen.FromGroup: ERROR - Wingmen group handle is invalid.\n" );
+		return;
+	}
+	
+	local_3 = ( Group.SimCount( group ) - 1 );
+	
+	if ( local_3 == 0 )
+	{
+		debug Debug.PrintString( "iWingmen.FromGroup: No wingmen to purge.\n" );
+		return;
+	}
+	
+	debug Debug.PrintString( "iWingmen.FromGroup: Purging wingmen...\n" );
+	
+	for ( ii = local_3; ii > 0; --ii )
+	{
+		ship = iShip.Cast( Group.NthSim( group, ii ) );
+		
+		if ( !Object.PropertyExists( ship, "tfighter" ) )
+		{
+			RemoveWingman( ship );
+		}
+		else debug Debug.PrintString( "iWingmen.FromGroup: Not purging TFighter.\n" );
+	}
+}
+
+hgroup PurgeToGroup()
+{
+	hgroup group_0 = Group();
+	hgroup group_1 = Group.Create();
+	hship ship;
+	int ii;
+	int local_4;
+	
+	if ( group_0 == false )
+	{
+		debug Debug.PrintString( "iWingmen.FromGroup: ERROR - Wingmen group handle is invalid.\n" );
+		return none;
+	}
+	
+	local_4 = ( Group.SimCount( group_0 ) - 1 );
+	
+	if ( local_4 == 0 )
+	{
+		debug Debug.PrintString( "iWingmen.FromGroup: No wingmen to purge.\n" );
+		return none;
+	}
+	
+	debug Debug.PrintString( "iWingmen.FromGroup: Purging wingmen...\n" );
+	
+	for ( ii = local_4; ii > 0; --ii )
+	{
+		ship = iShip.Cast( Group.NthSim( group_0, ii ) );
+		
+		if ( !Object.PropertyExists( ship, "tfighter" ) )
+		{
+			RemoveWingman( ship );
+			Group.AddSim( group_1, ship );
+		}
+		else debug Debug.PrintString( "iWingmen.FromGroup: Not purging TFighter.\n" );
+	}
+	
+	return group_1;
+}
+
+ReportStatus()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	hgroup group = Group();
+	hship ship;
+	int local_3;
+	hisim currentOrderTarget;
+	string name;
+	int local_6 = 0;
+	
+	if ( !TFightersEnabled() )
+	{
+		return;
+	}
+	
+	if ( playerShip == false )
+	{
+		debug Debug.PrintString( "iWingmen.ReportStatus: ERROR - player ship handle is invalid.\n" );
+		return;
+	}
+	
+	if ( group == false )
+	{
+		debug Debug.PrintString( "iWingmen.ReportStatus: ERROR - Wingman group handle is invalid.\n" );
+		return;
+	}
+	
+	if ( Group.SimCount( group ) < 2 )
+	{
+		local_function_1();
+		local_function_2( none, "wingmen_status", "wingmen_not_available" );
+		return;
+	}
+	
+	ship = iShip.Cast( Group.NthSim( group, 1 ) );
+	local_6 = iAI.CurrentOrderType( ship );
+	currentOrderTarget = iAI.CurrentOrderTarget( ship );
+	
+	if ( currentOrderTarget != false )
+	{
+		if ( iShip.Cast( currentOrderTarget ) == playerShip )
+		{
+			name = "wingmen_you";
+		}
+		else
+		{
+			name = Object.StringProperty( currentOrderTarget, "name" );
+		}
+	}
+	else
+	{
+		local_6 = 0;
+	}
+	
+	local_function_3();
+	
+	switch ( local_6 )
+	{
+		case 0:
+			local_function_2( Group.NthSim( group, 1 ), "wingmen_status", "wingmen_awaiting_orders" );
+			return;
+		
+		case 1:
+			local_function_2( Group.NthSim( group, 1 ), "wingmen_status", String.Join( "wingmen_attacking+ - +", name ) );
+			return;
+		
+		case 2:
+		case 6:
+			local_function_2( Group.NthSim( group, 1 ), "wingmen_status", String.Join( "wingmen_defending+ - +", name ) );
+			return;
+		
+		case 3:
+			local_function_2( Group.NthSim( group, 1 ), "wingmen_status", String.Join( "wingmen_approaching+ - +", name ) );
+			return;
+		
+		case 4:
+			local_function_2( Group.NthSim( group, 1 ), "wingmen_status", String.Join( "wingmen_docking_to+ - +", name ) );
+			return;
+		
+		case 5:
+			local_function_2( Group.NthSim( group, 1 ), "wingmen_status", "wingmen_retreating" );
+	}
+}
+
+DefendPlayer()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	hgroup group = Group();
+	
+	if ( !TFightersEnabled() )
+	{
+		return;
+	}
+	
+	if ( playerShip == false )
+	{
+		debug Debug.PrintString( "iWingmen.DefendPlayer: ERROR - player ship handle is invalid.\n" );
+		return;
+	}
+	
+	if ( group == false )
+	{
+		debug Debug.PrintString( "iWingmen.DefendPlayer: ERROR - Wingman group handle is invalid.\n" );
+		return;
+	}
+	
+	if ( Group.SimCount( group ) < 2 )
+	{
+		local_function_1();
+		local_function_2( none, "wingmen_status", "wingmen_not_available" );
+		return;
+	}
+	
+	local_function_4();
+	local_function_5( group );
+	iAI.PurgeOrders( group );
+	EscortShip( group, playerShip );
+	local_function_3();
+	local_function_2( Group.NthSim( group, 1 ), "wingmen_id", "wingmen_acknowledged+ - +wingmen_defending_player" );
+}
+
+AttackTarget()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	hgroup group = Group();
+	hisim currentTarget;
+	
+	if ( !TFightersEnabled() )
+	{
+		return;
+	}
+	
+	if ( playerShip == false )
+	{
+		debug Debug.PrintString( "iWingmen.Attack: ERROR - player ship handle is invalid.\n" );
+		return;
+	}
+	
+	if ( group == false )
+	{
+		debug Debug.PrintString( "iWingmen.Attack: ERROR - Wingman group handle is invalid.\n" );
+		return;
+	}
+	
+	if ( Group.SimCount( group ) < 2 )
+	{
+		local_function_1();
+		local_function_2( none, "wingmen_status", "wingmen_not_available" );
+		return;
+	}
+	
+	currentTarget = iShip.CurrentTarget( playerShip );
+	
+	if ( currentTarget == false )
+	{
+		local_function_1();
+		local_function_2( Group.NthSim( group, 1 ), "wingmen_id", "wingmen_cannot_comply_no_target" );
+		return;
+	}
+	
+	if ( (iSim.Type( currentTarget ) & 536870144) == 0 )
+	{
+		local_function_1();
+		local_function_2( Group.NthSim( group, 1 ), "wingmen_id", "wingmen_cannot_comply_target_invalid" );
+		return;
+	}
+	
+	if ( Sim.Group( currentTarget ) == group )
+	{
+		local_function_1();
+		local_function_2( Group.NthSim( group, 1 ), "wingmen_id", "wingmen_cannot_comply_target_wingman" );
+		return;
+	}
+	
+	if ( iFaction.Feeling( iFaction.Find( "Player" ), iSim.Faction( currentTarget ) ) > 0.0 )
+	{
+		local_function_1();
+		local_function_2( Group.NthSim( group, 1 ), "wingmen_id", "wingmen_cannot_comply_friendly_target" );
+		return;
+	}
+	
+	local_function_6( currentTarget, "iWingmen.AttackDeathScript" );
+	local_function_5( group );
+	iAI.PurgeOrders( group );
+	iAI.GiveAttackOrder( group, currentTarget );
+	local_function_3();
+	local_function_2( Group.NthSim( group, 1 ), "wingmen_id", String.Join( "wingmen_acknowledged+ - +wingmen_attacking+ - +", Object.StringProperty( currentTarget, "name" ) ) );
+}
+
+DefendTarget()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	hgroup group = Group();
+	hship ship;
+	
+	if ( !TFightersEnabled() )
+	{
+		return;
+	}
+	
+	if ( playerShip == false )
+	{
+		debug Debug.PrintString( "iWingmen.DefendPlayer: ERROR - player ship handle is invalid.\n" );
+		return;
+	}
+	
+	if ( group == false )
+	{
+		debug Debug.PrintString( "iWingmen.DefendPlayer: ERROR - Wingman group handle is invalid.\n" );
+		return;
+	}
+	
+	if ( Group.SimCount( group ) < 2 )
+	{
+		local_function_1();
+		local_function_2( none, "wingmen_status", "wingmen_not_available" );
+		return;
+	}
+	
+	ship = iShip.Cast( iShip.CurrentTarget( playerShip ) );
+	
+	if ( ship == false )
+	{
+		local_function_1();
+		local_function_2( Group.NthSim( group, 1 ), "wingmen_id", "wingmen_cannot_comply_no_target" );
+		return;
+	}
+	
+	if ( Sim.Group( ship ) == group )
+	{
+		local_function_1();
+		local_function_2( Group.NthSim( group, 1 ), "wingmen_id", "wingmen_cannot_comply_target_wingman" );
+		return;
+	}
+	
+	if ( (iSim.Type( ship ) & 536870144) == 0 )
+	{
+		local_function_1();
+		local_function_2( Group.NthSim( group, 1 ), "wingmen_id", "wingmen_cannot_comply_target_invalid" );
+		return;
+	}
+	
+	if ( iFaction.Feeling( iFaction.Find( "Player" ), iSim.Faction( ship ) ) < 0.0 )
+	{
+		local_function_1();
+		local_function_2( Group.NthSim( group, 1 ), "wingmen_id", "wingmen_cannot_comply_enemy_target" );
+		return;
+	}
+	
+	local_function_6( ship, "iWingmen.EscortDeathScript" );
+	local_function_5( group );
+	iAI.PurgeOrders( group );
+	EscortShip( group, ship );
+	local_function_3();
+	local_function_2( Group.NthSim( group, 1 ), "wingmen_id", String.Join( "wingmen_acknowledged+ - +wingmen_defending+ - +", Object.StringProperty( ship, "name" ) ) );
+}
+
+DockToTarget()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	hgroup group = Group();
+	hship ship_0;
+	hship ship_1;
+	list localList;
+	bool local_5;
+	int ii;
+	int jj;
+	
+	if ( !TFightersEnabled() )
+	{
+		return;
+	}
+	
+	if ( playerShip == false )
+	{
+		debug Debug.PrintString( "iWingmen.DockToTarget: ERROR - player ship handle is invalid.\n" );
+		return;
+	}
+	
+	if ( group == false )
+	{
+		debug Debug.PrintString( "iWingmen.DockToTarget: ERROR - Wingman group handle is invalid.\n" );
+		return;
+	}
+	
+	ship_0 = iShip.Cast( iShip.CurrentTarget( playerShip ) );
+	
+	if ( ship_0 == playerShip )
+	{
+		local_function_1();
+		local_function_2( Group.NthSim( group, 1 ), "wingmen_id", "wingmen_cannot_comply_target_invalid" );
+		return;
+	}
+	
+	if ( iSim.Type( ship_0 ) & 0 )
+	{
+		local_function_1();
+		local_function_2( Group.NthSim( group, 1 ), "wingmen_id", "wingmen_cannot_comply_target_invalid" );
+		return;
+	}
+	
+	if ( Group.SimCount( group ) < 2 )
+	{
+		local_function_1();
+		local_function_2( none, "wingmen_status", "wingmen_not_available" );
+		return;
+	}
+	
+	local_5 = false;
+	
+	for ( ii = 1; ii <= Count(); ++ii )
+	{
+		ship_1 = iShip.Cast( Group.NthSim( group, ii ) );
+		
+		if ( iSim.IsDocked( ship_1 ) )
+		{
+			if ( Sim.Parent( ship_1 ) != false )
+			{
+				local_5 = true;
+				iSim.Undock( ship_1, iSim.Cast( Sim.Parent( ship_1 ) ) );
+				debug Debug.PrintString( "iWingmen.DockToTarget: " );
+				debug Debug.PrintString( Object.StringProperty( ship_1, "name" ) );
+				debug Debug.PrintString( " undocking from parent.\n" );
+			}
+			
+			localList = List.FromSet( Sim.Children( ship_1 ) );
+			
+			if ( !List.IsEmpty( localList ) )
+			{
+				jj = List.ItemCount( localList );
+				
+				debug
+				{
+					Debug.PrintString( "iWingmen.DockToTarget: Wingman " );
+					Debug.PrintString( Object.StringProperty( ship_1, "name" ) );
+					Debug.PrintString( " has " );
+					Debug.PrintInt( jj );
+					Debug.PrintString( " children \n" );
+				}
+				
+				local_5 = true;
+				
+				for ( jj; jj > 0; --jj )
+				{
+					iSim.Undock( ship_1, iSim.Cast( List.GetNth( localList, jj - 1 ) ) );
+					
+					debug
+					{
+						Debug.PrintString( "iWingmen.DockToTarget: Wingman " );
+						Debug.PrintString( Object.StringProperty( ship_1, "name" ) );
+						Debug.PrintString( " undocking child sim no. " );
+						Debug.PrintInt( jj );
+						Debug.PrintString( "\n" );
+					}
+				}
+			}
+		}
+	}
+	
+	if ( local_5 == 1 )
+	{
+		local_function_2( Group.NthSim( group, 1 ), "wingmen_id", "wingmen_undocking" );
+		EscortShip( group, playerShip );
+		return;
+	}
+	
+	ship_0 = iShip.Cast( iShip.CurrentTarget( playerShip ) );
+	
+	if ( ship_0 == false )
+	{
+		local_function_1();
+		local_function_2( Group.NthSim( group, 1 ), "wingmen_id", "wingmen_cannot_comply_no_target" );
+		return;
+	}
+	
+	if ( Sim.Group( ship_0 ) == group )
+	{
+		local_function_1();
+		local_function_2( Group.NthSim( group, 1 ), "wingmen_id", "wingmen_cannot_comply_target_wingman" );
+		return;
+	}
+	
+	if ( iFaction.Feeling( iFaction.Find( "Player" ), iSim.Faction( ship_0 ) ) < 0.0 )
+	{
+		local_function_1();
+		local_function_2( Group.NthSim( group, 1 ), "wingmen_id", "wingmen_cannot_comply_enemy_target" );
+		return;
+	}
+	
+	iAI.PurgeOrders( group );
+	iAI.GiveDockOrder( group, ship_0 );
+	local_function_4();
+	local_function_3();
+	local_function_2( Group.NthSim( group, 1 ), "wingmen_id", String.Join( "wingmen_acknowledged+ - +wingmen_docking_to+ - +", Object.StringProperty( ship_0, "name" ) ) );
+}
+
+Halt()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	hgroup group = Group();
+	
+	if ( !TFightersEnabled() )
+	{
+		return;
+	}
+	
+	if ( playerShip == false )
+	{
+		debug Debug.PrintString( "iWingmen.DefendPlayer: ERROR - player ship handle is invalid.\n" );
+		return;
+	}
+	
+	if ( group == false )
+	{
+		debug Debug.PrintString( "iWingmen.DefendPlayer: ERROR - Wingman group handle is invalid.\n" );
+		return;
+	}
+	
+	if ( Group.SimCount( group ) < 2 )
+	{
+		local_function_1();
+		local_function_2( none, "wingmen_status", "wingmen_not_available" );
+		return;
+	}
+	
+	local_function_4();
+	local_function_5( group );
+	iAI.PurgeOrders( group );
+	local_function_3();
+	local_function_2( Group.NthSim( group, 1 ), "wingmen_id", "wingmen_acknowledged+ - +wingmen_halting" );
+}
+
+EscortShip( hgroup wingman_group_, hship escorted_ship_ )
+{
+	int simCount;
+	int ii;
+	bool local_2 = true;
+	float local_3;
+	int local_4;
+	float local_5 = 0.0;
+	float local_6 = 0.0;
+	float radius_0 = 0.0;
+	float local_8 = 0.0;
+	float radius_1 = Object.FloatProperty( escorted_ship_, "radius" );
+	int local_10;
+	hship ship_1;
+	
+	simCount = Group.SimCount( wingman_group_ );
+	
+	if ( simCount == 0 )
+	{
+		debug Debug.PrintString( "iWingmen.escort_ship: ERROR: No wingmen to order. EXITING.\n" );
+		return;
+	}
+	
+	for ( ii = 1; ii < simCount; ++ii )
+	{
+		ship_1 = iShip.Cast( Group.NthSim( wingman_group_, ii ) );
+		radius_0 = Object.FloatProperty( ship_1, "radius" );
+		
+		if ( radius_0 > local_8 )
+		{
+			local_8 = radius_0;
+		}
+	}
+	
+	if ( local_8 < radius_1 )
+	{
+		local_3 = radius_1;
+	}
+	else
+	{
+		local_3 = local_8;
+	}
+	
+	local_3 = ( (local_3 * 2.0) + 70.0 );
+	
+	for ( ii = 1; ii < simCount; ++ii )
+	{
+		if ( local_2 == 1 )
+		{
+			if ( local_5 < 0.0 )
+			{
+				local_5 = -local_5;
+			}
+			
+			local_5 = ( local_5 + local_3 );
+			local_2 = false;
+			local_6 = ( local_6 - local_3 );
+		}
+		else
+		{
+			local_5 = -local_5;
+			local_2 = true;
+		}
+		
+		ship_1 = iShip.Cast( Group.NthSim( wingman_group_, ii ) );
+		iAI.GiveEscortOrder( ship_1, escorted_ship_, local_5, 0.0, local_6, 5000.0 );
+	}
+}
+
+local_function_5( hgroup group_ )
+{
+	hship ship;
+	int local_1;
+	int ii;
+	
+	for ( ii = 1; ii <= Count(); ++ii )
+	{
+		ship = iShip.Cast( Group.NthSim( group_, ii ) );
+		
+		if ( iSim.IsDocked( ship ) )
+		{
+			if ( Sim.Parent( ship ) != false )
+			{
+				iSim.Undock( ship, iSim.Cast( Sim.Parent( ship ) ) );
+				debug Debug.PrintString( "iWingmen.DockToTarget: Undocking from parent.\n" );
+			}
+		}
+	}
+}
+
+AddTFighters( hship player_ship_, list turret_fighters_ )
+{
+	hship ship_1;
+	int itemCount = List.ItemCount( turret_fighters_ );
+	
+	if ( itemCount == 0 )
+	{
+		debug Debug.PrintString( "iWingmen.AddTurretFighters: No turret fighters. EXITING\n" );
+		return;
+	}
+	
+	if ( Sim.IsHidden( player_ship_ ) )
+	{
+		do
+		{
+			Task.Sleep( Task.Current(), 0.10 );
+		}
+		while ( Sim.IsHidden( player_ship_ ) );
+	}
+	
+	ship_1 = iShip.Cast( List.Head( turret_fighters_ ) );
+	
+	if ( !local_function_7( ship_1, player_ship_ ) )
+	{
+		debug Debug.PrintString( "iWingmen.AddTfighters: Can't mount first turret fighter. EXITING.\n" );
+		return;
+	}
+	
+	if ( itemCount == 1 )
+	{
+		return;
+	}
+	
+	ship_1 = iShip.Cast( List.GetNth( turret_fighters_, 1 ) );
+	
+	if ( !local_function_7( ship_1, player_ship_ ) )
+	{
+		debug Debug.PrintString( "iWingmen.AddTfighters: Can't mount first turret fighter. EXITING.\n" );
+	}
+}
+
+TFighterAttachDetach()
+{
+	if ( !TFightersEnabled() )
+	{
+		return;
+	}
+	
+	if ( TFighterCount() == 0 )
+	{
+		local_function_1();
+		local_function_2( none, "wingmen_tfighters", "wingmen_no_tfighters_available" );
+		return;
+	}
+	
+	if ( List.ItemCount( GetAttachedTFighters() ) > 0 )
+	{
+		TFightersDetach();
+		return;
+	}
+	
+	TFightersAttach();
+}
+
+list GetAttachedTFighters()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	list localList;
+	hship ship_0;
+	hship ship_1;
+	
+	if ( !Object.PropertyExists( playerShip, "name_az" ) )
+	{
+		debug Debug.PrintString( "iWingmen.GetAttachedTfighters: Can't find name_az property on player ship.\n" );
+	}
+	
+	ship_0 = GetAz();
+	
+	if ( Sim.IsAlive( ship_0 ) && (iSim.IsDockedTo( ship_0, playerShip ) && Object.PropertyExists( ship_0, "attached" )) )
+	{
+		if ( !Sim.IsHidden( ship_0 ) )
+		{
+			List.AddTail( localList, ship_0 );
+		}
+	}
+	
+	if ( !Object.PropertyExists( playerShip, "name_lori" ) )
+	{
+		debug Debug.PrintString( "iWingmen.GetAttachedTfighters: Can't find name_lori property on player ship.\n" );
+	}
+	
+	ship_1 = GetLori();
+	
+	if ( Sim.IsAlive( ship_1 ) && (iSim.IsDockedTo( ship_1, playerShip ) && Object.PropertyExists( ship_1, "attached" )) )
+	{
+		if ( !Sim.IsHidden( ship_1 ) )
+		{
+			List.AddTail( localList, ship_1 );
+		}
+	}
+	
+	return localList;
+}
+
+list GetDetachedTFighters()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	list localList;
+	hgroup group = Group();
+	hship ship_0;
+	hship ship_1;
+	
+	if ( !Object.PropertyExists( playerShip, "name_az" ) )
+	{
+		debug Debug.PrintString( "iWingmen.GetDetachedTfighters: Can't find name_az property on player ship.\n" );
+	}
+	
+	ship_0 = GetAz();
+	
+	if ( Sim.IsAlive( ship_0 ) && (Sim.Group( ship_0 ) == group) )
+	{
+		if ( !Sim.IsHidden( ship_0 ) )
+		{
+			List.AddTail( localList, ship_0 );
+		}
+	}
+	
+	if ( !Object.PropertyExists( playerShip, "name_lori" ) )
+	{
+		debug Debug.PrintString( "iWingmen.GetDetachedTfighters: Can't find name_lori property on player ship.\n" );
+	}
+	
+	ship_1 = GetLori();
+	
+	if ( Sim.IsAlive( ship_1 ) && (Sim.Group( ship_1 ) == group) )
+	{
+		if ( !Sim.IsHidden( ship_1 ) )
+		{
+			List.AddTail( localList, ship_1 );
+		}
+	}
+	
+	return localList;
+}
+
+list GetAllTFighters()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	list localList;
+	hgroup group = Group();
+	hship ship_0 = GetAz();
+	hship ship_1;
+	
+	if ( Sim.IsAlive( ship_0 ) )
+	{
+		if ( !Sim.IsHidden( ship_0 ) )
+		{
+			debug Debug.PrintString( "iWingmen.GetAllTfighters: Az is alive.\n" );
+			List.AddTail( localList, ship_0 );
+		}
+	}
+	
+	ship_1 = GetLori();
+	
+	if ( Sim.IsAlive( ship_1 ) )
+	{
+		if ( !Sim.IsHidden( ship_1 ) )
+		{
+			debug Debug.PrintString( "iWingmen.GetAllTfighters: Lori is alive.\n" );
+			List.AddTail( localList, ship_1 );
+		}
+	}
+	
+	debug Debug.PrintString( "iWingmen.GetAllTfighters: Returning list.\n" );
+	return localList;
+}
+
+TFighterAttackTarget()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	hisim currentTarget;
+	hship ship_0;
+	hship ship_1;
+	hship ship_2;
+	
+	if ( !TFightersEnabled() )
+	{
+		return;
+	}
+	
+	if ( TFighterCount() == 0 )
+	{
+		local_function_1();
+		local_function_2( none, "wingmen_tfighters", "wingmen_no_tfighters_available" );
+		return;
+	}
+	
+	ship_0 = GetLiveTFighter();
+	
+	if ( List.IsEmpty( GetAttachedTFighters() ) )
+	{
+		local_function_1();
+		local_function_2( ship_0, "wingmen_tfighters", "wingmen_tfighters_not_attached" );
+		return;
+	}
+	
+	currentTarget = iShip.CurrentTarget( playerShip );
+	
+	if ( currentTarget == false )
+	{
+		local_function_1();
+		local_function_2( ship_0, "wingmen_tfighters", "wingmen_cannot_comply_no_target" );
+		return;
+	}
+	
+	if ( Sim.Group( currentTarget ) == Group() )
+	{
+		local_function_1();
+		local_function_2( ship_0, "wingmen_tfighters", "wingmen_cannot_comply_target_wingman" );
+		return;
+	}
+	
+	if ( (iSim.Type( currentTarget ) & 536870144) == 0 )
+	{
+		local_function_1();
+		local_function_2( ship_0, "wingmen_tfighters", "wingmen_cannot_comply_target_invalid" );
+		return;
+	}
+	
+	if ( iFaction.Feeling( iFaction.Find( "Player" ), iSim.Faction( currentTarget ) ) > 0.0 )
+	{
+		local_function_1();
+		local_function_2( ship_0, "wingmen_tfighters", "wingmen_cannot_comply_friendly_target" );
+		return;
+	}
+	
+	ship_0 = GetLiveTFighter();
+	local_function_3();
+	local_function_2( ship_0, "wingmen_tfighters", String.Join( "wingmen_tfighters_acknowledged+ - +wingmen_attacking+ - +", Object.StringProperty( currentTarget, "name" ) ) );
+	ship_2 = GetAz();
+	
+	if ( Sim.IsAlive( ship_2 ) )
+	{
+		if ( !Sim.IsHidden( ship_2 ) )
+		{
+			if ( Object.PropertyExists( ship_2, "attached" ) )
+			{
+				iAI.PurgeOrders( ship_2 );
+				iShip.LockDownWeapons( ship_2 );
+				iShip.WeaponsUseExplicitTarget( ship_2, currentTarget );
+			}
+		}
+	}
+	
+	ship_1 = GetLori();
+	
+	if ( Sim.IsAlive( ship_1 ) )
+	{
+		if ( !Sim.IsHidden( ship_1 ) )
+		{
+			if ( Object.PropertyExists( ship_1, "attached" ) )
+			{
+				iAI.PurgeOrders( ship_1 );
+				iShip.LockDownWeapons( ship_1 );
+				iShip.WeaponsUseExplicitTarget( ship_1, currentTarget );
+			}
+		}
+	}
+}
+
+TFighterFireAtWill()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	int local_1;
+	string local_2;
+	hship ship_0;
+	hship ship_1;
+	hship ship_2;
+	
+	if ( !TFightersEnabled() )
+	{
+		return;
+	}
+	
+	if ( TFighterCount() == 0 )
+	{
+		local_function_1();
+		local_function_2( none, "wingmen_tfighters", "wingmen_no_tfighters_available" );
+		return;
+	}
+	
+	ship_0 = GetLiveTFighter();
+	
+	if ( List.IsEmpty( GetAttachedTFighters() ) )
+	{
+		local_function_1();
+		local_function_2( ship_0, "wingmen_tfighters", "wingmen_tfighters_not_attached" );
+		return;
+	}
+	
+	local_function_3();
+	local_function_2( ship_0, "wingmen_tfighters_acknowledged", "wingmen_tfighters_firing_at_will" );
+	ship_1 = GetAz();
+	
+	if ( Sim.IsAlive( ship_1 ) )
+	{
+		if ( !Sim.IsHidden( ship_1 ) )
+		{
+			if ( Object.PropertyExists( ship_1, "attached" ) )
+			{
+				iAI.PurgeOrders( ship_1 );
+				iShip.LockDownWeapons( ship_1 );
+				iShip.WeaponTargetsFromContactList( ship_1 );
+			}
+		}
+	}
+	
+	ship_2 = GetLori();
+	
+	if ( Sim.IsAlive( ship_2 ) )
+	{
+		if ( !Sim.IsHidden( ship_2 ) )
+		{
+			if ( Object.PropertyExists( ship_2, "attached" ) )
+			{
+				iAI.PurgeOrders( ship_2 );
+				iShip.LockDownWeapons( ship_2 );
+				iShip.WeaponTargetsFromContactList( ship_2 );
+			}
+		}
+	}
+}
+
+TFighterCeaseFire()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	int local_1;
+	hship ship_0;
+	hship ship_1;
+	hship ship_2;
+	
+	if ( !TFightersEnabled() )
+	{
+		return;
+	}
+	
+	if ( TFighterCount() == 0 )
+	{
+		local_function_1();
+		local_function_2( none, "wingmen_tfighters", "wingmen_no_tfighters_available" );
+		return;
+	}
+	
+	ship_0 = GetLiveTFighter();
+	
+	if ( List.IsEmpty( GetAttachedTFighters() ) )
+	{
+		local_function_1();
+		local_function_2( ship_0, "wingmen_tfighters", "wingmen_tfighters_not_attached" );
+		return;
+	}
+	
+	local_function_3();
+	local_function_2( ship_0, "wingmen_tfighters_acknowledged", "wingmen_tfighters_holding_fire" );
+	ship_2 = GetAz();
+	
+	if ( Sim.IsAlive( ship_2 ) )
+	{
+		if ( !Sim.IsHidden( ship_2 ) )
+		{
+			if ( Object.PropertyExists( ship_2, "attached" ) )
+			{
+				iAI.PurgeOrders( ship_2 );
+				iShip.LockDownWeapons( ship_2 );
+			}
+		}
+	}
+	
+	ship_1 = GetLori();
+	
+	if ( Sim.IsAlive( ship_1 ) )
+	{
+		if ( !Sim.IsHidden( ship_1 ) )
+		{
+			if ( Object.PropertyExists( ship_1, "attached" ) )
+			{
+				iAI.PurgeOrders( ship_1 );
+				iShip.LockDownWeapons( ship_1 );
+			}
+		}
+	}
+}
+
+task local_function_11( hship ship_0_, hship ship_1_ )
+{
+	string name = Object.StringProperty( ship_0_, "name" );
+	
+	schedule
+	{
+		every 0.10:
+		{
+			if ( Sim.IsDead( ship_0_ ) )
+			{
+				debug atomic
+				{
+					Debug.PrintString( "iWingmen.remove_tfighter - TFighter " );
+					Debug.PrintString( name );
+					Debug.PrintString( " is dead / hidden. EXITING.\n" );
+				}
+				
+				return;
+			}
+			
+			if ( Sim.IsHidden( ship_0_ ) )
+			{
+				debug atomic
+				{
+					Debug.PrintString( "iWingmen.remove_tfighter - TFighter " );
+					Debug.PrintString( name );
+					Debug.PrintString( " is dead / hidden. EXITING.\n" );
+				}
+				
+				return;
+			}
+			
+			if ( iSim.IsDockedTo( ship_0_, ship_1_ ) )
+			{
+				iSim.SetDockingLock( ship_0_, ship_1_, true );
+				iSim.SetSensorVisibility( ship_0_, false );
+				local_function_0( ship_0_ );
+				Object.AddIntProperty( ship_0_, "attached", 0 );
+				iHUD.Print( String.Join( "wingmen_tfighters+: +", String.Join( "wingmen_tfighters_attaching+ - +", name ) ) );
+				
+				debug atomic
+				{
+					Debug.PrintString( "iWingmen.remove_tfighter - TFighter " );
+					Debug.PrintString( name );
+					Debug.PrintString( " has successfully attached.\n" );
+				}
+				
+				return;
+			}
+			
+			if ( (iAI.CurrentOrderType( ship_0_ ) != OT_Dock) || (iAI.CurrentOrderTarget( ship_0_ ) != ship_1_) )
+			{
+				debug atomic
+				{
+					Debug.PrintString( "iWingmen.remove_tfighter - TFighter " );
+					Debug.PrintString( name );
+					Debug.PrintString( " has no dock order / player is not order target. Aborting docking. \n" );
+				}
+				
+				return;
+			}
+		}
+	}
+}
+
+local_function_2( hsim param_0_, string param_1_, string param_2_ )
+{
+	if ( iComms.IsBusy() )
+	{
+		iHUD.Print( String.Join( param_1_, String.Join( "+: +", param_2_ ) ) );
+		return;
+	}
+	
+	iComms.Shout( param_0_, param_1_, param_2_ );
+}
+
+task local_function_13( hship ship_, string param_1_, string param_2_ )
+{
+	iComms.Shout( ship_, param_1_, param_2_ );
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 0.10 );
+	}
+	while ( iComms.IsSaying( ship_, param_1_, param_2_ ) );
+}
+
+bool local_function_7( hship ship_0_, hship ship_1_ )
+{
+	list localList_0 = List.FromSet( iDockport.DockportsCompatibleWith( ship_0_, DT_General, DS_Free ) );
+	list localList_1 = List.FromSet( iDockport.DockportsOfType( ship_1_, DT_General, DS_Free ) );
+	hdockport dockport_0;
+	hdockport dockport_1;
+	string local_4;
+	
+	if ( Sim.IsDead( ship_0_ ) || (ship_0_ == false) )
+	{
+		debug Debug.PrintString( "iWingmen.MountTFighter: ERROR: Tfighter is null / dead. EXITING\n" );
+		return false;
+	}
+	
+	if ( iSim.IsDockedTo( ship_0_, ship_1_ ) )
+	{
+		debug Debug.PrintString( "iWingmen.MountTFighter: ERROR: Tfighter already docked to the player ship" );
+		return false;
+	}
+	
+	if ( List.IsEmpty( localList_1 ) )
+	{
+		debug Debug.PrintString( "iWingmen.MountTFighter: ERROR: Player ship has no free tfighter dockports. EXITING\n" );
+		return false;
+	}
+	
+	if ( List.IsEmpty( localList_0 ) )
+	{
+		debug Debug.PrintString( "iWingmen.AttachTFighter: ERROR: tfighter1 has no free dockports. EXITING\n" );
+		return false;
+	}
+	
+	debug Debug.PrintString( "iWingmen.MountTFighter: Attaching T-Fighter\n" );
+	dockport_0 = iDockport.Cast( Subsim.Cast( List.Head( localList_0 ) ) );
+	dockport_1 = iDockport.Cast( Subsim.Cast( List.Head( localList_1 ) ) );
+	
+	if ( !iDockport.Dock( dockport_0, dockport_1 ) )
+	{
+		debug Debug.PrintString( "iWingmen.MountTFighter: ERROR: Unable to dock tfighter.\n" );
+		return false;
+	}
+	
+	iSim.SetSensorVisibility( ship_0_, false );
+	iSim.SetDockingLock( ship_0_, ship_1_, true );
+	iShip.InstallAIPilot( ship_0_, 999999.0, 9999999.0, 0.80, "", "", "", "iWingmen.TFighterWarn" );
+	Object.SetStringProperty( ship_0_, "death_script", "iWingmen.TFighterDeathScript" );
+	Object.AddIntProperty( ship_0_, "tfighter", 1 );
+	Object.AddBoolProperty( ship_0_, "no_shockwave", true );
+	iAI.PurgeOrders( ship_0_ );
+	iShip.LockDownWeapons( ship_0_ );
+	Sim.SetCullable( ship_0_, false );
+	iSim.SetFaction( ship_0_, iFaction.Find( "Player" ) );
+	iSim.SetIndestructable( ship_0_, false );
+	Object.AddHandleProperty( ship_1_, Object.StringProperty( ship_0_, "name" ), ship_0_ );
+	Object.AddIntProperty( ship_0_, "attached", 0 );
+	Object.AddHandleProperty( ship_0_, "docking_task", none );
+	return true;
+}
+
+int TFighterCount()
+{
+	return List.ItemCount( GetAllTFighters() );
+}
+
+hship GetLiveTFighter()
+{
+	list localList = GetAllTFighters();
+	int itemCount = List.ItemCount( localList );
+	hship ship;
+	
+	if ( itemCount == 0 )
+	{
+		debug Debug.PrintString( "iWingmen.GetLiveTfighter: No live tfighters found.\n" );
+		return none;
+	}
+	
+	if ( itemCount == 1 )
+	{
+		ship = iShip.Cast( List.Head( localList ) );
+	}
+	else
+	{
+		ship = iShip.Cast( List.GetNth( localList, Math.RandomInt( 0, 1 ) ) );
+	}
+	
+	debug Debug.PrintString( "iWingmen.GetLiveTfighter: Found turret fighter called " );
+	debug Debug.PrintString( Object.StringProperty( ship, "name" ) );
+	debug Debug.PrintString( "\n" );
+	return ship;
+}
+
+list CreateTestTFighters( int number_ )
+{
+	list localList;
+	
+	switch ( number_ )
+	{
+		case 0:
+			break;
+		
+		case 1:
+			List.AddTail( localList, local_function_8( "name_az" ) );
+			break;
+		
+		case 2:
+			List.AddTail( localList, local_function_8( "name_az" ) );
+			List.AddTail( localList, local_function_8( "name_lori" ) );
+			break;
+	}
+	
+	if ( !Global.Exists( "g_tfighters_menu_option_enabled" ) )
+	{
+		Global.CreateBool( "g_tfighters_menu_option_enabled", 2, true );
+	}
+	
+	return localList;
+}
+
+hship local_function_8( string param_0_ )
+{
+	hship shipTurretFighterPrefitted = iShip.Create( "ini:/sims/ships/player/turret_fighter_prefitted", param_0_ );
+	
+	Sim.SetCullable( shipTurretFighterPrefitted, false );
+	
+	if ( shipTurretFighterPrefitted == false )
+	{
+		debug Debug.PrintString( "iWingmen.CreateTFighter: Unable to create tfighter called " );
+		debug Debug.PrintString( param_0_ );
+		debug Debug.PrintString( "\n" );
+	}
+	
+	return shipTurretFighterPrefitted;
+}
+
+TFightersAttach()
+{
+	hship playerShip;
+	hship ship;
+	int local_2;
+	int local_3;
+	list localList_0;
+	list localList_1;
+	int itemCount;
+	int ii;
+	htask dockingTask_0;
+	htask dockingTask_1;
+	
+	playerShip = iShip.FindPlayerShip();
+	
+	if ( playerShip == false )
+	{
+		debug Debug.PrintString( "iWingmen.TFightersAttach: ERROR: Player ship is invalid. EXITING.\n" );
+		return;
+	}
+	
+	if ( TFighterCount() == 0 )
+	{
+		local_function_1();
+		local_function_2( none, "wingmen_tfighters", "wingmen_no_tfighters_available" );
+		return;
+	}
+	
+	localList_1 = GetDetachedTFighters();
+	itemCount = List.ItemCount( localList_1 );
+	localList_0 = List.FromSet( iDockport.DockportsCompatibleWith( playerShip, DT_General, DS_Any ) );
+	
+	if ( List.ItemCount( localList_0 ) < itemCount )
+	{
+		debug Debug.PrintString( "iWingmen.TFightersAttach: ERROR: Player general dockports is less than the number of detached turret fighters. EXITING.\n" );
+		return;
+	}
+	
+	local_function_3();
+	dockingTask_0 = Task.Cast( Object.HandleProperty( GetAz(), "docking_task" ) );
+	dockingTask_1 = Task.Cast( Object.HandleProperty( GetLori(), "docking_task" ) );
+	
+	if ( !Task.IsRunning( dockingTask_0 ) && !Task.IsRunning( dockingTask_1 ) )
+	{
+		local_function_9( none, "_comingback_", 1 );
+	}
+	
+	iHUD.Print( String.Join( "wingmen_tfighters+: +", "wingmen_tfighters_attaching" ) );
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		ship = iShip.Cast( List.GetNth( localList_1, ii ) );
+		
+		if ( Sim.IsAlive( ship ) )
+		{
+			if ( !Sim.IsHidden( ship ) )
+			{
+				local_function_10( ship, playerShip, iDockport.Cast( List.GetNth( localList_0, ii ) ) );
+			}
+		}
+	}
+}
+
+local_function_10( hship ship_0_, hship ship_1_, hdockport dockport_0_ )
+{
+	list localList = List.FromSet( iDockport.DockportsCompatibleWith( ship_0_, DT_General, DS_Any ) );
+	hdockport dockport_1;
+	htask dockingTask = Task.Cast( Object.HandleProperty( ship_0_, "docking_task" ) );
+	
+	if ( ship_0_ == false )
+	{
+		debug Debug.PrintString( "iWingmen.order_tfighter_attach: ERROR: Tfighter is invalid. EXITING. \n" );
+		return;
+	}
+	
+	if ( Object.PropertyExists( ship_0_, "attached" ) )
+	{
+		debug Debug.PrintString( "iWingmen.order_tfighter_attach: Tfighter is already attached. EXITING. \n" );
+		return;
+	}
+	
+	if ( Task.IsRunning( dockingTask ) )
+	{
+		debug Debug.PrintString( "iWingmen.order_tfighter_attach: Tfighter is already docking. EXITING. \n" );
+		return;
+	}
+	
+	if ( List.ItemCount( localList ) == 0 )
+	{
+		debug Debug.PrintString( "iWingmen.order_tfighter_attach: ERROR: No free player general dockport. EXITING\n" );
+		return;
+	}
+	
+	if ( List.IsEmpty( localList ) )
+	{
+		debug Debug.PrintString( "iWingmen.order_tfighter_attach: ERROR: tfighter has no free dockports. EXITING\n" );
+		return;
+	}
+	
+	dockport_1 = iDockport.Cast( Subsim.Cast( List.Head( localList ) ) );
+	iAI.PurgeOrders( ship_0_ );
+	iShip.LockDownWeapons( ship_0_ );
+	
+	if ( iSim.IsDocked( ship_0_ ) )
+	{
+		iShip.UndockSelf( ship_0_ );
+	}
+	
+	iAI.GiveDockOrderWithDockport( dockport_1, dockport_0_ );
+	dockingTask = start local_function_11( ship_0_, ship_1_ );
+	Object.SetHandleProperty( ship_0_, "docking_task", dockingTask );
+	Task.Detach( dockingTask );
+}
+
+TFightersDetach()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	list localList;
+	int itemCount;
+	int ii;
+	float local_4 = 100.0;
+	
+	if ( playerShip == false )
+	{
+		debug Debug.PrintString( "iWingmen.TFightersDetach: ERROR: Player ship is invalid. EXITING.\n" );
+		return;
+	}
+	
+	if ( iShip.IsInLDS( playerShip ) )
+	{
+		local_function_1();
+		return;
+	}
+	
+	localList = GetAllTFighters();
+	itemCount = List.ItemCount( localList );
+	
+	if ( itemCount == 0 )
+	{
+		debug Debug.PrintString( "iWingmen.TFightersDetach: ERROR: No attached tfighters. EXITING.\n" );
+		return;
+	}
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		local_function_12( iShip.Cast( List.GetNth( localList, ii ) ), playerShip, local_4 );
+		local_4 = ( local_4 - 200.0 );
+	}
+	
+	local_function_9( none, "_launch_", 2 );
+	local_function_3();
+	iHUD.Print( String.Join( "wingmen_tfighters+: +", "wingmen_tfighters_detaching" ) );
+}
+
+local_function_12( hship ship_0_, hship ship_1_, float param_2_ )
+{
+	if ( Object.PropertyExists( ship_0_, "attached" ) )
+	{
+		Object.RemoveProperty( ship_0_, "attached" );
+	}
+	else debug Debug.PrintString( "iWingmen.undock_tfighter: Turret Fighter not detached. EXITING.\n" );
+	
+	iSim.SetDockingLock( ship_0_, ship_1_, false );
+	iShip.UndockSelf( ship_0_ );
+	iAI.PurgeOrders( ship_0_ );
+	iShip.LockDownWeapons( ship_0_ );
+	iAI.GiveEscortOrder( ship_0_, ship_1_, param_2_, 0.0, 200.0, 5000.0 );
+	AddWingman( ship_0_ );
+	iSim.SetSensorVisibility( ship_0_, true );
+}
+
+hship GetAz()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	
+	if ( playerShip == false )
+	{
+		debug Debug.PrintString( "iWingmen.GetAz: ERROR: Player ship is invalid. EXITING.\n" );
+		return none;
+	}
+	
+	if ( Object.PropertyExists( playerShip, "name_az" ) )
+	{
+		return iShip.Cast( Object.HandleProperty( playerShip, "name_az" ) );
+	}
+	else
+	{
+		debug Debug.PrintString( "iWingmen.GetAz: ERROR: name_az handle property does not exist on the player ship.\n" );
+		return none;
+	}
+	
+	return none;
+}
+
+hship GetLori()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	
+	if ( playerShip == false )
+	{
+		debug Debug.PrintString( "iWingmen.GetLori: ERROR: Player ship is invalid. EXITING.\n" );
+		return none;
+	}
+	
+	if ( Object.PropertyExists( playerShip, "name_lori" ) )
+	{
+		return iShip.Cast( Object.HandleProperty( playerShip, "name_lori" ) );
+	}
+	else
+	{
+		debug Debug.PrintString( "iWingmen.GetLori: ERROR: name_lori handle property does not exist on the player ship.\n" );
+		return none;
+	}
+	
+	return none;
+}
+
+task WingmanDeathScript( hship wingman_ )
+{
+	string name = Object.StringProperty( wingman_, "name" );
+	
+	iSim.Kill( wingman_ );
+	iHUD.Print( String.Join( "wingmen_id+: +", String.Join( "wingmen_wingman_destroyed+ - +", name ) ) );
+	start local_function_13( none, "wingmen_id", String.Join( "wingmen_wingman_destroyed+ - +", name ) );
+}
+
+task TFighterDeathScript( hship tfighter_ )
+{
+	string name;
+	string local_1;
+	hship ship_1;
+	hship playerShip;
+	
+	atomic
+	{
+		iSim.SetIndestructable( tfighter_, true );
+	}
+	
+	name = Object.StringProperty( tfighter_, "name" );
+	playerShip = iShip.FindPlayerShip();
+	
+	if ( !Object.PropertyExists( playerShip, "player_dying" ) )
+	{
+		if ( name == "name_az" )
+		{
+			start local_function_13( tfighter_, "", "gunbabe_diag_az_is_dead_1" );
+			ship_1 = GetLori();
+			local_1 = "gunbabe_diag_lori_other_dead_";
+		}
+		else
+		{
+			start local_function_13( tfighter_, "", "gunbabe_diag_lori_is_dead_1" );
+			ship_1 = GetAz();
+			local_1 = "gunbabe_diag_az_other_dead_";
+		}
+	}
+	
+	iSim.StartExplosion( tfighter_ );
+	Task.Sleep( Task.Current(), 2.0 );
+	iSim.StopExplosion( tfighter_, SE_Normal, true );
+	iHUD.Print( String.Join( "wingmen_tfighters+: +", String.Join( "wingmen_tfighter_destroyed+ - +", name ) ) );
+	Task.Sleep( Task.Current(), 2.0 );
+	
+	if ( Object.PropertyExists( playerShip, "player_dying" ) || (Sim.IsHidden( ship_1 ) || Sim.IsDead( ship_1 )) )
+	{
+		return;
+	}
+	
+	start local_function_13( ship_1, "", String.Join( local_1, String.FromInt( Math.RandomInt( 1, 2 ) ) ) );
+	Task.Sleep( Task.Current(), 5.0 );
+}
+
+local_function_9( hship ship_, string param_1_, int random_ )
+{
+	string local_0 = "gunbabe_diag_";
+	string name;
+	string local_2;
+	
+	if ( (ship_ == false) || Sim.IsDead( ship_ ) )
+	{
+		ship_ = GetLiveTFighter();
+	}
+	
+	name = Object.StringProperty( ship_, "name" );
+	
+	if ( name == "name_az" )
+	{
+		local_2 = "az";
+	}
+	else
+	{
+		local_2 = "lori";
+	}
+	
+	if ( random_ != 1 )
+	{
+		random_ = Math.RandomInt( 1, random_ );
+	}
+	
+	local_0 = String.Join( local_0, local_2 );
+	local_0 = String.Join( local_0, param_1_ );
+	local_0 = String.Join( local_0, String.FromInt( random_ ) );
+	Task.Detach( start local_function_13( ship_, name, local_0 ) );
+}
+
+task AttackDeathScript( hship ship_0_ )
+{
+	hship playerShip = iShip.FindPlayerShip();
+	hship ship_1 = GetAz();
+	hship ship_2 = GetLori();
+	hship ship_3;
+	hgroup group = Group();
+	hisim local_5 = iShip.LastAttacker( ship_0_ );
+	string name;
+	
+	iSim.Kill( ship_0_ );
+	Task.Sleep( Task.Current(), 0.10 );
+	
+	if ( local_5 != false )
+	{
+		if ( Sim.IsDead( local_5 ) )
+		{
+			debug Debug.PrintString( "iWingmen.AttackDeathScript - Attacker is dead. No comment necessary." );
+			return;
+		}
+	}
+	
+	debug Debug.PrintString( "iWingmen.AttackDeathScript: Last attacker == " );
+	debug Debug.PrintString( Object.StringProperty( local_5, "name" ) );
+	debug Debug.PrintString( "\n" );
+	name = Object.StringProperty( ship_0_, "name" );
+	
+	if ( Object.PropertyExists( local_5, "tfighter" ) )
+	{
+		ship_3 = GetLiveTFighter();
+		
+		if ( ship_3 != false )
+		{
+			local_function_9( none, "_makeskill_", 3 );
+			iHUD.Print( String.Join( "wingmen_tfighters+: +", String.Join( "wingmen_target_destroyed+ - +", name ) ) );
+			
+			if ( (List.ItemCount( GetDetachedTFighters() ) != 0) && (iAI.CurrentOrderType( ship_3 ) == OT_None) )
+			{
+				iAI.PurgeOrders( group );
+				EscortShip( group, playerShip );
+				iShip.LockDownWeapons( ship_1 );
+				iShip.LockDownWeapons( ship_2 );
+			}
+			
+			return;
+		}
+	}
+	
+	ship_3 = iShip.Cast( Group.NthSim( group, 1 ) );
+	
+	if ( Sim.IsAlive( ship_3 ) )
+	{
+		local_function_2( ship_3, "wingmen_id", String.Join( "wingmen_target_destroyed+ - +", name ) );
+		iAI.PurgeOrders( group );
+		EscortShip( group, playerShip );
+	}
+}
+
+task EscortDeathScript( hisim param_0_ )
+{
+	hship playerShip = iShip.FindPlayerShip();
+	hship groupLeader;
+	hgroup group = Group();
+	string name = Object.StringProperty( param_0_, "name" );
+	
+	iSim.Kill( param_0_ );
+	Task.Sleep( Task.Current(), 0.10 );
+	groupLeader = iShip.Cast( Group.Leader( Group() ) );
+	
+	if ( Sim.IsDead( groupLeader ) )
+	{
+		return;
+	}
+	
+	iAI.PurgeOrders( group );
+	EscortShip( group, playerShip );
+	local_function_2( groupLeader, "wingmen_id", String.Join( "wingmen_defend_destroyed+ - +", name ) );
+}
+
+local_function_6( hisim param_0_, string param_1_ )
+{
+	hship playerShip = iShip.FindPlayerShip();
+	hisim wingmenTargetHandle;
+	string deathScript;
+	
+	if ( Sim.IsDead( param_0_ ) )
+	{
+		debug Debug.PrintString( "iWingmen.update_target_deathscript: ERROR: Target is dead / null.\n" );
+		return;
+	}
+	
+	if ( Sim.IsDead( playerShip ) )
+	{
+		debug Debug.PrintString( "iWingmen.update_target_deathscript: ERROR: player ship is dead / null.\n" );
+		return;
+	}
+	
+	if ( !Object.PropertyExists( playerShip, "wingmen_target_handle" ) )
+	{
+		debug Debug.PrintString( "iWingmen.update_target_deathscript: No player ship wingmen_target_handle property exists. Adding.\n" );
+		Object.AddHandleProperty( playerShip, "wingmen_target_handle", none );
+		wingmenTargetHandle = none;
+	}
+	else
+	{
+		wingmenTargetHandle = iSim.Cast( Object.HandleProperty( playerShip, "wingmen_target_handle" ) );
+	}
+	
+	if ( Sim.IsAlive( wingmenTargetHandle ) )
+	{
+		deathScript = Object.StringProperty( wingmenTargetHandle, "death_script" );
+		
+		if ( (deathScript == "iWingmen.AttackDeathScript") || (deathScript == "iWingmen.EscortDeathScript") )
+		{
+			debug Debug.PrintString( "iWingmen.update_target_deathscript: Cleared deathscript from old target called " );
+			debug Debug.PrintString( Object.StringProperty( wingmenTargetHandle, "name" ) );
+			debug Debug.PrintString( "\n" );
+			Object.SetStringProperty( wingmenTargetHandle, "death_script", "" );
+		}
+		else
+		{
+			debug Debug.PrintString( "iWingmen.update_target_deathscript: Old target called " );
+			debug Debug.PrintString( Object.StringProperty( param_0_, "name" ) );
+			debug Debug.PrintString( "has a custom death script. Not removing.\n" );
+		}
+	}
+	else debug Debug.PrintString( "iWingmen.update_target_deathscript: old target is dead. No need to remove deathscript.\n" );
+	
+	if ( Object.StringProperty( param_0_, "death_script" ) == "" )
+	{
+		debug Debug.PrintString( "iWingmen.update_target_deathscript: Adding deathscript to ship called " );
+		debug Debug.PrintString( Object.StringProperty( param_0_, "name" ) );
+		debug Debug.PrintString( "\n" );
+		Object.SetStringProperty( param_0_, "death_script", param_1_ );
+		Object.SetHandleProperty( playerShip, "wingmen_target_handle", param_0_ );
+		return;
+	}
+	
+	debug Debug.PrintString( "iWingmen.update_target_deathscript: Ship called " );
+	debug Debug.PrintString( Object.StringProperty( param_0_, "name" ) );
+	debug Debug.PrintString( "Already has a death script. Not updating.\n" );
+}
+
+local_function_4()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	hisim wingmenTargetHandle;
+	
+	if ( !Object.PropertyExists( playerShip, "wingmen_target_handle" ) )
+	{
+		return;
+	}
+	
+	wingmenTargetHandle = iSim.Cast( Object.HandleProperty( playerShip, "wingmen_target_handle" ) );
+	
+	if ( Sim.IsAlive( wingmenTargetHandle ) )
+	{
+		if ( Object.StringProperty( wingmenTargetHandle, "death_script" ) == "iWingmen.AttackDeathScript" )
+		{
+			debug Debug.PrintString( "iWingmen.remove_target_deathscript: Cleared target deathscript from old target called " );
+			debug Debug.PrintString( Object.StringProperty( wingmenTargetHandle, "name" ) );
+			debug Debug.PrintString( "\n" );
+			Object.SetStringProperty( wingmenTargetHandle, "death_script", "" );
+		}
+	}
+}
+
+task TFighterWarn()
+{
+	hship ship;
+	hship playerShip = iShip.FindPlayerShip();
+	string name = Object.StringProperty( ship, "name" );
+	string local_3;
+	
+	if ( iShip.Cast( iShip.LastAttacker( ship ) ) == playerShip )
+	{
+		local_function_9( ship, "_friendly_fire_", 2 );
+		return;
+	}
+	
+	local_function_9( ship, "_introuble_", 3 );
+}
+
+bool TFightersEnabled()
+{
+	if ( Global.Exists( "g_current_act" ) )
+	{
+		if ( Global.Int( "g_current_act" ) == -1 )
+		{
+			return true;
+		}
+	}
+	
+	if ( Global.Exists( "g_tfighters_menu_option_enabled" ) )
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+	
+	return false;
+}
+
+local_function_3()
+{
+	iHUD.PlayAudioCue( AC_ValidInput );
+}
+
+local_function_1()
+{
+	iHUD.PlayAudioCue( AC_InvalidInput );
+}
+
+list TrueWingmanList()
+{
+	hgroup group = Group();
+	hship ship;
+	int ii;
+	int local_3;
+	list localList;
+	
+	if ( group == false )
+	{
+		debug Debug.PrintString( "iWingmen.TrueWingmanList: ERROR - Wingmen group handle is invalid.\n" );
+		return localList;
+	}
+	
+	local_3 = ( Group.SimCount( group ) - 1 );
+	
+	if ( local_3 == 0 )
+	{
+		debug Debug.PrintString( "iWingmen.TrueWingmanList: No wingmen to list.\n" );
+		return localList;
+	}
+	
+	debug Debug.PrintString( "iWingmen.TrueWingmanList: Counting wingmen...\n" );
+	
+	atomic
+	{
+		for ( ii = local_3; ii > 0; --ii )
+		{
+			ship = iShip.Cast( Group.NthSim( group, ii ) );
+			
+			if ( !Object.PropertyExists( ship, "tfighter" ) )
+			{
+				List.AddHead( localList, ship );
+			}
+			else debug Debug.PrintString( "iWingmen.TrueWingmanList: Not Adding TFighter to the list.\n" );
+		}
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iWingmen.TrueWingmanList: Returning list of " );
+		Debug.PrintInt( List.ItemCount( localList ) );
+		Debug.PrintString( " True wingmen. \n" );
+	}
+	
+	return localList;
+}
+

@@ -1,0 +1,1473 @@
+package iStartSystem;
+
+uses Config,
+     Debug,
+     GUI,
+     Set,
+     List,
+     String,
+     Global,
+     Sim,
+     Group,
+     INIFile,
+     Input,
+     Object,
+     Task,
+     Text,
+     iSim,
+     MapEnumerations,
+     iMapEntity,
+     iLagrangePoint,
+     iShip,
+     Subsim,
+     iDockport,
+     iAI,
+     iCutsceneUtilities,
+     iDeathScript,
+     iDirector,
+     iFaction,
+     iGMTracker,
+     iGame,
+     iHUD,
+     iBody,
+     iHabitat,
+     CargoTypes,
+     iInventory,
+     iLoadout,
+     iRangeCheck,
+     iRegion,
+     iScore,
+     iStation,
+     iFormation,
+     Math,
+     iCargo,
+     iCargoScript,
+     iPilotSetup,
+     iShipCreation,
+     iTrafficCreation,
+     iUtilities,
+     iWingmen;
+
+provides StartupNewGame,
+         StartupSession,
+         StartupSpace,
+         FinalSetup,
+         ShutdownSpace,
+         StartupSystem,
+         ShutdownSystem,
+         SkipCutscene,
+         CriticalMissionFail,
+         SetPlayerBaseMoviesVisible,
+         HideMapLocations,
+         JumpgateShieldOn,
+         JumpgateShieldOff,
+         BlankScreen,
+         UnblankScreen,
+         MovePlayerBase;
+
+prototype local_function_20( string param_0_, htask param_1_ );
+prototype local_function_22( string param_0_ );
+prototype task local_function_15();
+prototype task local_function_14();
+prototype task local_function_0( hship ship_, hisim param_1_ );
+prototype task CriticalMissionFail( hsim sim_, string caption_ );
+prototype local_function_1( set localSet_ );
+prototype set local_function_2();
+prototype local_function_19();
+prototype local_function_9();
+prototype local_function_17();
+prototype local_function_4();
+prototype local_function_7();
+prototype local_function_18();
+prototype local_function_10();
+prototype local_function_8();
+prototype local_function_13();
+prototype local_function_16();
+prototype local_function_11();
+prototype SkipCutscene();
+prototype local_function_6();
+prototype string local_function_3( int param_0_ );
+prototype HideMapLocations();
+prototype SetPlayerBaseMoviesVisible( bool visible_ );
+prototype local_function_5();
+prototype local_function_12();
+prototype StartupNewGame();
+prototype StartupSession();
+prototype StartupSpace();
+prototype FinalSetup();
+prototype ShutdownSpace();
+prototype StartupSystem();
+prototype ShutdownSystem();
+prototype hgroup local_function_23( hisim param_0_ );
+prototype hisim local_function_24( hisim param_0_ );
+prototype JumpgateShieldOn( hisim jumpgate_, bool force_on_ );
+prototype JumpgateShieldOff( hisim jumpgate_ );
+prototype task local_function_21();
+prototype BlankScreen();
+prototype UnblankScreen();
+prototype hmapentity MovePlayerBase( string start_system_, string destination_system_ );
+
+local_function_20( string param_0_, htask param_1_ )
+{
+	Task.Detach( param_1_ );
+	Global.CreateHandle( param_0_, 2, param_1_ );
+}
+
+local_function_22( string param_0_ )
+{
+	htask local_0 = Task.Cast( Global.Handle( param_0_ ) );
+	
+	Task.Halt( local_0 );
+	debug Debug.PrintString( "Destroying task " );
+	debug Debug.PrintString( param_0_ );
+	debug Debug.PrintString( "\n" );
+	Global.Destroy( param_0_ );
+}
+
+task local_function_15()
+{
+	hship playerShip;
+	hmapentity lucreciasBase;
+	string local_2;
+	
+	schedule
+	{
+		every 2.0:
+		{
+			playerShip = iShip.FindPlayerShip();
+			lucreciasBase = iMapEntity.FindByNameInSystem( "Lucrecia's Base", Global.String( "g_player_base_system" ) );
+			
+			if ( iSim.IsDockedTo( iSim.Cast( lucreciasBase ), playerShip ) )
+			{
+				local_2 = "/movies/OldCalShutdown";
+				
+				if ( Global.Exists( "g_current_act" ) )
+				{
+					if ( Global.Int( "g_current_act" ) == 0 )
+					{
+						local_2 = "/movies/YoungCalShutdown";
+					}
+				}
+				
+				GUI.SetScreen( "icSPPlayerBaseScreen" );
+				iGame.PlayMovie( local_2 );
+				return;
+			}
+		}
+	}
+}
+
+task local_function_14()
+{
+	hship playerShip;
+	hisim lucreciasBase;
+	int local_2;
+	int local_3;
+	float speed_0;
+	float speed_1;
+	float speed_2;
+	float acceleration_0;
+	float acceleration_1;
+	float acceleration_2;
+	string local_10;
+	
+	Task.Sleep( Task.Current(), 1.0 );
+	local_10 = "/movies/OldCalStartup";
+	
+	if ( Global.Exists( "g_current_act" ) )
+	{
+		if ( Global.Int( "g_current_act" ) == 0 )
+		{
+			local_10 = "/movies/YoungCalStartup";
+		}
+	}
+	
+	iGame.PlayMovie( local_10 );
+	
+	atomic
+	{
+		playerShip = iShip.FindPlayerShip();
+		lucreciasBase = iSim.Cast( iMapEntity.FindByNameInSystem( "Lucrecia's Base", Global.String( "g_player_base_system" ) ) );
+		
+		if ( lucreciasBase == false )
+		{
+			debug Debug.PrintString( "iStartsystem.launch_cutscene_handler: Can't find Lucretia's base" );
+		}
+		
+		speed_0 = Object.VectorPropertyX( playerShip, "speed" );
+		speed_1 = Object.VectorPropertyY( playerShip, "speed" );
+		speed_2 = Object.VectorPropertyZ( playerShip, "speed" );
+		acceleration_0 = Object.VectorPropertyX( playerShip, "acceleration" );
+		acceleration_1 = Object.VectorPropertyY( playerShip, "acceleration" );
+		acceleration_2 = Object.VectorPropertyZ( playerShip, "acceleration" );
+		Object.SetVectorProperty( playerShip, "speed", 0.0, 0.0, 2000.0 );
+		Object.SetVectorProperty( playerShip, "acceleration", 0.0, 0.0, 150.0 );
+		Sim.SetCollision( playerShip, false );
+		Task.Sleep( Task.Current(), 0.50 );
+	}
+	
+	iCutsceneUtilities.HandleAbort( start local_function_0( playerShip, lucreciasBase ) );
+	
+	atomic
+	{
+		if ( Object.PropertyExists( playerShip, "cutscene_with_cargo_pod" ) )
+		{
+			Object.RemoveProperty( playerShip, "cutscene_with_cargo_pod" );
+		}
+		
+		Sim.PlaceRelativeTo( playerShip, lucreciasBase, 12000.0, 0.0, -1000.0 );
+		Sim.SetAngularVelocityEuler( playerShip, 0.0, 0.0, 0.0 );
+		Sim.PointAway( playerShip, lucreciasBase );
+		Sim.SetVelocityLocalToSim( playerShip, 0.0, 0.0, 500.0 );
+		Sim.AvatarSetChannel( playerShip, "lz", 0.0 );
+		iShip.SetFreeWithoutPilot( playerShip, false );
+		Object.SetVectorProperty( playerShip, "speed", speed_0, speed_1, speed_2 );
+		Object.SetVectorProperty( playerShip, "acceleration", acceleration_0, acceleration_1, acceleration_2 );
+		Sim.SetCollision( playerShip, true );
+		Task.ResumeAll();
+		iGame.EnableBlackout( false );
+	}
+}
+
+task local_function_0( hship ship_, hisim param_1_ )
+{
+	hship shipLaunchtube;
+	hsim waypoint;
+	hsim local_2;
+	int local_3;
+	int local_4;
+	int local_5;
+	int local_6;
+	string local_7;
+	int local_8;
+	bool local_9 = false;
+	hgroup group = iCutsceneUtilities.GetKillGroup();
+	float local_11;
+	float local_12;
+	
+	iDirector.Begin();
+	iDirector.FadeOut( 0.0, 0.0, 0.0, 0.0 );
+	
+	atomic
+	{
+		iAI.PurgeOrders( ship_ );
+		iCutsceneUtilities.EnablePlayerAutopilot();
+		Sim.SetVelocity( ship_, 0.0, 0.0, 0.0 );
+		Sim.SetAngularVelocityEuler( ship_, 0.0, 0.0, 0.0 );
+		shipLaunchtube = iShip.Create( "ini:/sims/custom/launch_cutscene/launchtube", "launchtube" );
+		Group.AddSim( group, shipLaunchtube );
+		Sim.PlaceRelativeTo( shipLaunchtube, param_1_, 1000000.0, 1000000.0, 1000000.0 );
+		Sim.SetCullable( shipLaunchtube, false );
+		iSim.SetIndestructable( shipLaunchtube, true );
+		waypoint = iUtilities.CreateWaypointAt( ship_ );
+		Group.AddSim( group, waypoint );
+		Sim.PlaceRelativeToInside( ship_, shipLaunchtube, 0.0, 0.0, 800.0 );
+		Sim.PlaceRelativeTo( waypoint, shipLaunchtube, 0.0, 0.0, 20000.0 );
+	}
+	
+	local_2 = iDirector.CreateDolly();
+	Group.AddSim( group, local_2 );
+	
+	if ( Object.PropertyExists( ship_, "cutscene_with_cargo_pod" ) )
+	{
+		iDirector.SetCamera( CAM_InternalNoHUD );
+	}
+	else
+	{
+		switch ( iSim.Type( ship_ ) )
+		{
+			case T_CommandSection:
+				local_11 = -34.0;
+				local_12 = 6.0;
+				break;
+			
+			case T_Interceptor:
+				local_11 = -45.0;
+				local_12 = 10.0;
+				break;
+			
+			case T_Tug:
+				local_11 = -110.0;
+				local_12 = 20.0;
+				break;
+			
+			case T_Patcom:
+				local_11 = -75.0;
+				local_12 = 20.0;
+				break;
+			
+			case T_Corvette:
+				local_11 = -115.0;
+				local_12 = 20.0;
+				break;
+		}
+		
+		iDirector.SetDollyCamera( local_2 );
+		iDirector.SetFocus( ship_ );
+		Sim.PlaceRelativeToInside( local_2, ship_, 0.0, local_12, local_11 );
+	}
+	
+	iGame.EnableBlackout( false );
+	iDirector.FadeIn( 1.0, 0.0, 0.0, 0.0 );
+	Task.Sleep( Task.Current(), 1.0 );
+	iShip.SetFreeWithoutPilot( ship_, true );
+	Sim.AvatarAddChannel( shipLaunchtube, "engine_startup", 1.0 );
+	Sim.AvatarAddChannel( ship_, "lz", 1.0 );
+	Task.Sleep( Task.Current(), 3.0 );
+	iAI.GiveApproachOrderAdvanced( ship_, waypoint, 500.0, 500.0, false );
+	iShip.SetFreeWithoutPilot( ship_, false );
+	Task.Sleep( Task.Current(), 3.0 );
+	iDirector.SetCamera( CAM_InternalNoHUD );
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 0.10 );
+	}
+	while ( Sim.DistanceBetween( ship_, shipLaunchtube ) < 2300.0 );
+	
+	iDirector.FadeOut( 0.0, 0.0, 0.0, 0.0 );
+	
+	atomic
+	{
+		Sim.Destroy( shipLaunchtube );
+		Sim.PlaceRelativeToInside( ship_, param_1_, 6000.0, 0.0, -1000.0 );
+		Sim.PointAway( ship_, param_1_ );
+		iAI.PurgeOrders( ship_ );
+		iShip.SetFreeWithoutPilot( ship_, true );
+		Sim.SetAngularVelocityEuler( ship_, 0.0, 0.0, 0.0 );
+		Sim.SetVelocityLocalToSim( ship_, 0.0, 0.0, 500.0 );
+		Sim.PlaceRelativeTo( local_2, ship_, 100.0, -60.0, 1000.0 );
+	}
+	
+	Sim.AvatarSetChannel( ship_, "lz", 1.0 );
+	iDirector.SetDollyCamera( local_2 );
+	iDirector.SetFocus( ship_ );
+	iDirector.FadeIn( 0.0, 0.0, 0.0, 0.0 );
+	Task.Sleep( Task.Current(), 5.0 );
+	Sim.AvatarSetChannel( ship_, "lz", 0.0 );
+	iDirector.End();
+	iShip.SetFreeWithoutPilot( ship_, false );
+	iCutsceneUtilities.DisablePlayerAutopilot();
+}
+
+task CriticalMissionFail( hsim sim_, string caption_ )
+{
+	Object.AddStringProperty( sim_, "death_caption", caption_ );
+	Task.Detach( start iDeathScript.PlayerDeathScript( sim_ ) );
+}
+
+local_function_1( set localSet_ )
+{
+	list localList = List.FromSet( localSet_ );
+	int itemCount = List.ItemCount( localList );
+	int ii;
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		iSim.LockDownWeapons( iSim.Cast( List.GetNth( localList, ii ) ) );
+	}
+}
+
+set local_function_2()
+{
+	hmapentity lucreciasBase = iMapEntity.FindByName( "Lucrecia's Base" );
+	hmapentity remekLPoint = iMapEntity.FindByName( "Remek L-Point" );
+	hmapentity formhaultJumpAccelerator = iMapEntity.FindByName( "Formhault Jump Accelerator" );
+	hmapentity libertyLPoint = iMapEntity.FindByName( "Liberty L-Point" );
+	hmapentity jumpAccelerator = iMapEntity.FindByName( "Jump Accelerator" );
+	set localSet_0;
+	set localSet_1;
+	string local_7;
+	
+	debug Debug.PrintString( "iStartSystem.create_filtered_habitat_set: Creating set...\n" );
+	localSet_1 = iMapEntity.SystemHabitats();
+	Set.Union( localSet_1, iMapEntity.SystemLagrangePoints() );
+	localSet_0 = iHabitat.FilterOnType( localSet_1, HT_Disused );
+	local_function_1( localSet_0 );
+	
+	if ( Global.Exists( "g_out_of_system_exceptions" ) )
+	{
+		Set.Union( localSet_0, Global.Set( "g_out_of_system_exceptions" ) );
+	}
+	
+	if ( lucreciasBase != false )
+	{
+		Set.Add( localSet_0, lucreciasBase );
+	}
+	
+	if ( remekLPoint != false )
+	{
+		Set.Add( localSet_0, remekLPoint );
+	}
+	
+	if ( formhaultJumpAccelerator != false )
+	{
+		Set.Add( localSet_0, formhaultJumpAccelerator );
+	}
+	
+	if ( libertyLPoint != false )
+	{
+		Set.Add( localSet_0, libertyLPoint );
+	}
+	
+	if ( jumpAccelerator != false )
+	{
+		Set.Add( localSet_0, jumpAccelerator );
+	}
+	
+	debug atomic
+	{
+		Debug.PrintString( "iStartSystem.create_filtered_habitat_set: Removing " );
+		Debug.PrintInt( Set.ItemCount( localSet_0 ) );
+		Debug.PrintString( " traffic exceptions\n" );
+	}
+	
+	Set.Difference( localSet_1, localSet_0 );
+	
+	debug atomic
+	{
+		Debug.PrintString( "iStartSystem.create_filtered_habitat_set: " );
+		Debug.PrintInt( Set.ItemCount( localSet_1 ) );
+		Debug.PrintString( " traffic locations remaining\n" );
+	}
+	
+	debug
+	{
+		if ( Set.IsEmpty( localSet_1 ) )
+		{
+			debug Debug.PrintString( "iStartSystem.create_filtered_habitat_set: No habitats for traffic!\n" );
+		}
+	}
+	
+	return localSet_1;
+}
+
+local_function_19()
+{
+	hmapentity mapEntity;
+	hobject local_1;
+	hregion region;
+	set localSet;
+	
+	debug Debug.PrintString( "iStartSystem.create_station_regions: Initialising traffic control regions...\n" );
+	localSet = local_function_2();
+	
+	while ( !Set.IsEmpty( localSet ) )
+	{
+		local_1 = Set.FirstElement( localSet );
+		mapEntity = iMapEntity.Cast( local_1 );
+		Set.Remove( localSet, local_1 );
+		
+		if ( mapEntity == false )
+		{
+			debug Debug.PrintString( "iStartSystem.create_station_regions : No waypoint for orbiting habitat. [object was " );
+			debug Debug.PrintString( Object.StringProperty( local_1, "name" ) );
+			debug Debug.PrintString( "].\n" );
+		}
+		else
+		{
+			debug atomic
+			{
+				Debug.PrintString( "iStartSystem.create_station_regions: creating traffic control region for " );
+				Debug.PrintString( iMapEntity.Name( mapEntity ) );
+				Debug.PrintString( "\n" );
+			}
+			
+			if ( !iLagrangePoint.Cast( mapEntity ) )
+			{
+				region = iRegion.CreateTrafficControl( mapEntity, 10000.0, 250.0 );
+			}
+			else
+			{
+				region = iRegion.CreateLDSI( mapEntity, 15000.0 );
+			}
+			
+			Object.AddHandleProperty( mapEntity, "traffic_control_region", region );
+		}
+	}
+	
+	debug Debug.PrintString( "iStartSystem.create_station_regions: Finished\n" );
+}
+
+local_function_9()
+{
+	debug Debug.PrintString( "iStartSystem.load_localised_text: Adding localised text...\n" );
+	Text.Add( "csv:/text/stock" );
+	Text.Add( "csv:/text/stock_addendum" );
+	Text.Add( "csv:/text/jafs_dialogue" );
+	Text.Add( "csv:/text/jafs_dialogue_addendum" );
+	Text.Add( "csv:/text/ship_names" );
+	Text.Add( "csv:/text/subtargets" );
+	Text.Add( "csv:/text/missing_names" );
+	Text.Add( "csv:/text/wingmen" );
+	Text.Add( "csv:/text/wingmen_addendum" );
+	Text.Add( "csv:/text/wingmen_addendum_2" );
+	Text.Add( "csv:/text/gunbabes" );
+	Text.Add( "csv:/text/act_1/act1_master_addendum2" );
+	Text.Add( "csv:/text/player_ships" );
+	Text.Add( "csv:/text/act_1/act1_master_addendum2" );
+	debug Debug.PrintString( "iStartSystem.load_localised_text: Done...\n" );
+}
+
+local_function_17()
+{
+	debug Debug.PrintString( "iStartSystem.unload_localised_text: Removing localised text...\n" );
+	Text.Remove( "csv:/text/stock" );
+	Text.Remove( "csv:/text/stock_addendum" );
+	Text.Remove( "csv:/text/jafs_dialogue" );
+	Text.Remove( "csv:/text/jafs_dialogue_addendum" );
+	Text.Remove( "csv:/text/ship_names" );
+	Text.Remove( "csv:/text/subtargets" );
+	Text.Remove( "csv:/text/missing_names" );
+	Text.Remove( "csv:/text/wingmen" );
+	Text.Remove( "csv:/text/wingmen_addendum" );
+	Text.Remove( "csv:/text/wingmen_addendum_2" );
+	Text.Remove( "csv:/text/gunbabes" );
+	debug Debug.PrintString( "iStartSystem.unload_localised_text: Done...\n" );
+}
+
+local_function_4()
+{
+	Global.CreateInt( "g_current_act", 2, -1 );
+	Global.CreateInt( "g_generated_missions_running", 2, 0 );
+	Global.CreateInt( "g_generated_max_number_of_missions", 1, 1 );
+	Global.CreateInt( "g_generated_mission_chance", 1, 100 );
+	Global.CreateString( "g_player_ship_name", 2, "a1_ship_name_2" );
+	Global.CreateBool( "g_jafs_active", 2, false );
+	debug Global.CreateBool( "g_setup_skipper_already", 2, false );
+	Global.CreateInt( "g_piracy_rating", 2, 0 );
+	Global.CreateString( "g_player_base_system", 2, "map:/geog/badlands/hoffers_wake" );
+	Global.CreateBool( "g_show_dioramas", 2, false );
+	Global.CreateBool( "g_base_lights_on", 2, false );
+}
+
+local_function_7()
+{
+	string local_0;
+	
+	Global.CreateBool( "g_cutscene_skip", 2, false );
+	Global.CreateHandle( "g_cutscene_kill_group", 2, none );
+	Global.CreateHandle( "g_ship_names_ini", 1, INIFile.Create( "ini:/ship_names" ) );
+	Global.CreateHandle( "g_stock_utterance_ini", 1, INIFile.Create( "ini:/text/stock_utterance" ) );
+	Global.CreateFloat( "g_player_sensor_range", 1, 250000.0 );
+	Global.CreateFloat( "g_station_awareness_radius", 1, 600000.0 );
+}
+
+local_function_18()
+{
+	hinifile gShipNamesIni;
+	
+	Global.Destroy( "g_cutscene_skip" );
+	Global.Destroy( "g_cutscene_kill_group" );
+	gShipNamesIni = INIFile.Cast( Global.Handle( "g_ship_names_ini" ) );
+	INIFile.Destroy( gShipNamesIni );
+	Global.Destroy( "g_ship_names_ini" );
+	gShipNamesIni = INIFile.Cast( Global.Handle( "g_stock_utterance_ini" ) );
+	INIFile.Destroy( gShipNamesIni );
+	Global.Destroy( "g_stock_utterance_ini" );
+	Global.Destroy( "g_player_sensor_range" );
+	Global.Destroy( "g_station_awareness_radius" );
+}
+
+local_function_10()
+{
+	debug Debug.PrintString( "iStartSystem.bind_script_keys: Binding keys to scripts...\n" );
+	Input.BindKey( "iJafsScript.CallJafs", "ScriptKeys.StartJafsScript" );
+	Input.BindKey( "iRemotePilot.Install", "ScriptKeys.StartRemotePilot" );
+	Input.BindKey( "iStartSystem.SkipCutscene", "ScriptKeys.SkipCutscene" );
+	Input.BindKey( "iWingmen.ReportStatus", "ScriptKeys.WingmenReportStatus" );
+	Input.BindKey( "iWingmen.DefendPlayer", "ScriptKeys.WingmenDefendPlayer" );
+	Input.BindKey( "iWingmen.AttackTarget", "ScriptKeys.WingmenAttackTarget" );
+	Input.BindKey( "iWingmen.DefendTarget", "ScriptKeys.WingmenDefendTarget" );
+	Input.BindKey( "iWingmen.DockToTarget", "ScriptKeys.WingmenDockToTarget" );
+	Input.BindKey( "iWingmen.Halt", "ScriptKeys.WingmenHalt" );
+	Input.BindKey( "iWingmen.TFighterAttachDetach", "ScriptKeys.TFighterAttachDetach" );
+	Input.BindKey( "iWingmen.TFighterAttackTarget", "ScriptKeys.TFighterAttackTarget" );
+	Input.BindKey( "iWingmen.TFighterFireAtWill", "ScriptKeys.TFighterFireAtWill" );
+	Input.BindKey( "iWingmen.TFighterCeaseFire", "ScriptKeys.TFighterCeaseFire" );
+	debug Debug.PrintString( "iStartSystem.bind_script_keys: Binding cheat keys to scripts...\n" );
+	Input.BindKey( "iUtilities.JumpSystem", "ScriptKeys.StartJumpSystem" );
+	Input.BindKey( "iJafsScript.CheatJafs", "ScriptKeys.CheatJafs" );
+}
+
+local_function_8()
+{
+	debug Debug.PrintString( "iStartSystem.preload_sims: Preloading...\n" );
+	Sim.Preload( "ini:/sims/ships/utility/freighter" );
+	Sim.Preload( "ini:/sims/ships/utility/freightpod" );
+	Sim.Preload( "ini:/sims/ships/utility/containercarrier" );
+	Sim.Preload( "ini:/sims/ships/utility/containerpod" );
+	Sim.Preload( "ini:/sims/ships/utility/cargo_pod" );
+	Sim.Preload( "ini:/sims/ships/utility/fueltransporter_long" );
+	Sim.Preload( "ini:/sims/ships/utility/megatransporter" );
+	Sim.Preload( "ini:/sims/ships/utility/megapod" );
+	Sim.Preload( "ini:/sims/ships/utility/tug" );
+	Sim.Preload( "ini:/sims/ships/utility/puffin" );
+	Sim.Preload( "ini:/sims/ships/utility/truck" );
+	Sim.Preload( "ini:/sims/ships/utility/flitter" );
+	Sim.Preload( "ini:/sims/ships/navy/old_corvette" );
+	Sim.Preload( "ini:/sims/ships/navy/fighter" );
+	Sim.Preload( "ini:/sims/ships/cops/fighter" );
+	Sim.Preload( "ini:/sims/ships/cops/interceptor" );
+	Sim.Preload( "ini:/sims/ships/independent/cutter" );
+	Sim.Preload( "ini:/sims/ships/utility/snrv" );
+}
+
+local_function_13()
+{
+	hship shipFreightpod;
+	hship shipRemoteFighter;
+	int local_2;
+	list localList;
+	hship playerShip = iShip.FindPlayerShip();
+	
+	debug Debug.PrintString( "iStartSystem.finish_loadout: Checking turret fighters, cargo etc...\n" );
+	localList = iShip.CreateTurretFighters();
+	Global.CreateList( "g_turret_fighters", 2, localList );
+	iWingmen.AddTFighters( playerShip, localList );
+	local_2 = iLoadout.Cargo();
+	
+	if ( (local_2 != -1) && (iLoadout.Ship() != S_CommandSection) )
+	{
+		shipFreightpod = iShip.Create( "ini:/sims/ships/utility/freightpod", "name_cargo_pod" );
+		Object.SetIntProperty( shipFreightpod, "cargo", local_2 );
+		Sim.SetCullable( shipFreightpod, false );
+		iLoadout.SetCargo( -1 );
+		iShip.Dock( shipFreightpod, playerShip );
+		Object.AddIntProperty( playerShip, "cutscene_with_cargo_pod", 0 );
+	}
+	
+	if ( iLoadout.RemoteFighterMounted() )
+	{
+		shipRemoteFighter = iShip.Create( "ini:/sims/ships/player/remote_fighter", "Cargo_RemoteFighter" );
+		iShip.Dock( playerShip, shipRemoteFighter );
+		Sim.SetCullable( shipRemoteFighter, false );
+		iSim.SetFaction( shipRemoteFighter, iFaction.Find( "Player" ) );
+		Global.CreateHandle( "g_remote_fighter", 2, shipRemoteFighter );
+		debug Debug.PrintString( "iStartSystem.finish_loadout: Created remote fighter " );
+		debug Debug.PrintHandle( shipRemoteFighter );
+		debug Debug.PrintString( "\n" );
+	}
+	
+	debug Debug.PrintString( "iStartSystem.finish_loadout: Completed\n" );
+}
+
+local_function_16()
+{
+	list localList_0;
+	list localList_1;
+	string local_2;
+	int ii;
+	int itemCount;
+	int jj;
+	list localList_2;
+	hship gRemoteFighter = none;
+	hship playerShip = iShip.FindPlayerShip();
+	hmapentity lucreciasBase;
+	hsim local_10;
+	hsim local_11;
+	bool local_12 = false;
+	
+	debug Debug.PrintString( "iStartSystem.strip_player_ship: Reimbursing ship to loadout...\n" );
+	localList_0 = Global.List( "g_turret_fighters" );
+	
+	for ( ii = 0; ii < List.ItemCount( localList_0 ); ++ii )
+	{
+		local_10 = Sim.Cast( List.GetNth( localList_0, ii ) );
+		
+		if ( Sim.IsAlive( local_10 ) && !Sim.IsHidden( local_10 ) )
+		{
+			List.AddTail( localList_1, local_10 );
+		}
+	}
+	
+	iLoadout.StripTurretFighters( localList_1 );
+	Global.Destroy( "g_turret_fighters" );
+	
+	if ( iLoadout.RemoteFighterMounted() )
+	{
+		if ( Global.Exists( "g_remote_fighter" ) )
+		{
+			gRemoteFighter = iShip.Cast( Global.Handle( "g_remote_fighter" ) );
+		}
+		
+		if ( (gRemoteFighter == false) || Sim.IsDead( gRemoteFighter ) )
+		{
+			iLoadout.RemoveRemoteFighter();
+		}
+		
+		Sim.Destroy( gRemoteFighter );
+		Global.Destroy( "g_remote_fighter" );
+	}
+	
+	lucreciasBase = iMapEntity.FindByNameInSystem( "Lucrecia's Base", Global.String( "g_player_base_system" ) );
+	localList_2 = List.FromSet( iSim.SimsInRadius( iSim.Cast( lucreciasBase ), Object.FloatProperty( lucreciasBase, "radius" ) + 25000.0, 1050624 ) );
+	itemCount = List.ItemCount( localList_2 );
+	
+	if ( itemCount > 0 )
+	{
+		for ( jj = 0; jj < itemCount; ++jj )
+		{
+			local_11 = Sim.Cast( List.GetNth( localList_2, jj ) );
+			
+			if ( Object.PropertyExists( local_11, "cargo" ) )
+			{
+				debug
+				{
+					Debug.PrintString( "iStartSystem.strip_player_ship: Adding Cargo to inventory of type: " );
+					Debug.PrintString( String.FromInt( Object.IntProperty( List.GetNth( localList_2, jj ), "cargo" ) ) );
+					Debug.PrintString( "\n" );
+				}
+				
+				iInventory.Add( Object.IntProperty( List.GetNth( localList_2, jj ), "cargo" ), 1 );
+			}
+			else debug Debug.PrintString( "iStartSystem.strip_player_ship: Skipping item with no cargo property. \n" );
+		}
+	}
+	
+	if ( iLoadout.LoadoutActive() )
+	{
+		iLoadout.StripShip( playerShip );
+	}
+	else
+	{
+		iLoadout.CalculateLoadout( L_Standard );
+	}
+	
+	debug Debug.PrintString( "iStartSystem.strip_player_ship: Completed\n" );
+}
+
+local_function_11()
+{
+	string local_0;
+	
+	if ( iShip.FindPlayerShip() == false )
+	{
+		local_0 = Config.GetString( "system", "Test", "ship" );
+		
+		debug atomic
+		{
+			if ( local_0 == "" )
+			{
+				Debug.PrintString( "iStartSystem.check_player_ship: Story didn't give the player a ship - creating ship from loadout\n" );
+			}
+			else
+			{
+				Debug.PrintString( "iStartSystem.check_player_ship: Story didn't give the player a ship - creating \"" );
+				Debug.PrintString( local_0 );
+				Debug.PrintString( "\"\n" );
+			}
+		}
+		
+		iUtilities.CreatePlayer( local_0, iMapEntity.FindByNameInSystem( "Lucrecia's Base", Global.String( "g_player_base_system" ) ) );
+	}
+}
+
+SkipCutscene()
+{
+	Global.SetBool( "g_cutscene_skip", true );
+}
+
+local_function_6()
+{
+	iScore.AddSkillRating( 200000, "statistics_kill_rating_level_10" );
+	iScore.AddSkillRating( 108000, "statistics_kill_rating_level_9" );
+	iScore.AddSkillRating( 74000, "statistics_kill_rating_level_8" );
+	iScore.AddSkillRating( 42000, "statistics_kill_rating_level_7" );
+	iScore.AddSkillRating( 25000, "statistics_kill_rating_level_6" );
+	iScore.AddSkillRating( 12000, "statistics_kill_rating_level_5" );
+	iScore.AddSkillRating( 6000, "statistics_kill_rating_level_4" );
+	iScore.AddSkillRating( 3000, "statistics_kill_rating_level_3" );
+	iScore.AddSkillRating( 1000, "statistics_kill_rating_level_2" );
+	iScore.AddSkillRating( 0, "statistics_kill_rating_level_1" );
+	iScore.SetKillValue( "T_CargoPod", 5 );
+	iScore.SetKillValue( "T_Drone", 20 );
+	iScore.SetKillValue( "T_Waldo", 20 );
+	iScore.SetKillValue( "T_Freighter", 40 );
+	iScore.SetKillValue( "T_CommandSection", 80 );
+	iScore.SetKillValue( "T_Tug", 100 );
+	iScore.SetKillValue( "T_Passenger", 110 );
+	iScore.SetKillValue( "T_Utility", 130 );
+	iScore.SetKillValue( "T_Patcom", 150 );
+	iScore.SetKillValue( "T_Fighter", 200 );
+	iScore.SetKillValue( "T_Interceptor", 250 );
+	iScore.SetKillValue( "T_Corvette", 400 );
+	iScore.SetKillValue( "T_Gunstar", 800 );
+	iScore.SetKillValue( "T_Destroyer", 900 );
+	iScore.SetKillValue( "T_Alien", 1000 );
+	iScore.SetKillValue( "T_Cruiser", 1200 );
+	iScore.SetKillValue( "T_BioBomber", 1500 );
+	iScore.SetKillValue( "T_Carrier", 1500 );
+	iScore.SetKillValue( "T_Station", 2000 );
+}
+
+string local_function_3( int param_0_ )
+{
+	switch ( param_0_ )
+	{
+		case 1:
+			return "map:/geog/badlands/hoffers_wake";
+		
+		case 2:
+			return "map:/geog/badlands/coyote";
+		
+		case 3:
+			return "map:/geog/badlands/kompira";
+		
+		case 4:
+			return "map:/geog/badlands/eureka";
+		
+		case 5:
+			return "map:/geog/badlands/firefrost";
+		
+		case 6:
+			return "map:/geog/badlands/dagda";
+		
+		case 7:
+			return "map:/geog/badlands/mwari";
+		
+		case 8:
+			return "map:/geog/badlands/santa_romera";
+		
+		case 9:
+			return "map:/geog/badlands/dante";
+		
+		case 10:
+			return "map:/geog/gagarin/formhault";
+		
+		case 11:
+			return "map:/geog/gagarin/batatas";
+		
+		case 12:
+			return "map:/geog/gagarin/owens_star";
+		
+		case 13:
+			return "map:/geog/gagarin/osprey";
+		
+		case 14:
+			return "map:/geog/gagarin/new_bavaria";
+		
+		case 15:
+			return "map:/geog/gagarin/drake";
+		
+		case 16:
+			return "map:/geog/gagarin/ishime";
+	}
+	
+	return "";
+}
+
+HideMapLocations()
+{
+	set localSet;
+	hmapentity mapEntity;
+	string local_2;
+	int local_3 = 1;
+	
+	debug Debug.PrintString( "iStartSytem.hide_map_locations: Starting location hiding.....\n" );
+	iMapEntity.SetMapVisibility( iMapEntity.FindByNameInSystem( "Military FTL Outpost", "map:/geog/badlands/hoffers_wake" ), false );
+	iMapEntity.SetMapVisibility( iMapEntity.FindByNameInSystem( "Marauder Central HQ", "map:/geog/badlands/dante" ), false );
+	iMapEntity.SetMapVisibility( iMapEntity.FindByNameInSystem( "Marauder Shipyard", "map:/geog/badlands/dante" ), false );
+	iMapEntity.SetMapVisibility( iMapEntity.FindByNameInSystem( "Marauder Supply Depot", "map:/geog/badlands/dante" ), false );
+	iMapEntity.SetMapVisibility( iMapEntity.FindByNameInSystem( "Marauder Supply Depot", "map:/geog/badlands/dante" ), false );
+	iMapEntity.SetMapVisibility( iMapEntity.FindByNameInSystem( "Dante Interstellar L-Point", "map:/geog/badlands/hoffers_wake" ), false );
+	iLagrangePoint.SetUsable( iLagrangePoint.Cast( iMapEntity.FindByNameInSystem( "Dante Interstellar L-Point", "map:/geog/badlands/hoffers_wake" ) ), false );
+	iMapEntity.SetMapVisibility( iMapEntity.FindByNameInSystem( "Faust-Alpha L-Point", "map:/geog/badlands/dante" ), false );
+	iMapEntity.SetMapVisibility( iMapEntity.FindByNameInSystem( "Marauder Interstellar L-Point Defense Station", "map:/geog/badlands/dante" ), false );
+	iLagrangePoint.SetUsable( iLagrangePoint.Cast( iMapEntity.FindByNameInSystem( "Faust-Alpha L-Point", "map:/geog/badlands/dante" ) ), false );
+	iMapEntity.SetMapVisibility( iMapEntity.FindByNameInSystem( "Dainn I L-Point", "map:/geog/badlands/firefrost" ), false );
+	iLagrangePoint.SetUsable( iLagrangePoint.Cast( iMapEntity.FindByNameInSystem( "Dainn I L-Point", "map:/geog/badlands/firefrost" ) ), false );
+	iMapEntity.SetMapVisibility( iMapEntity.FindByNameInSystem( "Dainn II L-Point", "map:/geog/badlands/firefrost" ), false );
+	iLagrangePoint.SetUsable( iLagrangePoint.Cast( iMapEntity.FindByNameInSystem( "Dainn II L-Point", "map:/geog/badlands/firefrost" ) ), false );
+	iMapEntity.SetMapVisibility( iMapEntity.FindByNameInSystem( "Dante Interstellar L-Point", "map:/geog/badlands/dante" ), false );
+	iMapEntity.SetMapVisibility( iMapEntity.FindByNameInSystem( "Maas Research Asteroid", "map:/geog/badlands/coyote" ), false );
+	iMapEntity.SetMapVisibility( iMapEntity.FindByNameInSystem( "Lucrecia's Base", "map:/geog/badlands/hoffers_wake" ), false );
+	iMapEntity.SetMapVisibility( iMapEntity.FindByNameInSystem( "Lucrecia's Base", "map:/geog/badlands/santa_romera" ), false );
+	iMapEntity.SetHidden( iMapEntity.FindByNameInSystem( "Lucrecia's Base", "map:/geog/badlands/santa_romera" ), true );
+	iSim.SetSensorVisibility( iSim.Cast( iMapEntity.FindByNameInSystem( "Lucrecia's Base", "map:/geog/badlands/santa_romera" ) ), false );
+	iMapEntity.SetMapVisibility( iMapEntity.FindByNameInSystem( "Lucrecia's Base", "map:/geog/gagarin/formhault" ), false );
+	iMapEntity.SetHidden( iMapEntity.FindByNameInSystem( "Lucrecia's Base", "map:/geog/gagarin/formhault" ), true );
+	iSim.SetSensorVisibility( iSim.Cast( iMapEntity.FindByNameInSystem( "Lucrecia's Base", "map:/geog/gagarin/formhault" ) ), false );
+	iLagrangePoint.SetUsable( iLagrangePoint.Cast( iMapEntity.FindByNameInSystem( "Remek L-Point", "map:/geog/gagarin/formhault" ) ), false );
+	iLagrangePoint.SetUsable( iLagrangePoint.Cast( iMapEntity.FindByNameInSystem( "Liberty L-Point", "map:/geog/badlands/santa_romera" ) ), false );
+	
+	do
+	{
+		local_2 = local_function_3( local_3 );
+		
+		debug atomic
+		{
+			Debug.PrintString( "iStartSytem.hide_map_locations: Processing Sytem:" );
+			Debug.PrintString( local_2 );
+			Debug.PrintString( "......\n" );
+		}
+		
+		localSet = iMapEntity.SystemHabitatsInSystem( local_function_3( local_3 ) );
+		
+		for ( localSet = iHabitat.FilterOnAllegiance( localSet, A_Marauders ); !Set.IsEmpty( localSet ); Set.Remove( localSet, mapEntity ) )
+		{
+			mapEntity = iMapEntity.Cast( Set.FirstElement( localSet ) );
+			
+			debug atomic
+			{
+				Debug.PrintString( "iStartSytem.hide_map_locations: Hiding habitat:" );
+				Debug.PrintString( Object.StringProperty( mapEntity, "name" ) );
+				Debug.PrintString( "......\n" );
+			}
+			
+			iMapEntity.SetMapVisibility( mapEntity, false );
+		}
+		
+		local_3 = ( local_3 + 1 );
+	}
+	while ( local_3 < 17 );
+}
+
+SetPlayerBaseMoviesVisible( bool visible_ )
+{
+	Global.SetBool( "g_show_dioramas", visible_ );
+}
+
+local_function_5()
+{
+	iInventory.Add( CT_ShipCPUGradeI, 1 );
+	iInventory.Add( CT_ParticleBeamCannon, 2 );
+	iInventory.Add( CT_QuadLightPBC, 2 );
+	iInventory.Add( CT_LightPBC, 3 );
+	iInventory.Add( CT_CommunicationsLaser, 3 );
+	iInventory.Add( CT_GnatRockets, 6 );
+	iInventory.Add( CT_HarrowerMissiles, 6 );
+	iInventory.Add( CT_Flares, 6 );
+	iInventory.Add( CT_TwinPackMissileLauncher, 2 );
+	iInventory.Add( CT_Accumulators, 1 );
+	iInventory.Add( CT_ShipsDrive, 1 );
+	iInventory.Add( CT_ManoeuvreThrusters, 1 );
+	iInventory.Add( CT_GammaHeatSink, 1 );
+	iInventory.Add( CT_PassiveSensorPackage, 1 );
+	iInventory.Add( CT_LDSClass1Drive, 1 );
+	iInventory.Add( CT_Level1AutorepairSystem, 1 );
+	iInventory.Add( CT_DefenceShield, 2 );
+	iInventory.CancelNewCargoFlags();
+}
+
+local_function_12()
+{
+	if ( !Global.Exists( "g_jafs_menu_option_enabled" ) )
+	{
+		iHUD.SetMenuNodeEnabled( "hud_menu_call_jafs", false );
+	}
+	
+	if ( !Global.Exists( "g_tfighters_menu_option_enabled" ) && (iGame.GameType() != 2) )
+	{
+		iHUD.SetMenuNodeEnabled( "hud_menu_wingmen", false );
+		iHUD.SetMenuNodeEnabled( "hud_menu_tfighters", false );
+	}
+}
+
+StartupNewGame()
+{
+	debug Debug.PrintString( "iStartSystem.StartupNewGame: Setting up singleplayer game...\n" );
+	local_function_4();
+	local_function_5();
+	SetPlayerBaseMoviesVisible( false );
+	iGMTracker.InitialiseMissionGenerator();
+	debug Debug.PrintString( "iStartSystem.StartupNewGame: Completed\n" );
+}
+
+StartupSession()
+{
+	local_function_6();
+	Text.Add( "csv:/text/email_addendum" );
+}
+
+StartupSpace()
+{
+	if ( (iGame.GameType() != 2) && (iGame.GameType() != 3) )
+	{
+		iGame.EnableBlackout( true );
+	}
+	
+	debug Debug.PrintString( "iStartSystem.StartupSpace: Setting up for spaceflight...\n" );
+	local_function_7();
+	local_function_8();
+	local_function_9();
+	local_function_10();
+	debug Debug.PrintString( "iStartSystem.StartupSpace: Completed\n" );
+}
+
+FinalSetup()
+{
+	int local_0;
+	hship playerShip;
+	bool local_2 = true;
+	bool local_3 = true;
+	hsim simDebris;
+	hsim simAlienCloud10000K;
+	
+	debug Debug.PrintString( "iStartSystem.FinalSetup: Making Performing last minute pre-flight checks...\n" );
+	local_function_11();
+	local_function_12();
+	local_function_13();
+	
+	if ( iGame.GameType() == 0 )
+	{
+		if ( Global.Int( "g_current_act" ) == 0 )
+		{
+			if ( Global.Exists( "g_act0_found_base" ) )
+			{
+				if ( Global.Bool( "g_act0_found_base" ) == 0 )
+				{
+					local_2 = false;
+				}
+			}
+		}
+		
+		if ( Global.String( "g_player_base_system" ) == "map:/geog/badlands/santa_romera" )
+		{
+			debug Debug.PrintString( "iStartSystem.FinalSetup: Creating Junkyard debris field for Lucrecia's Base in Santa Romera\n" );
+			simDebris = Sim.Create( "ini:/sims/regions/debris", "" );
+			Sim.SetCullable( simDebris, false );
+			Sim.PlaceAt( simDebris, iMapEntity.FindByNameInSystem( "Lucrecia's Base", "map:/geog/badlands/santa_romera" ) );
+		}
+		
+		if ( Global.Bool( "g_act3_ready_for_mission_ten" ) == 1 )
+		{
+			simAlienCloud10000K = Sim.Create( "ini:/sims/regions/alien_cloud_10000k", "alien_cloud" );
+			iSim.SetSensorVisibility( iSim.Cast( simAlienCloud10000K ), false );
+			Sim.PlaceAt( simAlienCloud10000K, iMapEntity.FindByNameInSystem( "Remek L-Point", "map:/geog/gagarin/formhault" ) );
+		}
+		
+		if ( local_2 )
+		{
+			Task.SuspendAll();
+			Task.Detach( start local_function_14() );
+		}
+		else
+		{
+			iGame.EnableBlackout( false );
+		}
+	}
+	
+	playerShip = iShip.FindPlayerShip();
+	Object.SetStringProperty( playerShip, "death_script", "iDeathScript.PlayerDeathScript" );
+	Object.AddBoolProperty( playerShip, "no_explode_fling_child", true );
+	
+	switch ( iSim.Type( playerShip ) )
+	{
+		case T_CommandSection:
+			Object.SetStringProperty( playerShip, "name", "sn_player_ship_command" );
+			break;
+		
+		case T_Interceptor:
+			Object.SetStringProperty( playerShip, "name", "sn_player_ship_storm_petrel" );
+			break;
+		
+		case T_Tug:
+			Object.SetStringProperty( playerShip, "name", Global.String( "g_player_ship_name" ) );
+			break;
+		
+		case T_Patcom:
+			Object.SetStringProperty( playerShip, "name", "sn_player_ship_fast_attack" );
+			break;
+		
+		case T_Corvette:
+			Object.SetStringProperty( playerShip, "name", "sn_player_ship_heavy_corvette" );
+			break;
+	}
+	
+	if ( Global.Int( "g_current_act" ) == 0 )
+	{
+		Sim.AvatarAddChannel( playerShip, "young_cal", 1.0 );
+	}
+	else
+	{
+		Sim.AvatarAddChannel( playerShip, "adult_cal", 1.0 );
+	}
+	
+	Task.Detach( start local_function_15() );
+	
+	if ( Global.Exists( "g_act3_capture_accelerator_complete" ) )
+	{
+		if ( Global.Bool( "g_act3_capture_accelerator_complete" ) == 1 )
+		{
+			iSim.SetFaction( iSim.Cast( iMapEntity.FindByNameInSystem( "Super Freighter Service Depot", "map:/geog/badlands/santa_romera" ) ), iFaction.Find( "League" ) );
+			iSim.SetFaction( iSim.Cast( iMapEntity.FindByNameInSystem( "Jump Accelerator", "map:/geog/badlands/santa_romera" ) ), iFaction.Find( "League" ) );
+			iSim.SetFaction( iSim.Cast( iMapEntity.FindByNameInSystem( "Formhault Jump Accelerator", "map:/geog/gagarin/formhault" ) ), iFaction.Find( "League" ) );
+		}
+	}
+	
+	debug Debug.PrintString( "iStartSystem.FinalSetup: Completed\n" );
+}
+
+ShutdownSpace()
+{
+	debug Debug.PrintString( "iStartSystem.ShutdownSpace: Shutting down spaceflight...\n" );
+	local_function_16();
+	local_function_17();
+	local_function_18();
+	Global.Destroy( "g_active_system_name" );
+	Global.Destroy( "g_filtered_system_habitats" );
+	Input.PurgeBindings();
+	debug Debug.PrintString( "iStartSystem.ShutdownSpace: Completed\n" );
+}
+
+StartupSystem()
+{
+	list localList;
+	string local_1;
+	string local_2;
+	
+	if ( iGame.GameType() != 2 )
+	{
+		debug Debug.PrintString( "iStartSystem.StartupSystem: Starting up new solar system...\n" );
+		local_1 = Global.String( "g_active_system_name" );
+		local_2 = iSim.ActiveWorld();
+		
+		debug atomic
+		{
+			Debug.PrintString( "iStartSystem.StartupSystem: Old system was \"" );
+			Debug.PrintString( local_1 );
+			Debug.PrintString( "\", new system is \"" );
+			Debug.PrintString( local_2 );
+			Debug.PrintString( "\"\n" );
+		}
+		
+		if ( !( local_1 == local_2 ) )
+		{
+			debug Debug.PrintString( "iStartSystem.StartupSystem: System has changed\n" );
+			
+			if ( !( local_2 == "" ) )
+			{
+				debug Debug.PrintString( "iStartSystem.StartupSystem: Making new list of traffic locations\n" );
+				
+				if ( Global.Exists( "g_filtered_system_habitats" ) )
+				{
+					Global.SetSet( "g_filtered_system_habitats", local_function_2() );
+				}
+				else
+				{
+					Global.CreateSet( "g_filtered_system_habitats", 2, local_function_2() );
+				}
+			}
+			
+			if ( Global.Exists( "g_active_system_name" ) )
+			{
+				Global.SetString( "g_active_system_name", local_2 );
+			}
+			else
+			{
+				Global.CreateString( "g_active_system_name", 10, local_2 );
+			}
+		}
+		else debug Debug.PrintString( "iStartSystem.StartupSystem: System hasn't changed\n" );
+		
+		local_function_19();
+		Global.CreateList( "g_active_location_list", 2, localList );
+		Global.CreateList( "g_old_active_location_list", 2, localList );
+		Global.CreateInt( "g_maximum_generated_ships", 1, 30 );
+		Global.CreateInt( "g_total_haulage_running", 2, 0 );
+		Global.CreateInt( "g_total_trade_running", 2, 0 );
+		Global.CreateInt( "g_total_supply_running", 2, 0 );
+		debug Debug.PrintString( "iStartSystem.StartupSystem: Starting range monitor...\n" );
+		local_function_20( "g_monitor_range_task", start iRangeCheck.MonitorRange() );
+		debug Debug.PrintString( "iStartSystem.StartupSystem: Starting traffic monitor...\n" );
+		local_function_20( "g_monitor_traffic_task", start iTrafficCreation.MonitorTraffic() );
+		debug Debug.PrintString( "iStartSystem.StartupSystem: Starting station reactive monitor...\n" );
+		iHabitat.SetReactiveFunction( "iStation.StationReactive" );
+		local_function_20( "g_monitor_station_reaction", start iStation.CheckStationReaction() );
+		
+		if ( iSim.ActiveWorld() == "map:/geog/badlands/santa_romera" )
+		{
+			if ( Global.Exists( "g_act3_capture_accelerator_complete" ) )
+			{
+				if ( Global.Bool( "g_act3_capture_accelerator_complete" ) == 1 )
+				{
+					debug Debug.PrintString( "iStartSystem.StartupSystem: Accelerators captured. Not starting Jump Accelerator Monitor\n" );
+					return;
+				}
+			}
+			
+			debug Debug.PrintString( "iStartSystem.StartupSystem: Starting Jump Accelerator Monitor...\n" );
+			Task.Detach( start local_function_21() );
+		}
+		else debug Debug.PrintString( "iStartSystem.StartupSystem: System is not Santa Romera - not starting Jump Accelerator Monitor.\n" );
+		
+		debug Debug.PrintString( "iStartSystem.StartupSystem: Completed\n" );
+	}
+}
+
+ShutdownSystem()
+{
+	debug Debug.PrintString( "iStartSystem.ShutdownSystem: Cleaning up solar system...\n" );
+	local_function_22( "g_monitor_range_task" );
+	local_function_22( "g_monitor_traffic_task" );
+	local_function_22( "g_monitor_station_reaction" );
+	Global.Destroy( "g_active_location_list" );
+	Global.Destroy( "g_old_active_location_list" );
+	Global.Destroy( "g_maximum_generated_ships" );
+	Global.Destroy( "g_total_haulage_running" );
+	Global.Destroy( "g_total_trade_running" );
+	Global.Destroy( "g_total_supply_running" );
+	debug Debug.PrintString( "iStartSystem.ShutdownSystem: Completed\n" );
+}
+
+hgroup local_function_23( hisim param_0_ )
+{
+	hgroup group = Group.Create();
+	hship shipJumpgateNode;
+	int ii;
+	
+	debug Debug.PrintString( "iActTwo:create_jumpgate_nodes - Creating LDA nodes\n" );
+	
+	for ( ii = 0; ii < 6; ++ii )
+	{
+		shipJumpgateNode = iShip.Create( "ini:/sims/custom/jumpgate/jumpgate_node", "" );
+		Group.AddSim( group, shipJumpgateNode );
+		Sim.SetCullable( shipJumpgateNode, false );
+		iSim.Dock( shipJumpgateNode, param_0_ );
+		iSim.SetIndestructable( shipJumpgateNode, true );
+		iSim.SetSensorVisibility( shipJumpgateNode, false );
+		Sim.AvatarAddChannel( shipJumpgateNode, "lda_on", 1.0 );
+	}
+	
+	return group;
+}
+
+hisim local_function_24( hisim param_0_ )
+{
+	hisim simJumpgateShield = iSim.Cast( Sim.Create( "ini:/sims/custom/jumpgate/jumpgate_shield", "shield" ) );
+	
+	debug Debug.PrintString( "iActTwo:create_jumpgate_shield - Adding shield to jump accelerator\n" );
+	iSim.SetIndestructable( simJumpgateShield, true );
+	Sim.CopyOrientation( simJumpgateShield, param_0_ );
+	Sim.AddChildRelativeTo( param_0_, simJumpgateShield, 0.0, 0.0, 0.0 );
+	return simJumpgateShield;
+}
+
+JumpgateShieldOn( hisim jumpgate_, bool force_on_ )
+{
+	hgroup nodeGroup;
+	int local_1;
+	hisim shieldHandle;
+	int ii;
+	
+	if ( (jumpgate_ == false) || Sim.IsDead( jumpgate_ ) )
+	{
+		debug Debug.PrintString( "iActTwo.JumpgateShieldOn - ERROR: Jumpgate is dead / null.\n" );
+		return;
+	}
+	
+	if ( iSim.Type( jumpgate_ ) != T_Station )
+	{
+		debug Debug.PrintString( "iActTwo.JumpgateShieldOn - ERROR: Jumpgate is not a station.\n" );
+		return;
+	}
+	
+	if ( !( Sim.Name( jumpgate_ ) == "Jump Accelerator" ) && !( Sim.Name( jumpgate_ ) == "Formhault Jump Accelerator" ) )
+	{
+		debug Debug.PrintString( "iActTwo.JumpgateShieldOn - ERROR: Station is not a jump accelerator.\n" );
+		return;
+	}
+	
+	if ( Object.PropertyExists( jumpgate_, "deactivated" ) )
+	{
+		if ( force_on_ )
+		{
+			debug Debug.PrintString( "iActTwo.JumpgateShieldOn - Jumpgate is deactivated by a script. Forcing active.\n" );
+			Object.RemoveProperty( jumpgate_, "deactivated" );
+		}
+		else
+		{
+			debug Debug.PrintString( "iActTwo.JumpgateShieldOn - Jumpgate is deactivated by a script. Not activating.\n" );
+			return;
+		}
+	}
+	
+	if ( !Object.PropertyExists( jumpgate_, "node_group" ) )
+	{
+		debug Debug.PrintString( "iActTwo.JumpgateShieldOn - Node group property not found. Adding LDA nodes to jumpgate\n" );
+		nodeGroup = local_function_23( jumpgate_ );
+		Object.AddHandleProperty( jumpgate_, "node_group", nodeGroup );
+	}
+	else
+	{
+		debug Debug.PrintString( "iActTwo.JumpgateShieldOn - Node group property is null or nodes are null. Adding LDA nodes to jumpgate\n" );
+		nodeGroup = Group.Cast( Object.HandleProperty( jumpgate_, "node_group" ) );
+		
+		if ( (nodeGroup == false) || (Group.SimCount( nodeGroup ) == 0) )
+		{
+			Group.Destroy( nodeGroup, true );
+			nodeGroup = local_function_23( jumpgate_ );
+			Object.SetHandleProperty( jumpgate_, "node_group", nodeGroup );
+		}
+		else
+		{
+			debug Debug.PrintString( "iActTwo.JumpgateShieldOn - Activating nodes\n" );
+			
+			for ( ii = 0; ii < Group.SimCount( nodeGroup ); ++ii )
+			{
+				Sim.AvatarAddChannel( Group.NthSim( nodeGroup, ii ), "lda_on", 1.0 );
+			}
+		}
+	}
+	
+	if ( Object.PropertyExists( jumpgate_, "shield_handle" ) )
+	{
+		shieldHandle = iSim.Cast( Object.HandleProperty( jumpgate_, "shield_handle" ) );
+		
+		if ( shieldHandle == false )
+		{
+			debug Debug.PrintString( "iActTwo.JumpgateShieldOn - Shield handle property found, but handle is null, creating.\n" );
+			shieldHandle = local_function_24( jumpgate_ );
+			Object.SetHandleProperty( jumpgate_, "shield_handle", shieldHandle );
+			return;
+		}
+		else
+		{
+			debug Debug.PrintString( "iActTwo.JumpgateShieldOn - Shield already exists\n" );
+			return;
+		}
+		
+		return;
+	}
+	
+	debug Debug.PrintString( "iActTwo.JumpgateShieldOn - Shield handle property not found. Creating shield.\n" );
+	shieldHandle = local_function_24( jumpgate_ );
+	Object.AddHandleProperty( jumpgate_, "shield_handle", shieldHandle );
+	return;
+}
+
+JumpgateShieldOff( hisim jumpgate_ )
+{
+	hgroup nodeGroup;
+	hisim shieldHandle;
+	int ii;
+	
+	if ( (jumpgate_ == false) || Sim.IsDead( jumpgate_ ) )
+	{
+		debug Debug.PrintString( "iActTwo.JumpgateShieldOn - ERROR: Jumpgate is dead / null.\n" );
+		return;
+	}
+	
+	if ( iSim.Type( jumpgate_ ) != T_Station )
+	{
+		debug Debug.PrintString( "iActTwo.JumpgateShieldOn - ERROR: Jumpgate is not a station/ null.\n" );
+		return;
+	}
+	
+	if ( !( Sim.Name( jumpgate_ ) == "Jump Accelerator" ) && !( Sim.Name( jumpgate_ ) == "Formhault Jump Accelerator" ) )
+	{
+		debug Debug.PrintString( "iActTwo.JumpgateShieldOn - ERROR: Station is not a jump accelerator.\n" );
+		return;
+	}
+	
+	if ( !Object.PropertyExists( jumpgate_, "node_group" ) )
+	{
+		debug Debug.PrintString( "iActTwo.deactivate_jumpgate - node group handle property not found, can't deactivate.\n" );
+		return;
+	}
+	
+	if ( !Object.PropertyExists( jumpgate_, "shield_handle" ) )
+	{
+		debug Debug.PrintString( "iActTwo.deactivate_jumpgate - shield handle property not found, can't deactivate shield.\n" );
+		return;
+	}
+	
+	nodeGroup = Group.Cast( Object.HandleProperty( jumpgate_, "node_group" ) );
+	
+	if ( (nodeGroup == false) || (Group.SimCount( nodeGroup ) == 0) )
+	{
+		debug Debug.PrintString( "iActTwo.deactivate_jumpgate - ERROR: Node group is invalid or empty. Can't deactivate\n" );
+		return;
+	}
+	
+	shieldHandle = iSim.Cast( Object.HandleProperty( jumpgate_, "shield_handle" ) );
+	
+	if ( (shieldHandle == false) || Sim.IsDead( shieldHandle ) )
+	{
+		debug Debug.PrintString( "iActTwo.deactivate_jumpgate - ERROR: Shield is invalid / dead. Can't deactivate\n" );
+		return;
+	}
+	
+	for ( ii = 0; ii < Group.SimCount( nodeGroup ); ++ii )
+	{
+		Task.Sleep( Task.Current(), 0.250 );
+		Sim.AvatarRemoveChannel( Group.NthSim( nodeGroup, ii ), "lda_on" );
+	}
+	
+	Sim.Destroy( shieldHandle );
+	Object.AddBoolProperty( jumpgate_, "deactivated", true );
+}
+
+task local_function_21()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	hmapentity jumpAccelerator = iMapEntity.FindByName( "Jump Accelerator" );
+	
+	debug Debug.PrintString( "iStartSystem.jumpgate_shield_monitor : Started. \n" );
+	
+	do
+	{
+		debug Debug.PrintString( "iStartSystem.jumpgate_shield_monitor : Waiting for player to reach Jump Accelerator.\n" );
+		
+		do
+		{
+			if ( !( iSim.ActiveWorld() == "map:/geog/badlands/santa_romera" ) )
+			{
+				debug Debug.PrintString( "iStartSystem.jumpgate_shield_monitor : Player is not in Santa Romera, quitting task.\n" );
+				return;
+			}
+			
+			Task.Sleep( Task.Current(), 1.0 );
+		}
+		while ( Sim.DistanceBetween( playerShip, jumpAccelerator ) > 10000000.0 );
+		
+		JumpgateShieldOn( jumpAccelerator, false );
+		debug Debug.PrintString( "iStartSystem.jumpgate_shield_monitor : Waiting for player to fly away from Jump Accelerator.\n" );
+		
+		do
+		{
+			if ( !( iSim.ActiveWorld() == "map:/geog/badlands/santa_romera" ) )
+			{
+				debug Debug.PrintString( "iStartSystem.jumpgate_shield_monitor : Player is not in Santa Romera, quitting task.\n" );
+				return;
+			}
+			
+			Task.Sleep( Task.Current(), 5.0 );
+		}
+		while ( Sim.DistanceBetween( playerShip, jumpAccelerator ) <= 10000000.0 );
+	}
+	while ( 1 );
+}
+
+BlankScreen()
+{
+}
+
+UnblankScreen()
+{
+}
+
+hmapentity MovePlayerBase( string start_system_, string destination_system_ )
+{
+	hmapentity lucreciasBase;
+	
+	atomic
+	{
+		iGame.EnableBlackout( true );
+		Global.SetString( "g_player_base_system", destination_system_ );
+		iGame.MovePlayerBase( destination_system_ );
+		lucreciasBase = iMapEntity.FindByNameInSystem( "Lucrecia's Base", start_system_ );
+		iMapEntity.SetHidden( lucreciasBase, true );
+		iMapEntity.SetMapVisibility( lucreciasBase, false );
+		iSim.SetSensorVisibility( iSim.Cast( lucreciasBase ), false );
+		lucreciasBase = iMapEntity.FindByNameInSystem( "Lucrecia's Base", destination_system_ );
+		iMapEntity.SetHidden( lucreciasBase, false );
+		iMapEntity.SetMapVisibility( lucreciasBase, true );
+		iSim.SetSensorVisibility( iSim.Cast( lucreciasBase ), true );
+		iGame.EnableBlackout( false );
+	}
+	
+	return lucreciasBase;
+}
+

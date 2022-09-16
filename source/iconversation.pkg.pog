@@ -1,0 +1,96 @@
+package iConversation;
+
+uses Task,
+     iComms;
+
+provides Begin,
+         End,
+         Say,
+         AddResponse,
+         Ask,
+         OneLiner,
+         Abort;
+
+prototype Begin();
+prototype End();
+prototype Say( hobject speaker_, string speaker_key_, string phrase_key_ );
+prototype AddResponse( string menu_key_, string phrase_key_ );
+prototype int Ask( hobject speaker_, string speaker_key_, string phrase_key_ );
+prototype OneLiner( hobject speaker_, string speaker_key_, string phrase_key_ );
+prototype Abort( bool param_0_ );
+
+Begin()
+{
+	if ( !iComms.BeginConversation() )
+	{
+		do
+		{
+			Task.Sleep( Task.Current(), 0.50 );
+		}
+		while ( !iComms.BeginConversation() );
+	}
+	
+	iComms.ClearResponses();
+}
+
+End()
+{
+	iComms.ClearResponses();
+	
+	if ( !iComms.CanEnd() )
+	{
+		do
+		{
+			Task.Sleep( Task.Current(), 0.50 );
+		}
+		while ( !iComms.CanEnd() );
+	}
+	
+	iComms.EndConversation();
+}
+
+Say( hobject speaker_, string speaker_key_, string phrase_key_ )
+{
+	iComms.Say( speaker_, speaker_key_, phrase_key_ );
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 0.20 );
+	}
+	while ( iComms.IsSaying( speaker_, speaker_key_, phrase_key_ ) );
+}
+
+AddResponse( string menu_key_, string phrase_key_ )
+{
+	iComms.AddResponse( menu_key_, phrase_key_ );
+}
+
+int Ask( hobject speaker_, string speaker_key_, string phrase_key_ )
+{
+	int local_0;
+	
+	iComms.Ask( speaker_, speaker_key_, phrase_key_ );
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 0.20 );
+	}
+	while ( iComms.IsSaying( speaker_, speaker_key_, phrase_key_ ) );
+	
+	local_0 = iComms.Response();
+	iComms.ClearResponses();
+	return local_0;
+}
+
+OneLiner( hobject speaker_, string speaker_key_, string phrase_key_ )
+{
+	Begin();
+	Say( speaker_, speaker_key_, phrase_key_ );
+	End();
+}
+
+Abort( bool param_0_ )
+{
+	iComms.Abort( param_0_ );
+}
+

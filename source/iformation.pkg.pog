@@ -1,0 +1,1333 @@
+package iFormation;
+
+uses Set,
+     Sim,
+     Group,
+     Math,
+     List,
+     Object,
+     MapEnumerations,
+     iMapEntity,
+     String,
+     iFaction,
+     iSim,
+     iBody,
+     iHabitat,
+     iShip,
+     Subsim,
+     iDockport,
+     iLagrangePoint,
+     iAI,
+     INIFile,
+     iUtilities;
+
+provides V,
+         Wedge,
+         LineAbreast,
+         LineAhead,
+         Parade,
+         SkirmishLine,
+         Cross,
+         Loose,
+         Impi,
+         Outrider,
+         Goose,
+         LineAstern,
+         Box,
+         Claw,
+         Wall,
+         RandomRectangle,
+         RandomSphere,
+         Stack,
+         LockGroupsInFormation,
+         Jiggle,
+         ApplyRandomRotation;
+
+prototype local_function_0( hgroup group_, float param_1_, bool param_2_, bool param_3_ );
+prototype V( hgroup group_, float spacing_offset_, bool first_time_ );
+prototype Goose( hgroup group_, float spacing_offset_, bool first_time_ );
+prototype Wedge( hgroup group_, float spacing_offset_, bool first_time_ );
+prototype LineAbreast( hgroup group_, float spacing_offset_, bool first_time_ );
+prototype LineAhead( hgroup group_, float spacing_offset_, bool first_time_ );
+prototype Parade( hgroup group_, float spacing_offset_, bool first_time_ );
+prototype SkirmishLine( hgroup group_, float spacing_offset_, bool first_time_ );
+prototype Cross( hgroup ship_list_, float offset_, bool first_time_ );
+prototype Loose( hgroup group_, float spacing_offset_, bool first_time_ );
+prototype Impi( hgroup ship_list_, float offset_, bool first_time_ );
+prototype Outrider( hgroup ship_list_, float offset_, bool first_time_ );
+prototype LineAstern( hgroup group_, float spacing_offset_, bool first_time_ );
+prototype Box( hgroup group_, float spacing_offset_, bool first_time_ );
+prototype Claw( hgroup ship_list_, float offset_, bool first_time_ );
+prototype Wall( hgroup group_, float spacing_offset_, bool first_time_ );
+prototype RandomRectangle( hgroup group_, float spacing_offset_, bool first_time_ );
+prototype RandomSphere( hgroup group_, float spacing_offset_, bool first_time_ );
+prototype Stack( hgroup group_, float spacing_offset_, bool first_time_ );
+prototype LockGroupsInFormation( hgroup lead_group_, hgroup secondary_group_, float x_, float y_, float z_, bool first_time_ );
+prototype ApplyRandomRotation( hgroup group_to_apply_to_ );
+prototype Jiggle( hgroup formation_group_, float rand_distance_, float rand_angle_ );
+
+local_function_0( hgroup group_, float param_1_, bool param_2_, bool param_3_ )
+{
+	int simCount;
+	int ii;
+	bool local_2 = true;
+	float local_3;
+	int local_4;
+	float local_5 = 0.0;
+	float local_6 = 0.0;
+	hsim groupIter_0;
+	hsim groupIter_1;
+	hship ship;
+	
+	simCount = Group.SimCount( group_ );
+	local_3 = iUtilities.GetLargestShipRadius( group_ );
+	local_3 = ( (local_3 * 2.0) + param_1_ );
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		if ( ii == 0 )
+		{
+			groupIter_1 = Group.NthSim( group_, ii );
+		}
+		else
+		{
+			groupIter_0 = Group.NthSim( group_, ii );
+			
+			if ( local_2 == 1 )
+			{
+				if ( local_5 < 0.0 )
+				{
+					local_5 = -local_5;
+				}
+				
+				local_5 = ( local_5 + local_3 );
+				local_2 = false;
+				
+				if ( param_3_ )
+				{
+					local_6 = ( local_6 - local_3 );
+				}
+				else
+				{
+					local_6 = ( local_6 + local_3 );
+				}
+			}
+			else
+			{
+				local_5 = -local_5;
+				local_2 = true;
+			}
+			
+			if ( param_2_ )
+			{
+				Sim.PlaceRelativeTo( groupIter_0, groupIter_1, local_5, 0.0, local_6 );
+				
+				if ( Group.NthSim( group_, ii ) )
+				{
+					ship = iShip.Cast( Group.NthSim( group_, ii ) );
+					iAI.GiveFormateOrder( ship, groupIter_1, local_5, 0.0, local_6 );
+				}
+			}
+			else
+			{
+				ship = iShip.Cast( Group.NthSim( group_, ii ) );
+				iAI.GiveFormateOrder( ship, groupIter_1, local_5, 0.0, local_6 );
+			}
+		}
+	}
+}
+
+V( hgroup group_, float spacing_offset_, bool first_time_ )
+{
+	bool local_0 = false;
+	
+	local_function_0( group_, spacing_offset_, first_time_, local_0 );
+}
+
+Goose( hgroup group_, float spacing_offset_, bool first_time_ )
+{
+	bool local_0 = true;
+	
+	local_function_0( group_, spacing_offset_, first_time_, local_0 );
+}
+
+Wedge( hgroup group_, float spacing_offset_, bool first_time_ )
+{
+	int simCount;
+	int ii = 0;
+	int local_2 = 0;
+	bool local_3 = true;
+	int local_4 = 3;
+	float local_5 = 0.0;
+	float local_6;
+	float local_7 = 0.0;
+	hsim groupIter_0;
+	hsim groupIter_1;
+	hship ship;
+	
+	simCount = Group.SimCount( group_ );
+	local_5 = iUtilities.GetLargestShipRadius( group_ );
+	local_5 = ( (local_5 * 2.0) + spacing_offset_ );
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		if ( ii == 0 )
+		{
+			groupIter_1 = Group.NthSim( group_, ii );
+		}
+		else
+		{
+			groupIter_0 = Group.NthSim( group_, ii );
+			
+			if ( local_2 == 0 )
+			{
+				local_7 = ( local_7 - local_5 );
+				local_6 = 0.0;
+				local_2 = ( local_2 + 1 );
+			}
+			else if ( local_3 == 1 )
+			{
+				if ( local_6 < 0.0 )
+				{
+					local_6 = -local_6;
+				}
+				
+				local_6 = ( local_6 + local_5 );
+				local_3 = false;
+				local_2 = ( local_2 + 1 );
+			}
+			else
+			{
+				local_6 = -local_6;
+				local_3 = true;
+				local_2 = ( local_2 + 1 );
+			}
+			
+			if ( first_time_ )
+			{
+				Sim.PlaceRelativeTo( groupIter_0, groupIter_1, local_6, 0.0, local_7 );
+				
+				if ( iShip.Cast( groupIter_0 ) )
+				{
+					ship = iShip.Cast( groupIter_0 );
+					iAI.GiveFormateOrder( ship, groupIter_1, local_6, 0.0, local_7 );
+				}
+			}
+			else
+			{
+				ship = iShip.Cast( Group.NthSim( group_, ii ) );
+				iAI.GiveFormateOrder( ship, groupIter_1, local_6, 0.0, local_7 );
+			}
+			
+			if ( local_2 == local_4 )
+			{
+				local_4 = ( local_4 + 2 );
+				local_2 = 0;
+			}
+		}
+	}
+}
+
+LineAbreast( hgroup group_, float spacing_offset_, bool first_time_ )
+{
+	int simCount;
+	int ii;
+	bool local_2 = true;
+	float local_3;
+	int local_4;
+	float local_5 = 0.0;
+	hsim groupIter;
+	hsim local_7;
+	hship ship;
+	
+	simCount = Group.SimCount( group_ );
+	local_3 = iUtilities.GetLargestShipRadius( group_ );
+	local_3 = ( (local_3 * 2.0) + spacing_offset_ );
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		if ( ii == 0 )
+		{
+			local_7 = Sim.Cast( Group.NthSim( group_, ii ) );
+		}
+		else
+		{
+			groupIter = Group.NthSim( group_, ii );
+			
+			if ( local_2 == 1 )
+			{
+				if ( local_5 < 0.0 )
+				{
+					local_5 = -local_5;
+				}
+				
+				local_5 = ( local_5 + local_3 );
+				local_2 = false;
+			}
+			else
+			{
+				local_5 = -local_5;
+				local_2 = true;
+			}
+			
+			if ( first_time_ )
+			{
+				Sim.PlaceRelativeTo( groupIter, local_7, local_5, 0.0, 0.0 );
+				
+				if ( iShip.Cast( groupIter ) )
+				{
+					ship = iShip.Cast( groupIter );
+					iAI.GiveFormateOrder( ship, local_7, local_5, 0.0, 0.0 );
+				}
+			}
+			else
+			{
+				ship = iShip.Cast( Group.NthSim( group_, ii ) );
+				iAI.GiveFormateOrder( ship, local_7, local_5, 0.0, 0.0 );
+			}
+		}
+	}
+}
+
+LineAhead( hgroup group_, float spacing_offset_, bool first_time_ )
+{
+	int simCount;
+	int ii;
+	float local_2;
+	int local_3;
+	float local_4 = 0.0;
+	hsim groupIter_0;
+	hsim groupIter_1;
+	hship ship;
+	
+	simCount = Group.SimCount( group_ );
+	local_2 = iUtilities.GetLargestShipRadius( group_ );
+	local_2 = ( (local_2 * 2.0) + spacing_offset_ );
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		if ( ii == 0 )
+		{
+			groupIter_1 = Group.NthSim( group_, ii );
+		}
+		else
+		{
+			groupIter_0 = Group.NthSim( group_, ii );
+			local_4 = ( local_4 - local_2 );
+			
+			if ( first_time_ )
+			{
+				Sim.PlaceRelativeTo( groupIter_0, groupIter_1, 0.0, 0.0, local_4 );
+				
+				if ( iShip.Cast( groupIter_0 ) )
+				{
+					ship = iShip.Cast( groupIter_0 );
+					iAI.GiveFormateOrder( ship, groupIter_1, 0.0, 0.0, local_4 );
+				}
+			}
+			else
+			{
+				ship = iShip.Cast( Group.NthSim( group_, ii ) );
+				iAI.GiveFormateOrder( ship, groupIter_1, 0.0, 0.0, local_4 );
+			}
+		}
+	}
+}
+
+Parade( hgroup group_, float spacing_offset_, bool first_time_ )
+{
+	int simCount;
+	int local_1;
+	int local_2;
+	int ii;
+	int local_4;
+	int local_5 = 0;
+	float local_6;
+	float local_7;
+	float local_8 = 0.0;
+	float local_9 = 0.0;
+	float local_10 = 0.0;
+	hsim groupIter_0;
+	hsim groupIter_1;
+	hship ship;
+	
+	simCount = Group.SimCount( group_ );
+	local_10 = iUtilities.GetLargestShipRadius( group_ );
+	local_10 = ( (local_10 * 2.0) + spacing_offset_ );
+	local_6 = simCount;
+	local_7 = Math.Sqrt( local_6 );
+	local_1 = local_7;
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		if ( ii == 0 )
+		{
+			groupIter_1 = Group.NthSim( group_, ii );
+			local_5 = ( local_5 + 1 );
+		}
+		else
+		{
+			groupIter_0 = Group.NthSim( group_, ii );
+			
+			if ( local_5 == local_1 )
+			{
+				local_8 = 0.0;
+				local_9 = ( local_9 - local_10 );
+				local_5 = 1;
+			}
+			else
+			{
+				local_8 = ( local_8 + local_10 );
+				local_5 = ( local_5 + 1 );
+			}
+			
+			if ( first_time_ )
+			{
+				Sim.PlaceRelativeTo( groupIter_0, groupIter_1, local_8, 0.0, local_9 );
+				
+				if ( iShip.Cast( groupIter_0 ) )
+				{
+					ship = iShip.Cast( groupIter_0 );
+					iAI.GiveFormateOrder( ship, groupIter_1, local_8, 0.0, local_9 );
+				}
+			}
+			else
+			{
+				ship = iShip.Cast( Group.NthSim( group_, ii ) );
+				iAI.GiveFormateOrder( ship, groupIter_1, local_8, 0.0, local_9 );
+			}
+		}
+	}
+}
+
+SkirmishLine( hgroup group_, float spacing_offset_, bool first_time_ )
+{
+	int simCount;
+	int ii;
+	bool local_2 = true;
+	int local_3 = 0;
+	float local_4;
+	float constant = 0.0;
+	int local_6;
+	float local_7 = 0.0;
+	float local_8 = 0.0;
+	float local_9 = 0.0;
+	hsim groupIter_0;
+	hsim groupIter_1;
+	hship ship;
+	
+	simCount = Group.SimCount( group_ );
+	local_4 = iUtilities.GetLargestShipRadius( group_ );
+	local_4 = ( (local_4 * 2.0) + spacing_offset_ );
+	local_9 = -local_4;
+	local_8 = local_9;
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		if ( ii == 0 )
+		{
+			groupIter_1 = Group.NthSim( group_, ii );
+		}
+		else
+		{
+			groupIter_0 = Group.NthSim( group_, ii );
+			
+			if ( local_2 == 1 )
+			{
+				if ( local_7 < 0.0 )
+				{
+					local_7 = -local_7;
+				}
+				
+				local_7 = ( local_7 + local_4 );
+				local_2 = false;
+				local_3 = ( local_3 + 1 );
+			}
+			else
+			{
+				local_7 = -local_7;
+				local_2 = true;
+				local_3 = ( local_3 + 1 );
+			}
+			
+			if ( first_time_ )
+			{
+				Sim.PlaceRelativeTo( groupIter_0, groupIter_1, local_7, 0.0, local_8 );
+				
+				if ( iShip.Cast( groupIter_0 ) )
+				{
+					ship = iShip.Cast( groupIter_0 );
+					iAI.GiveFormateOrder( ship, groupIter_1, local_7, 0.0, local_8 );
+				}
+			}
+			else
+			{
+				ship = iShip.Cast( Group.NthSim( group_, ii ) );
+				iAI.GiveFormateOrder( ship, groupIter_1, local_7, 0.0, local_8 );
+			}
+			
+			if ( local_3 == 2 )
+			{
+				local_3 = 0;
+				
+				if ( local_8 == 0.0 )
+				{
+					local_8 = local_9;
+				}
+				else
+				{
+					local_8 = 0.0;
+				}
+			}
+		}
+	}
+}
+
+Cross( hgroup ship_list_, float offset_, bool first_time_ )
+{
+	int simCount = Group.SimCount( ship_list_ );
+	int local_1 = 1;
+	float local_2;
+	float local_3;
+	float local_4;
+	float local_5;
+	hsim groupIter_0;
+	hsim groupIter_1;
+	
+	if ( simCount == 1 )
+	{
+		return;
+	}
+	
+	groupIter_1 = Group.NthSim( ship_list_, 0 );
+	local_5 = ( (2.0 * iUtilities.GetLargestShipRadius( ship_list_ )) + offset_ );
+	
+	do
+	{
+		local_2 = ( local_2 + 1.0 );
+		groupIter_0 = Group.NthSim( ship_list_, local_1 );
+		local_3 = ( local_2 * local_5 );
+		local_4 = ( local_2 * local_5 );
+		
+		if ( first_time_ )
+		{
+			Sim.PlaceRelativeTo( groupIter_0, groupIter_1, local_3, local_4, 0.0 );
+			
+			if ( iShip.Cast( groupIter_0 ) )
+			{
+				iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), groupIter_1, local_3, local_4, 0.0 );
+			}
+		}
+		else
+		{
+			iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), iShip.Cast( groupIter_1 ), local_3, local_4, 0.0 );
+		}
+		
+		local_1 = ( local_1 + 1 );
+		
+		if ( local_1 < simCount )
+		{
+			groupIter_0 = Group.NthSim( ship_list_, local_1 );
+			local_3 = ( local_2 * local_5 );
+			local_4 = -( local_2 * local_5 );
+			
+			if ( first_time_ )
+			{
+				Sim.PlaceRelativeTo( groupIter_0, groupIter_1, local_3, local_4, 0.0 );
+				
+				if ( iShip.Cast( groupIter_0 ) )
+				{
+					iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), groupIter_1, local_3, local_4, 0.0 );
+				}
+			}
+			else
+			{
+				iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), iShip.Cast( groupIter_1 ), local_3, local_4, 0.0 );
+			}
+			
+			local_1 = ( local_1 + 1 );
+			
+			if ( local_1 < simCount )
+			{
+				groupIter_0 = Group.NthSim( ship_list_, local_1 );
+				local_3 = -( local_2 * local_5 );
+				local_4 = ( local_2 * local_5 );
+				
+				if ( first_time_ )
+				{
+					Sim.PlaceRelativeTo( groupIter_0, groupIter_1, local_3, local_4, 0.0 );
+					
+					if ( iShip.Cast( groupIter_0 ) )
+					{
+						iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), groupIter_1, local_3, local_4, 0.0 );
+					}
+				}
+				else
+				{
+					iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), iShip.Cast( groupIter_1 ), local_3, local_4, 0.0 );
+				}
+				
+				local_1 = ( local_1 + 1 );
+				
+				if ( local_1 < simCount )
+				{
+					groupIter_0 = Group.NthSim( ship_list_, local_1 );
+					local_3 = -( local_2 * local_5 );
+					local_4 = -( local_2 * local_5 );
+					
+					if ( first_time_ )
+					{
+						Sim.PlaceRelativeTo( groupIter_0, groupIter_1, local_3, local_4, 0.0 );
+						
+						if ( iShip.Cast( groupIter_0 ) )
+						{
+							iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), groupIter_1, local_3, local_4, 0.0 );
+						}
+					}
+					else
+					{
+						iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), iShip.Cast( groupIter_1 ), local_3, local_4, 0.0 );
+					}
+					
+					local_1 = ( local_1 + 1 );
+				}
+			}
+		}
+	}
+	while ( local_1 < simCount );
+}
+
+Loose( hgroup group_, float spacing_offset_, bool first_time_ )
+{
+}
+
+Impi( hgroup ship_list_, float offset_, bool first_time_ )
+{
+	int simCount = Group.SimCount( ship_list_ );
+	int local_1 = 1;
+	float local_2;
+	float local_3;
+	float local_4 = 10.0;
+	float local_5;
+	hsim groupIter_0;
+	hsim groupIter_1;
+	
+	if ( simCount == 1 )
+	{
+		return;
+	}
+	
+	groupIter_1 = Group.NthSim( ship_list_, 0 );
+	local_5 = ( (2.0 * iUtilities.GetLargestShipRadius( ship_list_ )) + offset_ );
+	
+	do
+	{
+		local_2 = ( local_2 + 1.0 );
+		
+		if ( local_2 < 4.0 )
+		{
+			local_4 = ( local_4 * local_2 );
+		}
+		else
+		{
+			local_4 = ( local_4 + local_4 );
+		}
+		
+		groupIter_0 = Group.NthSim( ship_list_, local_1 );
+		local_3 = ( (local_2 * local_5) + offset_ );
+		
+		if ( first_time_ )
+		{
+			Sim.PlaceRelativeTo( groupIter_0, groupIter_1, local_3, 0.0, local_4 );
+			
+			if ( iShip.Cast( groupIter_0 ) )
+			{
+				iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), groupIter_1, local_3, 0.0, local_4 );
+			}
+		}
+		else
+		{
+			iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), iShip.Cast( groupIter_1 ), local_3, 0.0, local_4 );
+		}
+		
+		local_1 = ( local_1 + 1 );
+		
+		if ( local_1 < simCount )
+		{
+			groupIter_0 = Group.NthSim( ship_list_, local_1 );
+			local_3 = -( local_2 * local_5 );
+			
+			if ( first_time_ )
+			{
+				Sim.PlaceRelativeTo( groupIter_0, groupIter_1, local_3, 0.0, local_4 );
+				
+				if ( iShip.Cast( groupIter_0 ) )
+				{
+					iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), groupIter_1, local_3, 0.0, local_4 );
+				}
+			}
+			else
+			{
+				iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), iShip.Cast( groupIter_1 ), local_3, 0.0, local_4 );
+			}
+			
+			local_1 = ( local_1 + 1 );
+		}
+	}
+	while ( local_1 < simCount );
+}
+
+Outrider( hgroup ship_list_, float offset_, bool first_time_ )
+{
+	int simCount = Group.SimCount( ship_list_ );
+	int local_1;
+	int local_2;
+	int local_3;
+	float local_4;
+	float local_5;
+	hsim groupIter_0;
+	hsim groupIter_1;
+	
+	if ( simCount == 1 )
+	{
+		return;
+	}
+	
+	groupIter_1 = Group.NthSim( ship_list_, 0 );
+	local_1 = ( (simCount - 1) / 2 );
+	local_5 = ( (2.0 * iUtilities.GetLargestShipRadius( ship_list_ )) + offset_ );
+	
+	do
+	{
+		local_2 = ( local_2 + 1 );
+		groupIter_0 = Group.NthSim( ship_list_, local_2 );
+		
+		if ( first_time_ )
+		{
+			Sim.PlaceRelativeTo( groupIter_0, groupIter_1, local_4, 0.0, local_5 + 10.0 );
+			
+			if ( iShip.Cast( groupIter_0 ) )
+			{
+				iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), groupIter_1, local_4, 0.0, local_5 + 10.0 );
+			}
+		}
+		else
+		{
+			iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), iShip.Cast( groupIter_1 ), local_4, 0.0, local_5 + 10.0 );
+		}
+		
+		local_4 = ( local_4 + local_5 );
+		
+		if ( (local_2 + 1) <= local_1 )
+		{
+			local_2 = ( local_2 + 1 );
+			groupIter_0 = Group.NthSim( ship_list_, local_2 );
+			
+			if ( first_time_ )
+			{
+				Sim.PlaceRelativeTo( groupIter_0, groupIter_1, -local_4, 0.0, local_5 + 10.0 );
+				
+				if ( iShip.Cast( groupIter_0 ) )
+				{
+					iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), groupIter_1, -local_4, 0.0, local_5 + 10.0 );
+				}
+			}
+			else
+			{
+				iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), iShip.Cast( groupIter_1 ), -local_4, 0.0, local_5 + 10.0 );
+			}
+		}
+	}
+	while ( local_2 < local_1 );
+	
+	local_4 = 0.0;
+	
+	do
+	{
+		local_2 = ( local_2 + 1 );
+		groupIter_0 = Group.NthSim( ship_list_, local_2 );
+		
+		if ( first_time_ )
+		{
+			Sim.PlaceRelativeTo( groupIter_0, groupIter_1, local_4, 0.0, -( local_5 + 10.0 ) );
+			
+			if ( iShip.Cast( groupIter_0 ) )
+			{
+				iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), groupIter_1, local_4, 0.0, -( local_5 + 10.0 ) );
+			}
+		}
+		else
+		{
+			iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), iShip.Cast( groupIter_1 ), local_4, 0.0, -( local_5 + 10.0 ) );
+		}
+		
+		local_4 = ( local_4 + local_5 );
+		
+		if ( (local_2 + 1) <= (simCount - 1) )
+		{
+			local_2 = ( local_2 + 1 );
+			groupIter_0 = Group.NthSim( ship_list_, local_2 );
+			
+			if ( first_time_ )
+			{
+				Sim.PlaceRelativeTo( groupIter_0, groupIter_1, -local_4, 0.0, -( local_5 + 10.0 ) );
+				
+				if ( iShip.Cast( groupIter_0 ) )
+				{
+					iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), groupIter_1, -local_4, 0.0, -( local_5 + 10.0 ) );
+				}
+			}
+			else
+			{
+				iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), iShip.Cast( groupIter_1 ), -local_4, 0.0, -( local_5 + 10.0 ) );
+			}
+		}
+	}
+	while ( local_2 < (simCount - 1) );
+}
+
+LineAstern( hgroup group_, float spacing_offset_, bool first_time_ )
+{
+	int simCount;
+	int ii;
+	float local_2;
+	int local_3;
+	float local_4 = 0.0;
+	hsim groupIter_0;
+	hsim groupIter_1;
+	hship ship;
+	
+	simCount = Group.SimCount( group_ );
+	local_2 = iUtilities.GetLargestShipRadius( group_ );
+	local_2 = ( (local_2 * 2.0) + spacing_offset_ );
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		if ( ii == 0 )
+		{
+			groupIter_1 = Group.NthSim( group_, ii );
+		}
+		else
+		{
+			groupIter_0 = Group.NthSim( group_, ii );
+			local_4 = ( local_4 + local_2 );
+			
+			if ( first_time_ )
+			{
+				Sim.PlaceRelativeTo( groupIter_0, groupIter_1, 0.0, 0.0, local_4 );
+				
+				if ( iShip.Cast( groupIter_0 ) )
+				{
+					iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), groupIter_1, 0.0, 0.0, local_4 );
+				}
+			}
+			else
+			{
+				ship = iShip.Cast( Group.NthSim( group_, ii ) );
+				iAI.GiveFormateOrder( ship, groupIter_1, 0.0, 0.0, local_4 );
+			}
+		}
+	}
+}
+
+Box( hgroup group_, float spacing_offset_, bool first_time_ )
+{
+	int simCount;
+	int local_1;
+	int local_2;
+	int ii;
+	int local_4;
+	int local_5 = 0;
+	int local_6 = 0;
+	float local_7;
+	float local_8;
+	float local_9 = 0.0;
+	float local_10 = 0.0;
+	float local_11 = 0.0;
+	float local_12 = 0.0;
+	hsim groupIter_0;
+	hsim groupIter_1;
+	hship ship;
+	
+	simCount = Group.SimCount( group_ );
+	local_12 = iUtilities.GetLargestShipRadius( group_ );
+	local_12 = ( (local_12 * 2.0) + spacing_offset_ );
+	local_7 = simCount;
+	local_8 = Math.CubeRoot( local_7 );
+	local_1 = local_8;
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		if ( ii == 0 )
+		{
+			groupIter_1 = Group.NthSim( group_, ii );
+			local_5 = ( local_5 + 1 );
+		}
+		else
+		{
+			groupIter_0 = Group.NthSim( group_, ii );
+			
+			if ( local_5 == local_1 )
+			{
+				local_9 = 0.0;
+				local_10 = ( local_10 - local_12 );
+				local_5 = 1;
+				local_6 = ( local_6 + 1 );
+			}
+			else
+			{
+				local_9 = ( local_9 + local_12 );
+				local_5 = ( local_5 + 1 );
+			}
+			
+			if ( local_6 == local_1 )
+			{
+				local_6 = 0;
+				local_10 = 0.0;
+				local_11 = ( local_11 - local_12 );
+			}
+			
+			if ( first_time_ )
+			{
+				Sim.PlaceRelativeTo( groupIter_0, groupIter_1, local_9, local_10, local_11 );
+				
+				if ( iShip.Cast( groupIter_0 ) )
+				{
+					iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), groupIter_1, local_9, local_10, local_11 );
+				}
+			}
+			else
+			{
+				ship = iShip.Cast( Group.NthSim( group_, ii ) );
+				iAI.GiveFormateOrder( ship, groupIter_1, local_9, local_10, local_11 );
+			}
+		}
+	}
+}
+
+Claw( hgroup ship_list_, float offset_, bool first_time_ )
+{
+	int simCount = Group.SimCount( ship_list_ );
+	int local_1 = 1;
+	float local_2;
+	float local_3;
+	float local_4;
+	float local_5 = 10.0;
+	float local_6;
+	hsim groupIter_0;
+	hsim groupIter_1;
+	
+	if ( simCount == 1 )
+	{
+		return;
+	}
+	
+	groupIter_1 = Group.NthSim( ship_list_, 0 );
+	local_6 = ( (2.0 * iUtilities.GetLargestShipRadius( ship_list_ )) + offset_ );
+	
+	do
+	{
+		local_2 = ( local_2 + 1.0 );
+		
+		if ( local_2 < 4.0 )
+		{
+			local_5 = ( local_5 * local_2 );
+		}
+		else
+		{
+			local_5 = ( local_5 + local_5 );
+		}
+		
+		groupIter_0 = Group.NthSim( ship_list_, local_1 );
+		local_3 = ( (local_2 * local_6) + offset_ );
+		local_4 = ( (local_2 * local_6) + offset_ );
+		
+		if ( first_time_ )
+		{
+			Sim.PlaceRelativeTo( groupIter_0, groupIter_1, local_3, local_4, local_5 );
+			
+			if ( iShip.Cast( groupIter_0 ) )
+			{
+				iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), groupIter_1, local_3, local_4, local_5 );
+			}
+		}
+		else
+		{
+			iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), iShip.Cast( groupIter_1 ), local_3, local_4, local_5 );
+		}
+		
+		local_1 = ( local_1 + 1 );
+		
+		if ( local_1 < simCount )
+		{
+			groupIter_0 = Group.NthSim( ship_list_, local_1 );
+			local_3 = ( local_2 * local_6 );
+			local_4 = -( local_2 * local_6 );
+			
+			if ( first_time_ )
+			{
+				Sim.PlaceRelativeTo( groupIter_0, groupIter_1, local_3, local_4, local_5 );
+				
+				if ( iShip.Cast( groupIter_0 ) )
+				{
+					iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), groupIter_1, local_3, local_4, local_5 );
+				}
+			}
+			else
+			{
+				iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), iShip.Cast( groupIter_1 ), local_3, local_4, local_5 );
+			}
+			
+			local_1 = ( local_1 + 1 );
+			
+			if ( local_1 < simCount )
+			{
+				groupIter_0 = Group.NthSim( ship_list_, local_1 );
+				local_3 = -( local_2 * local_6 );
+				local_4 = ( local_2 * local_6 );
+				
+				if ( first_time_ )
+				{
+					Sim.PlaceRelativeTo( groupIter_0, groupIter_1, local_3, local_4, local_5 );
+					
+					if ( iShip.Cast( groupIter_0 ) )
+					{
+						iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), groupIter_1, local_3, local_4, local_5 );
+					}
+				}
+				else
+				{
+					iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), iShip.Cast( groupIter_1 ), local_3, local_4, local_5 );
+				}
+				
+				local_1 = ( local_1 + 1 );
+				
+				if ( local_1 < simCount )
+				{
+					groupIter_0 = Group.NthSim( ship_list_, local_1 );
+					local_3 = -( local_2 * local_6 );
+					local_4 = -( local_2 * local_6 );
+					
+					if ( first_time_ )
+					{
+						Sim.PlaceRelativeTo( groupIter_0, groupIter_1, local_3, local_4, local_5 );
+						
+						if ( iShip.Cast( groupIter_0 ) )
+						{
+							iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), groupIter_1, local_3, local_4, local_5 );
+						}
+					}
+					else
+					{
+						iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), iShip.Cast( groupIter_1 ), local_3, local_4, local_5 );
+					}
+					
+					local_1 = ( local_1 + 1 );
+				}
+			}
+		}
+	}
+	while ( local_1 < simCount );
+}
+
+Wall( hgroup group_, float spacing_offset_, bool first_time_ )
+{
+	int simCount;
+	int local_1;
+	int local_2;
+	int ii;
+	int local_4;
+	int local_5 = 0;
+	float local_6;
+	float local_7;
+	float local_8 = 0.0;
+	float local_9 = 0.0;
+	float local_10 = 0.0;
+	hsim groupIter_0;
+	hsim groupIter_1;
+	hship ship;
+	
+	simCount = Group.SimCount( group_ );
+	local_10 = iUtilities.GetLargestShipRadius( group_ );
+	local_10 = ( (local_10 * 2.0) + spacing_offset_ );
+	local_6 = simCount;
+	local_7 = Math.Sqrt( local_6 );
+	local_1 = local_7;
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		if ( ii == 0 )
+		{
+			groupIter_1 = Group.NthSim( group_, ii );
+			local_5 = ( local_5 + 1 );
+		}
+		else
+		{
+			groupIter_0 = Group.NthSim( group_, ii );
+			
+			if ( local_5 == local_1 )
+			{
+				local_8 = 0.0;
+				local_9 = ( local_9 - local_10 );
+				local_5 = 1;
+			}
+			else
+			{
+				local_8 = ( local_8 + local_10 );
+				local_5 = ( local_5 + 1 );
+			}
+			
+			if ( first_time_ )
+			{
+				Sim.PlaceRelativeTo( groupIter_0, groupIter_1, local_8, local_9, 0.0 );
+				
+				if ( iShip.Cast( groupIter_0 ) )
+				{
+					iAI.GiveFormateOrder( iShip.Cast( groupIter_0 ), groupIter_1, local_8, local_9, 0.0 );
+				}
+			}
+			else
+			{
+				ship = iShip.Cast( Group.NthSim( group_, ii ) );
+				iAI.GiveFormateOrder( ship, groupIter_1, local_8, local_9, 0.0 );
+			}
+		}
+	}
+}
+
+RandomRectangle( hgroup group_, float spacing_offset_, bool first_time_ )
+{
+	int local_0 = 0;
+	int simCount;
+	int random_0;
+	float radius;
+	float random_1;
+	float random_2;
+	float random_3;
+	int local_7;
+	hsim groupIter_0 = Group.NthSim( group_, 0 );
+	hsim groupIter_1;
+	
+	simCount = Group.SimCount( group_ );
+	radius = Object.FloatProperty( groupIter_0, "radius" );
+	
+	do
+	{
+		local_0 = ( local_0 + 1 );
+		random_0 = Math.Random( 1.0, 3.0 );
+		
+		if ( random_0 == 1 )
+		{
+			random_1 = Math.Random( radius, radius + spacing_offset_ );
+		}
+		else
+		{
+			random_1 = -Math.Random( radius, radius + spacing_offset_ );
+		}
+		
+		random_0 = Math.Random( 1.0, 3.0 );
+		
+		if ( random_0 == 1 )
+		{
+			random_2 = Math.Random( radius, radius + spacing_offset_ );
+		}
+		else
+		{
+			random_2 = -Math.Random( radius, radius + spacing_offset_ );
+		}
+		
+		random_0 = Math.Random( 1.0, 3.0 );
+		
+		if ( random_0 == 1 )
+		{
+			random_3 = Math.Random( radius, radius + spacing_offset_ );
+		}
+		else
+		{
+			random_3 = -Math.Random( radius, radius + spacing_offset_ );
+		}
+		
+		groupIter_1 = Group.NthSim( group_, local_0 );
+		
+		if ( first_time_ )
+		{
+			Sim.PlaceRelativeTo( groupIter_1, groupIter_0, random_1, random_2, random_3 );
+			
+			if ( iShip.Cast( groupIter_1 ) )
+			{
+				iAI.GiveFormateOrder( iShip.Cast( groupIter_1 ), groupIter_0, random_1, random_2, random_3 );
+			}
+		}
+		else
+		{
+			iAI.GiveFormateOrder( iShip.Cast( groupIter_1 ), iShip.Cast( groupIter_0 ), random_1, random_2, random_3 );
+		}
+	}
+	while ( local_0 < (simCount - 1) );
+}
+
+RandomSphere( hgroup group_, float spacing_offset_, bool first_time_ )
+{
+	int local_0 = 0;
+	int simCount;
+	int local_2;
+	float radius;
+	float local_4;
+	float local_5;
+	float local_6;
+	float random;
+	hsim groupIter_0 = Group.NthSim( group_, 0 );
+	hsim groupIter_1;
+	
+	simCount = Group.SimCount( group_ );
+	radius = Object.FloatProperty( groupIter_0, "radius" );
+	
+	do
+	{
+		local_0 = ( local_0 + 1 );
+		random = Math.Random( 0.0, 1.0 );
+		random = ( (1.0 - (random * random)) * spacing_offset_ );
+		groupIter_1 = Group.NthSim( group_, local_0 );
+		
+		if ( first_time_ )
+		{
+			Sim.PlaceNear( groupIter_1, groupIter_0, random );
+			
+			if ( iShip.Cast( groupIter_1 ) )
+			{
+				iAI.GiveFormateOrder( iShip.Cast( groupIter_1 ), groupIter_0, local_4, local_5, local_6 );
+			}
+		}
+		else
+		{
+			iAI.GiveFormateOrder( iShip.Cast( groupIter_1 ), iShip.Cast( groupIter_0 ), local_4, local_5, local_6 );
+		}
+	}
+	while ( local_0 < (simCount - 1) );
+}
+
+Stack( hgroup group_, float spacing_offset_, bool first_time_ )
+{
+	int simCount;
+	int ii;
+	float local_2;
+	int local_3;
+	float local_4 = 0.0;
+	hsim groupIter_0;
+	hsim groupIter_1;
+	hship ship;
+	
+	simCount = Group.SimCount( group_ );
+	local_2 = iUtilities.GetLargestShipRadius( group_ );
+	local_2 = ( (local_2 * 2.0) + spacing_offset_ );
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		if ( ii == 0 )
+		{
+			groupIter_1 = Group.NthSim( group_, ii );
+		}
+		else
+		{
+			groupIter_0 = Group.NthSim( group_, ii );
+			local_4 = ( local_4 - local_2 );
+			
+			if ( first_time_ )
+			{
+				Sim.PlaceRelativeTo( groupIter_0, groupIter_1, 0.0, local_4, 0.0 );
+				
+				if ( iShip.Cast( groupIter_0 ) )
+				{
+					ship = iShip.Cast( groupIter_0 );
+					iAI.GiveFormateOrder( ship, groupIter_1, 0.0, local_4, 0.0 );
+				}
+			}
+			else
+			{
+				ship = iShip.Cast( Group.NthSim( group_, ii ) );
+				iAI.GiveFormateOrder( ship, groupIter_1, 0.0, local_4, 0.0 );
+			}
+		}
+	}
+}
+
+LockGroupsInFormation( hgroup lead_group_, hgroup secondary_group_, float x_, float y_, float z_, bool first_time_ )
+{
+	int local_0;
+	hsim groupLeader_0 = Group.Leader( lead_group_ );
+	hsim groupLeader_1 = Group.Leader( secondary_group_ );
+	int local_3;
+	
+	if ( groupLeader_1 != false )
+	{
+		if ( first_time_ )
+		{
+			Sim.PlaceRelativeTo( groupLeader_1, groupLeader_0, x_, y_, z_ );
+			
+			if ( iShip.Cast( groupLeader_1 ) )
+			{
+				iAI.GiveFormateOrder( iShip.Cast( groupLeader_1 ), groupLeader_0, x_, y_, z_ );
+			}
+			
+			return;
+		}
+		
+		iAI.GiveFormateOrder( iShip.Cast( groupLeader_1 ), groupLeader_0, x_, y_, z_ );
+	}
+}
+
+ApplyRandomRotation( hgroup group_to_apply_to_ )
+{
+	int simCount = Group.SimCount( group_to_apply_to_ );
+	int ii;
+	float random_0;
+	float random_1;
+	float random_2;
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		random_0 = Math.Random( 0.0, 360.0 );
+		random_1 = Math.Random( 0.0, 360.0 );
+		random_2 = Math.Random( 0.0, 360.0 );
+		Sim.SetAngularVelocityEuler( Group.NthSim( group_to_apply_to_, ii ), random_0, random_1, random_2 );
+	}
+}
+
+Jiggle( hgroup formation_group_, float rand_distance_, float rand_angle_ )
+{
+	int simCount = Group.SimCount( formation_group_ );
+	int ii;
+	float random_0;
+	float random_1;
+	float random_2;
+	hsim groupIter;
+	
+	if ( simCount < 1 )
+	{
+		return;
+	}
+	
+	if ( (rand_distance_ < 1.0) && (rand_angle_ < 1.0) )
+	{
+		return;
+	}
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		groupIter = Group.NthSim( formation_group_, ii );
+		
+		if ( rand_distance_ > 0.0 )
+		{
+			Sim.PlaceNear( groupIter, groupIter, Math.Random( -rand_distance_, rand_distance_ ) );
+		}
+		
+		if ( rand_angle_ > 0.0 )
+		{
+			random_0 = Math.Random( -rand_angle_, rand_angle_ );
+			random_1 = Math.Random( -rand_angle_, rand_angle_ );
+			random_2 = Math.Random( -rand_angle_, rand_angle_ );
+			Sim.SetAngularVelocityEuler( groupIter, random_0, random_1, random_2 );
+		}
+	}
+}
+

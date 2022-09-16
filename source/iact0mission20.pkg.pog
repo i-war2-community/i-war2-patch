@@ -1,0 +1,1330 @@
+package iAct0Mission20;
+
+uses Set,
+     List,
+     String,
+     Global,
+     Sim,
+     Group,
+     Math,
+     Object,
+     State,
+     Task,
+     Text,
+     iSim,
+     Subsim,
+     iDockport,
+     iBody,
+     iHabitat,
+     iShip,
+     iLagrangePoint,
+     iAI,
+     iComms,
+     iConversation,
+     iCutsceneUtilities,
+     iDirector,
+     MapEnumerations,
+     iFaction,
+     iGame,
+     iHUD,
+     GUI,
+     CargoTypes,
+     iInventory,
+     iLoadout,
+     iMapEntity,
+     iMissionTracker,
+     iObjectives,
+     iPilotSetup,
+     iRemotePilot,
+     iScriptedOrders,
+     INIFile,
+     iUtilities;
+
+provides Main,
+         MissionHandler,
+         Stub;
+
+prototype Main();
+prototype Stub();
+prototype task local_function_0();
+prototype hgroup local_function_8( hsim param_0_ );
+prototype hgroup local_function_1( hgroup group_0_ );
+prototype task local_function_2( hship ship_, hgroup group_0_, hsim param_2_, hstate state_ );
+prototype task local_function_5( hgroup group_, int param_1_ );
+prototype task local_function_3( hgroup group_, hship ship_0_, hship ship_1_ );
+prototype task local_function_4( int param_0_ );
+prototype int local_function_6( hgroup group_ );
+prototype task local_function_15( hgroup group_0_, hgroup group_1_, hgroup group_2_, hsim param_3_, hstate state_ );
+prototype hgroup local_function_11( hsim param_0_ );
+prototype hgroup local_function_9( hgroup group_0_ );
+prototype task local_function_7( hship ship_ );
+prototype hgroup local_function_10( hgroup group_0_ );
+prototype task local_function_13( hsim param_0_, hship ship_, hgroup group_0_ );
+prototype local_function_14( hgroup group_ );
+prototype bool local_function_12( hsim param_0_, hship ship_ );
+prototype task local_function_20( hsim param_0_, hstate state_ );
+prototype task local_function_19( hgroup group_ );
+prototype local_function_18( hgroup group_, bool param_1_ );
+prototype local_function_16( hship ship_ );
+prototype hgroup local_function_17( hsim param_0_ );
+prototype task local_function_21( hsim param_0_, hstate state_ );
+prototype task local_function_22( hsim param_0_, hstate state_ );
+prototype task MissionHandler();
+
+Main()
+{
+	start local_function_0();
+}
+
+Stub()
+{
+	Global.SetBool( "g_act0_proving_grounds_complete", true );
+	iInventory.AddStormPetrel();
+}
+
+task local_function_0()
+{
+	htask local_0;
+	int local_1;
+	
+	if ( !iUtilities.SkipMission( "Proving Grounds?" ) )
+	{
+		Task.Detach( local_0 = start MissionHandler() );
+		return;
+	}
+	
+	Stub();
+	return;
+}
+
+hgroup local_function_8( hsim param_0_ )
+{
+	hgroup group = Group.Create();
+	hsim waypoint = iUtilities.CreateWaypointRelativeTo( param_0_, 0.0, 0.0, 2000.0 );
+	
+	iUtilities.RenameSim( waypoint, "Waypoint 1" );
+	Group.AddSim( group, waypoint );
+	waypoint = iUtilities.CreateWaypointRelativeTo( param_0_, 200.0, 0.0, 4400.0 );
+	iUtilities.RenameSim( waypoint, "Waypoint 2" );
+	Group.AddSim( group, waypoint );
+	waypoint = iUtilities.CreateWaypointRelativeTo( param_0_, -445.0, 765.0, 8520.0 );
+	iUtilities.RenameSim( waypoint, "Waypoint 3" );
+	Group.AddSim( group, waypoint );
+	waypoint = iUtilities.CreateWaypointRelativeTo( param_0_, -185.0, -665.0, 10470.0 );
+	iUtilities.RenameSim( waypoint, "Waypoint 4" );
+	Group.AddSim( group, waypoint );
+	waypoint = iUtilities.CreateWaypointRelativeTo( param_0_, 1045.0, -320.0, 14660.0 );
+	iUtilities.RenameSim( waypoint, "Waypoint 5" );
+	Group.AddSim( group, waypoint );
+	waypoint = iUtilities.CreateWaypointRelativeTo( param_0_, 755.0, -700.0, 17340.0 );
+	iUtilities.RenameSim( waypoint, "Waypoint 6" );
+	Group.AddSim( group, waypoint );
+	waypoint = iUtilities.CreateWaypointRelativeTo( param_0_, -715.0, 100.0, 21530.0 );
+	iUtilities.RenameSim( waypoint, "Waypoint 7" );
+	Group.AddSim( group, waypoint );
+	waypoint = iUtilities.CreateWaypointRelativeTo( param_0_, -615.0, 300.0, 24280.0 );
+	iUtilities.RenameSim( waypoint, "Waypoint 8" );
+	Group.AddSim( group, waypoint );
+	waypoint = iUtilities.CreateWaypointRelativeTo( param_0_, 375.0, -300.0, 26660.0 );
+	iUtilities.RenameSim( waypoint, "Waypoint 9" );
+	Group.AddSim( group, waypoint );
+	waypoint = iUtilities.CreateWaypointRelativeTo( param_0_, 2590.0, 400.0, 31890.0 );
+	iUtilities.RenameSim( waypoint, "Waypoint 10" );
+	Group.AddSim( group, waypoint );
+	waypoint = iUtilities.CreateWaypointRelativeTo( param_0_, 1575.0, 900.0, 34990.0 );
+	iUtilities.RenameSim( waypoint, "Waypoint 11" );
+	Group.AddSim( group, waypoint );
+	waypoint = iUtilities.CreateWaypointRelativeTo( param_0_, 545.0, -25.0, 37980.0 );
+	iUtilities.RenameSim( waypoint, "Waypoint 12" );
+	Group.AddSim( group, waypoint );
+	waypoint = iUtilities.CreateWaypointRelativeTo( param_0_, 1055.0, 0.0, 39760.0 );
+	iUtilities.RenameSim( waypoint, "Waypoint 13" );
+	Group.AddSim( group, waypoint );
+	waypoint = iUtilities.CreateWaypointRelativeTo( param_0_, 555.0, 1150.0, 43590.0 );
+	iUtilities.RenameSim( waypoint, "Waypoint 14" );
+	Group.AddSim( group, waypoint );
+	waypoint = iUtilities.CreateWaypointRelativeTo( param_0_, 0.0, 900.0, 47320.0 );
+	iUtilities.RenameSim( waypoint, "Waypoint 15" );
+	Group.AddSim( group, waypoint );
+	return group;
+}
+
+hgroup local_function_1( hgroup group_0_ )
+{
+	hgroup group_1 = Group.Create();
+	hsim groupIter;
+	hsim waypoint;
+	int simCount = Group.SimCount( group_0_ );
+	int constant = 200;
+	int ii;
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		groupIter = Group.NthSim( group_0_, ii );
+		waypoint = iUtilities.CreateWaypointRelativeTo( groupIter, 0.0, 0.0, -( constant + 50 ) );
+		Group.AddSim( group_1, waypoint );
+		waypoint = iUtilities.CreateWaypointAt( groupIter );
+		Group.AddSim( group_1, waypoint );
+		waypoint = iUtilities.CreateWaypointRelativeTo( groupIter, 0.0, 0.0, constant );
+		Group.AddSim( group_1, waypoint );
+	}
+	
+	return group_1;
+}
+
+task local_function_2( hship ship_, hgroup group_0_, hsim param_2_, hstate state_ )
+{
+	bool local_0 = false;
+	int simCount = Group.SimCount( group_0_ );
+	int local_2;
+	hsim waypoint;
+	hsim lastMarker = Sim.Cast( Object.HandleProperty( state_, "last_marker" ) );
+	hgroup group_1;
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( Global.Exists( "g_reset_drone" ) )
+			{
+				Object.SetBoolProperty( state_, "race_enabled", false );
+				Task.Sleep( Task.Current(), 0.10 );
+				iAI.GiveApproachOrder( ship_, param_2_ );
+				
+				do
+				{
+					Task.Sleep( Task.Current(), 0.10 );
+				}
+				while ( !iAI.IsOrderComplete( ship_ ) );
+				
+				Global.Destroy( "g_reset_drone" );
+				return;
+			}
+		}
+		
+		every 3.0:
+		{
+			if ( Sim.DistanceBetween( ship_, Group.NthSim( group_0_, local_2 ) ) < 3000.0 )
+			{
+				if ( Object.PropertyExists( Group.NthSim( group_0_, local_2 ), "hit_by_drone" ) == 0 )
+				{
+					iShip.WeaponsUseExplicitTarget( ship_, iShip.Cast( Group.NthSim( group_0_, local_2 ) ) );
+				}
+				else
+				{
+					iShip.WeaponsUseExplicitTarget( ship_, none );
+					local_2 = ( local_2 + 1 );
+				}
+			}
+			
+			if ( (Sim.DistanceBetween( ship_, lastMarker ) <= 200.0) && !local_0 )
+			{
+				Global.CreateBool( "beat_player", 1, true );
+				waypoint = iUtilities.CreateWaypointRelativeTo( ship_, 0.0, 0.0, 900.0 );
+				iAI.GiveApproachOrder( ship_, waypoint );
+				Sim.SetAngularVelocityEuler( ship_, 0.0, 0.0, 15.0 );
+				Task.Sleep( Task.Current(), 0.20 );
+				
+				do
+				{
+					Task.Sleep( Task.Current(), 1.0 );
+				}
+				while ( !iAI.IsOrderComplete( ship_ ) );
+				
+				group_1 = iCutsceneUtilities.BuildCircularPath( waypoint, AXIS_z, 100.0, 0.0, 360.0, 20 );
+				start iScriptedOrders.FollowRoute( ship_, group_1, 0.70, 0.20, false, true, 0 );
+				
+				do
+				{
+					Task.Sleep( Task.Current(), 1.0 );
+					
+					if ( Global.Exists( "g_reset_drone" ) )
+					{
+						Object.SetBoolProperty( state_, "race_enabled", false );
+						Task.Sleep( Task.Current(), 0.10 );
+						iAI.GiveApproachOrder( ship_, param_2_ );
+						
+						do
+						{
+							Task.Sleep( Task.Current(), 0.10 );
+						}
+						while ( !iAI.IsOrderComplete( ship_ ) );
+						
+						Global.Destroy( "g_reset_drone" );
+						return;
+					}
+				}
+				while ( !iAI.IsOrderComplete( ship_ ) );
+			}
+		}
+	}
+}
+
+task local_function_5( hgroup group_, int param_1_ )
+{
+	iSim.SetSensorVisibility( iSim.Cast( Group.NthSim( group_, param_1_ ) ), true );
+	Task.Sleep( Task.Current(), 0.00010 );
+	iHUD.SetTarget( Group.NthSim( group_, param_1_ ) );
+	iSim.SetSensorVisibility( iSim.Cast( Group.NthSim( group_, param_1_ - 1 ) ), false );
+}
+
+task local_function_3( hgroup group_, hship ship_0_, hship ship_1_ )
+{
+	hsim groupIter;
+	int simCount = Group.SimCount( group_ );
+	int local_2;
+	int ii;
+	
+	schedule
+	{
+		every 1.0:
+		{
+			for ( ii = 0; ii < simCount; ++ii )
+			{
+				groupIter = Group.NthSim( group_, ii );
+				
+				if ( (Sim.DistanceBetween( ship_0_, groupIter ) < 2500.0) && (!Object.PropertyExists( groupIter, "visible" ) && !Object.PropertyExists( groupIter, "hit" )) )
+				{
+					Object.AddIntProperty( groupIter, "visible", 1 );
+					iSim.SetSensorVisibility( iSim.Cast( groupIter ), true );
+				}
+				else if ( (Sim.DistanceBetween( ship_0_, groupIter ) > 2500.0) && Object.PropertyExists( groupIter, "visible" ) )
+				{
+					Object.RemoveProperty( groupIter, "visible" );
+					iSim.SetSensorVisibility( iSim.Cast( groupIter ), false );
+				}
+				
+				if ( !Object.PropertyExists( groupIter, "hit" ) && iSim.Attacked( iSim.Cast( groupIter ) ) )
+				{
+					if ( iSim.LastAttacker( iSim.Cast( groupIter ) ) == iSim.Cast( ship_0_ ) )
+					{
+						iSim.SetSensorVisibility( iSim.Cast( groupIter ), false );
+						Object.AddIntProperty( groupIter, "hit", 1 );
+						Task.Suspend( Task.Cast( Object.HandleProperty( groupIter, "move_handler" ) ) );
+						
+						switch ( local_2 )
+						{
+							case 0:
+								iConversation.OneLiner( none, "name_clay", "a0_m20_dialogue_clay_target_comment1" );
+								break;
+							
+							case 1:
+								iConversation.OneLiner( none, "name_clay", "a0_m20_dialogue_clay_target_comment2" );
+								break;
+							
+							case 2:
+								iConversation.OneLiner( none, "name_clay", "a0_m20_dialogue_clay_target_comment3" );
+								break;
+							
+							case 3:
+								iConversation.OneLiner( none, "name_clay", "a0_m20_dialogue_clay_target_comment4" );
+								break;
+							
+							case 4:
+								iConversation.OneLiner( none, "name_clay", "a0_m20_dialogue_clay_target_comment5" );
+								break;
+						}
+						
+						local_2 = ( local_2 + 1 );
+					}
+					else if ( iSim.LastAttacker( iSim.Cast( groupIter ) ) == iSim.Cast( ship_1_ ) )
+					{
+						Object.AddIntProperty( iShip.Cast( groupIter ), "hit_by_drone", 1 );
+					}
+				}
+			}
+		}
+	}
+}
+
+task local_function_4( int param_0_ )
+{
+	int local_0;
+	
+	schedule
+	{
+		every 1.0:
+		{
+			local_0 = iGame.GameTime() - param_0_;
+			iHUD.SetPrompt( String.Join( "a0_m20_name_elapsed_time+ +", iUtilities.ConvertSecondsToTime( local_0 ) ), "" );
+		}
+	}
+}
+
+int local_function_6( hgroup group_ )
+{
+	int local_0;
+	int simCount = Group.SimCount( group_ );
+	int ii;
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		Object.RemoveProperty( Group.NthSim( group_, ii ), "visible" );
+		iSim.SetSensorVisibility( iSim.Cast( Group.NthSim( group_, ii ) ), false );
+		
+		if ( Object.PropertyExists( Group.NthSim( group_, ii ), "hit" ) )
+		{
+			local_0 = ( local_0 + 1 );
+			Object.RemoveProperty( Group.NthSim( group_, ii ), "hit" );
+			
+			if ( Object.PropertyExists( Group.NthSim( group_, ii ), "hit_by_drone" ) )
+			{
+				Object.RemoveProperty( Group.NthSim( group_, ii ), "hit_by_drone" );
+			}
+			
+			Task.Resume( Task.Cast( Object.HandleProperty( Group.NthSim( group_, ii ), "move_handler" ) ) );
+		}
+	}
+	
+	return local_0;
+}
+
+task local_function_15( hgroup group_0_, hgroup group_1_, hgroup group_2_, hsim param_3_, hstate state_ )
+{
+	hgroup group_3;
+	hship playerShip = iShip.FindPlayerShip();
+	int local_2;
+	hship droneHandle;
+	htask local_4;
+	int constant = 180;
+	int local_6;
+	int simCount_0 = Group.SimCount( group_2_ );
+	int simCount_1 = Group.SimCount( group_2_ );
+	int local_9 = 0;
+	int local_10;
+	int local_11;
+	int local_12;
+	bool raceEnabled = Object.BoolProperty( state_, "race_enabled" );
+	htask local_14;
+	htask local_15;
+	
+	Global.Destroy( "g_finished_course" );
+	iConversation.OneLiner( none, "name_clay", "a0_m20_dialogue_clay_marks" );
+	Task.Sleep( Task.Current(), 1.0 );
+	iSim.SetSensorVisibility( iSim.Cast( Group.Leader( group_1_ ) ), true );
+	Task.Sleep( Task.Current(), 0.10 );
+	iHUD.SetTarget( Group.Leader( group_1_ ) );
+	iConversation.OneLiner( none, "name_clay", "a0_m20_dialogue_clay_go" );
+	
+	if ( raceEnabled )
+	{
+		droneHandle = iShip.Cast( Object.HandleProperty( state_, "drone_handle" ) );
+		group_3 = local_function_1( group_0_ );
+		
+		if ( !Object.PropertyExists( state_, "last_marker" ) )
+		{
+			Object.AddHandleProperty( state_, "last_marker", Group.NthSim( group_3, Group.SimCount( group_3 ) - 1 ) );
+		}
+		
+		start iScriptedOrders.FollowRoute( droneHandle, group_3, 0.10, 0.10, false, false, 0 );
+		Task.Detach( local_4 = start local_function_2( droneHandle, group_2_, param_3_, state_ ) );
+	}
+	
+	local_14 = start local_function_3( group_2_, playerShip, droneHandle );
+	local_12 = iGame.GameTime();
+	local_15 = start local_function_4( local_12 );
+	
+	schedule
+	{
+		every 0.10:
+		{
+			if ( (Sim.DistanceBetween( playerShip, Group.NthSim( group_0_, local_9 ) ) < 100.0) && (local_9 <= 14) )
+			{
+				local_9 = ( local_9 + 1 );
+				start local_function_5( group_1_, local_9 );
+			}
+		}
+		
+		every 1.0:
+		{
+			if ( (local_9 >= 1) && (Global.Exists( "g_past_start" ) == 0) )
+			{
+				Global.CreateBool( "g_past_start", 1, true );
+			}
+			
+			if ( local_9 > 14 )
+			{
+				Global.CreateBool( "g_finished_course", 1, true );
+				Task.Halt( local_14 );
+				Task.Halt( local_15 );
+				local_11 = iGame.GameTime() - local_12;
+				iHUD.SetPrompt( String.Join( "a0_m20_name_elapsed_time+ +", iUtilities.ConvertSecondsToTime( local_11 ) ), "" );
+				iConversation.OneLiner( none, "name_clay", "a0_m20_dialogue_clay_course" );
+				
+				if ( raceEnabled )
+				{
+					if ( Global.Exists( "beat_player" ) )
+					{
+						iConversation.OneLiner( none, "name_clay", "a0_m20_dialogue_clay_tough" );
+						Global.Destroy( "beat_player" );
+					}
+					else
+					{
+						iConversation.OneLiner( none, "name_clay", "a0_m20_dialogue_clay_wow" );
+					}
+					
+					Group.Destroy( group_3, true );
+					Object.SetBoolProperty( state_, "race_enabled", false );
+					Task.Halt( local_4 );
+					Task.Sleep( Task.Current(), 0.10 );
+					iAI.GiveApproachOrder( droneHandle, param_3_ );
+				}
+				
+				simCount_0 = ( simCount_0 - local_function_6( group_2_ ) );
+				
+				if ( simCount_0 == 0 )
+				{
+					iConversation.OneLiner( none, "name_clay", "a0_m20_dialogue_clay_you_hit" );
+				}
+				else
+				{
+					iConversation.OneLiner( none, "name_clay", String.Join( "a0_m20_dialogue_clay_remaining+ +", String.FromInt( simCount_0 ) ) );
+					local_11 = ( local_11 + (simCount_0 * 5) );
+					iHUD.SetPrompt( String.Join( "a0_m20_name_penalty+ +", String.FromInt( simCount_0 ) ), "" );
+					Task.Sleep( Task.Current(), 2.0 );
+					iHUD.SetPrompt( String.Join( "a0_m20_name_total_time+ +", iUtilities.ConvertSecondsToTime( local_11 ) ), "" );
+					Task.Sleep( Task.Current(), 2.0 );
+				}
+				
+				if ( local_11 >= constant )
+				{
+					iConversation.OneLiner( none, "name_clay", "a0_m20_dialogue_clay_you_failed" );
+					iConversation.OneLiner( none, "name_clay", "a0_m20_dialogue_clay_retry" );
+					
+					if ( State.Progress( state_ ) != 8 )
+					{
+						State.SetProgress( state_, 7 );
+					}
+				}
+				else if ( State.Progress( state_ ) != 8 )
+				{
+					iConversation.OneLiner( none, "name_clay", "a0_m20_dialogue_clay_well_done" );
+					iConversation.OneLiner( none, "name_clay", "a0_m20_dialogue_clay_enabled" );
+					iObjectives.SetState( "a0_m20_objectives_complete_course", OS_Succeeded );
+					iInventory.AddStormPetrel();
+					iLoadout.SetShip( S_StormPetrel );
+					Global.SetBool( "g_act0_proving_grounds_complete", true );
+					State.SetProgress( state_, 8 );
+				}
+				
+				if ( local_11 < Object.FloatProperty( state_, "best_time" ) )
+				{
+					iConversation.OneLiner( none, "name_clay", "a0_m20_dialogue_clay_congrats" );
+					Object.SetFloatProperty( state_, "best_time", local_11 );
+				}
+				
+				iHUD.SetPrompt( "", "" );
+				return;
+			}
+		}
+	}
+}
+
+hgroup local_function_11( hsim param_0_ )
+{
+	hgroup group = Group.Create();
+	hsim local_1;
+	hsim waypoint;
+	int constant = 10;
+	int ii;
+	
+	waypoint = iUtilities.CreateWaypointRelativeTo( param_0_, 0.0, 0.0, 5000.0 );
+	
+	for ( ii = 0; ii < constant; ++ii )
+	{
+		if ( Math.RandomInt( 0, 1 ) == 1 )
+		{
+			local_1 = Sim.Create( "ini:/sims/ships/utility/asteroid_l", "Ast" );
+		}
+		else
+		{
+			local_1 = Sim.Create( "ini:/sims/ships/utility/asteroid_m", "Ast" );
+		}
+		
+		Group.AddSim( group, local_1 );
+		Sim.PlaceNear( local_1, waypoint, Math.Random( 500.0, 5000.0 ) );
+		Sim.SetOrientationEuler( local_1, Math.Random( 5.0, 360.0 ), Math.Random( 5.0, 360.0 ), Math.Random( 5.0, 360.0 ) );
+		iShip.SetFreeWithoutPilot( iShip.Cast( local_1 ), true );
+		Sim.SetAngularVelocityEuler( local_1, Math.Random( 5.0, 10.0 ), Math.Random( 5.0, 10.0 ), Math.Random( 5.0, 10.0 ) );
+		iSim.SetSensorVisibility( iSim.Cast( local_1 ), false );
+	}
+	
+	waypoint = iUtilities.CreateWaypointRelativeTo( param_0_, 0.0, 0.0, 7500.0 );
+	
+	for ( ii = 0; ii < constant; ++ii )
+	{
+		if ( Math.RandomInt( 0, 1 ) == 1 )
+		{
+			local_1 = Sim.Create( "ini:/sims/ships/utility/asteroid_l", "Ast" );
+		}
+		else
+		{
+			local_1 = Sim.Create( "ini:/sims/ships/utility/asteroid_m", "Ast" );
+		}
+		
+		Group.AddSim( group, local_1 );
+		Sim.PlaceNear( local_1, waypoint, Math.Random( 500.0, 5000.0 ) );
+		Sim.SetOrientationEuler( local_1, Math.Random( 5.0, 360.0 ), Math.Random( 5.0, 360.0 ), Math.Random( 5.0, 360.0 ) );
+		iShip.SetFreeWithoutPilot( iShip.Cast( local_1 ), true );
+		Sim.SetAngularVelocityEuler( local_1, Math.Random( 5.0, 10.0 ), Math.Random( 5.0, 10.0 ), Math.Random( 5.0, 10.0 ) );
+		iSim.SetSensorVisibility( iSim.Cast( local_1 ), false );
+	}
+	
+	waypoint = iUtilities.CreateWaypointRelativeTo( param_0_, 0.0, 0.0, 10000.0 );
+	
+	for ( ii = 0; ii < constant; ++ii )
+	{
+		if ( Math.RandomInt( 0, 1 ) == 1 )
+		{
+			local_1 = Sim.Create( "ini:/sims/ships/utility/asteroid_l", "Ast" );
+		}
+		else
+		{
+			local_1 = Sim.Create( "ini:/sims/ships/utility/asteroid_m", "Ast" );
+		}
+		
+		Group.AddSim( group, local_1 );
+		Sim.PlaceNear( local_1, waypoint, Math.Random( 500.0, 5000.0 ) );
+		Sim.SetOrientationEuler( local_1, Math.Random( 5.0, 360.0 ), Math.Random( 5.0, 360.0 ), Math.Random( 5.0, 360.0 ) );
+		iShip.SetFreeWithoutPilot( iShip.Cast( local_1 ), true );
+		Sim.SetAngularVelocityEuler( local_1, Math.Random( 5.0, 10.0 ), Math.Random( 5.0, 10.0 ), Math.Random( 5.0, 10.0 ) );
+		iSim.SetSensorVisibility( iSim.Cast( local_1 ), false );
+	}
+	
+	waypoint = iUtilities.CreateWaypointRelativeTo( param_0_, 0.0, 0.0, 12500.0 );
+	
+	for ( ii = 0; ii < constant; ++ii )
+	{
+		if ( Math.RandomInt( 0, 1 ) == 1 )
+		{
+			local_1 = Sim.Create( "ini:/sims/ships/utility/asteroid_l", "Ast" );
+		}
+		else
+		{
+			local_1 = Sim.Create( "ini:/sims/ships/utility/asteroid_m", "Ast" );
+		}
+		
+		Group.AddSim( group, local_1 );
+		Sim.PlaceNear( local_1, waypoint, Math.Random( 500.0, 5000.0 ) );
+		Sim.SetOrientationEuler( local_1, Math.Random( 5.0, 360.0 ), Math.Random( 5.0, 360.0 ), Math.Random( 5.0, 360.0 ) );
+		iShip.SetFreeWithoutPilot( iShip.Cast( local_1 ), true );
+		Sim.SetAngularVelocityEuler( local_1, Math.Random( 5.0, 10.0 ), Math.Random( 5.0, 10.0 ), Math.Random( 5.0, 10.0 ) );
+		iSim.SetSensorVisibility( iSim.Cast( local_1 ), false );
+	}
+	
+	Sim.Destroy( waypoint );
+	return group;
+}
+
+hgroup local_function_9( hgroup group_0_ )
+{
+	hgroup group_1 = Group.Create();
+	hgroup group_2 = Group.Create();
+	hsim simTrainingRing;
+	hsim local_3;
+	int simCount = Group.SimCount( group_0_ );
+	int ii;
+	
+	for ( ii = ( simCount - 1 ); ii >= 0; --ii )
+	{
+		simTrainingRing = Sim.Create( "ini:/sims/ships/utility/training_ring", String.Join( "a0_m20_name_ring+ +", String.FromInt( ii + 1 ) ) );
+		Group.AddSim( group_2, simTrainingRing );
+		Sim.PlaceRelativeTo( simTrainingRing, Group.NthSim( group_0_, ii ), 0.0, 0.0, -50.0 );
+		Sim.AttachChild( simTrainingRing, Group.NthSim( group_0_, ii ) );
+		iSim.SetIndestructable( iSim.Cast( simTrainingRing ), true );
+		iSim.SetSensorVisibility( iSim.Cast( simTrainingRing ), false );
+		
+		if ( ii != (simCount - 1) )
+		{
+			Sim.PointAt( simTrainingRing, local_3 );
+		}
+		
+		local_3 = simTrainingRing;
+	}
+	
+	for ( ii = ( simCount - 1 ); ii >= 0; --ii )
+	{
+		Group.AddSim( group_1, Group.NthSim( group_2, ii ) );
+	}
+	
+	Group.Destroy( group_2, true );
+	return group_1;
+}
+
+task local_function_7( hship ship_ )
+{
+	bool local_0 = false;
+	hsim waypoint_0 = iUtilities.CreateWaypointAt( ship_ );
+	hsim waypoint_1;
+	int random = Math.Random( 0.0, 3.0 );
+	
+	Object.AddHandleProperty( ship_, "move_handler", Task.Current() );
+	
+	schedule
+	{
+		every 4.0:
+		{
+			Sim.Destroy( waypoint_1 );
+			
+			switch ( random )
+			{
+				case 0:
+					if ( local_0 )
+					{
+						local_0 = false;
+						waypoint_1 = iUtilities.CreateWaypointRelativeTo( waypoint_0, -800.0, 0.0, 0.0 );
+						iAI.GiveApproachOrderAdvanced( ship_, waypoint_1, 0.0, 0.0, false );
+					}
+					else
+					{
+						local_0 = true;
+						waypoint_1 = iUtilities.CreateWaypointRelativeTo( waypoint_0, 800.0, 0.0, 0.0 );
+						iAI.GiveApproachOrderAdvanced( ship_, waypoint_1, 0.0, 0.0, false );
+					}
+					
+					break;
+				
+				case 1:
+					if ( local_0 )
+					{
+						local_0 = false;
+						waypoint_1 = iUtilities.CreateWaypointRelativeTo( waypoint_0, 800.0, 0.0, 0.0 );
+						iAI.GiveApproachOrderAdvanced( ship_, waypoint_1, 0.0, 0.0, false );
+					}
+					else
+					{
+						local_0 = true;
+						waypoint_1 = iUtilities.CreateWaypointRelativeTo( waypoint_0, -800.0, 0.0, 0.0 );
+						iAI.GiveApproachOrderAdvanced( ship_, waypoint_1, 0.0, 0.0, false );
+					}
+					
+					break;
+				
+				case 2:
+					if ( local_0 )
+					{
+						local_0 = false;
+						waypoint_1 = iUtilities.CreateWaypointRelativeTo( waypoint_0, 0.0, 800.0, 0.0 );
+						iAI.GiveApproachOrderAdvanced( ship_, waypoint_1, 0.0, 0.0, false );
+					}
+					else
+					{
+						local_0 = true;
+						waypoint_1 = iUtilities.CreateWaypointRelativeTo( waypoint_0, 0.0, -800.0, 0.0 );
+						iAI.GiveApproachOrderAdvanced( ship_, waypoint_1, 0.0, 0.0, false );
+					}
+					
+					break;
+				
+				case 3:
+					if ( local_0 )
+					{
+						local_0 = false;
+						waypoint_1 = iUtilities.CreateWaypointRelativeTo( waypoint_0, 0.0, -800.0, 0.0 );
+						iAI.GiveApproachOrderAdvanced( ship_, waypoint_1, 0.0, 0.0, false );
+					}
+					else
+					{
+						local_0 = true;
+						waypoint_1 = iUtilities.CreateWaypointRelativeTo( waypoint_0, 0.0, 800.0, 0.0 );
+						iAI.GiveApproachOrderAdvanced( ship_, waypoint_1, 0.0, 0.0, false );
+					}
+					
+					break;
+			}
+		}
+	}
+}
+
+hgroup local_function_10( hgroup group_0_ )
+{
+	hgroup group_1 = Group.Create();
+	hship shipTrainingTarget;
+	int local_2;
+	float local_3;
+	float local_4;
+	float constant = 100.0;
+	int simCount = Group.SimCount( group_0_ );
+	int ii;
+	
+	for ( ii = 1; ii < simCount; ii += 3 )
+	{
+		local_2 = ( local_2 + 1 );
+		shipTrainingTarget = iShip.Create( "ini:/sims/ships/utility/training_target", String.Join( "a0_m20_name_target+ +", String.FromInt( local_2 ) ) );
+		iSim.SetIndestructable( shipTrainingTarget, true );
+		iSim.SetMissionCritical( shipTrainingTarget, true );
+		iSim.SetSensorVisibility( shipTrainingTarget, false );
+		
+		switch ( Math.RandomInt( 0, 1 ) )
+		{
+			case 0:
+				local_3 = constant;
+				local_4 = 0.0;
+				break;
+			
+			case 1:
+				local_3 = -constant;
+				local_4 = 0.0;
+				break;
+		}
+		
+		Sim.PlaceBetween( shipTrainingTarget, Group.NthSim( group_0_, ii ), Group.NthSim( group_0_, ii + 1 ), 0.50 );
+		Group.AddSim( group_1, shipTrainingTarget );
+		iPilotSetup.GenericCargoPod( shipTrainingTarget );
+		Task.Detach( start local_function_7( shipTrainingTarget ) );
+	}
+	
+	return group_1;
+}
+
+task local_function_13( hsim param_0_, hship ship_, hgroup group_0_ )
+{
+	hship shipGhost = iShip.Create( "ini:/sims/ships/player/ghost", "I am a Ghost" );
+	hgroup group_1 = iCutsceneUtilities.GetKillGroup();
+	hgroup group_2 = local_function_1( group_0_ );
+	hsim local_3;
+	int local_4;
+	
+	Group.AddGroup( group_1, group_2 );
+	Group.AddSim( group_1, shipGhost );
+	Sim.SetCollision( ship_, false );
+	iDirector.Begin();
+	Sim.PlaceRelativeTo( ship_, param_0_, 0.0, 0.0, -50.0 );
+	Sim.PointAt( ship_, param_0_ );
+	iPilotSetup.GenericCargoPod( shipGhost );
+	iSim.SetIndestructable( shipGhost, true );
+	Sim.SetCullable( shipGhost, false );
+	Sim.SetCollision( shipGhost, false );
+	Sim.PlaceAt( shipGhost, param_0_ );
+	local_3 = iDirector.CreateDolly();
+	Group.AddSim( group_1, local_3 );
+	Sim.PlaceRelativeTo( local_3, shipGhost, 0.0, 0.0, 100.0 );
+	iDirector.AttachDollyToSim( local_3, shipGhost );
+	iDirector.DollyLookForward( local_3 );
+	start iScriptedOrders.FollowRoute( shipGhost, group_2, 0.10, 0.10, false, false, 0 );
+	iConversation.Begin();
+	iConversation.Say( none, "name_clay", "a0_m20_dialogue_clay_ok_this" );
+	iConversation.Say( none, "name_clay", "a0_m20_dialogue_clay_at_any_time" );
+	iConversation.End();
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 1.0 );
+	}
+	while ( iComms.IsInConversation() );
+	
+	Sim.Destroy( shipGhost );
+	iDirector.End();
+}
+
+local_function_14( hgroup group_ )
+{
+	int simCount = Group.SimCount( group_ );
+	int ii;
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		iSim.SetSensorVisibility( iSim.Cast( Group.NthSim( group_, ii ) ), false );
+	}
+}
+
+bool local_function_12( hsim param_0_, hship ship_ )
+{
+	list localList = List.FromSet( iSim.SimsInCylinder( iSim.Cast( param_0_ ), 5000.0, 55000.0, 536838144 ) );
+	int itemCount = List.ItemCount( localList );
+	int ii;
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		if ( iShip.Cast( List.GetNth( localList, ii ) ) == ship_ )
+		{
+			return true;
+		}
+	}
+	
+	return false;
+}
+
+task local_function_20( hsim param_0_, hstate state_ )
+{
+	bool local_0 = false;
+	bool local_1;
+	bool local_2 = false;
+	int convoResponse;
+	hship playerShip = iShip.FindPlayerShip();
+	hship shipTrainingDrone;
+	hsim waypoint_0;
+	hsim waypoint_1 = iUtilities.CreateWaypointRelativeTo( param_0_, 0.0, 0.0, -800.0 );
+	hgroup group_0;
+	hgroup group_1;
+	hgroup group_2;
+	hgroup group_3;
+	htask local_12;
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( iUtilities.PlayerInRange( param_0_ ) && !local_0 )
+			{
+				local_0 = true;
+				group_0 = local_function_8( param_0_ );
+				group_2 = local_function_9( group_0 );
+				group_3 = local_function_10( group_2 );
+				group_1 = local_function_11( param_0_ );
+				waypoint_0 = iUtilities.CreateWaypointRelativeTo( Group.Leader( group_0 ), 0.0, 0.0, -800.0 );
+				shipTrainingDrone = iShip.Create( "ini:/sims/custom/act0_mission02/training_drone", "a0_m20_name_drone" );
+				iSim.SetIndestructable( shipTrainingDrone, true );
+				iPilotSetup.GenericCargoPod( shipTrainingDrone );
+				Sim.PlaceAt( shipTrainingDrone, waypoint_0 );
+				Sim.PointAt( shipTrainingDrone, Group.Leader( group_0 ) );
+				Object.SetHandleProperty( state_, "drone_handle", shipTrainingDrone );
+			}
+			else if ( local_0 && !iUtilities.PlayerInRange( param_0_ ) )
+			{
+				if ( local_1 )
+				{
+					Task.Halt( local_12 );
+				}
+				
+				local_0 = false;
+				local_1 = false;
+				Group.Destroy( group_0, true );
+				Group.Destroy( group_1, true );
+				Group.Destroy( group_2, true );
+				Group.Destroy( group_3, true );
+			}
+			
+			if ( local_1 && (Global.Exists( "g_finished_course" ) == 0) )
+			{
+				if ( !local_function_12( waypoint_1, playerShip ) && !local_2 )
+				{
+					local_2 = true;
+					iConversation.End();
+				}
+			}
+			
+			if ( local_0 && ((Sim.DistanceBetween( playerShip, param_0_ ) < 700.0) || local_2) )
+			{
+				if ( (!local_1 || Global.Exists( "g_past_start" )) || local_2 )
+				{
+					if ( State.Progress( state_ ) < 2 )
+					{
+						State.SetProgress( state_, 2 );
+						iCutsceneUtilities.HandleAbort( start local_function_13( param_0_, playerShip, group_0 ) );
+						
+						atomic
+						{
+							Sim.SetCollision( playerShip, true );
+							Sim.PlaceRelativeTo( playerShip, param_0_, 0.0, 0.0, -50.0 );
+							Sim.PointAt( playerShip, param_0_ );
+						}
+					}
+					
+					if ( !local_1 )
+					{
+						iConversation.Begin();
+						iConversation.AddResponse( "a0_m20_text_c1_option1_start", "a0_m20_dialogue_young_cal_c1_option1_start" );
+						iConversation.AddResponse( "a0_m20_text_c1_option2_rules", "a0_m20_dialogue_young_cal_c1_option2_rules" );
+						iConversation.AddResponse( "a0_m20_text_c1_option3_hi", "a0_m20_dialogue_young_cal_c1_option3_hi" );
+						iConversation.AddResponse( "a0_m20_text_c1_option5_nothing", "a0_m20_dialogue_young_cal_c1_option5_nothing" );
+						iConversation.AddResponse( "a0_m20_text_c1_option4_nothing", "a0_m20_dialogue_young_cal_c1_option4_nothing" );
+						convoResponse = iConversation.Ask( none, "name_clay", "a0_m20_dialogue_clay_c1_right" );
+					}
+					else
+					{
+						local_1 = false;
+						Task.Halt( local_12 );
+						local_function_6( group_3 );
+						local_function_14( group_2 );
+						
+						if ( Object.BoolProperty( state_, "race_enabled" ) == 1 )
+						{
+							Global.CreateBool( "g_reset_drone", 1, true );
+						}
+						
+						iHUD.SetPrompt( "", "" );
+						iConversation.Begin();
+						iConversation.Say( none, "name_clay", "a0_m20_dialogue_clay_ah_quiting" );
+						
+						do
+						{
+							Task.Sleep( Task.Current(), 0.20 );
+						}
+						while ( Global.Exists( "g_reset_drone" ) );
+						
+						if ( !local_2 )
+						{
+							iConversation.AddResponse( "a0_m20_text_c1_option1_start", "a0_m20_dialogue_young_cal_c1_option1_start" );
+							iConversation.AddResponse( "a0_m20_text_c1_option2_rules", "a0_m20_dialogue_young_cal_c1_option2_rules" );
+							iConversation.AddResponse( "a0_m20_text_c1_option3_hi", "a0_m20_dialogue_young_cal_c1_option3_hi" );
+							iConversation.AddResponse( "a0_m20_text_c1_option5_nothing", "a0_m20_dialogue_young_cal_c1_option5_nothing" );
+							iConversation.AddResponse( "a0_m20_text_c1_option4_nothing", "a0_m20_dialogue_young_cal_c1_option4_nothing" );
+							convoResponse = iConversation.Ask( none, "name_clay", "a0_m20_dialogue_clay_c1_right" );
+						}
+						else
+						{
+							iConversation.End();
+							Global.Destroy( "g_past_start" );
+						}
+					}
+					
+					if ( !local_2 )
+					{
+						switch ( convoResponse )
+						{
+							case 1:
+								iConversation.End();
+								iSim.SetSensorVisibility( iSim.Cast( param_0_ ), false );
+								local_1 = true;
+								Global.Destroy( "g_past_start" );
+								local_12 = start local_function_15( group_0, group_2, group_3, waypoint_0, state_ );
+								break;
+							
+							case 2:
+								iConversation.Say( none, "name_clay", "a0_m20_dialogue_clay_ok_this" );
+								iConversation.Say( none, "name_clay", "a0_m20_dialogue_clay_at_any_time" );
+								break;
+							
+							case 3:
+								iConversation.Say( none, "name_clay", "a1_training_dialogue_clay_the_fastest" );
+								iHUD.SetPrompt( iUtilities.ConvertSecondsToTime( Object.FloatProperty( state_, "best_time" ) ), "" );
+								Task.Sleep( Task.Current(), 5.0 );
+								iHUD.SetPrompt( "", "" );
+								break;
+							
+							case 4:
+								Object.SetBoolProperty( state_, "race_enabled", true );
+								iConversation.Say( none, "name_clay", "a0_m20_dialogue_clay_ha" );
+								local_1 = true;
+								Global.Destroy( "g_past_start" );
+								local_12 = start local_function_15( group_0, group_2, group_3, waypoint_0, state_ );
+								break;
+							
+							default:
+								Task.Sleep( Task.Current(), 20.0 );
+								break;
+						}
+						
+						iConversation.End();
+					}
+					
+					local_2 = false;
+				}
+			}
+			
+			if ( local_1 )
+			{
+				iSim.SetSensorVisibility( iSim.Cast( param_0_ ), true );
+				
+				if ( Task.IsHalted( local_12 ) )
+				{
+					local_1 = false;
+				}
+			}
+		}
+	}
+}
+
+task local_function_19( hgroup group_ )
+{
+	bool local_0 = false;
+	hship ship;
+	hship playerShip;
+	hfaction player = iFaction.Find( "Player" );
+	hfaction marauders = iFaction.Find( "Marauders" );
+	int simCount = Group.SimCount( group_ );
+	int local_6 = 0;
+	int ii;
+	
+	schedule
+	{
+		every 0.50:
+		{
+			if ( iRemotePilot.ReturnCurrentRemoteVessel() != false )
+			{
+				playerShip = iRemotePilot.ReturnCurrentRemoteVessel();
+			}
+			else
+			{
+				playerShip = iShip.FindPlayerShip();
+			}
+			
+			for ( ii = 1; ii < simCount; ++ii )
+			{
+				ship = iShip.Cast( Group.NthSim( group_, ii ) );
+				
+				if ( iSim.Attacked( ship ) )
+				{
+					if ( (iSim.LastAttacker( ship ) == iSim.Cast( playerShip )) && (iSim.Faction( ship ) != player) )
+					{
+						iSim.SetFaction( ship, player );
+						local_6 = ( local_6 + 1 );
+					}
+				}
+			}
+			
+			if ( local_6 == (simCount - 1) )
+			{
+				iConversation.OneLiner( none, "name_clay", "a0_m20_dialogue_clay_all_hit" );
+				local_6 = 0;
+				
+				for ( ii = 1; ii < simCount; ++ii )
+				{
+					iSim.SetFaction( iSim.Cast( Group.NthSim( group_, ii ) ), marauders );
+					iSim.Attacked( iSim.Cast( Group.NthSim( group_, ii ) ) );
+				}
+			}
+			
+			if ( Group.Leader( group_ ) != false )
+			{
+				if ( (iRemotePilot.ReturnCurrentRemoteVessel() == iShip.Cast( Group.Leader( group_ ) )) && !local_0 )
+				{
+					local_0 = true;
+					iConversation.OneLiner( none, "name_clay", "a0_m20_dialogue_clay_you_made" );
+				}
+			}
+		}
+	}
+}
+
+local_function_18( hgroup group_, bool param_1_ )
+{
+	int simCount = Group.SimCount( group_ );
+	int ii;
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		iSim.SetSensorVisibility( iSim.Cast( Group.NthSim( group_, ii ) ), param_1_ );
+	}
+}
+
+local_function_16( hship ship_ )
+{
+	list localList = List.FromSet( iDockport.DockportsOfType( ship_, DT_All, DS_Any ) );
+	int itemCount = List.ItemCount( localList );
+	int ii;
+	
+	for ( ii = 0; ii < itemCount; ++ii )
+	{
+		iDockport.Disable( iDockport.Cast( List.GetNth( localList, ii ) ) );
+	}
+}
+
+hgroup local_function_17( hsim param_0_ )
+{
+	hgroup group = Group.Create();
+	hfaction player = iFaction.Find( "Player" );
+	hfaction marauders = iFaction.Find( "Marauders" );
+	hship shipFighter;
+	int constant = 5;
+	int local_5;
+	int ii;
+	
+	shipFighter = iShip.Create( "ini:/sims/ships/navy/fighter", "a0_m20_name_remote" );
+	iSim.SetFaction( shipFighter, player );
+	Sim.PlaceRelativeTo( shipFighter, param_0_, -100.0, 0.0, 0.0 );
+	iRemotePilot.EnableRemoteConnection( shipFighter, true );
+	iSim.SetIndestructable( shipFighter, true );
+	local_function_16( shipFighter );
+	Group.AddSim( group, shipFighter );
+	
+	for ( ii = 0; ii < constant; ++ii )
+	{
+		shipFighter = iShip.Create( "ini:/sims/ships/utility/training_target", String.Join( "a0_m20_name_target+ +", String.FromInt( ii + 1 ) ) );
+		Object.AddBoolProperty( shipFighter, "info_hidden", true );
+		iSim.SetFaction( shipFighter, marauders );
+		iSim.SetIndestructable( shipFighter, true );
+		iSim.SetSensorVisibility( shipFighter, false );
+		Sim.PlaceRelativeTo( shipFighter, param_0_, -600 + local_5, 0.0, 1600.0 );
+		local_5 = ( local_5 + 200 );
+		Group.AddSim( group, shipFighter );
+	}
+	
+	return group;
+}
+
+task local_function_21( hsim param_0_, hstate state_ )
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	int local_2;
+	hship playerShip = iShip.FindPlayerShip();
+	hship a0_m20_name_remote;
+	hgroup group;
+	htask local_6;
+	
+	schedule
+	{
+		every 3.0:
+		{
+			if ( iUtilities.PlayerInRange( param_0_ ) && !local_0 )
+			{
+				local_0 = true;
+				group = local_function_17( param_0_ );
+				a0_m20_name_remote = iShip.Cast( Sim.FindByName( "a0_m20_name_remote" ) );
+			}
+			else if ( !iUtilities.PlayerInRange( param_0_ ) && (!iUtilities.PlayerInRange( a0_m20_name_remote ) && local_0) )
+			{
+				if ( local_1 )
+				{
+					Task.Halt( local_6 );
+				}
+				
+				local_0 = false;
+				local_1 = false;
+				Group.Destroy( group, true );
+			}
+			
+			if ( local_0 && ((Sim.DistanceBetween( playerShip, param_0_ ) < 900.0) && !local_1) )
+			{
+				local_function_18( group, true );
+				Global.CreateBool( "g_weapons_training_active", 1, true );
+				
+				if ( Global.Exists( "g_training_disabled" ) )
+				{
+					Global.Destroy( "g_training_disabled" );
+				}
+				
+				iConversation.Begin();
+				iConversation.Say( none, "name_clay", "a0_m20_dialogue_clay_at_groud" );
+				iConversation.Say( none, "name_clay", "a0_m20_dialogue_clay_around" );
+				iConversation.Say( none, "name_clay", "a0_m20_dialogue_clay_target_training" );
+				iConversation.End();
+				local_1 = true;
+				local_6 = start local_function_19( group );
+			}
+			else if ( local_0 && ((Sim.DistanceBetween( playerShip, param_0_ ) > 3000.0) && local_1) )
+			{
+				local_1 = false;
+				Global.Destroy( "g_weapons_training_active" );
+				Global.CreateBool( "g_training_disabled", 1, true );
+				Task.Halt( local_6 );
+				local_function_18( group, false );
+			}
+		}
+	}
+}
+
+task local_function_22( hsim param_0_, hstate state_ )
+{
+	bool local_0 = true;
+	hship playerShip = iShip.FindPlayerShip();
+	int random = Math.RandomInt( 180, 240 );
+	int local_3;
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 1.0 );
+		
+		if ( (Sim.DistanceBetween( playerShip, param_0_ ) > 8000.0) && (State.Progress( state_ ) != 8) )
+		{
+			if ( local_3 >= random )
+			{
+				switch ( Math.RandomInt( 0, 1 ) )
+				{
+					case 0:
+						iConversation.OneLiner( none, "name_clay", "a0_m20_dialogue_clay_dont" );
+						break;
+					
+					case 1:
+						iConversation.OneLiner( none, "name_clay", "a0_m20_dialogue_clay_isnt" );
+						break;
+				}
+				
+				local_3 = 0;
+			}
+			else if ( !Global.Exists( "g_weapons_training_active" ) )
+			{
+				local_3 = ( local_3 + 1 );
+			}
+		}
+		else
+		{
+			local_3 = 0;
+		}
+	}
+	while ( local_0 );
+}
+
+task MissionHandler()
+{
+	hstate taskState;
+	hsim waypointLucreciasBase_0;
+	hsim waypointLucreciasBase_1;
+	int local_3;
+	htask currentTask = Task.Current();
+	
+	Text.Add( "csv:/text/act_0/act0_mission20" );
+	Text.Add( "csv:/text/act_0/act0_mission20_addendum" );
+	Text.Add( "csv:/text/act_0/act0_mission20_addendum2" );
+	Text.Add( "csv:/text/act_0/act0_mission20_addendum3" );
+	Text.Add( "csv:/text/act_1/act1_wingmen_training" );
+	taskState = State.Find( currentTask );
+	
+	if ( !taskState )
+	{
+		taskState = State.Create( currentTask, 0 );
+		Object.AddFloatProperty( taskState, "best_time", 200.0 );
+		Object.AddBoolProperty( taskState, "race_enabled", false );
+		Object.AddHandleProperty( taskState, "drone_handle", none );
+	}
+	
+	iMissionTracker.AddMission( Task.Current(), 0, 20 );
+	
+	if ( State.Progress( taskState ) != 8 )
+	{
+		iObjectives.Add( "a0_m20_objectives_complete_course" );
+	}
+	
+	if ( State.Progress( taskState ) == 0 )
+	{
+		iConversation.OneLiner( none, "name_clay", "a0_m20_dialogue_clay_theres" );
+		State.SetProgress( taskState, 1 );
+	}
+	else if ( State.Progress( taskState ) == 7 )
+	{
+		switch ( Math.RandomInt( 0, 2 ) )
+		{
+			case 0:
+				iConversation.OneLiner( none, "name_clay", "a0_m20_dialogue_clay_your_gonna" );
+				break;
+			
+			case 1:
+				iConversation.OneLiner( none, "name_clay", "a0_m20_dialogue_clay_im_not" );
+				break;
+			
+			case 2:
+				iConversation.OneLiner( none, "name_clay", "a0_m20_dialogue_clay_im_sure" );
+				break;
+		}
+	}
+	
+	waypointLucreciasBase_0 = iUtilities.CreateWaypointRelativeTo( iMapEntity.FindByName( "Lucrecia's Base" ), 24000.0, 0.0, 0.0 );
+	iUtilities.MakeWaypointVisible( waypointLucreciasBase_0, true, "a0_m20_name_training_grnd" );
+	waypointLucreciasBase_1 = iUtilities.CreateWaypointRelativeTo( iMapEntity.FindByName( "Lucrecia's Base" ), -24000.0, 0.0, 0.0 );
+	iUtilities.MakeWaypointVisible( waypointLucreciasBase_1, true, "a0_m20_name_weapons_training" );
+	start local_function_20( waypointLucreciasBase_0, taskState );
+	start local_function_21( waypointLucreciasBase_1, taskState );
+	start local_function_22( waypointLucreciasBase_0, taskState );
+	
+	schedule
+	{
+		every 2.0:
+		{
+			if ( Global.Int( "g_current_act" ) >= 1 )
+			{
+				State.Destroy( Task.Current() );
+				Sim.Destroy( waypointLucreciasBase_0 );
+				Sim.Destroy( waypointLucreciasBase_1 );
+				iMissionTracker.RemoveMission( Task.Current() );
+				Text.Remove( "csv:/text/act_0/act0_mission20" );
+				Text.Remove( "csv:/text/act_0/act0_mission20_addendum" );
+				Text.Remove( "csv:/text/act_0/act0_mission20_addendum2" );
+				Text.Remove( "csv:/text/act_0/act0_mission20_addendum3" );
+				return;
+			}
+		}
+	}
+}
+

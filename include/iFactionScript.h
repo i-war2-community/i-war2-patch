@@ -1,0 +1,24 @@
+//
+// (c) 1998-9 Particle Systems Ltd. All Rights Reserved
+//
+// iFactionScript.h
+//
+// Compiler-generated export header for package "iFactionScript"
+//
+// Revision control information:
+//
+// $Header: /iwar2/resource/scripts/include/iFactionScript.h 7     5/04/01 4:29p Martyn $
+//
+
+// Dependencies ////////////////////////////////////////////////////////////////
+
+// Enumerated types ////////////////////////////////////////////////////////////
+
+// Functions ///////////////////////////////////////////////////////////////////
+
+prototype iFactionScript.Initialise();
+
+prototype iFactionScript.SetNeutralFactions();
+
+// EOF /////////////////////////////////////////////////////////////////////////
+

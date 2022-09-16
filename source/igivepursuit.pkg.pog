@@ -1,0 +1,17 @@
+package igivepursuit;
+
+uses GUI,
+     Set,
+     List,
+     CargoTypes,
+     iInventory;
+
+provides GivePursuitAutopilot;
+
+prototype GivePursuitAutopilot();
+
+GivePursuitAutopilot()
+{
+	iInventory.Add( CT_MatchVelocityAutopilot, 3 );
+}
+

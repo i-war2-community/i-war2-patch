@@ -1,0 +1,669 @@
+package iAct0Mission10;
+
+uses GUI,
+     String,
+     List,
+     Set,
+     Global,
+     Sim,
+     Group,
+     Input,
+     Math,
+     Object,
+     State,
+     Task,
+     Text,
+     iSim,
+     iShip,
+     Subsim,
+     iDockport,
+     iLagrangePoint,
+     iAI,
+     iAct0GeneralTraining,
+     iConversation,
+     MapEnumerations,
+     iFaction,
+     iGame,
+     iHUD,
+     iMapEntity,
+     iBody,
+     iHabitat,
+     iMissionTracker,
+     iObjectives,
+     INIFile,
+     iUtilities,
+     Debug,
+     iFormation,
+     iPilotSetup,
+     CargoTypes,
+     iCargoScript,
+     iCargo,
+     iShipCreation,
+     iStation;
+
+provides Main,
+         MissionHandler,
+         Stub;
+
+prototype Main();
+prototype Stub();
+prototype local_function_4( hstate state_ );
+prototype local_function_8();
+prototype task local_function_0();
+prototype local_function_1();
+prototype hgroup local_function_9( hsim param_0_ );
+prototype task local_function_5( hship ship_, hmapentity mapentity_, hsim param_2_, hstate state_ );
+prototype task local_function_7( hship ship_, hmapentity mapentity_, hstate state_ );
+prototype hsim local_function_2( hsim param_0_, hmapentity mapentity_, float param_2_ );
+prototype hgroup local_function_3( hsim param_0_, int param_1_ );
+prototype task local_function_6( hship ship_, hmapentity mapentity_0_, hmapentity mapentity_1_, hstate state_ );
+prototype task MissionHandler();
+
+Main()
+{
+	iStation.AddReactiveException( iHabitat.Cast( iMapEntity.FindByName( "Hoffer's Gap" ) ) );
+	start local_function_0();
+}
+
+Stub()
+{
+	Global.SetBool( "g_act0_found_base", true );
+	iMapEntity.SetMapVisibility( iMapEntity.Cast( iMapEntity.FindByName( "Lucrecia's Base" ) ), true );
+	iSim.SetSensorVisibility( iMapEntity.FindByNameInSystem( "Lucrecia's Base", Global.String( "g_player_base_system" ) ), true );
+}
+
+local_function_4( hstate state_ )
+{
+	hsim waypointHoffersGap;
+	hship playerShip = iShip.FindPlayerShip();
+	
+	waypointHoffersGap = iUtilities.CreateWaypointRelativeTo( iMapEntity.FindByName( "Hoffer's Gap" ), 0.0, 0.0, 23000.0 );
+	Object.AddHandleProperty( playerShip, "restart_waypoint", waypointHoffersGap );
+	Object.AddHandleProperty( playerShip, "current_mission_state", state_ );
+}
+
+local_function_8()
+{
+	iObjectives.Remove( "a0_m10_objectives_approach_clay" );
+	iObjectives.Remove( "a0_m10_objectives_formate_lesson" );
+	iObjectives.Remove( "a0_m10_objectives_approach_lesson" );
+	iObjectives.Remove( "a0_m10_objective_disengage" );
+	iObjectives.Remove( "a0_m10_objectives_dock_to" );
+	iObjectives.Remove( "a0_m10_objectives_undock" );
+	iObjectives.Remove( "a0_m10_objectives_starmap_lesson" );
+	iObjectives.Remove( "a0_m10_objectives_select_griffon" );
+	iObjectives.Remove( "a0_m10_objectives_fly_to" );
+	iObjectives.Remove( "a0_m10_objectives_fly_to_effrit" );
+}
+
+task local_function_0()
+{
+	htask local_0;
+	int local_1;
+	
+	if ( !iUtilities.SkipMission( "Home Sweet Home?" ) )
+	{
+		iGame.PlayMovie( "/movies/prelude" );
+		Task.Detach( local_0 = start MissionHandler() );
+		return;
+	}
+	
+	Stub();
+	return;
+}
+
+local_function_1()
+{
+	htask local_0;
+	int local_1;
+	
+	iConversation.Begin();
+	iHUD.FlashElement( "icHUDOrbRadar" );
+	iConversation.Say( none, "name_clay", "a0_m10_dialogue_clay_top_right" );
+	Task.Sleep( Task.Current(), 1.0 );
+	iHUD.FlashElement( "icHUDContactList" );
+	iConversation.Say( none, "name_clay", "a0_m10_dialogue_clay_bottom_right" );
+	Task.Sleep( Task.Current(), 1.0 );
+	iHUD.FlashElement( "icHUDTargetMFD" );
+	iConversation.Say( none, "name_clay", "a0_m10_dialogue_clay_top_left" );
+	Task.Sleep( Task.Current(), 1.0 );
+	iHUD.FlashElement( "icHUDWeapons" );
+	iConversation.Say( none, "name_clay", "a0_m10_dialogue_clay_under_top_left" );
+	Task.Sleep( Task.Current(), 1.0 );
+	
+	if ( !Global.Exists( "g_hud_handler" ) )
+	{
+		local_0 = start iAct0GeneralTraining.HUDTraininer();
+		Global.CreateHandle( "g_hud_handler", 1, State.Create( local_0, 0 ) );
+	}
+	
+	iConversation.End();
+}
+
+hgroup local_function_9( hsim param_0_ )
+{
+	hgroup group = Group.Create();
+	hsim waypoint;
+	int ii;
+	
+	for ( ii = 0; ii < 5; ++ii )
+	{
+		waypoint = iUtilities.CreateWaypointNear( param_0_, Math.Random( 4000.0, 5000.0 ) );
+		iUtilities.MakeWaypointVisible( waypoint, true, "a0_m10_name_other" );
+		Group.AddSim( group, waypoint );
+	}
+	
+	return group;
+}
+
+task local_function_5( hship ship_, hmapentity mapentity_, hsim param_2_, hstate state_ )
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	bool local_2;
+	hgroup group;
+	hsim waypoint;
+	hisim currentOrderTarget;
+	
+	iSim.SetIndestructable( iSim.Cast( param_2_ ), true );
+	Sim.SetCullable( param_2_, false );
+	Sim.PlaceRelativeTo( param_2_, ship_, 3000.0, 4000.0, 5000.0 );
+	iSim.SetStandardSensorVisibility( iSim.Cast( param_2_ ), true );
+	iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_i_know" );
+	local_function_1();
+	iHUD.SetPrompt( "", "" );
+	Task.Sleep( Task.Current(), 1.0 );
+	iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_contact_list_more" );
+	waypoint = iUtilities.CreateWaypointNear( mapentity_, Object.FloatProperty( mapentity_, "radius" ) + 4500.0 );
+	iUtilities.MakeWaypointVisible( waypoint, true, "a0_m10_name_waypoint" );
+	iHUD.SetPrompt( "", "" );
+	iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_now_select" );
+	iHUD.SetPrompt( "a0_m10_prompt_select_waypoint", String.Join( String.Join( Input.KeyCombinations( "icPlayerPilot.CycleContactUp" ), "+, +" ), Input.KeyCombinations( "icPlayerPilot.CycleContactDown" ) ) );
+	
+	schedule
+	{
+		every 0.50:
+		{
+			if ( State.Progress( state_ ) == 100 )
+			{
+				Sim.Destroy( waypoint );
+				Group.Destroy( group, true );
+				return;
+			}
+			
+			if ( iShip.CurrentTarget( ship_ ) == iSim.Cast( waypoint ) )
+			{
+				break;
+			}
+		}
+	}
+	
+	iHUD.SetPrompt( "a0_m10_prompt_fly_towards", "" );
+	iObjectives.Add( "a0_m10_objectives_approach_clay" );
+	
+	schedule
+	{
+		every 0.50:
+		{
+			if ( State.Progress( state_ ) == 100 )
+			{
+				Sim.Destroy( waypoint );
+				Group.Destroy( group, true );
+				return;
+			}
+			
+			if ( Sim.DistanceBetween( ship_, waypoint ) < (iAI.InnerMarkerRadius( iSim.Cast( waypoint ), ship_ ) + 500.0) )
+			{
+				iHUD.SetPrompt( "", "" );
+				iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_good" );
+				Sim.Destroy( waypoint );
+				Group.Destroy( group, true );
+				break;
+			}
+		}
+	}
+	
+	iObjectives.SetState( "a0_m10_objectives_approach_clay", OS_Succeeded );
+	iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_the_first" );
+	iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_that_leads" );
+	
+	schedule
+	{
+		every 2.0:
+		{
+			if ( local_0 )
+			{
+				if ( local_1 )
+				{
+					break;
+				}
+				else
+				{
+					if ( !local_2 )
+					{
+						local_2 = true;
+						iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_instructions_formate" );
+						iObjectives.Add( "a0_m10_objectives_formate_lesson" );
+						iHUD.SetPrompt( "a0_m10_prompt_activate_formate", Input.KeyCombinations( "icPlayerPilot.AutopilotFormate" ) );
+					}
+					
+					do
+					{
+						Task.Sleep( Task.Current(), 1.0 );
+					}
+					while ( iAI.CurrentOrderType( ship_ ) != OT_Formate );
+					
+					iHUD.SetPrompt( "", "" );
+					currentOrderTarget = iAI.CurrentOrderTarget( ship_ );
+					iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_formate_engage" );
+					
+					do
+					{
+						Task.Sleep( Task.Current(), 1.0 );
+					}
+					while ( !iAI.IsOrderComplete( ship_ ) );
+					
+					local_1 = true;
+					local_2 = false;
+					iObjectives.SetState( "a0_m10_objectives_formate_lesson", OS_Succeeded );
+				}
+			}
+			else
+			{
+				if ( !local_2 )
+				{
+					local_2 = true;
+					iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_instructions_approach" );
+					iObjectives.Add( "a0_m10_objectives_approach_lesson" );
+					iHUD.SetPrompt( "a0_m10_prompt_activate_approach", Input.KeyCombinations( "icPlayerPilot.AutopilotApproach" ) );
+				}
+				
+				do
+				{
+					Task.Sleep( Task.Current(), 1.0 );
+				}
+				while ( iAI.CurrentOrderType( ship_ ) != OT_Approach );
+				
+				iHUD.SetPrompt( "", "" );
+				currentOrderTarget = iAI.CurrentOrderTarget( ship_ );
+				iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_approach_engage" );
+				
+				do
+				{
+					Task.Sleep( Task.Current(), 1.0 );
+				}
+				while ( !iAI.IsOrderComplete( ship_ ) );
+				
+				local_0 = true;
+				local_2 = false;
+				iObjectives.SetState( "a0_m10_objectives_approach_lesson", OS_Succeeded );
+				iHUD.SetPrompt( "", "" );
+			}
+		}
+	}
+	
+	iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_disengage" );
+	iObjectives.Add( "a0_m10_objective_disengage" );
+	iHUD.SetPrompt( "a0_m10_prompt_disengage", Input.KeyCombinations( "icPlayerPilot.AutopilotOff" ) );
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 0.50 );
+	}
+	while ( iAI.CurrentOrderType( ship_ ) != OT_None );
+	
+	iObjectives.SetState( "a0_m10_objective_disengage", OS_Succeeded );
+	iHUD.SetPrompt( "", "" );
+	iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_the_final" );
+	iObjectives.Add( "a0_m10_objectives_dock_to" );
+	iHUD.SetPrompt( "a0_m10_prompt_use_dock", Input.KeyCombinations( "icPlayerPilot.AutopilotDock" ) );
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 1.0 );
+	}
+	while ( !iSim.IsDockedTo( ship_, iSim.Cast( param_2_ ) ) );
+	
+	iObjectives.SetState( "a0_m10_objectives_dock_to", OS_Succeeded );
+	iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_undock" );
+	iObjectives.Add( "a0_m10_objectives_undock" );
+	iHUD.SetPrompt( "a0_m10_prompt_use_undock", Input.KeyCombinations( "icPlayerPilot.Undock" ) );
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 1.0 );
+	}
+	while ( iSim.IsDockedTo( ship_, iSim.Cast( param_2_ ) ) );
+	
+	iObjectives.SetState( "a0_m10_objectives_undock", OS_Succeeded );
+	State.SetProgress( state_, 1 );
+}
+
+task local_function_7( hship ship_, hmapentity mapentity_, hstate state_ )
+{
+	bool local_0 = false;
+	hmapentity hoffersGap = iMapEntity.FindByName( "Hoffer's Gap" );
+	
+	iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_i_think" );
+	iObjectives.Add( "a0_m10_objectives_starmap_lesson" );
+	iHUD.SetPrompt( "a0_m10_prompt_activate_starmap", Input.KeyCombinations( "HUD.Starmap" ) );
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 0.50 );
+	}
+	while ( !( iHUD.CurrentMenuNode() == "hud_menu_map" ) );
+	
+	iHUD.SetPrompt( "", "" );
+	iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_this_is" );
+	iObjectives.SetState( "a0_m10_objectives_starmap_lesson", OS_Succeeded );
+	iObjectives.Add( "a0_m10_objectives_select_griffon" );
+	iHUD.SetPrompt( "a0_m10_prompt_select_griffon", "" );
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 0.50 );
+	}
+	while ( !( Object.StringProperty( iShip.CurrentTarget( ship_ ), "name" ) == Object.StringProperty( mapentity_, "name" ) ) );
+	
+	iHUD.SetPrompt( "", "" );
+	iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_thats_the" );
+	iObjectives.SetState( "a0_m10_objectives_select_griffon", OS_Succeeded );
+	iObjectives.Add( "a0_m10_objectives_fly_to" );
+	iHUD.SetPrompt( "a0_m10_prompt_use_approach", Input.KeyCombinations( "icPlayerPilot.AutopilotApproach" ) );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( ((iAI.CurrentOrderType( ship_ ) == OT_Approach) || (iAI.CurrentOrderType( ship_ ) == OT_Formate)) && (iShip.IsInLDS( ship_ ) && !local_0) )
+			{
+				local_0 = true;
+				iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_there_weve" );
+			}
+			
+			if ( (Sim.DistanceBetween( ship_, hoffersGap ) > 25000.0) && !Global.Exists( "g_training_disabled" ) )
+			{
+				Global.CreateBool( "g_training_disabled", 1, true );
+			}
+			
+			if ( Sim.DistanceBetween( ship_, mapentity_ ) < (iAI.InnerMarkerRadius( iSim.Cast( mapentity_ ), ship_ ) + 50.0) )
+			{
+				iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_ok_this_is" );
+				State.SetProgress( state_, 2 );
+				iObjectives.SetState( "a0_m10_objectives_fly_to", OS_Succeeded );
+				iHUD.SetPrompt( "", "" );
+				return;
+			}
+		}
+	}
+}
+
+hsim local_function_2( hsim param_0_, hmapentity mapentity_, float param_2_ )
+{
+	hsim waypoint_0 = iUtilities.CreateWaypointBetween( param_0_, mapentity_, param_2_ );
+	hsim waypoint_1 = iUtilities.CreateWaypointRelativeTo( waypoint_0, Math.Random( -8000.0, 8000.0 ), Math.Random( -8000.0, 8000.0 ), 0.0 );
+	
+	if ( Global.Exists( "g_next_waypoint" ) == 0 )
+	{
+		Global.CreateHandle( "g_next_waypoint", 2, waypoint_1 );
+	}
+	else
+	{
+		Global.SetHandle( "g_next_waypoint", waypoint_1 );
+	}
+	
+	Sim.Destroy( waypoint_0 );
+	return waypoint_1;
+}
+
+hgroup local_function_3( hsim param_0_, int param_1_ )
+{
+	hgroup group = Group.Create();
+	hsim local_1;
+	int ii;
+	
+	switch ( Math.RandomInt( 0, 1 ) )
+	{
+		case 0:
+			local_1 = Sim.Create( "ini:/sims/ships/utility/asteroid_l", "sn_generic_asteroid" );
+			break;
+		
+		case 1:
+			local_1 = Sim.Create( "ini:/sims/ships/utility/asteroid_m", "sn_generic_asteroid" );
+			break;
+	}
+	
+	Sim.PlaceAt( local_1, param_0_ );
+	Sim.SetOrientationEuler( local_1, Math.Random( 0.0, 360.0 ), Math.Random( 0.0, 360.0 ), Math.Random( 0.0, 360.0 ) );
+	iSim.SetSensorVisibility( iSim.Cast( local_1 ), false );
+	Group.AddSim( group, local_1 );
+	
+	for ( ii = 0; ii < param_1_; ++ii )
+	{
+		switch ( Math.RandomInt( 0, 1 ) )
+		{
+			case 0:
+				local_1 = Sim.Create( "ini:/sims/ships/utility/asteroid_l", "sn_generic_asteroid" );
+				break;
+			
+			case 1:
+				local_1 = Sim.Create( "ini:/sims/ships/utility/asteroid_m", "sn_generic_asteroid" );
+				break;
+		}
+		
+		Sim.PlaceNear( local_1, param_0_, Math.Random( 700.0, 2000.0 ) );
+		Sim.SetOrientationEuler( local_1, Math.Random( 0.0, 360.0 ), Math.Random( 0.0, 360.0 ), Math.Random( 0.0, 360.0 ) );
+		Sim.SetAngularVelocity( local_1, Math.Random( 0.0, 360.0 ), Math.Random( 0.0, 360.0 ), Math.Random( 0.0, 360.0 ), Math.Random( 5.0, 20.0 ) );
+		iSim.SetSensorVisibility( iSim.Cast( local_1 ), false );
+		Group.AddSim( group, local_1 );
+	}
+	
+	return group;
+}
+
+task local_function_6( hship ship_, hmapentity mapentity_0_, hmapentity mapentity_1_, hstate state_ )
+{
+	int local_0;
+	bool local_1 = false;
+	float local_2 = 0.20;
+	hsim theEffrit = iMapEntity.FindByName( "The Effrit" );
+	hsim local_4;
+	hgroup group;
+	
+	iObjectives.Add( "a0_m10_objectives_fly_to_effrit" );
+	iHUD.SetPrompt( "a0_m10_prompt_select_effrit", Input.KeyCombinations( "HUD.Starmap" ) );
+	
+	do
+	{
+		Task.Sleep( Task.Current(), 1.0 );
+	}
+	while ( !( Object.StringProperty( iShip.CurrentTarget( ship_ ), "name" ) == Object.StringProperty( theEffrit, "name" ) ) );
+	
+	iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_right_lets" );
+	iHUD.SetPrompt( "a0_m10_prompt_fly_to_effrit", Input.KeyCombinations( "icPlayerPilot.AutopilotApproach" ) );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( Sim.DistanceBetween( ship_, theEffrit ) < 25000.0 )
+			{
+				theEffrit = iUtilities.CreateWaypointAt( ship_ );
+				iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_were_here" );
+				iHUD.SetPrompt( "", "" );
+				iObjectives.SetState( "a0_m10_objectives_fly_to_effrit", OS_Succeeded );
+				break;
+			}
+		}
+	}
+	
+	local_0 = ( local_0 + 1 );
+	local_4 = local_function_2( theEffrit, mapentity_1_, 0.10 );
+	iObjectives.Add( "a0_m10_objectives_follow_waypoints" );
+	iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_im_bringing" );
+	iHUD.SetPrompt( "a0_m10_prompt_follow_waypoints", Input.KeyCombinations( "icPlayerPilot.AutopilotApproach" ) );
+	iUtilities.MakeWaypointVisible( local_4, true, String.Join( "a0_m10_name_other_waypoint+ +", String.FromInt( local_0 ) ) );
+	group = local_function_3( local_4, 3 );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( local_1 )
+			{
+				iSim.SetSensorVisibility( iSim.Cast( mapentity_0_ ), false );
+				iObjectives.SetState( "a0_m10_objectives_follow_waypoints", OS_Succeeded );
+				iHUD.SetPrompt( "", "" );
+				Sim.PlaceRelativeTo( ship_, mapentity_1_, 0.0, -800.0, 20000.0 );
+				State.SetProgress( state_, 8 );
+				Global.Destroy( "g_next_waypoint" );
+				Group.Destroy( group, false );
+				Sim.Destroy( local_4 );
+				return;
+			}
+			else if ( Sim.DistanceBetween( local_4, ship_ ) < (iAI.InnerMarkerRadius( iSim.Cast( local_4 ), ship_ ) + 500.0) )
+			{
+				local_0 = ( local_0 + 1 );
+				Sim.Destroy( local_4 );
+				
+				if ( local_0 <= 3 )
+				{
+					local_4 = local_function_2( theEffrit, mapentity_1_, local_2 );
+					group = local_function_3( local_4, 3 + (local_0 * 2) );
+					iUtilities.MakeWaypointVisible( local_4, true, String.Join( "a0_m10_name_other_waypoint+ +", String.FromInt( local_0 ) ) );
+					
+					switch ( Math.RandomInt( 0, 3 ) )
+					{
+						case 0:
+							iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_progress1" );
+							break;
+						
+						case 1:
+							iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_progress2" );
+							break;
+						
+						case 2:
+							iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_progress3" );
+							break;
+						
+						case 3:
+							iConversation.OneLiner( none, "name_clay", "a0_m10_dialogue_clay_progress4" );
+							break;
+					}
+					
+					local_2 = ( local_2 + 0.30 );
+				}
+				else
+				{
+					local_1 = true;
+				}
+			}
+		}
+	}
+}
+
+task MissionHandler()
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	hship playerShip = iShip.FindPlayerShip();
+	hship shipFlitter;
+	hmapentity hoffersGap = iMapEntity.FindByName( "Hoffer's Gap" );
+	hmapentity griffon = iMapEntity.FindByName( "Griffon" );
+	hmapentity theEffrit = iMapEntity.FindByName( "The Effrit" );
+	hmapentity lucreciasBase = iMapEntity.FindByNameInSystem( "Lucrecia's Base", "map:/geog/badlands/hoffers_wake" );
+	hsim simReactor = Sim.Create( "ini:/sims/stations/reactor", "a0_m10_name_abandoned" );
+	hstate taskState;
+	int local_10;
+	htask currentTask = Task.Current();
+	
+	Text.Add( "csv:/text/act_0/act0_mission10" );
+	Text.Add( "csv:/text/act_0/act0_mission10_addendum" );
+	Text.Add( "csv:/text/act_0/act0_mission10_addendum2" );
+	Text.Add( "csv:/text/act_0/act0_mission10_addendum3" );
+	Text.Add( "csv:/text/act_0/act0_mission10_addendum4" );
+	taskState = State.Find( currentTask );
+	
+	if ( !taskState )
+	{
+		taskState = State.Create( currentTask, 0 );
+	}
+	
+	local_function_4( taskState );
+	iStation.AddReactiveException( iHabitat.Cast( hoffersGap ) );
+	iMissionTracker.AddMission( Task.Current(), 0, 10 );
+	iSim.SetSensorVisibility( iSim.Cast( hoffersGap ), true );
+	shipFlitter = iShip.Create( "ini:/sims/ships/utility/flitter", iShipCreation.ShipName( "General", -1 ) );
+	iSim.SetFaction( shipFlitter, iFaction.Find( "Independent" ) );
+	Sim.PlaceNear( shipFlitter, playerShip, 4000.0 );
+	Task.Sleep( Task.Current(), 5.0 );
+	start local_function_5( playerShip, hoffersGap, simReactor, taskState );
+	
+	schedule
+	{
+		every 2.0:
+		{
+			if ( (State.Progress( taskState ) == 2) && !local_1 )
+			{
+				local_1 = true;
+				start local_function_6( playerShip, theEffrit, lucreciasBase, taskState );
+			}
+			
+			if ( (State.Progress( taskState ) == 1) && !local_0 )
+			{
+				local_0 = true;
+				iSim.SetStandardSensorVisibility( iSim.Cast( hoffersGap ), true );
+				start local_function_7( playerShip, griffon, taskState );
+			}
+		}
+		
+		every 1.0:
+		{
+			if ( (State.Progress( taskState ) == 8) || (State.Progress( taskState ) == 100) )
+			{
+				if ( State.Progress( taskState ) != 100 )
+				{
+					Global.SetBool( "g_act0_found_base", true );
+					State.Destroy( Task.Current() );
+					iMapEntity.SetMapVisibility( iMapEntity.Cast( lucreciasBase ), true );
+					iMissionTracker.RemoveMission( Task.Current() );
+					iStation.RemoveReactiveException( iHabitat.Cast( hoffersGap ) );
+					Task.Sleep( Task.Current(), 3.0 );
+					
+					atomic
+					{
+						GUI.SetScreen( "icSPPlayerBaseScreen" );
+						iGame.PlayMovie( "/movies/PBDiscovery" );
+						iGame.EnableBlackout( true );
+					}
+				}
+				else
+				{
+					atomic
+					{
+						Global.SetBool( "g_skip_locked", false );
+					}
+					
+					Task.Detach( start local_function_0() );
+					Sim.Destroy( simReactor );
+					Sim.Destroy( Sim.FindByName( "a0_m10_name_waypoint" ) );
+					
+					if ( Global.Exists( "g_next_waypoint" ) )
+					{
+						Sim.Destroy( Sim.Cast( Global.Handle( "g_next_waypoint" ) ) );
+						Global.Destroy( "g_next_waypoint" );
+					}
+					
+					iUtilities.RemoveMissionRestart();
+					local_function_8();
+					State.Destroy( Task.Current() );
+					iMapEntity.SetMapVisibility( iMapEntity.Cast( lucreciasBase ), true );
+					iMissionTracker.RemoveMission( Task.Current() );
+					iStation.RemoveReactiveException( iHabitat.Cast( hoffersGap ) );
+				}
+			}
+		}
+	}
+}
+

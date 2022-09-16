@@ -1,0 +1,827 @@
+package iAct0Mission40;
+
+uses Debug,
+     Set,
+     List,
+     String,
+     Global,
+     Sim,
+     Group,
+     Object,
+     State,
+     Task,
+     Text,
+     iSim,
+     iShip,
+     Subsim,
+     iDockport,
+     iLagrangePoint,
+     iAI,
+     iBackToBase,
+     iComms,
+     iConversation,
+     iCutsceneUtilities,
+     iEscort,
+     MapEnumerations,
+     iFaction,
+     iFormation,
+     iMapEntity,
+     iBody,
+     iHabitat,
+     GUI,
+     CargoTypes,
+     iInventory,
+     iLoadout,
+     iMissionTracker,
+     iObjectives,
+     iPilotSetup,
+     iRangeCheck,
+     iScore,
+     INIFile,
+     iUtilities,
+     Math,
+     iCargoScript,
+     iCargo,
+     iShipCreation,
+     iStation;
+
+provides Main,
+         MissionHandler,
+         Stub,
+         wolfgang_dialogue_handler;
+
+prototype Main();
+prototype Stub();
+prototype local_function_6( hstate state_ );
+prototype local_function_11();
+prototype task local_function_0();
+prototype task wolfgang_dialogue_handler( hmapentity mapentity_, hstate state_ );
+prototype task local_function_7( hmapentity mapentity_, hship ship_, hstate state_ );
+prototype hgroup local_function_1( hship ship_ );
+prototype task local_function_2( hship ship_, hmapentity mapentity_, hgroup group_, hstate state_ );
+prototype task local_function_8( hship ship_, hmapentity mapentity_0_, hmapentity mapentity_1_, hstate state_ );
+prototype hgroup local_function_3( hmapentity mapentity_ );
+prototype task local_function_10( hmapentity mapentity_, hsim param_1_, hship ship_, hstate state_ );
+prototype hgroup local_function_4();
+prototype hgroup local_function_5();
+prototype task local_function_9( hship ship_0_, hsim param_1_, hstate state_ );
+prototype task MissionHandler();
+
+Main()
+{
+	start local_function_0();
+}
+
+Stub()
+{
+	Global.SetBool( "g_act0_errand_boy_complete", true );
+	iInventory.Add( CT_RapidFirePBC, 1 );
+	iInventory.Add( CT_DisruptorMissiles, 3 );
+}
+
+local_function_6( hstate state_ )
+{
+	hsim waypointCharlesworthFreightServiceDepot;
+	hship playerShip = iShip.FindPlayerShip();
+	
+	waypointCharlesworthFreightServiceDepot = iUtilities.CreateWaypointRelativeTo( iMapEntity.FindByName( "Charlesworth Freight Service Depot" ), 0.0, 0.0, 900000.0 );
+	Object.AddHandleProperty( playerShip, "restart_waypoint", waypointCharlesworthFreightServiceDepot );
+	Object.AddHandleProperty( playerShip, "current_mission_state", state_ );
+	iScore.SetRestartPoint();
+}
+
+local_function_11()
+{
+	iObjectives.Remove( "a0_m40_objectives_meet_freight" );
+	iObjectives.Remove( "a0_m40_objectives_intercept" );
+	iObjectives.Remove( "a0_m40_objectives_deliver_package" );
+	iObjectives.Remove( "a0_m40_objectives_collect" );
+	iObjectives.Remove( "a0_m40_objectives_return" );
+	iObjectives.Remove( "a0_m40_objectives_visit" );
+}
+
+task local_function_0()
+{
+	htask local_0;
+	int local_1;
+	
+	while ( iComms.IsInConversation() )
+	{
+		Task.Sleep( Task.Current(), 0.50 );
+	}
+	
+	if ( !iUtilities.SkipMission( "Errand Boy?" ) )
+	{
+		Task.Detach( local_0 = start MissionHandler() );
+		return;
+	}
+	
+	Stub();
+	return;
+}
+
+task wolfgang_dialogue_handler( hmapentity mapentity_, hstate state_ )
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	bool local_2 = false;
+	list localList;
+	hship ship;
+	hship playerShip = iShip.FindPlayerShip();
+	int ii;
+	int itemCount;
+	int convoResponse_0;
+	int convoResponse_1;
+	
+	do
+	{
+		if ( !iSim.IsDockedTo( playerShip, iSim.Cast( mapentity_ ) ) )
+		{
+			return;
+		}
+		
+		iConversation.Begin();
+		
+		if ( (State.Progress( state_ ) == 4) && !local_0 )
+		{
+			local_0 = true;
+			iObjectives.SetState( "a0_m40_objectives_collect", OS_Succeeded );
+			iConversation.Say( none, "a0_m40_name_wolf", "a0_m40_dialogue_wolfgang_congrats1" );
+			iInventory.Add( CT_RapidFirePBC, 1 );
+			iBackToBase.Allow();
+		}
+		
+		if ( (State.Progress( state_ ) == 7) && !local_1 )
+		{
+			localList = List.FromSet( iSim.SimsInRadius( iSim.Cast( mapentity_ ), 10000.0, 2048 ) );
+			itemCount = List.ItemCount( localList );
+			
+			if ( itemCount > 0 )
+			{
+				for ( ii = 0; ii < itemCount; ++ii )
+				{
+					if ( Object.PropertyExists( List.GetNth( localList, ii ), "recovered_cargo" ) )
+					{
+						local_2 = true;
+						ship = iShip.Cast( List.GetNth( localList, ii ) );
+						iPilotSetup.GenericCargoPod( ship );
+						ii = itemCount;
+					}
+				}
+				
+				if ( local_2 )
+				{
+					atomic
+					{
+						iAI.GiveReservedDockOrder( ship, mapentity_ );
+					}
+					
+					iObjectives.SetState( "a0_m40_objectives_return", OS_Succeeded );
+					iConversation.Say( none, "a0_m40_name_wolf", "a0_m40_dialogue_wolfgang_congrats2" );
+					iSim.SetDockingLock( iShip.FindPlayerShip(), iSim.Cast( mapentity_ ), false );
+					iConversation.End();
+					local_1 = true;
+					iInventory.Add( CT_DisruptorMissiles, 3 );
+					iObjectives.SetState( "a0_m40_objectives_visit", OS_Succeeded );
+					State.SetProgress( state_, 8 );
+					return;
+				}
+				else
+				{
+					iConversation.Say( none, "a0_m40_name_wolf", "a0_m40_dialogue_wolfgang_what" );
+				}
+			}
+		}
+		
+		iComms.AddResponseWithCode( "a0_m40_text_c1_option1_charlesworth", "a0_m40_dialogue_cal_c1_option1_charleswoth", 1 );
+		iComms.AddResponseWithCode( "a0_m40_text_c1_option2_business", "a0_m40_dialogue_cal_c1_option2_business", 2 );
+		
+		if ( State.Progress( state_ ) < 8 )
+		{
+			if ( State.Progress( state_ ) < 4 )
+			{
+				if ( (State.Progress( state_ ) != 1) && (State.Progress( state_ ) != 3) )
+				{
+					iComms.AddResponseWithCode( "a0_m40_text_c1_option3_job", "a0_m40_dialogue_cal_c1_option3_job", 3 );
+				}
+			}
+			else if ( (State.Progress( state_ ) != 5) && (State.Progress( state_ ) != 7) )
+			{
+				iComms.AddResponseWithCode( "a0_m40_text_c1_option3_job2", "a0_m40_dialogue_cal_c1_option3_job2", 3 );
+			}
+		}
+		
+		iComms.AddResponseWithCode( "a0_m40_text_c1_option4_nothing", "a0_m40_dialogue_cal_c1_option4_nothing", 4 );
+		convoResponse_0 = iConversation.Ask( none, "a0_m40_name_wolf", "a0_m40_dialogue_wolfgang_c1_so_what" );
+		
+		switch ( convoResponse_0 )
+		{
+			case 1:
+				iConversation.Say( none, "a0_m40_name_wolf", "a0_m40_dialogue_wolfgang_c1_response1_in_this" );
+				break;
+			
+			case 2:
+				iConversation.Say( none, "a0_m40_name_wolf", "a0_m40_dialogue_wolfgang_c1_response2_well_you" );
+				break;
+			
+			case 3:
+				if ( State.Progress( state_ ) < 4 )
+				{
+					iConversation.Say( none, "a0_m40_name_wolf", "a0_m40_dialogue_wolfgang_c1_response3_ah_yes" );
+					iConversation.AddResponse( "a0_m40_text_c2_option1_yes", "a0_m40_dialogue_cal_c2_option1_yes" );
+					iConversation.AddResponse( "a0_m40_text_c2_option2_no", "a0_m40_dialogue_cal_c2_option2_no" );
+					convoResponse_1 = iConversation.Ask( none, "a0_m40_name_wolf", "a0_m40_dialogue_wolfgang_c2_interested" );
+					
+					switch ( convoResponse_1 )
+					{
+						case 1:
+							iConversation.Say( none, "a0_m40_name_wolf", "a0_m40_dialogue_wolfgang_c2_response1_this_is" );
+							State.SetProgress( state_, 1 );
+							iObjectives.Add( "a0_m40_objectives_meet_freight" );
+							break;
+						
+						case 2:
+							iConversation.Say( none, "a0_m40_name_wolf", "a0_m40_dialogue_wolfgang_ok_come" );
+							State.SetProgress( state_, 2 );
+							break;
+					}
+				}
+				else
+				{
+					iConversation.Say( none, "a0_m40_name_wolf", "a0_m40_dialogue_wolfgang_c1_response3_ah_yes2" );
+					iConversation.AddResponse( "a0_m40_text_c2_option1_yes", "a0_m40_dialogue_cal_c2_option1_yes" );
+					iConversation.AddResponse( "a0_m40_text_c2_option2_no", "a0_m40_dialogue_cal_c2_option2_no" );
+					convoResponse_1 = iConversation.Ask( none, "a0_m40_name_wolf", "a0_m40_dialogue_wolfgang_c2_interested" );
+					
+					switch ( convoResponse_1 )
+					{
+						case 1:
+							iConversation.Say( none, "a0_m40_name_wolf", "a0_m40_dialogue_wolfgang_c2_response1_job2_this_is" );
+							State.SetProgress( state_, 5 );
+							iObjectives.Add( "a0_m40_objectives_intercept" );
+							break;
+						
+						case 2:
+							iConversation.Say( none, "a0_m40_name_wolf", "a0_m40_dialogue_wolfgang_ok_come" );
+							State.SetProgress( state_, 6 );
+							break;
+					}
+				}
+				
+				break;
+			
+			case 4:
+				iConversation.Say( none, "a0_m40_name_wolf", "a0_m40_dialogue_wolfgang_ok_come" );
+				
+				if ( (State.Progress( state_ ) != 3) && ((State.Progress( state_ ) != 7) && ((State.Progress( state_ ) != 1) && (State.Progress( state_ ) != 5))) )
+				{
+					if ( State.Progress( state_ ) != 4 )
+					{
+						State.SetProgress( state_, 2 );
+					}
+					else
+					{
+						State.SetProgress( state_, 6 );
+					}
+				}
+				
+				iSim.SetDockingLock( iShip.FindPlayerShip(), iSim.Cast( mapentity_ ), false );
+				break;
+		}
+		
+		iConversation.End();
+	}
+	while ( ((State.Progress( state_ ) != 1) && (State.Progress( state_ ) != 2)) && ((State.Progress( state_ ) != 5) && (State.Progress( state_ ) != 6)) );
+	
+	iShip.Undock( iShip.FindPlayerShip(), mapentity_ );
+}
+
+task local_function_7( hmapentity mapentity_, hship ship_, hstate state_ )
+{
+	bool local_0 = false;
+	htask local_1;
+	
+	schedule
+	{
+		every 1.0:
+		{
+			debug Debug.PrintString( "iAct0Mission40.charlesworthh: Checking if player near........\n" );
+			
+			if ( (Sim.DistanceBetween( ship_, mapentity_ ) < 10000.0) && !local_0 )
+			{
+				local_0 = true;
+				
+				if ( State.Progress( state_ ) == 0 )
+				{
+					iObjectives.SetState( "a0_m40_objectives_visit", OS_Succeeded );
+					iConversation.OneLiner( none, "a0_m40_name_wolf", "a0_m40_dialogue_wolfgang_ah_cal" );
+				}
+				else
+				{
+				}
+			}
+			else if ( local_0 && (Sim.DistanceBetween( ship_, mapentity_ ) > 10000.0) )
+			{
+				local_0 = false;
+			}
+			
+			if ( local_0 )
+			{
+				if ( iSim.IsDockedTo( iSim.Cast( mapentity_ ), iSim.Cast( ship_ ) ) )
+				{
+					if ( (State.Progress( state_ ) == 8) || (State.Progress( state_ ) == 100) )
+					{
+						if ( !Task.IsHalted( local_1 ) )
+						{
+							Task.Halt( local_1 );
+						}
+						
+						return;
+					}
+					else
+					{
+						iSim.SetDockingLock( ship_, iSim.Cast( mapentity_ ), true );
+						local_1 = start wolfgang_dialogue_handler( mapentity_, state_ );
+					}
+					
+					do
+					{
+						Task.Sleep( Task.Current(), 1.0 );
+					}
+					while ( !Task.IsHalted( local_1 ) );
+					
+					iSim.SetDockingLock( ship_, iSim.Cast( mapentity_ ), false );
+					Task.Sleep( Task.Current(), 10.0 );
+				}
+			}
+		}
+	}
+}
+
+hgroup local_function_1( hship ship_ )
+{
+	hgroup group = Group.Create();
+	hfaction independent = iFaction.Find( "Independent" );
+	hship shipPuffin = iShip.Create( "ini:/sims/ships/utility/puffin", iShipCreation.ShipName( "General", -1 ) );
+	
+	iPilotSetup.GenericCargoPod( shipPuffin );
+	iShip.SetPilotSkillLevel( shipPuffin, 0.50 );
+	iSim.SetFaction( shipPuffin, independent );
+	Object.SetBoolProperty( shipPuffin, "ignore_speed_limit", true );
+	Group.AddSim( group, shipPuffin );
+	shipPuffin = iShip.Create( "ini:/sims/ships/utility/puffin", iShipCreation.ShipName( "General", -1 ) );
+	iPilotSetup.GenericCargoPod( shipPuffin );
+	iShip.SetPilotSkillLevel( shipPuffin, 0.50 );
+	iSim.SetFaction( shipPuffin, independent );
+	Object.SetBoolProperty( shipPuffin, "ignore_speed_limit", true );
+	Group.AddSim( group, shipPuffin );
+	return group;
+}
+
+task local_function_2( hship ship_, hmapentity mapentity_, hgroup group_, hstate state_ )
+{
+	bool local_0 = false;
+	
+	iAI.GiveFormateOrder( Group.Leader( group_ ), ship_, 0.0, 0.0, -5000.0 );
+	
+	schedule
+	{
+		every 2.0:
+		{
+			if ( (Sim.DistanceBetween( ship_, mapentity_ ) > 15000.0) && !local_0 )
+			{
+				local_0 = true;
+				iShip.DisruptLDSDrive( ship_, 40.0 );
+				Sim.PlaceNear( Group.Leader( group_ ), ship_, 8000.0 );
+				iFormation.LineAbreast( group_, 80.0, true );
+				iAI.GiveAttackOrder( group_, ship_ );
+				iConversation.OneLiner( none, "name_clay", "a0_m40_dialogue_clay_wooa" );
+			}
+			
+			if ( local_0 )
+			{
+				if ( Group.SimCount( group_ ) == 0 )
+				{
+					iConversation.OneLiner( none, "name_clay", "a0_m40_dialogue_clay_damn" );
+					return;
+				}
+			}
+		}
+	}
+}
+
+task local_function_8( hship ship_, hmapentity mapentity_0_, hmapentity mapentity_1_, hstate state_ )
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	bool local_2 = false;
+	bool local_3 = false;
+	hgroup group;
+	hship shipTruck;
+	
+	iSim.SetSensorVisibility( iSim.Cast( mapentity_0_ ), true );
+	shipTruck = iShip.Create( "ini:/sims/ships/utility/truck", "a0_m40_name_princeton" );
+	iPilotSetup.GenericCargoPod( shipTruck );
+	iSim.SetMissionCritical( shipTruck, true );
+	iSim.SetIndestructable( shipTruck, true );
+	Sim.SetCullable( shipTruck, false );
+	iCutsceneUtilities.SetupDirectedDeath( shipTruck, none, "", "", "caption_failed_ship_destroyed", true );
+	
+	schedule
+	{
+		every 2.0:
+		{
+			if ( iUtilities.PlayerInRange( mapentity_0_ ) && !local_0 )
+			{
+				local_0 = true;
+				Sim.PlaceRelativeTo( shipTruck, mapentity_0_, 1000.0, 0.0, 8300.0 );
+			}
+			
+			if ( local_0 )
+			{
+				if ( (Sim.DistanceBetween( ship_, shipTruck ) < 10000.0) && !local_1 )
+				{
+					local_1 = true;
+					iSim.SetIndestructable( shipTruck, false );
+					iConversation.OneLiner( shipTruck, "", "a0_m40_dialogue_princeton_this_is" );
+				}
+				
+				if ( local_1 )
+				{
+					if ( iSim.IsDockedTo( ship_, shipTruck ) && !local_2 )
+					{
+						iSim.SetSensorVisibility( iSim.Cast( mapentity_0_ ), false );
+						local_2 = true;
+						iObjectives.SetState( "a0_m40_objectives_meet_freight", OS_Succeeded );
+						iConversation.OneLiner( shipTruck, "", "a0_m40_dialogue_princeton_right_guess" );
+						iObjectives.Add( "a0_m40_objectives_deliver_package" );
+						State.SetProgress( state_, 3 );
+					}
+				}
+				
+				if ( local_2 && (!local_3 && (Sim.DistanceBetween( ship_, shipTruck ) > 10000.0)) )
+				{
+					local_3 = true;
+					group = local_function_1( ship_ );
+					start local_function_2( ship_, mapentity_0_, group, state_ );
+				}
+			}
+		}
+	}
+}
+
+hgroup local_function_3( hmapentity mapentity_ )
+{
+	hgroup group = Group.Create();
+	hfaction junkers = iFaction.Find( "Junkers" );
+	hship shipTruck = iShip.Create( "ini:/sims/ships/utility/truck", iShipCreation.ShipName( "Junkers", -1 ) );
+	
+	iPilotSetup.GenericCargoPod( shipTruck );
+	iSim.SetMissionCritical( shipTruck, true );
+	iSim.SetFaction( shipTruck, junkers );
+	iCutsceneUtilities.SetupDirectedDeath( shipTruck, none, "", "", "caption_failed_ship_destroyed", true );
+	Group.AddSim( group, shipTruck );
+	shipTruck = iShip.Create( "ini:/sims/ships/utility/tug", iShipCreation.ShipName( "Junkers", -1 ) );
+	iPilotSetup.GenericCargoPod( shipTruck );
+	iSim.SetFaction( shipTruck, junkers );
+	Group.AddSim( group, shipTruck );
+	Sim.PlaceNear( Group.Leader( group ), mapentity_, 800.0 );
+	iFormation.LineAbreast( group, 80.0, true );
+	return group;
+}
+
+task local_function_10( hmapentity mapentity_, hsim param_1_, hship ship_, hstate state_ )
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	bool local_2 = false;
+	hgroup group;
+	hship groupLeader;
+	
+	schedule
+	{
+		every 2.0:
+		{
+			if ( (Sim.DistanceBetween( ship_, mapentity_ ) < 20000.0) && !local_0 )
+			{
+				local_0 = true;
+				Sim.Destroy( param_1_ );
+				group = local_function_3( mapentity_ );
+				groupLeader = iShip.Cast( Group.Leader( group ) );
+			}
+			
+			if ( local_0 )
+			{
+				if ( (Sim.DistanceBetween( ship_, mapentity_ ) < 2000.0) && !local_1 )
+				{
+					local_1 = true;
+					iConversation.OneLiner( none, "name_clay", "a0_m40_dialogue_clay_hey_thats" );
+				}
+				
+				if ( (Sim.DistanceBetween( groupLeader, ship_ ) < 800.0) && !local_2 )
+				{
+					local_2 = true;
+					iConversation.OneLiner( groupLeader, "", "a0_m40_dialogue_junkers_ah_you" );
+				}
+				
+				if ( local_2 && iSim.IsDockedTo( ship_, groupLeader ) )
+				{
+					iObjectives.SetState( "a0_m40_objectives_deliver_package", OS_Succeeded );
+					State.SetProgress( state_, 4 );
+					iObjectives.Add( "a0_m40_objectives_collect" );
+					iConversation.OneLiner( groupLeader, "", "a0_m40_dialogue_junkers_thanks" );
+					iShip.Undock( ship_, groupLeader );
+					return;
+				}
+			}
+		}
+	}
+}
+
+hgroup local_function_4()
+{
+	hgroup group = Group.Create();
+	hship shipPuffinArmed = iShip.Create( "ini:/sims/ships/independent/puffin_armed", "a0_m40_name_belrano" );
+	hship shipMailPod = iShip.Create( "ini:/sims/ships/utility/mail_pod", "name_cargo_pod" );
+	
+	Object.AddIntProperty( shipMailPod, "recovered_cargo", 1 );
+	iSim.SetIndestructable( shipMailPod, true );
+	iSim.SetMissionCritical( shipMailPod, true );
+	iShip.Dock( shipMailPod, shipPuffinArmed );
+	Sim.SetCullable( shipMailPod, false );
+	iPilotSetup.GenericCargoPod( shipPuffinArmed );
+	Group.AddSim( group, shipPuffinArmed );
+	shipPuffinArmed = iShip.Create( "ini:/sims/ships/independent/tug_armed", "a0_m40_name_drunken" );
+	iPilotSetup.GenericAggressive( shipPuffinArmed );
+	iShip.SetPilotSkillLevel( shipPuffinArmed, 0.650 );
+	Group.AddSim( group, shipPuffinArmed );
+	return group;
+}
+
+hgroup local_function_5()
+{
+	hgroup group = Group.Create();
+	hfaction police = iFaction.Find( "Police" );
+	hship shipPuffinArmed;
+	int constant = 5;
+	int ii;
+	
+	for ( ii = 0; ii < constant; ++ii )
+	{
+		shipPuffinArmed = iShip.Create( "ini:/sims/ships/independent/puffin_armed", iShipCreation.ShipName( "Police", -1 ) );
+		iPilotSetup.GenericAggressive( shipPuffinArmed );
+		iSim.SetFaction( shipPuffinArmed, police );
+		iShip.SetPilotSkillLevel( shipPuffinArmed, 0.30 );
+		Group.AddSim( group, shipPuffinArmed );
+	}
+	
+	return group;
+}
+
+task local_function_9( hship ship_0_, hsim param_1_, hstate state_ )
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	bool local_2 = false;
+	bool local_3 = false;
+	bool local_4 = false;
+	bool local_5 = false;
+	bool local_6 = false;
+	bool local_7 = false;
+	bool local_8 = false;
+	int convoResponse;
+	int local_10;
+	hgroup group_0;
+	hship ship_1;
+	hgroup group_1;
+	hship groupLeader;
+	
+	schedule
+	{
+		every 2.0:
+		{
+			if ( iUtilities.PlayerInRange( param_1_ ) && !local_0 )
+			{
+				local_0 = true;
+				group_1 = local_function_4();
+				groupLeader = iShip.Cast( Group.Leader( group_1 ) );
+				ship_1 = iShip.Cast( Set.FirstElement( Sim.Children( groupLeader ) ) );
+				Sim.PlaceRelativeTo( groupLeader, param_1_, 400.0, 0.0, 300.0 );
+				iEscort.LineAbreast( group_1, 40.0, 8000.0, true );
+				local_4 = true;
+			}
+			
+			if ( local_0 )
+			{
+				if ( !iUtilities.PlayerInRange( param_1_ ) )
+				{
+					local_0 = false;
+				}
+				else
+				{
+					if ( (Sim.DistanceBetween( ship_0_, groupLeader ) < 40000.0) && !local_8 )
+					{
+						local_8 = true;
+						iConversation.OneLiner( none, "name_clay", "a0_m40_dialogue_clay_ok_kid" );
+						iBackToBase.Inhibit();
+					}
+					
+					if ( (Sim.DistanceBetween( ship_0_, groupLeader ) < 5000.0) && !local_1 )
+					{
+						iObjectives.SetState( "a0_m40_objectives_intercept", OS_Succeeded );
+						local_1 = true;
+						iConversation.Begin();
+						iConversation.AddResponse( "a0_m40_text_cal_c1_option1", "a0_m40_dialogue_cal_c1_option1" );
+						iConversation.AddResponse( "a0_m40_text_cal_c1_option2", "a0_m40_dialogue_cal_option2" );
+						convoResponse = iConversation.Ask( groupLeader, "", "a0_m40_dialogue_belrano_approaching" );
+						
+						switch ( convoResponse )
+						{
+							case 0:
+								iConversation.Say( groupLeader, "", "a0_m40_dialogue_belrano_response1" );
+								break;
+							
+							case 1:
+								iConversation.Say( groupLeader, "", "a0_m40_dialogue_belrano_response2" );
+								break;
+						}
+						
+						iConversation.End();
+						iAI.GiveAttackOrder( group_1, ship_0_ );
+						local_2 = true;
+					}
+					
+					if ( (Sim.Cast( groupLeader ) == false) && !local_3 )
+					{
+						local_3 = true;
+						iConversation.OneLiner( none, "name_clay", "a0_m40_dialogue_clay_theyve" );
+						iObjectives.Add( "a0_m40_objectives_return" );
+					}
+					
+					if ( local_3 && (State.Progress( state_ ) != 7) )
+					{
+						if ( iSim.IsDockedTo( ship_0_, ship_1 ) )
+						{
+							State.SetProgress( state_, 7 );
+							local_5 = true;
+						}
+					}
+					
+					if ( local_4 )
+					{
+						if ( local_5 && !local_6 )
+						{
+							local_6 = true;
+							group_0 = local_function_5();
+							Sim.PlaceNear( Group.Leader( group_0 ), ship_0_, Global.Float( "g_player_sensor_range" ) );
+							iFormation.Goose( group_0, 70.0, true );
+							iAI.GiveAttackOrder( group_0, ship_0_ );
+						}
+						else if ( local_10 > 160 )
+						{
+							local_5 = true;
+						}
+						else
+						{
+							local_10 = ( local_10 + 1 );
+						}
+						
+						if ( local_6 )
+						{
+							if ( (Sim.DistanceBetween( Group.Leader( group_0 ), ship_0_ ) < 10000.0) && !local_7 )
+							{
+								local_7 = true;
+								iConversation.OneLiner( Group.Leader( group_0 ), "", "a0_m40_dialogue_police_piracy" );
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+task MissionHandler()
+{
+	bool local_0 = false;
+	bool local_1 = false;
+	bool local_2 = false;
+	bool local_3;
+	hmapentity charlesworthFreightServiceDepot = iMapEntity.FindByName( "Charlesworth Freight Service Depot" );
+	hmapentity alexanderLPoint = iMapEntity.FindByName( "Alexander L-Point" );
+	hmapentity junkyard = iMapEntity.FindByName( "Junkyard" );
+	hmapentity maasSystemsProcessingPlant = iMapEntity.FindByName( "Maas Systems Processing Plant" );
+	hsim local_8;
+	hsim waypointGriffonOrbitalTransferStation;
+	hship shipMailPod;
+	hship playerShip = iShip.FindPlayerShip();
+	hstate taskState;
+	int local_13;
+	htask currentTask = Task.Current();
+	
+	Text.Add( "csv:/text/act_0/act0_mission40" );
+	iStation.AddReactiveException( iHabitat.Cast( charlesworthFreightServiceDepot ) );
+	iStation.AddReactiveException( iHabitat.Cast( junkyard ) );
+	taskState = State.Find( currentTask );
+	
+	if ( !taskState )
+	{
+		taskState = State.Create( currentTask, 0 );
+		iBackToBase.Inhibit();
+	}
+	
+	local_function_6( taskState );
+	iMissionTracker.AddMission( Task.Current(), 0, 40 );
+	
+	if ( (State.Progress( taskState ) == 0) || (State.Progress( taskState ) == 6) )
+	{
+		iObjectives.Add( "a0_m40_objectives_visit" );
+	}
+	
+	if ( State.Progress( taskState ) == 7 )
+	{
+		shipMailPod = iShip.Create( "ini:/sims/ships/utility/mail_pod", "name_cargo_pod" );
+		Object.AddIntProperty( shipMailPod, "recovered_cargo", 1 );
+		iSim.SetIndestructable( shipMailPod, true );
+		iSim.SetMissionCritical( shipMailPod, true );
+		
+		if ( iLoadout.Ship() != S_CommandSection )
+		{
+			local_3 = iShip.Dock( shipMailPod, playerShip );
+		}
+		else
+		{
+			local_3 = false;
+		}
+		
+		if ( !local_3 )
+		{
+			Sim.PlaceNear( shipMailPod, iMapEntity.FindByName( "Lucrecia's Base" ), 100.0 );
+		}
+		
+		Sim.SetCullable( shipMailPod, false );
+	}
+	
+	iRangeCheck.AddTrafficException( iHabitat.Cast( charlesworthFreightServiceDepot ) );
+	iSim.SetSensorVisibility( iSim.Cast( charlesworthFreightServiceDepot ), true );
+	start local_function_7( charlesworthFreightServiceDepot, playerShip, taskState );
+	
+	schedule
+	{
+		every 1.0:
+		{
+			if ( (State.Progress( taskState ) == 1) && !local_0 )
+			{
+				local_0 = true;
+				start local_function_8( playerShip, alexanderLPoint, junkyard, taskState );
+			}
+			
+			if ( (State.Progress( taskState ) == 5) && !local_2 )
+			{
+				local_2 = true;
+				waypointGriffonOrbitalTransferStation = iUtilities.CreateWaypointRelativeTo( iMapEntity.FindByName( "Griffon Orbital Transfer Station" ), 1000.0, 0.0, -1000.0 );
+				iStation.DisableReactiveInArea( waypointGriffonOrbitalTransferStation, 10000.0 );
+				iUtilities.MakeWaypointVisible( waypointGriffonOrbitalTransferStation, true, "a0_m40_name_waypoint_belrano_intercept" );
+				start local_function_9( playerShip, waypointGriffonOrbitalTransferStation, taskState );
+			}
+			
+			if ( (State.Progress( taskState ) == 3) && !local_1 )
+			{
+				local_1 = true;
+				iSim.SetSensorVisibility( iSim.Cast( junkyard ), true );
+				start local_function_10( junkyard, local_8, playerShip, taskState );
+			}
+			
+			if ( (State.Progress( taskState ) == 8) || (State.Progress( taskState ) == 100) )
+			{
+				if ( State.Progress( taskState ) != 100 )
+				{
+					Global.SetBool( "g_act0_errand_boy_complete", true );
+				}
+				else
+				{
+					atomic
+					{
+						Global.SetBool( "g_skip_locked", false );
+					}
+					
+					Task.Detach( start local_function_0() );
+					iSim.SetSensorVisibility( iSim.Cast( junkyard ), false );
+					Sim.Destroy( waypointGriffonOrbitalTransferStation );
+					iSim.SetSensorVisibility( iSim.Cast( alexanderLPoint ), true );
+					local_function_11();
+					iScore.GotoRestartPoint();
+				}
+				
+				iUtilities.RemoveMissionRestart();
+				State.Destroy( Task.Current() );
+				iBackToBase.Allow();
+				iMissionTracker.RemoveMission( Task.Current() );
+				iStation.RemoveReactiveException( iHabitat.Cast( charlesworthFreightServiceDepot ) );
+				iStation.RemoveReactiveException( iHabitat.Cast( junkyard ) );
+				return;
+			}
+		}
+	}
+}
+

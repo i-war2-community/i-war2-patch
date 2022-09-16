@@ -1,0 +1,1106 @@
+package iAct3Mission01;
+
+uses Sim,
+     Group,
+     iSim,
+     iShip,
+     ABB_Common,
+     Debug,
+     List,
+     Set,
+     String,
+     Global,
+     Math,
+     Object,
+     State,
+     Task,
+     Text,
+     Subsim,
+     iDockport,
+     iLagrangePoint,
+     iAI,
+     iConversation,
+     iCutsceneUtilities,
+     iDirector,
+     GUI,
+     iEmail,
+     iEscort,
+     MapEnumerations,
+     iFaction,
+     iFormation,
+     iMapEntity,
+     iBody,
+     iHabitat,
+     iLoadout,
+     iMissionTracker,
+     iObjectives,
+     iPilotSetup,
+     iRangeCheck,
+     iRegion,
+     iScriptedOrders,
+     INIFile,
+     iUtilities,
+     iCargo,
+     CargoTypes,
+     iCargoScript,
+     iShipCreation,
+     iStation;
+
+provides Main,
+         PhaseMenu,
+         MissionHandler;
+
+prototype string local_function_1();
+prototype string local_function_2();
+prototype Main();
+prototype local_function_7( hstate state_ );
+prototype local_function_4();
+prototype task local_function_0();
+prototype PhaseMenu();
+prototype task local_function_3();
+prototype task local_function_8( htask param_0_, hstate state_, hisim param_2_, hisim param_3_, hsim param_4_, hship ship_0_, hship ship_1_, hgroup group_0_, hgroup group_1_, hgroup group_2_, hgroup group_3_, hgroup group_4_, hgroup group_5_, hgroup group_6_, hgroup group_7_, hgroup group_8_, hgroup group_9_, hgroup group_10_, hgroup group_11_, hgroup group_12_ );
+prototype local_function_18( hgroup group_, bool param_1_ );
+prototype task MissionHandler();
+prototype task local_function_19( hship ship_, float param_1_, hgroup group_0_, int param_3_, hgroup group_1_, int param_5_ );
+prototype local_function_5();
+prototype task local_function_17( hmapentity mapentity_, hsim param_1_ );
+prototype task local_function_22( hmapentity mapentity_, hgroup group_0_ );
+prototype local_function_25();
+prototype hisim local_function_9( hmapentity mapentity_, float param_1_ );
+prototype hisim local_function_13( hmapentity mapentity_, float param_1_ );
+prototype hship local_function_10();
+prototype hgroup local_function_11( int param_0_ );
+prototype hgroup local_function_12( int param_0_ );
+prototype hship local_function_26();
+prototype hgroup local_function_15( int param_0_ );
+prototype hgroup local_function_23( int param_0_ );
+prototype hgroup local_function_24( int param_0_ );
+prototype hgroup local_function_21();
+prototype hgroup local_function_16( int param_0_ );
+prototype hgroup local_function_14( hmapentity mapentity_, int param_1_, float param_2_ );
+prototype local_function_27( hship ship_ );
+prototype hgroup local_function_20( hgroup group_0_, int param_1_ );
+prototype local_function_6();
+prototype local_function_28();
+
+string local_function_1()
+{
+	return "Corporates On The Run";
+}
+
+string local_function_2()
+{
+	return "g_act3_corporates_on_run_complete";
+}
+
+Main()
+{
+	start local_function_0();
+}
+
+local_function_7( hstate state_ )
+{
+	hsim waypoint;
+	hship playerShip = iShip.FindPlayerShip();
+	
+	waypoint = iUtilities.CreateWaypointRelativeTo( iSim.FindByNameInSystem( "Baal L-Point", "map:/geog/badlands/kompira" ), 0.0, 9000000.0, 0.0 );
+	Object.AddHandleProperty( playerShip, "restart_waypoint", waypoint );
+	Object.AddHandleProperty( playerShip, "current_mission_state", state_ );
+}
+
+local_function_4()
+{
+	iObjectives.Remove( "a3_m01_objectives_redezvous" );
+	iObjectives.Remove( "a3_m01_objectives_security" );
+	iObjectives.Remove( "a3_m01_objectives_cover" );
+	iObjectives.Remove( "a3_m01_objectives_smith" );
+	iObjectives.Remove( "a3_m01_objectives_defend" );
+}
+
+task local_function_0()
+{
+	if ( !iUtilities.SkipMission( local_function_1() ) )
+	{
+		iMissionTracker.AddMission( Task.Current(), 3, 1 );
+		Task.Detach( start MissionHandler() );
+		return;
+	}
+	
+	Global.SetBool( local_function_2(), true );
+}
+
+PhaseMenu()
+{
+	start local_function_3();
+}
+
+task local_function_3()
+{
+	htask local_0;
+	int convoResponse;
+	
+	iConversation.Begin();
+	iConversation.AddResponse( "a3_m01_debug_choose_phase_skip_mission", "a3_m01_debug_chosen_phase_skip_mission" );
+	iConversation.AddResponse( "a3_m01_debug_choose_phase_MP_Start", "a3_m01_debug_chosen_phase_MP_Start" );
+	iConversation.AddResponse( "a3_m01_debug_choose_phase_MP_Meeting", "a3_m01_debug_chosen_phase_MP_Meeting" );
+	iConversation.AddResponse( "a3_m01_debug_choose_phase_MP_Assault", "a3_m01_debug_chosen_phase_MP_Assault" );
+	iConversation.AddResponse( "a3_m01_debug_choose_phase_MP_Defend", "a3_m01_debug_chosen_phase_MP_Defend" );
+	iConversation.AddResponse( "a3_m01_debug_choose_phase_MP_Survive", "a3_m01_debug_chosen_phase_MP_Survive" );
+	convoResponse = iConversation.Ask( none, "utils_particle_employee", "a3_m01_debug_choose_entry_phase" );
+	iConversation.End();
+	local_0 = start MissionHandler();
+	
+	if ( convoResponse == 0 )
+	{
+		Global.SetBool( local_function_2(), true );
+		return;
+	}
+	
+	State.Create( local_0, convoResponse - 2 );
+	Task.Detach( local_0 );
+}
+
+task local_function_8( htask param_0_, hstate state_, hisim param_2_, hisim param_3_, hsim param_4_, hship ship_0_, hship ship_1_, hgroup group_0_, hgroup group_1_, hgroup group_2_, hgroup group_3_, hgroup group_4_, hgroup group_5_, hgroup group_6_, hgroup group_7_, hgroup group_8_, hgroup group_9_, hgroup group_10_, hgroup group_11_, hgroup group_12_ )
+{
+	schedule
+	{
+		every 0.40:
+		{
+			if ( State.Progress( state_ ) == 100 )
+			{
+				Sim.Destroy( param_2_ );
+				Sim.Destroy( param_3_ );
+				Sim.Destroy( param_4_ );
+				Sim.Destroy( ship_0_ );
+				Sim.Destroy( ship_1_ );
+				Sim.Destroy( iSim.FindByNameInSystem( "a3_m01_waypoint_initial_meeting", "map:/geog/badlands/kompira" ) );
+				Group.Destroy( group_0_, true );
+				Group.Destroy( group_1_, true );
+				Group.Destroy( group_2_, true );
+				Group.Destroy( group_0_, true );
+				Group.Destroy( group_4_, true );
+				Group.Destroy( group_5_, true );
+				Group.Destroy( group_6_, true );
+				Group.Destroy( group_7_, true );
+				Group.Destroy( group_8_, true );
+				Group.Destroy( group_9_, true );
+				Group.Destroy( group_10_, true );
+				Group.Destroy( group_11_, true );
+				Group.Destroy( group_12_, true );
+				
+				atomic
+				{
+					Global.SetBool( "g_skip_locked", false );
+				}
+				
+				Task.Detach( start local_function_0() );
+				local_function_4();
+				
+				if ( iMapEntity.IsDestroyed( iMapEntity.FindByNameInSystem( "Najran MAAS Security Station", "map:/geog/badlands/kompira" ) ) )
+				{
+					iMapEntity.SetDestroyed( iMapEntity.FindByNameInSystem( "Najran MAAS Security Station", "map:/geog/badlands/kompira" ), false );
+				}
+				
+				State.Destroy( param_0_ );
+				iMissionTracker.RemoveMission( param_0_ );
+				iUtilities.RemoveMissionRestart();
+				Task.Halt( param_0_ );
+				return;
+			}
+		}
+	}
+}
+
+local_function_18( hgroup group_, bool param_1_ )
+{
+	int simCount = Group.SimCount( group_ );
+	int ii;
+	
+	if ( param_1_ )
+	{
+		for ( ii = 0; ii < simCount; ++ii )
+		{
+			iShip.LockDownWeapons( iShip.Cast( Group.NthSim( group_, ii ) ) );
+		}
+		
+		return;
+	}
+	
+	for ( ii = 0; ii < simCount; ++ii )
+	{
+		iShip.WeaponTargetsFromContactList( iShip.Cast( Group.NthSim( group_, ii ) ) );
+	}
+}
+
+task MissionHandler()
+{
+	htask currentTask = Task.Current();
+	hstate taskState = State.Find( currentTask );
+	hemail email;
+	bool local_3 = false;
+	hship playerShip = iShip.FindPlayerShip();
+	hship ship;
+	hship groupLeader;
+	hgroup group_0;
+	hgroup group_1;
+	hgroup group_2 = Group.Create();
+	hgroup group_3;
+	hgroup group_4;
+	hgroup group_5;
+	hgroup group_6;
+	hgroup group_7;
+	hgroup group_8;
+	hgroup group_9;
+	hgroup group_10 = Group.Create();
+	hgroup group_11 = Group.Create();
+	hgroup group_12;
+	hmapentity najranMAASSecurityStation = iMapEntity.FindByNameInSystem( "Najran MAAS Security Station", "map:/geog/badlands/kompira" );
+	hisim local_21;
+	hmapentity baalLPoint = iMapEntity.FindByNameInSystem( "Baal L-Point", "map:/geog/badlands/kompira" );
+	hisim local_23;
+	hsim local_24;
+	float constant_0 = 20000.0;
+	float gPlayerSensorRange = Global.Float( "g_player_sensor_range" );
+	float local_27 = gPlayerSensorRange;
+	float local_28 = ( gPlayerSensorRange + 50000.0 );
+	float constant_1 = 2000000.0;
+	float constant_2 = 3000000.0;
+	float constant_3 = 0.0;
+	float constant_4 = 2000000.0;
+	float constant_5 = 0.0;
+	float constant_6 = 50000.0;
+	float constant_7 = 15.0;
+	int local_36 = 0;
+	bool local_37 = false;
+	htask local_38;
+	htask local_39;
+	htask local_40;
+	
+	local_function_5();
+	local_function_6();
+	
+	if ( !taskState )
+	{
+		taskState = State.Create( currentTask, 0 );
+	}
+	else
+	{
+	}
+	
+	local_function_7( taskState );
+	Task.Detach( local_40 = start local_function_8( Task.Current(), taskState, local_21, local_23, local_24, ship, groupLeader, group_0, group_1, group_2, group_3, group_4, group_5, group_6, group_7, group_8, group_9, group_10, group_11, group_12 ) );
+	iRangeCheck.AddTrafficException( iMapEntity.Cast( najranMAASSecurityStation ) );
+	Object.AddIntProperty( najranMAASSecurityStation, "reactive_exception", 1 );
+	
+	do
+	{
+		switch ( State.Progress( taskState ) )
+		{
+			case 0:
+				debug Debug.PrintString( "Act 3 Mission 01 Phase 1 - Mission Start - Started\n" );
+				email = iEmail.Find( "html:/text/act_3/act3_mission01_email" );
+				
+				if ( !email )
+				{
+					iEmail.SendEmail( "a3_m01_email_sender", "a3_m01_email_subject", "html:/text/act_3/act3_mission01_email", true );
+				}
+				
+				if ( !iEmail.Read( email ) )
+				{
+					return;
+				}
+				else debug Debug.PrintString( "Act 3 Mission 01 Phase 1 - Mission Start - Email read - waiting for player to reach initial meeting point\n" );
+				
+				iObjectives.Add( "a3_m01_objectives_redezvous" );
+				
+				do
+				{
+					if ( !local_23 )
+					{
+						local_23 = local_function_9( baalLPoint, constant_4 );
+						debug Debug.PrintString( "Act 2 Mission 05 Phase 1 - Mission Start - Started - waypoint created\n" );
+					}
+					
+					switch ( ABB_Common.WatchSimsMovement( playerShip, local_23, local_28, constant_3, 272, 1.0 ) )
+					{
+						case 16:
+							break;
+						
+						case 256:
+							continue;
+					}
+					
+					break;
+				}
+				while ( 1 );
+				
+				debug Debug.PrintString( "Act 2 Mission 23 Phase 1 - Mission Start - Complete\n" );
+				State.SetProgress( taskState, 1 );
+				break;
+			
+			case 1:
+				debug Debug.PrintString( "Act 3 Mission 01 Phase 2 - Meeting - Started\n" );
+				local_function_7( taskState );
+				ship = local_function_10();
+				Sim.SetCullable( ship, false );
+				group_5 = local_function_11( 3 );
+				ABB_Common.SetCullableGroup( group_5, false );
+				group_6 = Group.Create();
+				Group.AddGroup( group_6, group_7 = local_function_12( 5 ) );
+				Group.AddGroup( group_6, group_8 = local_function_12( 8 ) );
+				ABB_Common.SetCullableGroup( group_6, false );
+				Sim.PlaceRelativeTo( ship, local_23, 0.0, -900.0, 0.0 );
+				iEscort.InFormationClaw( group_5, ship, 1, 0.0, 0.0, 0.0, 5.0, 250.0, true );
+				Sim.PlaceRelativeTo( Group.Leader( group_7 ), local_23, 0.0, 1600.0, 0.0 );
+				Sim.PlaceRelativeTo( Group.Leader( group_8 ), local_23, 400.0, 1600.0, 400.0 );
+				iFormation.Goose( group_7, 250.0, true );
+				iFormation.Goose( group_8, 250.0, true );
+				iStation.AddReactiveException( iHabitat.Cast( najranMAASSecurityStation ) );
+				iObjectives.SetState( "a3_m01_objectives_redezvous", OS_Succeeded );
+				iConversation.Begin();
+				iConversation.Say( ship, "a3_m01_name_marine_leader", "a3_m01_dialogue_marine_leader_intro_1" );
+				iConversation.Say( ship, "a3_m01_name_marine_leader", "a3_m01_dialogue_marine_leader_intro_2" );
+				iConversation.Say( ship, "a3_m01_name_marine_leader", "a3_m01_dialogue_marine_leader_intro_3" );
+				iConversation.Say( ship, "a3_m01_name_marine_leader", "a3_m01_dialogue_marine_leader_intro_4" );
+				iConversation.Say( ship, "a3_m01_name_marine_leader", "a3_m01_dialogue_marine_leader_intro_5" );
+				iConversation.Say( ship, "a3_m01_name_marine_leader", "a3_m01_dialogue_marine_leader_intro_6" );
+				iConversation.End();
+				
+				if ( !local_21 )
+				{
+					local_21 = local_function_13( najranMAASSecurityStation, constant_5 );
+					debug Debug.PrintString( "Act 2 Mission 05 Phase 2 - Meeting - corporate base waypoint created\n" );
+				}
+				
+				Task.Halt( local_40 );
+				Task.Detach( local_40 = start local_function_8( Task.Current(), taskState, local_21, local_23, local_24, ship, groupLeader, group_0, group_1, group_2, group_3, group_4, group_5, group_6, group_7, group_8, group_9, group_10, group_11, group_12 ) );
+				iObjectives.Add( "a3_m01_objectives_security" );
+				iFormation.Goose( group_7, 150.0, false );
+				iFormation.Goose( group_8, 150.0, false );
+				Task.Sleep( currentTask, 2.0 );
+				iAI.GiveApproachOrder( Group.Leader( group_7 ), local_21 );
+				iAI.GiveApproachOrder( Group.Leader( group_8 ), local_21 );
+				ABB_Common.WatchSimsMovement( playerShip, najranMAASSecurityStation, local_28, constant_3, 16, 0.50 );
+				State.SetProgress( taskState, 2 );
+				break;
+			
+			case 2:
+				local_function_7( taskState );
+				debug Debug.PrintString( "Act 3 Mission 01 Phase 3 - Assault - Started\n" );
+				iRegion.CreateTrafficControl( najranMAASSecurityStation, constant_6, 20000.0 );
+				iSim.SetIndestructable( najranMAASSecurityStation, false );
+				Object.SetFloatProperty( najranMAASSecurityStation, "hit_points", 50000.0 );
+				group_0 = local_function_14( najranMAASSecurityStation, 4, 7000.0 );
+				ABB_Common.SetCullableGroup( group_0, false );
+				group_1 = local_function_15( 4 );
+				ABB_Common.SetCullableGroup( group_1, false );
+				Task.Halt( local_40 );
+				Task.Detach( local_40 = start local_function_8( Task.Current(), taskState, local_21, local_23, local_24, ship, groupLeader, group_0, group_1, group_2, group_3, group_4, group_5, group_6, group_7, group_8, group_9, group_10, group_11, group_12 ) );
+				ABB_Common.MaterialiseGroupNear( group_1, najranMAASSecurityStation, 10000.0 );
+				iAI.GiveApproachOrderAdvanced( Group.Leader( group_8 ), local_21, 25000.0, 2000.0, true );
+				group_3 = local_function_16( 3 );
+				ABB_Common.SetCullableGroup( group_3, false );
+				ABB_Common.MaterialiseGroupNear( group_3, najranMAASSecurityStation, 2000.0 );
+				iAI.GiveDockOrder( najranMAASSecurityStation, Group.Leader( group_3 ) );
+				iCutsceneUtilities.SetupDirectedDeath( najranMAASSecurityStation, najranMAASSecurityStation, "a3_m01_name_corporate_base_traffic_control", "a3_m01_dialogue_Security_Base_Corporate_base_destroyed", "a3_m01_text_cutscene_caption_base_destroyed", true );
+				
+				do
+				{
+					Task.Sleep( Task.Current(), 0.50 );
+				}
+				while ( Sim.DistanceBetween( playerShip, najranMAASSecurityStation ) > 30000.0 );
+				
+				iCutsceneUtilities.HandleAbort( start local_function_17( najranMAASSecurityStation, Group.Leader( group_0 ) ) );
+				iAI.GiveApproachOrder( ship, local_21 );
+				iConversation.OneLiner( Group.Leader( Group.NthGroup( group_6, 0 ) ), "a3_m01_name_Raiding_Party_members", "a3_m01_dialogue_Raiding_Party_Members_war_cry" );
+				iAI.GiveFleeOrder( group_3, playerShip );
+				iAI.GiveAttackOrder( group_8, group_1 );
+				local_38 = start iScriptedOrders.FollowRoute( iShip.Cast( Group.Leader( group_7 ) ), group_0, 0.80, 1.0, false, true, 0 );
+				iAI.GiveGenericAttackOrder( group_0 );
+				iAI.GiveGenericAttackOrder( group_1 );
+				
+				do
+				{
+					Task.Sleep( Task.Current(), 0.50 );
+				}
+				while ( Sim.DistanceBetween( ship, najranMAASSecurityStation ) >= 10000.0 );
+				
+				iConversation.OneLiner( ship, "a3_m01_name_marine_leader", "a3_m01_dialogue_marine_leader_approaching_dock" );
+				iAI.GiveDockOrder( ship, najranMAASSecurityStation );
+				
+				schedule
+				{
+					every 1.0:
+					{
+						if ( iSim.IsDockedTo( najranMAASSecurityStation, ship ) )
+						{
+							break;
+						}
+					}
+				}
+				
+				iObjectives.SetState( "a3_m01_objectives_security", OS_Succeeded );
+				iConversation.OneLiner( ship, "a3_m01_name_marine_leader", "a3_m01_dialogue_marine_leader_docked" );
+				iAI.PurgeOrders( group_0 );
+				local_function_18( group_0, true );
+				Task.Sleep( currentTask, 4.0 );
+				ABB_Common.SetFactionGroup( group_0, iFaction.Find( "Independent" ) );
+				ABB_Common.RemovePilotGroup( group_0 );
+				State.SetProgress( taskState, 3 );
+				break;
+			
+			case 3:
+				debug Debug.PrintString( "Act 3 Mission 01 Phase 4 - Defend - Started\n" );
+				debug Debug.PrintString( "Act 3 Mission 01 Phase 4 - base captured, gunstars disabled\n" );
+				iSim.SetMissionCritical( ship, false );
+				Object.SetStringProperty( ship, "death_script", "" );
+				Task.Halt( local_38 );
+				iAI.GiveGenericAttackOrder( group_7 );
+				iAI.GiveGenericAttackOrder( group_8 );
+				iCutsceneUtilities.SetupDirectedDeath( najranMAASSecurityStation, najranMAASSecurityStation, "a3_m01_name_marine_leader", "a3_m01_dialogue_marine_leader_cutscene_base_destroyed", "a3_m01_text_cutscene_caption_base_destroyed", true );
+				group_9 = group_0;
+				iSim.SetFaction( najranMAASSecurityStation, iFaction.Find( "League" ) );
+				
+				debug
+				{
+					Debug.PrintString( "Act 3 Mission 1 Phase 4: " );
+					Debug.PrintInt( Group.SimCount( group_10 ) );
+					Debug.PrintString( " league gunstars left, and " );
+					Debug.PrintInt( Group.SimCount( group_9 ) );
+					Debug.PrintString( " neutral gunstars left\n" );
+				}
+				
+				group_0 = none;
+				iConversation.OneLiner( ship, "a3_m01_name_marine_leader", "a3_m01_dialogue_marine_leader_conquered_base" );
+				iObjectives.Add( "a3_m01_objectives_cover" );
+				local_39 = start local_function_19( playerShip, local_28, group_2, 6, group_11, 6 );
+				Task.Sleep( currentTask, 4.0 );
+				iShip.Undock( ship, najranMAASSecurityStation );
+				iConversation.OneLiner( none, "name_clay", "a3_m01_dialogue_clay_advise_guard_gunstars" );
+				
+				while ( Group.SimCount( group_9 ) > 0 )
+				{
+					groupLeader = iShip.Cast( Group.Leader( group_9 ) );
+					iAI.GiveDockOrder( ship, groupLeader );
+					
+					schedule
+					{
+						every 2.0:
+						{
+							if ( !iShip.Cast( ship ) )
+							{
+								break;
+							}
+							
+							if ( iShip.Cast( groupLeader ) )
+							{
+								if ( iSim.IsDockedTo( groupLeader, ship ) )
+								{
+									iSim.SetIndestructable( groupLeader, true );
+									Task.Sleep( currentTask, constant_7 );
+									local_36 = ( local_36 + 1 );
+									iSim.SetFaction( groupLeader, iFaction.Find( "League" ) );
+									Group.AddSim( group_10, groupLeader );
+									iShip.Undock( ship, groupLeader );
+									iSim.SetIndestructable( groupLeader, false );
+									
+									if ( Group.SimCount( group_9 ) > 0 )
+									{
+										switch ( local_36 )
+										{
+											case 1:
+												iConversation.OneLiner( ship, "a3_m01_name_marine_leader", "a3_m01_dialogue_marine_leader_1st_gunstar_reprogrammed" );
+												break;
+											
+											case 2:
+												iConversation.OneLiner( ship, "a3_m01_name_marine_leader", "a3_m01_dialogue_marine_leader_2nd_gunstar_reprogrammed" );
+												break;
+											
+											case 3:
+												iConversation.OneLiner( ship, "a3_m01_name_marine_leader", "a3_m01_dialogue_marine_leader_3rd_gunstar_reprogrammed" );
+												break;
+										}
+										
+										debug Debug.PrintString( "Act 3 Mission 01 Phase 4 - one (more) gunstar subverted\n" );
+										continue;
+									}
+									
+									break;
+								}
+							}
+							else
+							{
+								continue;
+							}
+						}
+					}
+					
+					break;
+				}
+				
+				if ( !iShip.Cast( ship ) && (Group.SimCount( group_9 ) > 0) )
+				{
+					iConversation.Begin();
+					iConversation.Say( none, "name_smith", "a3_m01_dialogue_smith_you_finish_the_gunstars_1" );
+					iConversation.Say( none, "name_smith", "a3_m01_dialogue_smith_you_finish_the_gunstars_2" );
+					iConversation.End();
+					iObjectives.SetState( "a3_m01_objectives_cover", OS_Failed );
+					iObjectives.Add( "a3_m01_objectives_smith" );
+					
+					while ( Group.SimCount( group_9 ) > 0 )
+					{
+						schedule
+						{
+							every 2.0:
+							{
+								if ( !Group.SimCount( group_9 ) )
+								{
+									break;
+								}
+								
+								if ( Sim.Group( Sim.Parent( playerShip ) ) == group_9 )
+								{
+									groupLeader = iShip.Cast( Sim.Parent( playerShip ) );
+									iSim.SetIndestructable( groupLeader, true );
+									Task.Sleep( currentTask, constant_7 );
+									local_36 = ( local_36 + 1 );
+									iSim.SetFaction( groupLeader, iFaction.Find( "League" ) );
+									Group.AddSim( group_10, groupLeader );
+									iSim.SetIndestructable( groupLeader, false );
+									
+									if ( Group.SimCount( group_9 ) > 0 )
+									{
+										iConversation.OneLiner( none, "name_smith", "a3_m01_dialogue_smith_gunstar_online_next" );
+										debug Debug.PrintString( "Act 3 Mission 01 Phase 4 - one (more) gunstar subverted\n" );
+										continue;
+									}
+									
+									break;
+								}
+							}
+						}
+						
+						iObjectives.SetState( "a3_m01_objectives_smith", OS_Succeeded );
+						break;
+					}
+				}
+				
+				debug Debug.PrintString( "Act 3 Mission 01 Phase 4 - all gunstars subverted\n" );
+				iObjectives.SetState( "a3_m01_objectives_cover", OS_Succeeded );
+				iAI.GiveDockOrder( ship, najranMAASSecurityStation );
+				iAI.GiveGenericAttackOrder( group_5 );
+				State.SetProgress( taskState, 4 );
+				break;
+			
+			case 4:
+				debug Debug.PrintString( "Act 3 Mission 01 Phase 5 - Survive - Started\n" );
+				ABB_Common.SetPilotNoScriptsGroup( group_10, 2000.0, 2000.0, -50.0 );
+				iCutsceneUtilities.SetupDirectedDeath( najranMAASSecurityStation, najranMAASSecurityStation, "a3_m01_name_marine_leader", "a3_m01_dialogue_marine_leader_cutscene_base_destroyed", "a3_m01_text_cutscene_caption_base_destroyed", true );
+				
+				if ( iShip.Cast( ship ) )
+				{
+					iConversation.OneLiner( ship, "a3_m01_name_marine_leader", "a3_m01_dialogue_marine_leader_last_gunstar_reprogrammed" );
+				}
+				else
+				{
+					iConversation.OneLiner( none, "name_smith", "a3_m01_dialogue_smith_gunstar_last_gunstar_reprogrammed" );
+				}
+				
+				debug
+				{
+					Debug.PrintString( "Act 3 Mission 1 Phase 5: " );
+					Debug.PrintInt( Group.SimCount( group_10 ) );
+					Debug.PrintString( " league gunstars left, and " );
+					Debug.PrintInt( Group.SimCount( group_9 ) );
+					Debug.PrintString( " neutral gunstars left\n" );
+				}
+				
+				if ( Group.SimCount( group_10 ) > 1 )
+				{
+					iConversation.OneLiner( none, "name_smith", "a3_m01_dialogue_smith_corporate_runaway" );
+					ABB_Common.SetCullableGroup( group_1, true );
+					ABB_Common.SetCullableGroup( group_2, true );
+					Task.Detach( start iScriptedOrders.LagrangeHandler( local_function_20( group_1, 0.750 * Group.SimCount( group_1 ) ), "Random" ) );
+					Task.Detach( start iScriptedOrders.LagrangeHandler( local_function_20( group_2, 0.750 * Group.SimCount( group_2 ) ), "Random" ) );
+				}
+				else
+				{
+					iConversation.OneLiner( none, "name_clay", "a3_m01_dialogue_clay_not_enough_gunstars" );
+					ABB_Common.SetCullableGroup( group_1, true );
+					ABB_Common.SetCullableGroup( group_2, true );
+					Task.Detach( start iScriptedOrders.LagrangeHandler( local_function_20( group_1, 0.250 * Group.SimCount( group_1 ) ), "Random" ) );
+					Task.Detach( start iScriptedOrders.LagrangeHandler( local_function_20( group_2, 0.250 * Group.SimCount( group_2 ) ), "Random" ) );
+				}
+				
+				local_function_18( group_0, false );
+				iSim.WeaponTargetsFromContactList( najranMAASSecurityStation );
+				iObjectives.Add( "a3_m01_objectives_defend" );
+				iAI.GiveAttackOrder( group_1, najranMAASSecurityStation );
+				iAI.GiveAttackOrder( group_1, group_2 );
+				iAI.GiveAttackOrder( group_2, najranMAASSecurityStation );
+				Task.Sleep( currentTask, 2.0 );
+				iConversation.OneLiner( none, "name_smith", "a3_m01_dialogue_smith_corporate_suicide_attack" );
+				
+				do
+				{
+					Task.Sleep( Task.Current(), 1.0 );
+				}
+				while ( (Group.SimCount( group_2 ) > 0) && (Set.ItemCount( iSim.PlayerHostilesInRadius( 250000.0, 536838144 ) ) != 0) );
+				
+				iConversation.OneLiner( najranMAASSecurityStation, "a3_m01_name_league_base_traffic_control", "a3_m01_dialogue_Security_Base_League_Bye_Bye" );
+				iConversation.OneLiner( najranMAASSecurityStation, "a3_m01_name_league_base_traffic_control", "a3_m01_dialogue_Security_Base_League_Refuel" );
+				iObjectives.SetState( "a3_m01_objectives_defend", OS_Succeeded );
+				group_12 = local_function_21();
+				Sim.PlaceNear( Group.Leader( group_12 ), najranMAASSecurityStation, local_28 );
+				iFormation.Goose( group_12, 450.0, true );
+				iAI.GiveApproachOrderAdvanced( group_12, najranMAASSecurityStation, 10000.0, 2000.0, true );
+				iCutsceneUtilities.HandleAbort( start local_function_22( najranMAASSecurityStation, group_12 ) );
+				
+				schedule
+				{
+					every 2.0:
+					{
+						if ( iSim.IsDockedTo( najranMAASSecurityStation, playerShip ) )
+						{
+							iConversation.OneLiner( none, "name_smith", "a3_m01_dialogue_smith_started_refuelling" );
+							iLoadout.RearmFromThirdParty( playerShip, 1.0 );
+							Task.Sleep( Task.Current(), 5.0 );
+							iConversation.OneLiner( none, "name_smith", "a3_m01_dialogue_smith_done_refuelling" );
+							break;
+						}
+						
+						if ( Sim.DistanceBetween( najranMAASSecurityStation, playerShip ) > constant_2 )
+						{
+							break;
+						}
+					}
+				}
+				
+				local_3 = true;
+				debug Debug.PrintString( "Act 2 Mission 23 Phase 5 - Defend - Complete\n" );
+				break;
+		}
+	}
+	while ( !local_3 );
+	
+	Global.SetBool( local_function_2(), true );
+	iUtilities.RemoveMissionRestart();
+	State.Destroy( currentTask );
+	return;
+}
+
+task local_function_19( hship ship_, float param_1_, hgroup group_0_, int param_3_, hgroup group_1_, int param_5_ )
+{
+	hgroup group_2;
+	int simCount;
+	int local_2;
+	int random;
+	htask currentTask = Task.Current();
+	
+	do
+	{
+		simCount = Group.SimCount( group_0_ );
+		
+		if ( simCount < (param_3_ - 1) )
+		{
+			if ( Math.RandomInt( 0, 100 ) > 97 )
+			{
+				local_2 = ( param_3_ - simCount );
+				random = Math.RandomInt( 1, local_2 );
+				group_2 = local_function_23( random );
+				Sim.PlaceNear( Group.Leader( group_2 ), ship_, param_1_ );
+				iEscort.Goose( group_2, 250.0, 8000.0, true );
+				iAI.GiveGenericAttackOrder( group_2 );
+				iAI.GiveApproachOrderAdvanced( Group.Leader( group_2 ), ship_, 8000.0, 1000.0, true );
+				Group.AddGroup( group_0_, group_2 );
+				Group.Flatten( group_0_ );
+				
+				debug
+				{
+					Debug.PrintString( "Number of enemies in combat now = " );
+					Debug.PrintInt( Group.SimCount( group_0_ ) );
+					Debug.PrintString( "\n" );
+				}
+			}
+		}
+		
+		simCount = Group.SimCount( group_1_ );
+		
+		if ( simCount < (param_3_ - 1) )
+		{
+			if ( Math.RandomInt( 0, 100 ) > 97 )
+			{
+				local_2 = ( param_3_ - simCount );
+				random = Math.RandomInt( 1, local_2 );
+				group_2 = local_function_24( random );
+				Sim.PlaceNear( Group.Leader( group_2 ), ship_, param_1_ );
+				iEscort.Goose( group_2, 250.0, 8000.0, true );
+				iAI.GiveGenericAttackOrder( group_2 );
+				iAI.GiveApproachOrderAdvanced( Group.Leader( group_2 ), ship_, 8000.0, 1000.0, true );
+				Group.AddGroup( group_1_, group_2 );
+				Group.Flatten( group_1_ );
+				
+				debug
+				{
+					Debug.PrintString( "Number of friends in combat now = " );
+					Debug.PrintInt( Group.SimCount( group_1_ ) );
+					Debug.PrintString( "\n" );
+				}
+			}
+		}
+		
+		Task.Sleep( currentTask, 1.0 );
+	}
+	while ( 1 );
+}
+
+local_function_5()
+{
+	iMissionTracker.AddMission( Task.Current(), 3, 1 );
+	Text.Add( "csv:/text/act_3/act3_mission01" );
+	Text.Add( "csv:/text/act_3/act3_mission01_addendum" );
+	Sim.Preload( "ini:/sims/ships/independent/cutter" );
+	Sim.Preload( "ini:/sims/ships/independent/tug_armed" );
+	Sim.Preload( "ini:/sims/ships/independent/armoured_tug" );
+	Sim.Preload( "ini:/sims/ships/independent/puffin_armed" );
+	Sim.Preload( "ini:/sims/ships/player/heavy_corvette" );
+	Sim.Preload( "ini:/sims/ships/utility/stealth_lst" );
+	Sim.Preload( "ini:/sims/ships/independent/oman_cutter" );
+	Sim.Preload( "ini:/sims/ships/corporate/corp_cruiser" );
+	Sim.Preload( "ini:/sims/ships/navy/gunstar_quad_light" );
+	Sim.Preload( "ini:/sims/ships/utility/truck_greyhound" );
+	Sim.Preload( "ini:/sims/ships/utility/freighter" );
+	Sim.Preload( "ini:/sims/ships/corporate/interceptor" );
+}
+
+task local_function_17( hmapentity mapentity_, hsim param_1_ )
+{
+	hship playerShip = iShip.FindPlayerShip();
+	htask currentTask = Task.Current();
+	int local_2;
+	hgroup group = iCutsceneUtilities.GetKillGroup();
+	
+	debug Debug.PrintString( "Act3 Mission 1: starting najran base approach cutscene\n" );
+	iDirector.Begin();
+	iDirector.SetFocus( mapentity_ );
+	iDirector.SetSecondaryFocus( param_1_ );
+	iDirector.SetCamera( CAM_Conversation );
+	iDirector.SetCaption( "a3_m01_name_cutscene_najran_security_base", 2.0 );
+	iConversation.Begin();
+	iConversation.Say( none, "name_smith", "a3_m01_dialogue_smith_base_intro" );
+	iConversation.Say( none, "name_clay", "a3_m01_dialogue_clay_base_intro" );
+	iConversation.End();
+	Task.Sleep( currentTask, 1.0 );
+	iDirector.SetFocus( mapentity_ );
+	iDirector.SetSecondaryFocus( playerShip );
+	iDirector.SetCamera( CAM_Conversation );
+	iConversation.OneLiner( mapentity_, "a3_m01_name_corporate_base_traffic_control", "a3_m01_dialogue_Security_Base_Corporate_warning" );
+	iConversation.OneLiner( none, "name_cal", "a3_m01_dialogue_Cal_lets_go" );
+	Task.Sleep( currentTask, 2.0 );
+	debug Debug.PrintString( "Act3 Mission 1: ending najran base approach cutscene\n" );
+	iDirector.End();
+}
+
+task local_function_22( hmapentity mapentity_, hgroup group_0_ )
+{
+	htask currentTask = Task.Current();
+	hgroup group_1 = iCutsceneUtilities.GetKillGroup();
+	int local_2;
+	
+	debug Debug.PrintString( "Act3 Mission 1: starting reinforcements cutscene\n" );
+	iDirector.Begin();
+	iCutsceneUtilities.BuzzCamera( Group.Leader( group_0_ ), 0.0, 0.0, 2000.0 );
+	iDirector.SetCaption( "a3_m01_ship_name_resolute", 2.0 );
+	Task.Sleep( currentTask, 5.0 );
+	debug Debug.PrintString( "Act3 Mission 1: ending reinforcements cutscene\n" );
+	iDirector.End();
+}
+
+local_function_25()
+{
+}
+
+hisim local_function_9( hmapentity mapentity_, float param_1_ )
+{
+	hisim local_0 = iSim.Cast( iUtilities.CreateWaypointRelativeTo( mapentity_, 0.0, param_1_, 0.0 ) );
+	
+	iUtilities.MakeWaypointVisible( local_0, true, "a3_m01_waypoint_initial_meeting" );
+	return local_0;
+}
+
+hisim local_function_13( hmapentity mapentity_, float param_1_ )
+{
+	hisim local_0 = iSim.Cast( iUtilities.CreateWaypointRelativeTo( mapentity_, 0.0, param_1_, 0.0 ) );
+	
+	iUtilities.MakeWaypointVisible( local_0, true, "a3_m01_waypoint_security_base_approach" );
+	return local_0;
+}
+
+hship local_function_10()
+{
+	hship shipTroopCarrier = iShip.Create( "ini:/sims/ships/navy/troop_carrier", "a3_m01_marine_troop_carrier" );
+	
+	iPilotSetup.GenericCargoPod( shipTroopCarrier );
+	iSim.SetFaction( shipTroopCarrier, iFaction.Find( "League" ) );
+	Object.SetBoolProperty( shipTroopCarrier, "ignore_speed_limit", true );
+	iSim.SetMissionCritical( shipTroopCarrier, true );
+	iCutsceneUtilities.SetupDirectedDeath( shipTroopCarrier, shipTroopCarrier, "", "", "", true );
+	return shipTroopCarrier;
+}
+
+hgroup local_function_11( int param_0_ )
+{
+	hgroup group = Group.Create();
+	int ii;
+	hship shipCutter;
+	
+	for ( ii = 0; ii < param_0_; ++ii )
+	{
+		shipCutter = iShip.Create( "ini:/sims/ships/independent/cutter", iShipCreation.ShipName( "League", -1 ) );
+		Object.SetBoolProperty( shipCutter, "ignore_speed_limit", true );
+		Group.AddSim( group, shipCutter );
+	}
+	
+	ABB_Common.SetPilotNoScriptsGroup( group, 2000.0, 2000.0, -50.0 );
+	ABB_Common.SetFactionGroup( group, iFaction.Find( "League" ) );
+	return group;
+}
+
+hgroup local_function_12( int param_0_ )
+{
+	hgroup group = Group.Create();
+	int ii;
+	hship ship;
+	
+	for ( ii = 0; ii < param_0_; ++ii )
+	{
+		switch ( Math.RandomInt( 1, 5 ) )
+		{
+			case 1:
+				ship = iShip.Create( "ini:/sims/ships/independent/armoured_tug", iShipCreation.ShipName( "League", -1 ) );
+				break;
+			
+			case 2:
+				ship = iShip.Create( "ini:/sims/ships/independent/cutter", iShipCreation.ShipName( "League", -1 ) );
+				break;
+			
+			case 3:
+				ship = iShip.Create( "ini:/sims/ships/independent/tug_armed", iShipCreation.ShipName( "League", -1 ) );
+				break;
+			
+			case 4:
+				ship = iShip.Create( "ini:/sims/ships/independent/puffin_armed", iShipCreation.ShipName( "League", -1 ) );
+				break;
+			
+			case 5:
+				ship = iShip.Create( "ini:/sims/ships/navy/heavy_corvette_mk2", iShipCreation.ShipName( "League", -1 ) );
+				break;
+				Object.SetBoolProperty( ship, "ignore_speed_limit", true );
+		}
+		
+		Group.AddSim( group, ship );
+	}
+	
+	ABB_Common.SetPilotNoScriptsGroup( group, 0.20, 5.0, 0.20 );
+	ABB_Common.SetFactionGroup( group, iFaction.Find( "League" ) );
+	return group;
+}
+
+hship local_function_26()
+{
+	hship shipCorpCruiserTurrets = iShip.Create( "ini:/sims/ships/corporate/corp_cruiser_turrets", iShipCreation.ShipName( "MAAS Corporation", -1 ) );
+	
+	iPilotSetup.MilitaryAggressive( shipCorpCruiserTurrets );
+	iSim.SetFaction( shipCorpCruiserTurrets, iFaction.Find( "MAAS Corporation" ) );
+	return shipCorpCruiserTurrets;
+}
+
+hgroup local_function_15( int param_0_ )
+{
+	hgroup group = Group.Create();
+	int ii;
+	hship shipLargeCorpInterceptor;
+	
+	for ( ii = 0; ii < param_0_; ++ii )
+	{
+		shipLargeCorpInterceptor = iShip.Create( "ini:/sims/ships/corporate/large_corp_interceptor", iShipCreation.ShipName( "MAAS Corporation", -1 ) );
+		Group.AddSim( group, shipLargeCorpInterceptor );
+	}
+	
+	ABB_Common.SetPilotNoScriptsGroup( group, 2000.0, 2000.0, -50.0 );
+	ABB_Common.SetFactionGroup( group, iFaction.Find( "MAAS Corporation" ) );
+	return group;
+}
+
+hgroup local_function_23( int param_0_ )
+{
+	hgroup group = Group.Create();
+	int ii;
+	hship shipInterceptor;
+	
+	for ( ii = 0; ii < param_0_; ++ii )
+	{
+		shipInterceptor = iShip.Create( "ini:/sims/ships/corporate/interceptor", iShipCreation.ShipName( "MAAS Corporation", -1 ) );
+		Group.AddSim( group, shipInterceptor );
+	}
+	
+	ABB_Common.SetPilotNoScriptsGroup( group, 0.20, 5.0, 0.20 );
+	ABB_Common.SetFactionGroup( group, iFaction.Find( "MAAS Corporation" ) );
+	return group;
+}
+
+hgroup local_function_24( int param_0_ )
+{
+	hgroup group = Group.Create();
+	int ii;
+	hship shipOmanCutter;
+	
+	for ( ii = 0; ii < param_0_; ++ii )
+	{
+		shipOmanCutter = iShip.Create( "ini:/sims/ships/independent/oman_cutter", iShipCreation.ShipName( "Oman", -1 ) );
+		Group.AddSim( group, shipOmanCutter );
+	}
+	
+	ABB_Common.SetPilotNoScriptsGroup( group, 0.20, 5.0, 0.20 );
+	ABB_Common.SetFactionGroup( group, iFaction.Find( "Oman" ) );
+	return group;
+}
+
+hgroup local_function_21()
+{
+	hgroup group = Group.Create();
+	int constant = 10;
+	int ii;
+	hship shipCorpCruiser = iShip.Create( "ini:/sims/ships/corporate/corp_cruiser", "a3_m01_ship_name_resolute" );
+	
+	Group.AddSim( group, shipCorpCruiser );
+	
+	for ( ii = 0; ii < constant; ++ii )
+	{
+		shipCorpCruiser = iShip.Create( "ini:/sims/ships/corporate/interceptor", iShipCreation.ShipName( "League", -1 ) );
+		Object.SetBoolProperty( shipCorpCruiser, "ignore_speed_limit", true );
+		Group.AddSim( group, shipCorpCruiser );
+	}
+	
+	ABB_Common.SetPilotNoScriptsGroup( group, 2000.0, 2000.0, -50.0 );
+	ABB_Common.SetFactionGroup( group, iFaction.Find( "League" ) );
+	return group;
+}
+
+hgroup local_function_16( int param_0_ )
+{
+	hgroup group = Group.Create();
+	int ii;
+	hship shipTruckGreyhound;
+	
+	for ( ii = 0; ii < param_0_; ++ii )
+	{
+		switch ( Math.RandomInt( 1, 2 ) )
+		{
+			case 1:
+				shipTruckGreyhound = iShip.Create( "ini:/sims/ships/utility/truck_greyhound", iShipCreation.ShipName( "General", -1 ) );
+				break;
+			
+			case 2:
+				shipTruckGreyhound = iShip.Create( "ini:/sims/ships/utility/freighter", iShipCreation.ShipName( "General", -1 ) );
+				iShipCreation.CreateSupplyCargo( shipTruckGreyhound, -2 );
+		}
+		
+		Object.SetBoolProperty( shipTruckGreyhound, "ignore_speed_limit", true );
+		Group.AddSim( group, shipTruckGreyhound );
+	}
+	
+	ABB_Common.SetPilotNoScriptsGroup( group, 0.30, 1.0, 0.50 );
+	ABB_Common.SetFactionGroup( group, iFaction.Find( "MAAS Corporation" ) );
+	return group;
+}
+
+hgroup local_function_14( hmapentity mapentity_, int param_1_, float param_2_ )
+{
+	hfaction mAASCorporation = iFaction.Find( "MAAS Corporation" );
+	hgroup group = Group.Create();
+	hship shipGunstarQuadLight;
+	int ii;
+	float local_4;
+	
+	for ( ii = 0; ii < param_1_; ++ii )
+	{
+		local_4 = ( (ii * 1.0) * (360.0 / (param_1_ * 1.0)) );
+		shipGunstarQuadLight = iShip.Create( "ini:/sims/ships/navy/gunstar_quad_light", "a3_m01_Gunstar" );
+		Group.AddSim( group, shipGunstarQuadLight );
+		
+		debug
+		{
+			Debug.PrintString( "Creating gunstar relative to lpoint : ( " );
+			Debug.PrintFloat( param_2_ * Math.Cos( local_4 ) );
+			Debug.PrintString( ", " );
+			Debug.PrintFloat( param_2_ * Math.Sin( local_4 ) );
+			Debug.PrintString( ")\n" );
+		}
+		
+		Sim.SetCullable( shipGunstarQuadLight, false );
+		Sim.PlaceRelativeTo( shipGunstarQuadLight, mapentity_, param_2_ * Math.Cos( local_4 ), param_2_ * Math.Sin( local_4 ), 0.0 );
+		iPilotSetup.GenericCargoPod( shipGunstarQuadLight );
+		iShip.SetPilotSkillLevel( shipGunstarQuadLight, 0.40 );
+		iSim.SetFaction( shipGunstarQuadLight, mAASCorporation );
+	}
+	
+	return group;
+}
+
+local_function_27( hship ship_ )
+{
+	iShip.Undock( ship_, Sim.Parent( ship_ ) );
+}
+
+hgroup local_function_20( hgroup group_0_, int param_1_ )
+{
+	hgroup group_1 = Group.Create();
+	hsim groupIter;
+	
+	Group.Flatten( group_0_ );
+	0;
+	
+	while ( param_1_ > 0 )
+	{
+		groupIter = Group.NthSim( group_0_, 0 );
+		Group.RemoveNthSim( group_0_, 0 );
+		Group.AddSim( group_1, groupIter );
+		param_1_ = ( param_1_ + -1 );
+	}
+	
+	return group_1;
+}
+
+local_function_6()
+{
+	hfaction player = iFaction.Find( "Player" );
+	hfaction league = iFaction.Find( "League" );
+	hfaction mAASCorporation_0 = iFaction.Find( "MAAS Corporation" );
+	hfaction mAASCorporation_1 = iFaction.Find( "MAAS Corporation" );
+	
+	iFaction.SetFeeling( player, league, iFaction.FeelingLevel( FT_Like ) );
+	iFaction.SetFeeling( player, mAASCorporation_0, iFaction.FeelingLevel( FT_Hate ) );
+	iFaction.SetFeeling( player, mAASCorporation_1, iFaction.FeelingLevel( FT_Hate ) );
+	iFaction.SetFeeling( league, player, iFaction.FeelingLevel( FT_Like ) );
+	iFaction.SetFeeling( league, mAASCorporation_0, iFaction.FeelingLevel( FT_Hate ) );
+	iFaction.SetFeeling( league, mAASCorporation_1, iFaction.FeelingLevel( FT_Hate ) );
+	iFaction.SetFeeling( mAASCorporation_0, player, iFaction.FeelingLevel( FT_Hate ) );
+	iFaction.SetFeeling( mAASCorporation_0, league, iFaction.FeelingLevel( FT_Hate ) );
+	iFaction.SetFeeling( mAASCorporation_0, mAASCorporation_1, iFaction.FeelingLevel( FT_Like ) );
+	iFaction.SetFeeling( mAASCorporation_1, player, iFaction.FeelingLevel( FT_Hate ) );
+	iFaction.SetFeeling( mAASCorporation_1, league, iFaction.FeelingLevel( FT_Hate ) );
+	iFaction.SetFeeling( mAASCorporation_1, mAASCorporation_0, iFaction.FeelingLevel( FT_Like ) );
+}
+
+local_function_28()
+{
+	hship playerShip = iShip.FindPlayerShip();
+	hisim baalLPoint = iSim.FindByNameInSystem( "Baal L-Point", "map:/geog/badlands/kompira" );
+	
+	iSim.CapsuleJump( playerShip, baalLPoint );
+	ABB_Common.WatchSimsMovement( playerShip, baalLPoint, 250000.0, 0.0, 512, 1.0 );
+	ABB_Common.WatchSimsMovement( playerShip, baalLPoint, 250000.0, 0.0, 16, 1.0 );
+	Task.Sleep( Task.Current(), 5.0 );
+}
+
