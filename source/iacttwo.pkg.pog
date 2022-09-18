@@ -696,6 +696,8 @@ hgroup local_function_9()
 
 hgroup local_function_6( hhabitat habitat_ )
 {
+	//  slightly altered interceptor squad creation to make them always appear to approach from 'somewhere else'
+	
 	hgroup group = Group.Create();
 	hship shipInterceptor_0 = iShip.Create( "ini:/sims/ships/corporate/interceptor", iShipCreation.ShipName( "MaasCorporation", -1 ) );
 	hship shipInterceptor_1 = iShip.Create( "ini:/sims/ships/corporate/interceptor", iShipCreation.ShipName( "MaasCorporation", -1 ) );
@@ -705,22 +707,22 @@ hgroup local_function_6( hhabitat habitat_ )
 	Group.AddSim( group, shipInterceptor_0 );
 	iPilotSetup.GenericAggressive( shipInterceptor_0 );
 	iSim.SetFaction( shipInterceptor_0, iFaction.Find( iUtilities.FromAllegianceEnum( A_MAASCorporation ) ) );
-	Sim.PlaceNear( shipInterceptor_0, habitat_, 200.0 );
+	Sim.PlaceNear( shipInterceptor_0, habitat_, 300000.0 );
 	Sim.SetCullable( shipInterceptor_0, false );
 	Group.AddSim( group, shipInterceptor_1 );
 	iPilotSetup.GenericAggressive( shipInterceptor_1 );
 	iSim.SetFaction( shipInterceptor_1, iFaction.Find( iUtilities.FromAllegianceEnum( A_MAASCorporation ) ) );
-	Sim.PlaceNear( shipInterceptor_1, habitat_, 200.0 );
+	Sim.PlaceNear( shipInterceptor_1, shipInterceptor_0, 300.0 );
 	Sim.SetCullable( shipInterceptor_1, false );
 	Group.AddSim( group, shipInterceptor_2 );
 	iPilotSetup.GenericAggressive( shipInterceptor_2 );
 	iSim.SetFaction( shipInterceptor_2, iFaction.Find( iUtilities.FromAllegianceEnum( A_MAASCorporation ) ) );
-	Sim.PlaceNear( shipInterceptor_2, habitat_, 200.0 );
+	Sim.PlaceNear( shipInterceptor_2, shipInterceptor_0, 300.0 );
 	Sim.SetCullable( shipInterceptor_2, false );
 	Group.AddSim( group, shipInterceptor_3 );
 	iPilotSetup.GenericAggressive( shipInterceptor_3 );
 	iSim.SetFaction( shipInterceptor_3, iFaction.Find( iUtilities.FromAllegianceEnum( A_MAASCorporation ) ) );
-	Sim.PlaceNear( shipInterceptor_3, habitat_, 200.0 );
+	Sim.PlaceNear( shipInterceptor_3, shipInterceptor_0, 300.0 );
 	Sim.SetCullable( shipInterceptor_3, false );
 	return group;
 }
@@ -2903,17 +2905,17 @@ task DagdaStoryScript()
 {
 	htask currentTask = Task.Current();
 	hstate taskState = State.Find( currentTask );
-	bool local_2 = true;
-	bool local_3 = true;
-	bool local_4 = false;
-	bool local_5 = true;
+	bool playerNotHostile = true;
+	bool playerJustArrived = true;
+	bool playerOutofBounds = false;
+	bool keepAttackingPlayer = true;
 	hgroup group_0 = Group.Create();
 	hlagrangepoint dagdaDelta2LPoint = iLagrangePoint.Cast( iMapEntity.FindByNameInSystem( "Dagda Delta 2 L-Point", "map:/geog/badlands/dagda" ) );
-	hhabitat dagdaMaasSystemsSTC = iHabitat.Cast( iMapEntity.FindByNameInSystem( "Dagda Maas Systems STC", "map:/geog/badlands/dagda" ) );
+	hhabitat dagdaMaasSystemsSTC = iHabitat.Cast( iMapEntity.FindByNameInSystem( "Dagda Maas Systems STC", "map:/geog/badlands/dagda" ) );		// still no clue wtf Maas Systems STC is (doesn't exist as an object at least?)
 	hship playerShip = iShip.FindPlayerShip();
 	hship shipTruck;
 	hship shipFueltransporterSmall;
-	hgroup group_1 = local_function_6( dagdaMaasSystemsSTC );
+	hgroup group_1; 
 	hsim waypoint_0;
 	hsim waypoint_1;
 	hsim waypoint_2;
@@ -2991,31 +2993,34 @@ task DagdaStoryScript()
 		case 1:
 			debug Debug.PrintString( "iActTwo.DagdaStoryScript : commencing the Dagda traffic control loop\n" );
 			
+			group_1 = local_function_6( iHabitat.Nearest( iMapEntity.SystemHabitats(), playerShip ) );		// moved inty group creation into traffic control loop from start of script and changed spawn to nearest base
+			iAI.GiveApproachOrderAdvanced( group_1, dagdaDelta2LPoint, 8000.0, 10000.0, true );		// added approach order to have the first inty squad arrive at L-Point pre-emptively
+			
 			if ( Sim.DistanceBetween( playerShip, dagdaDelta2LPoint ) < 15000.0 )
 			{
-				while ( local_2 )
+				while ( playerNotHostile )
 				{
 					if ( Sim.DistanceBetween( playerShip, dagdaDelta2LPoint ) < 5000.0 )
 					{
-						local_4 = false;
+						playerOutofBounds = false;
 						
-						if ( local_3 )
+						if ( playerJustArrived )
 						{
 							iConversation.Begin();
 							iConversation.Say( dagdaMaasSystemsSTC, "a2_master_dagda_stc", "a2_master_dialogue_dagda_stc_attention_arriving_vessel" );
 							iConversation.End();
-							local_3 = false;
+							playerJustArrived = false;
 						}
 						else
 						{
-							debug Debug.PrintString( "iActTwo.DagdaStoryScript : The player is inside the staging area od Dagda L -point, nothing else to do but sleep...\n" );
+							debug Debug.PrintString( "iActTwo.DagdaStoryScript : The player is inside the staging area of Dagda L -point, nothing else to do but sleep...\n" );		// fixed debug msg typo
 							Task.Sleep( Task.Current(), 2.0 );
 						}
 					}
-					else if ( local_4 )
+					else if ( playerOutofBounds )
 					{
 						debug Debug.PrintString( "iAct2.DagdaScript: called attack!!!!!!\n" );
-						local_2 = false;
+						playerNotHostile = false;
 						iConversation.Begin();
 						iConversation.Say( dagdaMaasSystemsSTC, "a2_master_dagda_stc", "a2_master_dialogue_dagda_stc_attention_vessel_you_are_in_violation" );
 						iConversation.End();
@@ -3024,7 +3029,7 @@ task DagdaStoryScript()
 					else
 					{
 						iConversation.OneLiner( dagdaMaasSystemsSTC, "a2_master_dagda_stc", "a2_master_dialogue_dagda_stc_warning" );
-						local_4 = true;
+						playerOutofBounds = true;
 						debug Debug.PrintString( "iAct2.DagdaScript: warned player for going out of staging area waiting 10 secs\n" );
 						Task.Sleep( Task.Current(), 10.0 );
 						debug Debug.PrintString( "iAct2.DagdaScript: finished wait.........\n" );
@@ -3032,20 +3037,38 @@ task DagdaStoryScript()
 				}
 			}
 			
-			while ( local_5 )
+			// Expanded on this loop a bit. keepAttackingPlayer is always true, so this loop will continue running forever
+			// Original intent is unknown, so keeping it as is
+			
+			while ( keepAttackingPlayer )
 			{
-				if ( Group.GroupCount( group_1 ) == 0 )
+				if ( Global.Exists( "g_running_corporate_holdings" ) == 0 )		// making sure we don't send any regular patrols after the player during corporate holdings
 				{
-					Group.Destroy( group_1, true );
-					group_1 = local_function_6( iHabitat.Nearest( iMapEntity.SystemHabitats(), playerShip ) );
-					iAI.GiveAttackOrder( group_1, playerShip );
+				
+					if ( Group.SimCount( group_1 ) == 0 )		// originally called Group.GroupCount, always evaluating true as the inty group has no subgroups. Main culprit of Dagda bug.
+					{
+						Group.Destroy( group_1, true );	//destroy the old (now empty) group entity
+						group_1 = local_function_6( iHabitat.Nearest( iMapEntity.SystemHabitats(), playerShip ) );		// and immediately recreate a new interceptor squad to replace it
+					}
+					else
+					{
+						debug Debug.PrintString( "iActTwo.DagdaStoryScript : a maas patrol is already on the player tail, sleeping\n" );
+						Task.Sleep( Task.Current(), 10.0 );
+					}
+					
+					Task.Sleep( Task.Current(), 20.00000 );			// this also ensures a 20-30 second interval between attacks getting launched (plus whatever time the squad needs to reach player)
+					iAI.GiveAttackOrder( group_1, playerShip );		// refresh the attack order every now and then, just in case the inty squad loses interest in player for some reason
+					
 				}
 				else
 				{
-					debug Debug.PrintString( "iActTwo.DagdaStoryScript : a maas patrol is already on the player tail, sleeping\n" );
-					Task.Sleep( Task.Current(), 10.0 );
+					debug Debug.PrintString( "iAct2.DagdaScript: Corporate Holdings mission is running, sleeping for 60 seconds before next Dagda patrol check\n" );
+					Task.Sleep( Task.Current(), 60.0 );
 				}
 			}
+			
+			// These following two should never still get called though. I wonder what the original intent was?
+			// Surely not to have "Dagda as a corporate fortress" immersion script run only once?
 			
 			State.Destroy( Task.Current() );
 			Global.SetBool( "g_dagda_script_complete", true );
