@@ -55,7 +55,7 @@ prototype task local_function_10( hmapentity mapentity_0_, hmapentity mapentity_
 prototype task local_function_17( hsim param_0_ );
 prototype hgroup local_function_2( hmapentity mapentity_ );
 prototype hgroup local_function_3();
-prototype task local_function_1( hship ship_, hmapentity mapentity_, hsim param_2_ );
+prototype task local_function_1( hship ship_, hmapentity mapentity_, hsim waypoint_ );
 prototype hship local_function_4( hmapentity mapentity_0_, hmapentity mapentity_1_ );
 prototype bool local_function_8( hgroup group_, hship ship_0_ );
 prototype task local_function_13( hship ship_0_, hmapentity mapentity_0_, hmapentity mapentity_1_, hmapentity mapentity_2_, hstate state_ );
@@ -324,13 +324,21 @@ hgroup local_function_3()
 	return group;
 }
 
-task local_function_1( hship ship_, hmapentity mapentity_, hsim param_2_ )
+task local_function_1( hship ship_, hmapentity mapentity_, hsim waypoint_ )
 {
+	do
+	{
+		Task.Sleep( Task.Current(), 0.010 );
+	}
+	while ( iSim.IsCapsuleJumping( ship_ ) );
+
+	iAI.GiveApproachOrder( ship_, waypoint_ );
+
 	schedule
 	{
 		every 5.0:
 		{
-			if ( iAI.IsOrderComplete( ship_ ) || (Sim.DistanceBetween( ship_, param_2_ ) < 200.0) )
+			if ( iAI.IsOrderComplete( ship_ ) || (Sim.DistanceBetween( ship_, waypoint_ ) < 200.0) )
 			{
 				iShip.DisruptLDSDrive( ship_, 30.0 );
 				iAI.GiveApproachOrder( ship_, mapentity_ );
@@ -364,8 +372,10 @@ hship local_function_4( hmapentity mapentity_0_, hmapentity mapentity_1_ )
 	
 	iPilotSetup.GenericFreight( ship );
 	iSim.SetFaction( ship, marauders );
-	iSim.CapsuleJump( ship, iSim.Cast( mapentity_0_ ) );
 	iShipCreation.CreateSupplyCargo( ship, -2 );
+	iSim.CapsuleJump( ship, iSim.Cast( mapentity_0_ ) );
+
+
 	cargo_CapsuleDrive = Sim.FindSubsimByName( ship, "Cargo_CapsuleDrive" );
 	
 	debug
@@ -377,7 +387,7 @@ hship local_function_4( hmapentity mapentity_0_, hmapentity mapentity_1_ )
 	}
 	
 	Subsim.Destroy( cargo_CapsuleDrive );
-	iAI.GiveApproachOrder( ship, waypoint );
+
 	Task.Detach( start local_function_1( ship, mapentity_1_, waypoint ) );
 	return ship;
 }
@@ -461,6 +471,17 @@ task local_function_13( hship ship_0_, hmapentity mapentity_0_, hmapentity mapen
 					ship_1 = local_function_4( mapentity_0_, mapentity_2_ );
 					local_2 = true;
 					iConversation.OneLiner( none, "name_clay", "a2_m22_dialogue_clay_hey_that" );
+				}
+
+				if ( iShip.HasFired( ship_0_ ) )
+				{
+					if ( !local_7 )
+					{
+						local_7 = true;
+						iConversation.OneLiner( Group.Leader( group_1 ), "", "a2_m22_dialogue_marauders_intruder" );
+					}
+						
+					iAI.GiveAttackOrder( group_1, ship_0_ );
 				}
 				
 				if ( iUtilities.PlayerInRange( mapentity_0_ ) && (Sim.DistanceBetween( ship_0_, Group.Leader( group_0 ) ) > 2000.0) )

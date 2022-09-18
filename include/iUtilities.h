@@ -90,6 +90,8 @@ prototype iUtilities.CapsuleJumpPlayer( hisim location );
 
 prototype iUtilities.CapsuleJumpGroup( hgroup group_to_jump, hisim destination, float initial_delay );
 
+prototype iUtilities.CapsuleJumpStaggeredWithWait( hisim sim, hisim destination );
+
 prototype list iUtilities.ListFromCompoundGroup( hgroup the_group );
 
 prototype hisim iUtilities.NearToGroup( hisim check_sim, hgroup check_group, float within_range, bool process_subgroups );
