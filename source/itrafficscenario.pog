@@ -27,6 +27,7 @@ uses Debug,
      iScriptedOrders,
      INIFile,
      iUtilities,
+	 iPatchUtilities,
      iPilotSetup,
      CargoTypes,
      iCargoScript,
@@ -641,7 +642,7 @@ HaulageIn( hmapentity location_ )
 			if ( local_32 )
 			{
 				local_function_5( lagrangePoint, 3 );
-				iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group_1 ) ), lagrangePoint );
+				iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group_1 ) ), lagrangePoint );
 			}
 			else
 			{
@@ -885,7 +886,7 @@ HaulageOut( hmapentity location_ )
 	else if ( local_31 )
 	{
 		local_function_5( lagrangePoint, 30 );
-		iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group_0 ) ), lagrangePoint );
+		iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group_0 ) ), lagrangePoint );
 	}
 	
 	if ( local_9 > 0 )
@@ -912,7 +913,7 @@ HaulageOut( hmapentity location_ )
 			if ( local_31 )
 			{
 				local_function_5( lagrangePoint, 3 );
-				iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group_1 ) ), lagrangePoint );
+				iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group_1 ) ), lagrangePoint );
 			}
 			else
 			{
@@ -1239,7 +1240,7 @@ Supply( hmapentity location_ )
 	else if ( local_36 )
 	{
 		local_function_5( lagrangePoint, 30 );
-		iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group_0 ) ), lagrangePoint );
+		iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group_0 ) ), lagrangePoint );
 	}
 	
 	if ( local_10 > 0 )
@@ -1266,7 +1267,7 @@ Supply( hmapentity location_ )
 			if ( local_36 )
 			{
 				local_function_5( lagrangePoint, 3 );
-				iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group_1 ) ), lagrangePoint );
+				iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group_1 ) ), lagrangePoint );
 			}
 			else
 			{
@@ -1432,7 +1433,7 @@ Trade( hmapentity location_ )
 	else if ( local_29 )
 	{
 		local_function_5( iLagrangePoint.Cast( location_ ), 30 );
-		iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group_0 ) ), location_ );
+		iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group_0 ) ), location_ );
 	}
 	
 	if ( local_10 > 0 )
@@ -1459,7 +1460,7 @@ Trade( hmapentity location_ )
 			if ( local_29 )
 			{
 				local_function_5( iLagrangePoint.Cast( location_ ), 3 );
-				iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group_1 ) ), location_ );
+				iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group_1 ) ), location_ );
 			}
 			else
 			{
@@ -1595,7 +1596,7 @@ Security( hmapentity location_ )
 			else if ( local_14 )
 			{
 				local_function_5( lagrangePoint, 30 );
-				iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+				iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
 			}
 			
 			debug atomic
@@ -1654,7 +1655,7 @@ Security( hmapentity location_ )
 			else if ( local_14 )
 			{
 				local_function_5( lagrangePoint, 30 );
-				iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+				iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
 			}
 			
 			debug Debug.PrintString( " iTrafficScenario.Security - finished placing ships for security mission \n" );
@@ -1687,7 +1688,7 @@ Security( hmapentity location_ )
 			if ( local_14 )
 			{
 				local_function_5( lagrangePoint, 30 );
-				iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+				iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
 			}
 			
 			debug atomic
@@ -1756,7 +1757,7 @@ Security( hmapentity location_ )
 			else if ( local_14 )
 			{
 				local_function_5( lagrangePoint, 30 );
-				iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+				iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
 			}
 			
 			debug atomic
@@ -1892,7 +1893,7 @@ Tanker( hmapentity location_ )
 	else if ( local_7 )
 	{
 		local_function_5( lagrangePoint, 30 );
-		iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+		iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
 	}
 	
 	debug atomic
@@ -2337,7 +2338,7 @@ Official( hmapentity location_ )
 	else if ( local_34 )
 	{
 		local_function_5( lagrangePoint, 30 );
-		iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group_0 ) ), lagrangePoint );
+		iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group_0 ) ), lagrangePoint );
 	}
 	
 	if ( local_30 > 0 )
@@ -2370,7 +2371,7 @@ Official( hmapentity location_ )
 			if ( local_34 )
 			{
 				local_function_5( lagrangePoint, 3 );
-				iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group_1 ) ), lagrangePoint );
+				iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group_1 ) ), lagrangePoint );
 			}
 			else
 			{
@@ -2591,7 +2592,7 @@ Maintenance( hmapentity location_ )
 			if ( local_15 )
 			{
 				local_function_5( lagrangePoint, 30 );
-				iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group_0 ) ), lagrangePoint );
+				iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group_0 ) ), lagrangePoint );
 			}
 			
 			debug atomic
@@ -2643,7 +2644,7 @@ Maintenance( hmapentity location_ )
 			else if ( local_15 )
 			{
 				local_function_5( lagrangePoint, 30 );
-				iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group_0 ) ), lagrangePoint );
+				iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group_0 ) ), lagrangePoint );
 			}
 			
 			debug atomic
@@ -2695,7 +2696,7 @@ Maintenance( hmapentity location_ )
 			else if ( local_15 )
 			{
 				local_function_5( lagrangePoint, 30 );
-				iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group_0 ) ), lagrangePoint );
+				iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group_0 ) ), lagrangePoint );
 			}
 			
 			debug atomic
@@ -2859,7 +2860,7 @@ Mining( hmapentity location_ )
 	if ( local_18 )
 	{
 		local_function_5( lagrangePoint, 30 );
-		iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+		iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
 	}
 	
 	if ( !local_14 )
@@ -3103,7 +3104,7 @@ Underworld( hmapentity location_ )
 					if ( local_16 )
 					{
 						local_function_5( lagrangePoint, 3 );
-						iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group_1 ) ), lagrangePoint );
+						iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group_1 ) ), lagrangePoint );
 					}
 					else
 					{
@@ -3217,7 +3218,7 @@ Oddball( hmapentity location_ )
 			if ( local_12 )
 			{
 				local_function_5( lagrangePoint, 30 );
-				iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+				iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
 			}
 			
 			debug atomic
@@ -3246,7 +3247,7 @@ Oddball( hmapentity location_ )
 			if ( local_12 )
 			{
 				local_function_5( lagrangePoint, 30 );
-				iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+				iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
 			}
 			
 			debug atomic
@@ -3275,7 +3276,7 @@ Oddball( hmapentity location_ )
 			if ( local_12 )
 			{
 				local_function_5( lagrangePoint, 30 );
-				iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+				iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
 			}
 			
 			debug atomic
@@ -3306,7 +3307,7 @@ Oddball( hmapentity location_ )
 			if ( local_12 )
 			{
 				local_function_5( lagrangePoint, 30 );
-				iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+				iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
 			}
 			
 			debug atomic
@@ -3379,7 +3380,7 @@ Civilian( hmapentity location_ )
 			if ( local_12 )
 			{
 				local_function_5( lagrangePoint, 30 );
-				iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+				iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
 			}
 			
 			debug atomic
@@ -3408,7 +3409,7 @@ Civilian( hmapentity location_ )
 			if ( local_12 )
 			{
 				local_function_5( lagrangePoint, 30 );
-				iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+				iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
 			}
 			
 			debug atomic
@@ -3439,7 +3440,7 @@ Civilian( hmapentity location_ )
 			if ( local_12 )
 			{
 				local_function_5( lagrangePoint, 30 );
-				iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+				iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
 			}
 			
 			debug atomic
@@ -3471,7 +3472,7 @@ Civilian( hmapentity location_ )
 				if ( local_12 )
 				{
 					local_function_5( lagrangePoint, 30 );
-					iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+					iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
 				}
 				
 				debug atomic
@@ -3759,7 +3760,7 @@ Scum( hmapentity location_ )
 			if ( local_12 )
 			{
 				local_function_5( lagrangePoint, 30 );
-				iUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
+				iPatchUtilities.CapsuleJumpStaggeredWithWait( iSim.Cast( Group.Leader( group ) ), lagrangePoint );
 			}
 			
 			debug atomic

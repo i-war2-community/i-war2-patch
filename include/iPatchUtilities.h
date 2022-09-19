@@ -1,0 +1,22 @@
+//
+// (c) 1998-9 Particle Systems Ltd. All Rights Reserved
+//
+// iPatchUtilities.h
+//
+// Compiler-generated export header for package "iPatchUtilities"
+//
+// Revision control information:
+//
+// $Header: /iwar2/resource/scripts/include/iPatchUtilities.h 45    9/03/01 10:28 Steve $
+//
+
+// Dependencies ////////////////////////////////////////////////////////////////
+
+// Enumerated types ////////////////////////////////////////////////////////////
+
+// Functions ///////////////////////////////////////////////////////////////////
+
+prototype iPatchUtilities.CapsuleJumpStaggeredWithWait( hisim sim, hisim destination );
+
+// EOF /////////////////////////////////////////////////////////////////////////
+

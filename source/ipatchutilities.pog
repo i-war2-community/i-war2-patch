@@ -1,0 +1,49 @@
+package iPatchUtilities;
+
+uses Debug,
+     Set,
+     List,
+     String,
+     Global,
+     Sim,
+     Group,
+     INIFile,
+     Math,
+     Object,
+     State,
+     Task,
+     Text,
+     iComms,
+     iConversation,
+     MapEnumerations,
+     iFaction,
+     iGame,
+     iSim,
+     iMapEntity,
+     iBody,
+     iHabitat,
+     GUI,
+     CargoTypes,
+     iInventory,
+     iLagrangePoint,
+     iShip,
+     iTrade;
+
+provides CapsuleJumpStaggeredWithWait;
+
+CapsuleJumpStaggeredWithWait( hisim sim, hisim destination )
+{
+	iSim.CapsuleJumpStaggered( sim, destination );
+
+	do
+	{
+		if ( Sim.IsDead( sim ) )
+		{
+			break;
+		}
+		
+		Task.Sleep( Task.Current(), 0.10 );
+	}
+	while ( iSim.IsCapsuleJumping( sim ) );
+
+}
